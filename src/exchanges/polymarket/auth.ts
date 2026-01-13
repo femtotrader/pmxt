@@ -61,10 +61,10 @@ export class PolymarketAuth {
         let creds: ApiKeyCreds | undefined;
 
         try {
-            console.log('Trying to derive existing API key...');
+            // console.log('Trying to derive existing API key...');
             creds = await l1Client.deriveApiKey();
         } catch (deriveError: any) {
-            console.log('Derivation failed, trying to create new API key...');
+            // console.log('Derivation failed, trying to create new API key...');
             try {
                 creds = await l1Client.createApiKey();
             } catch (createError: any) {

@@ -13,4 +13,7 @@ const pmxt = {
     Kalshi: KalshiExchange
 };
 
+export const polymarket = PolymarketExchange;
+export const kalshi = KalshiExchange;
+
 export default pmxt;

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
  
+## [0.4.4] - 2026-01-15
+
+### Fixed
+- **ESM Import Compatibility**: Fixed an issue where `import pmxt from 'pmxtjs'` in ES Module environments (e.g., Node.js with `"type": "module"`) would wrap the default export in an extra `.default` property, breaking the expected `pmxt.polymarket()` syntax. Added explicit named exports (`polymarket`, `kalshi`) to ensure proper CommonJS/ESM interoperability.
+
+### Added
+- **Named Exports**: You can now import exchanges directly using named imports: `import { polymarket, kalshi } from 'pmxtjs'` in addition to the default `import pmxt from 'pmxtjs'` syntax.
+
 ## [0.4.3] - 2026-01-15
 
 ### Fixed

@@ -64,6 +64,7 @@ describe('KalshiExchange - searchMarkets', () => {
                         markets: [{
                             ticker: 'TEST-MARKET',
                             subtitle: 'Climate policy details',
+                            rules_primary: 'This is about climate change policy',
                             expiration_time: '2025-12-31T00:00:00Z',
                             last_price: 5000
                         }]

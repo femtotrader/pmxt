@@ -5,10 +5,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "pmxt-server": "./dist/server/index.js"
+    "pmxt-server": "./dist/server/index.js",
+    "pmxt-ensure-server": "./bin/pmxt-ensure-server"
   },
   "files": [
     "dist",
+    "bin",
     "API_REFERENCE.md"
   ],
   "directories": {

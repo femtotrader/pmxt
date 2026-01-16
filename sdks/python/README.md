@@ -10,28 +10,20 @@ A unified Python interface for interacting with multiple prediction market excha
 pip install pmxt
 ```
 
-## Quick Start
-
-### 1. Start the PMXT Sidecar Server
-
-The Python SDK communicates with a local Node.js server that handles the exchange integrations:
+**Prerequisites**: The Python SDK requires the PMXT server, which is distributed via npm:
 
 ```bash
-# Install the server (one-time)
 npm install -g pmxtjs
-
-# Start the server
-pmxt-server
 ```
 
-The server will run on `http://localhost:3847` by default.
+That's it! The server will start automatically when you use the SDK.
 
-### 2. Use the Python SDK
+## Quick Start
 
 ```python
 import pmxt
 
-# Initialize exchanges
+# Initialize exchanges (server starts automatically!)
 poly = pmxt.Polymarket()
 kalshi = pmxt.Kalshi()
 
@@ -53,6 +45,27 @@ candles = poly.fetch_ohlcv(
 order_book = poly.fetch_order_book(outcome.id)
 spread = order_book.asks[0].price - order_book.bids[0].price
 print(f"Spread: {spread * 100:.2f}%")
+```
+
+### How It Works
+
+The Python SDK automatically manages the PMXT sidecar server:
+
+1. **First API call**: Checks if server is running
+2. **Auto-start**: Starts server if needed (takes ~1-2 seconds)
+3. **Reuse**: Multiple Python processes share the same server
+4. **Zero config**: Just import and use!
+
+### Manual Server Control (Optional)
+
+If you prefer to manage the server yourself:
+
+```python
+# Disable auto-start
+poly = pmxt.Polymarket(auto_start_server=False)
+
+# Or start the server manually in a separate terminal
+# $ pmxt-server
 ```
 
 ## Authentication (for Trading)

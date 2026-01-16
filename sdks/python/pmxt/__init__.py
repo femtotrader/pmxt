@@ -17,6 +17,7 @@ Example:
 """
 
 from .client import Polymarket, Kalshi, Exchange
+from .server_manager import ServerManager
 from .models import (
     UnifiedMarket,
     MarketOutcome,
@@ -38,6 +39,8 @@ __all__ = [
     "Polymarket",
     "Kalshi",
     "Exchange",
+    # Server Management
+    "ServerManager",
     # Data Models
     "UnifiedMarket",
     "MarketOutcome",

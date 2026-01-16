@@ -35,6 +35,7 @@ from .models import (
     HistoryFilterParams,
     CreateOrderParams,
 )
+from .server_manager import ServerManager
 
 
 def _convert_market(raw: Dict[str, Any]) -> UnifiedMarket:
@@ -158,6 +159,7 @@ class Exchange(ABC):
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
         base_url: str = "http://localhost:3847",
+        auto_start_server: bool = True,
     ):
         """
         Initialize an exchange client.
@@ -167,10 +169,25 @@ class Exchange(ABC):
             api_key: API key for authentication (optional)
             private_key: Private key for authentication (optional)
             base_url: Base URL of the PMXT sidecar server
+            auto_start_server: Automatically start server if not running (default: True)
         """
         self.exchange_name = exchange_name.lower()
         self.api_key = api_key
         self.private_key = private_key
+        
+        # Initialize server manager
+        self._server_manager = ServerManager(base_url)
+        
+        # Ensure server is running (unless disabled)
+        if auto_start_server:
+            try:
+                self._server_manager.ensure_server_running()
+            except Exception as e:
+                raise Exception(
+                    f"Failed to start PMXT server: {e}\n\n"
+                    f"Please ensure 'pmxtjs' is installed: npm install -g pmxtjs\n"
+                    f"Or start the server manually: pmxt-server"
+                )
         
         # Configure the API client
         config = Configuration(host=base_url)
@@ -583,6 +600,7 @@ class Polymarket(Exchange):
         self,
         private_key: Optional[str] = None,
         base_url: str = "http://localhost:3847",
+        auto_start_server: bool = True,
     ):
         """
         Initialize Polymarket client.
@@ -590,11 +608,13 @@ class Polymarket(Exchange):
         Args:
             private_key: Polygon private key (required for trading)
             base_url: Base URL of the PMXT sidecar server
+            auto_start_server: Automatically start server if not running (default: True)
         """
         super().__init__(
             exchange_name="polymarket",
             private_key=private_key,
             base_url=base_url,
+            auto_start_server=auto_start_server,
         )
 
 
@@ -620,6 +640,7 @@ class Kalshi(Exchange):
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
         base_url: str = "http://localhost:3847",
+        auto_start_server: bool = True,
     ):
         """
         Initialize Kalshi client.
@@ -628,10 +649,12 @@ class Kalshi(Exchange):
             api_key: Kalshi API key (required for trading)
             private_key: Kalshi private key (required for trading)
             base_url: Base URL of the PMXT sidecar server
+            auto_start_server: Automatically start server if not running (default: True)
         """
         super().__init__(
             exchange_name="kalshi",
             api_key=api_key,
             private_key=private_key,
             base_url=base_url,
+            auto_start_server=auto_start_server,
         )

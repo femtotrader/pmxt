@@ -20,6 +20,13 @@ import {
     CreateOrderParamsToJSON,
     CreateOrderParamsToJSONTyped,
 } from './CreateOrderParams';
+import type { ExchangeCredentials } from './ExchangeCredentials';
+import {
+    ExchangeCredentialsFromJSON,
+    ExchangeCredentialsFromJSONTyped,
+    ExchangeCredentialsToJSON,
+    ExchangeCredentialsToJSONTyped,
+} from './ExchangeCredentials';
 
 /**
  * 
@@ -33,6 +40,12 @@ export interface CreateOrderRequest {
      * @memberof CreateOrderRequest
      */
     args: Array<CreateOrderParams>;
+    /**
+     * 
+     * @type {ExchangeCredentials}
+     * @memberof CreateOrderRequest
+     */
+    credentials?: ExchangeCredentials;
 }
 
 /**
@@ -54,6 +67,7 @@ export function CreateOrderRequestFromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'args': ((json['args'] as Array<any>).map(CreateOrderParamsFromJSON)),
+        'credentials': json['credentials'] == null ? undefined : ExchangeCredentialsFromJSON(json['credentials']),
     };
 }
 
@@ -69,6 +83,7 @@ export function CreateOrderRequestToJSONTyped(value?: CreateOrderRequest | null,
     return {
         
         'args': ((value['args'] as Array<any>).map(CreateOrderParamsToJSON)),
+        'credentials': ExchangeCredentialsToJSON(value['credentials']),
     };
 }
 

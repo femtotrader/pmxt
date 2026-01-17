@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ExchangeCredentials } from './ExchangeCredentials';
+import {
+    ExchangeCredentialsFromJSON,
+    ExchangeCredentialsFromJSONTyped,
+    ExchangeCredentialsToJSON,
+    ExchangeCredentialsToJSONTyped,
+} from './ExchangeCredentials';
+
 /**
  * 
  * @export
@@ -25,6 +33,12 @@ export interface CancelOrderRequest {
      * @memberof CancelOrderRequest
      */
     args: Array<string>;
+    /**
+     * 
+     * @type {ExchangeCredentials}
+     * @memberof CancelOrderRequest
+     */
+    credentials?: ExchangeCredentials;
 }
 
 /**
@@ -46,6 +60,7 @@ export function CancelOrderRequestFromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'args': json['args'],
+        'credentials': json['credentials'] == null ? undefined : ExchangeCredentialsFromJSON(json['credentials']),
     };
 }
 
@@ -61,6 +76,7 @@ export function CancelOrderRequestToJSONTyped(value?: CancelOrderRequest | null,
     return {
         
         'args': value['args'],
+        'credentials': ExchangeCredentialsToJSON(value['credentials']),
     };
 }
 

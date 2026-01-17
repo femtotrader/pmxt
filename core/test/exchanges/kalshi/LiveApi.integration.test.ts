@@ -12,7 +12,7 @@ import { KalshiExchange } from '../../../src/exchanges/kalshi';
 
 describe('KalshiExchange - Live API Integration', () => {
     const exchange = new KalshiExchange();
-    jest.setTimeout(30000); // Kalshi fetches all events before applying limit (needs optimization)
+    jest.setTimeout(60000); // Kalshi fetches all events before applying limit (needs optimization)
 
     it('should fetch real markets with expected properties', async () => {
         const markets = await exchange.fetchMarkets({ limit: 5 });

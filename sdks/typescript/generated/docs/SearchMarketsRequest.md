@@ -7,6 +7,7 @@
 Name | Type
 ------------ | -------------
 `args` | [Array&lt;SearchMarketsRequestArgsInner&gt;](SearchMarketsRequestArgsInner.md)
+`credentials` | [ExchangeCredentials](ExchangeCredentials.md)
 
 ## Example
 
@@ -16,6 +17,7 @@ import type { SearchMarketsRequest } from 'pmxtjs'
 // TODO: Update the object below with actual values
 const example = {
   "args": ["election",{"limit":5}],
+  "credentials": null,
 } satisfies SearchMarketsRequest
 
 console.log(example)

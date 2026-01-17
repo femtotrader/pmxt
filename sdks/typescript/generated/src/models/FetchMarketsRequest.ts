@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ExchangeCredentials } from './ExchangeCredentials';
+import {
+    ExchangeCredentialsFromJSON,
+    ExchangeCredentialsFromJSONTyped,
+    ExchangeCredentialsToJSON,
+    ExchangeCredentialsToJSONTyped,
+} from './ExchangeCredentials';
 import type { MarketFilterParams } from './MarketFilterParams';
 import {
     MarketFilterParamsFromJSON,
@@ -33,6 +40,12 @@ export interface FetchMarketsRequest {
      * @memberof FetchMarketsRequest
      */
     args?: Array<MarketFilterParams>;
+    /**
+     * 
+     * @type {ExchangeCredentials}
+     * @memberof FetchMarketsRequest
+     */
+    credentials?: ExchangeCredentials;
 }
 
 /**
@@ -53,6 +66,7 @@ export function FetchMarketsRequestFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'args': json['args'] == null ? undefined : ((json['args'] as Array<any>).map(MarketFilterParamsFromJSON)),
+        'credentials': json['credentials'] == null ? undefined : ExchangeCredentialsFromJSON(json['credentials']),
     };
 }
 
@@ -68,6 +82,7 @@ export function FetchMarketsRequestToJSONTyped(value?: FetchMarketsRequest | nul
     return {
         
         'args': value['args'] == null ? undefined : ((value['args'] as Array<any>).map(MarketFilterParamsToJSON)),
+        'credentials': ExchangeCredentialsToJSON(value['credentials']),
     };
 }
 

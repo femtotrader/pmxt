@@ -52,6 +52,8 @@ paths:
                   maxItems: 1
                   items:
                     $ref: '#/components/schemas/MarketFilterParams'
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: List of unified markets
@@ -91,6 +93,8 @@ paths:
                     oneOf:
                       - type: string
                       - $ref: '#/components/schemas/MarketFilterParams'
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: Search results
@@ -126,6 +130,8 @@ paths:
                   items:
                     type: string
                     description: The unique slug of the market
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: Targeted market
@@ -164,6 +170,8 @@ paths:
                     oneOf:
                       - type: string
                       - $ref: '#/components/schemas/HistoryFilterParams'
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: Historical prices
@@ -199,6 +207,8 @@ paths:
                   items:
                     type: string
                     description: The outcome ID
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: Current order book
@@ -234,6 +244,8 @@ paths:
                     oneOf:
                       - type: string
                       - $ref: '#/components/schemas/HistoryFilterParams'
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: Recent trades
@@ -272,6 +284,8 @@ paths:
                   maxItems: 1
                   items:
                     $ref: '#/components/schemas/CreateOrderParams'
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: Order created
@@ -305,6 +319,8 @@ paths:
                   items:
                     type: string
                     description: Order ID
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: Order cancelled
@@ -338,6 +354,8 @@ paths:
                   items:
                     type: string
                     description: Order ID
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: Order details
@@ -369,6 +387,8 @@ paths:
                   items:
                     type: string
                     description: Optional Market ID
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: List of open orders
@@ -402,6 +422,8 @@ paths:
                   maxItems: 0
                   items: {}
                   description: "Empty array (no arguments)"
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: User positions
@@ -435,6 +457,8 @@ paths:
                   maxItems: 0
                   items: {}
                   description: "Empty array (no arguments)"
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
       responses:
         '200':
           description: Account balances
@@ -479,6 +503,14 @@ components:
       properties:
         message:
           type: string
+
+    BaseRequest:
+      type: object
+      description: Base request structure with optional credentials
+      properties:
+        credentials:
+          $ref: '#/components/schemas/ExchangeCredentials'
+
 
     ErrorResponse:
       type: object
@@ -688,3 +720,21 @@ components:
           type: number
         price:
           type: number
+
+    ExchangeCredentials:
+      type: object
+      description: Optional authentication credentials for exchange operations
+      properties:
+        apiKey:
+          type: string
+          description: API key for the exchange
+        privateKey:
+          type: string
+          description: Private key for signing transactions
+        apiSecret:
+          type: string
+          description: API secret (if required by exchange)
+        passphrase:
+          type: string
+          description: Passphrase (if required by exchange)
+

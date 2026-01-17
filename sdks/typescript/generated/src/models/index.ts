@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './Balance';
+export * from './BaseRequest';
 export * from './BaseResponse';
 export * from './CancelOrderRequest';
 export * from './CreateOrder200Response';
@@ -8,6 +9,7 @@ export * from './CreateOrderParams';
 export * from './CreateOrderRequest';
 export * from './ErrorDetail';
 export * from './ErrorResponse';
+export * from './ExchangeCredentials';
 export * from './FetchBalance200Response';
 export * from './FetchMarkets200Response';
 export * from './FetchMarketsRequest';

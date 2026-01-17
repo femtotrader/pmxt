@@ -1,24 +1,23 @@
 
-# FetchMarketsRequest
+# BaseRequest
 
+Base request structure with optional credentials
 
 ## Properties
 
 Name | Type
 ------------ | -------------
-`args` | [Array&lt;MarketFilterParams&gt;](MarketFilterParams.md)
 `credentials` | [ExchangeCredentials](ExchangeCredentials.md)
 
 ## Example
 
 ```typescript
-import type { FetchMarketsRequest } from 'pmxtjs'
+import type { BaseRequest } from 'pmxtjs'
 
 // TODO: Update the object below with actual values
 const example = {
-  "args": null,
   "credentials": null,
-} satisfies FetchMarketsRequest
+} satisfies BaseRequest
 
 console.log(example)
 
@@ -27,7 +26,7 @@ const exampleJSON: string = JSON.stringify(example)
 console.log(exampleJSON)
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as FetchMarketsRequest
+const exampleParsed = JSON.parse(exampleJSON) as BaseRequest
 console.log(exampleParsed)
 ```
 

@@ -1,24 +1,29 @@
 
-# FetchMarketsRequest
+# ExchangeCredentials
 
+Optional authentication credentials for exchange operations
 
 ## Properties
 
 Name | Type
 ------------ | -------------
-`args` | [Array&lt;MarketFilterParams&gt;](MarketFilterParams.md)
-`credentials` | [ExchangeCredentials](ExchangeCredentials.md)
+`apiKey` | string
+`privateKey` | string
+`apiSecret` | string
+`passphrase` | string
 
 ## Example
 
 ```typescript
-import type { FetchMarketsRequest } from 'pmxtjs'
+import type { ExchangeCredentials } from 'pmxtjs'
 
 // TODO: Update the object below with actual values
 const example = {
-  "args": null,
-  "credentials": null,
-} satisfies FetchMarketsRequest
+  "apiKey": null,
+  "privateKey": null,
+  "apiSecret": null,
+  "passphrase": null,
+} satisfies ExchangeCredentials
 
 console.log(example)
 
@@ -27,7 +32,7 @@ const exampleJSON: string = JSON.stringify(example)
 console.log(exampleJSON)
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as FetchMarketsRequest
+const exampleParsed = JSON.parse(exampleJSON) as ExchangeCredentials
 console.log(exampleParsed)
 ```
 

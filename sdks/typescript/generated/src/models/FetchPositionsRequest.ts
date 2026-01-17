@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ExchangeCredentials } from './ExchangeCredentials';
+import {
+    ExchangeCredentialsFromJSON,
+    ExchangeCredentialsFromJSONTyped,
+    ExchangeCredentialsToJSON,
+    ExchangeCredentialsToJSONTyped,
+} from './ExchangeCredentials';
+
 /**
  * 
  * @export
@@ -25,6 +33,12 @@ export interface FetchPositionsRequest {
      * @memberof FetchPositionsRequest
      */
     args?: Array<any>;
+    /**
+     * 
+     * @type {ExchangeCredentials}
+     * @memberof FetchPositionsRequest
+     */
+    credentials?: ExchangeCredentials;
 }
 
 /**
@@ -45,6 +59,7 @@ export function FetchPositionsRequestFromJSONTyped(json: any, ignoreDiscriminato
     return {
         
         'args': json['args'] == null ? undefined : json['args'],
+        'credentials': json['credentials'] == null ? undefined : ExchangeCredentialsFromJSON(json['credentials']),
     };
 }
 
@@ -60,6 +75,7 @@ export function FetchPositionsRequestToJSONTyped(value?: FetchPositionsRequest |
     return {
         
         'args': value['args'],
+        'credentials': ExchangeCredentialsToJSON(value['credentials']),
     };
 }
 

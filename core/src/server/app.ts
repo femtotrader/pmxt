@@ -2,9 +2,10 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { PolymarketExchange } from '../exchanges/polymarket';
 import { KalshiExchange } from '../exchanges/kalshi';
+import { ExchangeCredentials } from '../BaseExchange';
 
-// Singleton instances for local usage
-const exchanges: Record<string, any> = {
+// Singleton instances for local usage (when no credentials provided)
+const defaultExchanges: Record<string, any> = {
     polymarket: null,
     kalshi: null
 };
@@ -21,18 +22,26 @@ export async function startServer(port: number) {
     });
 
     // API endpoint: POST /api/:exchange/:method
-    // Body: { args: any[] }
+    // Body: { args: any[], credentials?: ExchangeCredentials }
     app.post('/api/:exchange/:method', async (req: Request, res: Response, next: NextFunction) => {
         try {
             const exchangeName = (req.params.exchange as string).toLowerCase();
             const methodName = req.params.method as string;
             const args = Array.isArray(req.body.args) ? req.body.args : [];
+            const credentials = req.body.credentials as ExchangeCredentials | undefined;
 
             // 1. Get or Initialize Exchange
-            if (!exchanges[exchangeName]) {
-                exchanges[exchangeName] = createExchange(exchangeName);
+            // If credentials are provided, create a new instance for this request
+            // Otherwise, use the singleton instance
+            let exchange: any;
+            if (credentials && (credentials.privateKey || credentials.apiKey)) {
+                exchange = createExchange(exchangeName, credentials);
+            } else {
+                if (!defaultExchanges[exchangeName]) {
+                    defaultExchanges[exchangeName] = createExchange(exchangeName);
+                }
+                exchange = defaultExchanges[exchangeName];
             }
-            const exchange = exchanges[exchangeName];
 
             // 2. Validate Method
             if (typeof exchange[methodName] !== 'function') {
@@ -64,19 +73,19 @@ export async function startServer(port: number) {
     return app.listen(port);
 }
 
-function createExchange(name: string) {
+function createExchange(name: string, credentials?: ExchangeCredentials) {
     switch (name) {
         case 'polymarket':
             return new PolymarketExchange({
-                privateKey: process.env.POLYMARKET_PK || process.env.POLYMARKET_PRIVATE_KEY,
-                apiKey: process.env.POLYMARKET_API_KEY,
-                apiSecret: process.env.POLYMARKET_API_SECRET,
-                passphrase: process.env.POLYMARKET_PASSPHRASE
+                privateKey: credentials?.privateKey || process.env.POLYMARKET_PK || process.env.POLYMARKET_PRIVATE_KEY,
+                apiKey: credentials?.apiKey || process.env.POLYMARKET_API_KEY,
+                apiSecret: credentials?.apiSecret || process.env.POLYMARKET_API_SECRET,
+                passphrase: credentials?.passphrase || process.env.POLYMARKET_PASSPHRASE
             });
         case 'kalshi':
             return new KalshiExchange({
-                apiKey: process.env.KALSHI_API_KEY,
-                privateKey: process.env.KALSHI_PRIVATE_KEY
+                apiKey: credentials?.apiKey || process.env.KALSHI_API_KEY,
+                privateKey: credentials?.privateKey || process.env.KALSHI_PRIVATE_KEY
             });
         default:
             throw new Error(`Unknown exchange: ${name}`);

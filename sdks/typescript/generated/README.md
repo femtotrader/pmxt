@@ -70,6 +70,7 @@ All URIs are relative to *http://localhost:3847*
 ### Models
 
 - [Balance](docs/Balance.md)
+- [BaseRequest](docs/BaseRequest.md)
 - [BaseResponse](docs/BaseResponse.md)
 - [CancelOrderRequest](docs/CancelOrderRequest.md)
 - [CreateOrder200Response](docs/CreateOrder200Response.md)
@@ -77,6 +78,7 @@ All URIs are relative to *http://localhost:3847*
 - [CreateOrderRequest](docs/CreateOrderRequest.md)
 - [ErrorDetail](docs/ErrorDetail.md)
 - [ErrorResponse](docs/ErrorResponse.md)
+- [ExchangeCredentials](docs/ExchangeCredentials.md)
 - [FetchBalance200Response](docs/FetchBalance200Response.md)
 - [FetchMarkets200Response](docs/FetchMarkets200Response.md)
 - [FetchMarketsRequest](docs/FetchMarketsRequest.md)

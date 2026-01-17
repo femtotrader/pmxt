@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ExchangeCredentials } from './ExchangeCredentials';
+import {
+    ExchangeCredentialsFromJSON,
+    ExchangeCredentialsFromJSONTyped,
+    ExchangeCredentialsToJSON,
+    ExchangeCredentialsToJSONTyped,
+} from './ExchangeCredentials';
+
 /**
  * 
  * @export
@@ -25,6 +33,12 @@ export interface FetchOrderBookRequest {
      * @memberof FetchOrderBookRequest
      */
     args: Array<string>;
+    /**
+     * 
+     * @type {ExchangeCredentials}
+     * @memberof FetchOrderBookRequest
+     */
+    credentials?: ExchangeCredentials;
 }
 
 /**
@@ -46,6 +60,7 @@ export function FetchOrderBookRequestFromJSONTyped(json: any, ignoreDiscriminato
     return {
         
         'args': json['args'],
+        'credentials': json['credentials'] == null ? undefined : ExchangeCredentialsFromJSON(json['credentials']),
     };
 }
 
@@ -61,6 +76,7 @@ export function FetchOrderBookRequestToJSONTyped(value?: FetchOrderBookRequest |
     return {
         
         'args': value['args'],
+        'credentials': ExchangeCredentialsToJSON(value['credentials']),
     };
 }
 

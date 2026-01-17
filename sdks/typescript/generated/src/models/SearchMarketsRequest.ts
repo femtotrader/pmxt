@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ExchangeCredentials } from './ExchangeCredentials';
+import {
+    ExchangeCredentialsFromJSON,
+    ExchangeCredentialsFromJSONTyped,
+    ExchangeCredentialsToJSON,
+    ExchangeCredentialsToJSONTyped,
+} from './ExchangeCredentials';
 import type { SearchMarketsRequestArgsInner } from './SearchMarketsRequestArgsInner';
 import {
     SearchMarketsRequestArgsInnerFromJSON,
@@ -33,6 +40,12 @@ export interface SearchMarketsRequest {
      * @memberof SearchMarketsRequest
      */
     args: Array<SearchMarketsRequestArgsInner>;
+    /**
+     * 
+     * @type {ExchangeCredentials}
+     * @memberof SearchMarketsRequest
+     */
+    credentials?: ExchangeCredentials;
 }
 
 /**
@@ -54,6 +67,7 @@ export function SearchMarketsRequestFromJSONTyped(json: any, ignoreDiscriminator
     return {
         
         'args': ((json['args'] as Array<any>).map(SearchMarketsRequestArgsInnerFromJSON)),
+        'credentials': json['credentials'] == null ? undefined : ExchangeCredentialsFromJSON(json['credentials']),
     };
 }
 
@@ -69,6 +83,7 @@ export function SearchMarketsRequestToJSONTyped(value?: SearchMarketsRequest | n
     return {
         
         'args': ((value['args'] as Array<any>).map(SearchMarketsRequestArgsInnerToJSON)),
+        'credentials': ExchangeCredentialsToJSON(value['credentials']),
     };
 }
 

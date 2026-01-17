@@ -1,8 +1,8 @@
 .gitignore
 .npmignore
-.openapi-generator-ignore
 README.md
 docs/Balance.md
+docs/BaseRequest.md
 docs/BaseResponse.md
 docs/CancelOrderRequest.md
 docs/CreateOrder200Response.md
@@ -11,6 +11,7 @@ docs/CreateOrderRequest.md
 docs/DefaultApi.md
 docs/ErrorDetail.md
 docs/ErrorResponse.md
+docs/ExchangeCredentials.md
 docs/FetchBalance200Response.md
 docs/FetchMarkets200Response.md
 docs/FetchMarketsRequest.md
@@ -44,6 +45,7 @@ src/apis/DefaultApi.ts
 src/apis/index.ts
 src/index.ts
 src/models/Balance.ts
+src/models/BaseRequest.ts
 src/models/BaseResponse.ts
 src/models/CancelOrderRequest.ts
 src/models/CreateOrder200Response.ts
@@ -51,6 +53,7 @@ src/models/CreateOrderParams.ts
 src/models/CreateOrderRequest.ts
 src/models/ErrorDetail.ts
 src/models/ErrorResponse.ts
+src/models/ExchangeCredentials.ts
 src/models/FetchBalance200Response.ts
 src/models/FetchMarkets200Response.ts
 src/models/FetchMarketsRequest.ts

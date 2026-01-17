@@ -22,60 +22,51 @@ import {
 } from './ExchangeCredentials';
 
 /**
- * 
+ * Base request structure with optional credentials
  * @export
- * @interface GetMarketsBySlugRequest
+ * @interface BaseRequest
  */
-export interface GetMarketsBySlugRequest {
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof GetMarketsBySlugRequest
-     */
-    args: Array<string>;
+export interface BaseRequest {
     /**
      * 
      * @type {ExchangeCredentials}
-     * @memberof GetMarketsBySlugRequest
+     * @memberof BaseRequest
      */
     credentials?: ExchangeCredentials;
 }
 
 /**
- * Check if a given object implements the GetMarketsBySlugRequest interface.
+ * Check if a given object implements the BaseRequest interface.
  */
-export function instanceOfGetMarketsBySlugRequest(value: object): value is GetMarketsBySlugRequest {
-    if (!('args' in value) || value['args'] === undefined) return false;
+export function instanceOfBaseRequest(value: object): value is BaseRequest {
     return true;
 }
 
-export function GetMarketsBySlugRequestFromJSON(json: any): GetMarketsBySlugRequest {
-    return GetMarketsBySlugRequestFromJSONTyped(json, false);
+export function BaseRequestFromJSON(json: any): BaseRequest {
+    return BaseRequestFromJSONTyped(json, false);
 }
 
-export function GetMarketsBySlugRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): GetMarketsBySlugRequest {
+export function BaseRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): BaseRequest {
     if (json == null) {
         return json;
     }
     return {
         
-        'args': json['args'],
         'credentials': json['credentials'] == null ? undefined : ExchangeCredentialsFromJSON(json['credentials']),
     };
 }
 
-export function GetMarketsBySlugRequestToJSON(json: any): GetMarketsBySlugRequest {
-    return GetMarketsBySlugRequestToJSONTyped(json, false);
+export function BaseRequestToJSON(json: any): BaseRequest {
+    return BaseRequestToJSONTyped(json, false);
 }
 
-export function GetMarketsBySlugRequestToJSONTyped(value?: GetMarketsBySlugRequest | null, ignoreDiscriminator: boolean = false): any {
+export function BaseRequestToJSONTyped(value?: BaseRequest | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
 
     return {
         
-        'args': value['args'],
         'credentials': ExchangeCredentialsToJSON(value['credentials']),
     };
 }

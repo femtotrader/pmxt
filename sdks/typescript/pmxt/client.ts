@@ -18,6 +18,7 @@ import {
     CancelOrderRequest,
     FetchOpenOrdersRequest,
     FetchPositionsRequest,
+    ExchangeCredentials,
 } from "../generated/src/index.js";
 
 import {
@@ -207,6 +208,16 @@ export abstract class Exchange {
         return response.data;
     }
 
+    protected getCredentials(): ExchangeCredentials | undefined {
+        if (!this.apiKey && !this.privateKey) {
+            return undefined;
+        }
+        return {
+            apiKey: this.apiKey,
+            privateKey: this.privateKey,
+        };
+    }
+
     // Market Data Methods
 
     /**
@@ -227,7 +238,10 @@ export abstract class Exchange {
                 args.push(params);
             }
 
-            const requestBody: FetchMarketsRequest = { args };
+            const requestBody: FetchMarketsRequest = {
+                args,
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.fetchMarkets({
                 exchange: this.exchangeName as any,
@@ -263,7 +277,10 @@ export abstract class Exchange {
                 args.push(params);
             }
 
-            const requestBody: SearchMarketsRequest = { args };
+            const requestBody: SearchMarketsRequest = {
+                args,
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.searchMarkets({
                 exchange: this.exchangeName as any,
@@ -294,7 +311,10 @@ export abstract class Exchange {
      */
     async getMarketsBySlug(slug: string): Promise<UnifiedMarket[]> {
         try {
-            const requestBody: GetMarketsBySlugRequest = { args: [slug] };
+            const requestBody: GetMarketsBySlugRequest = {
+                args: [slug],
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.getMarketsBySlug({
                 exchange: this.exchangeName as any,
@@ -345,7 +365,10 @@ export abstract class Exchange {
                 paramsDict.limit = params.limit;
             }
 
-            const requestBody: FetchOHLCVRequest = { args: [outcomeId, paramsDict] };
+            const requestBody: FetchOHLCVRequest = {
+                args: [outcomeId, paramsDict],
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.fetchOHLCV({
                 exchange: this.exchangeName as any,
@@ -374,7 +397,10 @@ export abstract class Exchange {
      */
     async fetchOrderBook(outcomeId: string): Promise<OrderBook> {
         try {
-            const requestBody: FetchOrderBookRequest = { args: [outcomeId] };
+            const requestBody: FetchOrderBookRequest = {
+                args: [outcomeId],
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.fetchOrderBook({
                 exchange: this.exchangeName as any,
@@ -407,7 +433,10 @@ export abstract class Exchange {
                 paramsDict.limit = params.limit;
             }
 
-            const requestBody: FetchTradesRequest = { args: [outcomeId, paramsDict] };
+            const requestBody: FetchTradesRequest = {
+                args: [outcomeId, paramsDict],
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.fetchTrades({
                 exchange: this.exchangeName as any,
@@ -454,7 +483,10 @@ export abstract class Exchange {
                 paramsDict.price = params.price;
             }
 
-            const requestBody: CreateOrderRequest = { args: [paramsDict] };
+            const requestBody: CreateOrderRequest = {
+                args: [paramsDict],
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.createOrder({
                 exchange: this.exchangeName as any,
@@ -476,7 +508,10 @@ export abstract class Exchange {
      */
     async cancelOrder(orderId: string): Promise<Order> {
         try {
-            const requestBody: CancelOrderRequest = { args: [orderId] };
+            const requestBody: CancelOrderRequest = {
+                args: [orderId],
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.cancelOrder({
                 exchange: this.exchangeName as any,
@@ -498,7 +533,10 @@ export abstract class Exchange {
      */
     async fetchOrder(orderId: string): Promise<Order> {
         try {
-            const requestBody: CancelOrderRequest = { args: [orderId] };
+            const requestBody: CancelOrderRequest = {
+                args: [orderId],
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.fetchOrder({
                 exchange: this.exchangeName as any,
@@ -525,7 +563,10 @@ export abstract class Exchange {
                 args.push(marketId);
             }
 
-            const requestBody: FetchOpenOrdersRequest = { args };
+            const requestBody: FetchOpenOrdersRequest = {
+                args,
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.fetchOpenOrders({
                 exchange: this.exchangeName as any,
@@ -548,7 +589,10 @@ export abstract class Exchange {
      */
     async fetchPositions(): Promise<Position[]> {
         try {
-            const requestBody: FetchPositionsRequest = { args: [] };
+            const requestBody: FetchPositionsRequest = {
+                args: [],
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.fetchPositions({
                 exchange: this.exchangeName as any,
@@ -569,7 +613,10 @@ export abstract class Exchange {
      */
     async fetchBalance(): Promise<Balance[]> {
         try {
-            const requestBody: FetchPositionsRequest = { args: [] };
+            const requestBody: FetchPositionsRequest = {
+                args: [],
+                credentials: this.getCredentials()
+            };
 
             const response = await this.api.fetchBalance({
                 exchange: this.exchangeName as any,

@@ -201,6 +201,18 @@ class Exchange(ABC):
             raise Exception(error.get("message", "Unknown error"))
         return response.get("data")
     
+    def _get_credentials_dict(self) -> Optional[Dict[str, Any]]:
+        """Build credentials dictionary for API requests."""
+        if not self.api_key and not self.private_key:
+            return None
+        
+        creds = {}
+        if self.api_key:
+            creds["apiKey"] = self.api_key
+        if self.private_key:
+            creds["privateKey"] = self.private_key
+        return creds if creds else None
+    
     # Market Data Methods
     
     def fetch_markets(self, params: Optional[MarketFilterParams] = None) -> List[UnifiedMarket]:
@@ -220,6 +232,11 @@ class Exchange(ABC):
             body_dict = {"args": []}
             if params:
                 body_dict["args"] = [params.__dict__]
+            
+            # Add credentials if available
+            creds = self._get_credentials_dict()
+            if creds:
+                body_dict["credentials"] = creds
             
             request_body = internal_models.FetchMarketsRequest.from_dict(body_dict)
             
@@ -447,6 +464,12 @@ class Exchange(ABC):
                 params_dict["price"] = params.price
             
             request_body_dict = {"args": [params_dict]}
+            
+            # Add credentials if available
+            creds = self._get_credentials_dict()
+            if creds:
+                request_body_dict["credentials"] = creds
+            
             request_body = internal_models.CreateOrderRequest.from_dict(request_body_dict)
             
             response = self._api.create_order(
@@ -471,6 +494,12 @@ class Exchange(ABC):
         """
         try:
             body_dict = {"args": [order_id]}
+            
+            # Add credentials if available
+            creds = self._get_credentials_dict()
+            if creds:
+                body_dict["credentials"] = creds
+            
             request_body = internal_models.CancelOrderRequest.from_dict(body_dict)
             
             response = self._api.cancel_order(
@@ -495,6 +524,12 @@ class Exchange(ABC):
         """
         try:
             body_dict = {"args": [order_id]}
+            
+            # Add credentials if available
+            creds = self._get_credentials_dict()
+            if creds:
+                body_dict["credentials"] = creds
+            
             request_body = internal_models.FetchOrderRequest.from_dict(body_dict)
             
             response = self._api.fetch_order(
@@ -523,6 +558,12 @@ class Exchange(ABC):
                 args.append(market_id)
             
             body_dict = {"args": args}
+            
+            # Add credentials if available
+            creds = self._get_credentials_dict()
+            if creds:
+                body_dict["credentials"] = creds
+            
             request_body = internal_models.FetchOpenOrdersRequest.from_dict(body_dict)
             
             response = self._api.fetch_open_orders(
@@ -546,6 +587,12 @@ class Exchange(ABC):
         """
         try:
             body_dict = {"args": []}
+            
+            # Add credentials if available
+            creds = self._get_credentials_dict()
+            if creds:
+                body_dict["credentials"] = creds
+            
             request_body = internal_models.FetchPositionsRequest.from_dict(body_dict)
             
             response = self._api.fetch_positions(
@@ -567,6 +614,12 @@ class Exchange(ABC):
         """
         try:
             body_dict = {"args": []}
+            
+            # Add credentials if available
+            creds = self._get_credentials_dict()
+            if creds:
+                body_dict["credentials"] = creds
+            
             # Note: Generator name for this request might be reused from FetchPositionsRequest
             # if the schemas are identical (empty args array)
             request_body = internal_models.FetchPositionsRequest.from_dict(body_dict)

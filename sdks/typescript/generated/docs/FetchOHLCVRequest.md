@@ -7,6 +7,7 @@
 Name | Type
 ------------ | -------------
 `args` | [Array&lt;FetchOHLCVRequestArgsInner&gt;](FetchOHLCVRequestArgsInner.md)
+`credentials` | [ExchangeCredentials](ExchangeCredentials.md)
 
 ## Example
 
@@ -16,6 +17,7 @@ import type { FetchOHLCVRequest } from 'pmxtjs'
 // TODO: Update the object below with actual values
 const example = {
   "args": ["0x123...",{"resolution":"1h"}],
+  "credentials": null,
 } satisfies FetchOHLCVRequest
 
 console.log(example)

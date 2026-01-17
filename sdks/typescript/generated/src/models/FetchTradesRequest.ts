@@ -20,6 +20,13 @@ import {
     FetchOHLCVRequestArgsInnerToJSON,
     FetchOHLCVRequestArgsInnerToJSONTyped,
 } from './FetchOHLCVRequestArgsInner';
+import type { ExchangeCredentials } from './ExchangeCredentials';
+import {
+    ExchangeCredentialsFromJSON,
+    ExchangeCredentialsFromJSONTyped,
+    ExchangeCredentialsToJSON,
+    ExchangeCredentialsToJSONTyped,
+} from './ExchangeCredentials';
 
 /**
  * 
@@ -33,6 +40,12 @@ export interface FetchTradesRequest {
      * @memberof FetchTradesRequest
      */
     args: Array<FetchOHLCVRequestArgsInner>;
+    /**
+     * 
+     * @type {ExchangeCredentials}
+     * @memberof FetchTradesRequest
+     */
+    credentials?: ExchangeCredentials;
 }
 
 /**
@@ -54,6 +67,7 @@ export function FetchTradesRequestFromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'args': ((json['args'] as Array<any>).map(FetchOHLCVRequestArgsInnerFromJSON)),
+        'credentials': json['credentials'] == null ? undefined : ExchangeCredentialsFromJSON(json['credentials']),
     };
 }
 
@@ -69,6 +83,7 @@ export function FetchTradesRequestToJSONTyped(value?: FetchTradesRequest | null,
     return {
         
         'args': ((value['args'] as Array<any>).map(FetchOHLCVRequestArgsInnerToJSON)),
+        'credentials': ExchangeCredentialsToJSON(value['credentials']),
     };
 }
 

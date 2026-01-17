@@ -40,13 +40,19 @@ async function fetchActiveEvents(targetMarketCount?: number): Promise<any[]> {
                 }
 
                 // Early termination: if we have enough markets, stop fetching
-                if (totalMarketCount >= targetMarketCount * 2) {
+                // Use 1.5x multiplier to ensure we have enough for sorting/filtering
+                if (totalMarketCount >= targetMarketCount * 1.5) {
                     break;
                 }
             }
 
             cursor = response.data.cursor;
             page++;
+
+            // Additional safety: if no target specified, limit to reasonable number of pages
+            if (!targetMarketCount && page >= 10) {
+                break;
+            }
 
         } catch (e) {
             console.error(`Error fetching Kalshi page ${page}:`, e);
@@ -77,21 +83,50 @@ async function fetchSeriesMap(): Promise<Map<string, string[]>> {
     }
 }
 
+// Simple in-memory cache to avoid redundant API calls within a short period
+let cachedEvents: any[] | null = null;
+let cachedSeriesMap: Map<string, string[]> | null = null;
+let lastCacheTime: number = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Export a function to reset the cache (useful for testing)
+export function resetCache(): void {
+    cachedEvents = null;
+    cachedSeriesMap = null;
+    lastCacheTime = 0;
+}
+
 export async function fetchMarkets(params?: MarketFilterParams): Promise<UnifiedMarket[]> {
     const limit = params?.limit || 50;
+    const now = Date.now();
 
     try {
-        // Fetch active events with nested markets
-        // We also fetch Series metadata to get tags (tags are on Series, not Event)
-        const [allEvents, seriesMap] = await Promise.all([
-            fetchActiveEvents(limit),
-            fetchSeriesMap()
-        ]);
+        let events: any[];
+        let seriesMap: Map<string, string[]>;
+
+        if (cachedEvents && cachedSeriesMap && (now - lastCacheTime < CACHE_TTL)) {
+            events = cachedEvents;
+            seriesMap = cachedSeriesMap;
+        } else {
+            // Fetch active events with nested markets
+            // We also fetch Series metadata to get tags (tags are on Series, not Event)
+            const [allEvents, fetchedSeriesMap] = await Promise.all([
+                fetchActiveEvents(limit),
+                fetchSeriesMap()
+            ]);
+
+            events = allEvents;
+            seriesMap = fetchedSeriesMap;
+            cachedEvents = allEvents;
+            cachedSeriesMap = fetchedSeriesMap;
+            lastCacheTime = now;
+        }
 
         // Extract ALL markets from all events
         const allMarkets: UnifiedMarket[] = [];
+        // ... rest of the logic
 
-        for (const event of allEvents) {
+        for (const event of events) {
             // Enrich event with tags from Series
             if (event.series_ticker && seriesMap.has(event.series_ticker)) {
                 // If event has no tags or empty tags, use series tags

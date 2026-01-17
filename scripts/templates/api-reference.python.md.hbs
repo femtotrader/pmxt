@@ -1,0 +1,112 @@
+# PMXT Python SDK - API Reference
+
+A unified Python interface for interacting with multiple prediction market exchanges (Kalshi, Polymarket) identically.
+
+## Installation
+
+```bash
+pip install pmxt
+```
+
+## Quick Start
+
+```python
+import pmxt
+
+# Initialize exchanges (server starts automatically!)
+poly = pmxt.Polymarket()
+kalshi = pmxt.Kalshi()
+
+# Search for markets
+markets = poly.search_markets("Trump")
+print(markets[0].title)
+```
+
+> **Note**: This SDK automatically manages the PMXT sidecar server. Just import and use!
+
+---
+
+## Methods
+
+{{#each methods}}
+### `{{pythonName this.name}}`
+
+{{this.summary}}
+
+{{this.description}}
+
+**Signature:**
+
+```python
+def {{pythonName this.name}}({{pythonParams this.params}}) -> {{pythonType this.returns.type}}:
+```
+
+**Parameters:**
+
+{{#if this.params}}
+{{#each this.params}}
+- `{{pythonName this.name}}` ({{pythonType this.type}}){{#if this.optional}} - **Optional**{{/if}}: {{this.description}}
+{{/each}}
+{{else}}
+- None
+{{/if}}
+
+**Returns:** `{{pythonType this.returns.type}}` - {{this.returns.description}}
+
+**Example:**
+
+```python
+{{this.example}}
+```
+
+{{#if this.notes}}
+**Notes:**
+{{#each this.notes}}
+{{this}}
+{{/each}}
+{{/if}}
+
+---
+{{/each}}
+
+## Complete Trading Workflow
+
+```python
+{{workflowExample}}
+```
+
+## Data Models
+
+{{#each dataModels}}
+### `{{this.name}}`
+
+{{this.description}}
+
+```python
+@dataclass
+class {{this.name}}:
+{{#each this.fields}}
+{{pythonName this.name}}: {{pythonType this.type}} # {{this.description}}
+{{/each}}
+```
+
+---
+{{/each}}
+
+## Filter Parameters
+
+{{#each filterModels}}
+### `{{this.name}}`
+
+{{this.description}}
+
+```python
+@dataclass
+class {{this.name}}:
+{{#each this.fields}}
+{{pythonName this.name}}: {{pythonType this.type}} # {{this.description}}
+{{/each}}
+```
+
+---
+{{/each}}

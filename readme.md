@@ -93,7 +93,7 @@ import pmxt from 'pmxtjs';
 const poly = new pmxt.Polymarket();
 ```
 
-Named exports like `import { Polymarket } from 'pmxtjs'` will **not work** in ESM projects. See the [API Reference](API_REFERENCE.md) for more details.
+Named exports like `import { Polymarket } from 'pmxtjs'` will **not work** in ESM projects. See the [API Reference](core/API_REFERENCE.md) for more details.
 
 ## Supported Exchanges
 
@@ -106,7 +106,7 @@ pmxt supports trading functionality (placing and cancelling orders).
 ### Setup
 To trade, you must provide your private credentials.
 
-- **Polymarket**: Requires your Polygon Private Key. [View Setup Guide](docs/SETUP_POLYMARKET.md)
+- **Polymarket**: Requires your Polygon Private Key. [View Setup Guide](core/docs/SETUP_POLYMARKET.md)
 - **Kalshi**: Requires API Key & Private Key.
 
 ### Trading Example
@@ -136,11 +136,11 @@ console.log('Order:', order);
 
 ## Documentation
 
-See the [API Reference](API_REFERENCE.md) for detailed documentation and more examples.
+See the [API Reference](core/API_REFERENCE.md) for detailed documentation and more examples.
 
 ## Examples
 
-Check out the [examples](examples/) directory for more use cases:
+Check out the [examples](core/examples/) directory for more use cases:
 - Market search
 - Order book data
 - Historical prices

@@ -1,38 +1,113 @@
-name: Publish to npm
+name: Publish Packages
 
 on:
   push:
     tags:
-      - 'v*'  # Triggers on tags like v0.4.3, v1.0.0, etc.
+      - 'v*'
 
 jobs:
-  publish:
+  publish-npm:
+    name: Publish NPM Packages
     runs-on: ubuntu-latest
-    
     permissions:
       contents: read
-      id-token: write  # Required for npm provenance
-    
+      id-token: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
       
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
+      
+      - name: Update package versions
+        run: node scripts/update-versions.js ${{ steps.get_version.outputs.version }}
+          
       - name: Install dependencies
         run: npm ci
-      
-      - name: Run tests
-        run: npm test
-      
-      - name: Build package
-        run: npm run build
-      
-      - name: Publish to npm
-        run: npm publish --provenance --access public
+        
+      - name: Generate SDKs
+        run: npm run generate:sdk:all --workspace=pmxt-core
+
+      - name: Build Core
+        run: npm run build --workspace=pmxt-core
+
+      - name: Start PMXT Server
+        run: |
+          npm run server --workspace=pmxt-core &
+          timeout 30 bash -c 'until curl -s http://localhost:3847/health > /dev/null; do sleep 1; done'
+
+      - name: Run Tests (All Workspaces)
+        run: npm test --workspaces
+        
+      - name: Build (All Workspaces)
+        run: npm run build --workspaces
+        
+      - name: Publish pmxt-core
+        run: npm publish --workspace=pmxt-core --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Publish pmxtjs
+        run: npm publish --workspace=pmxtjs --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-python:
+    name: Publish pmxt (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
+      
+      - name: Update package versions
+        run: node scripts/update-versions.js ${{ steps.get_version.outputs.version }}
+          
+      - name: Generate SDKs
+        run: |
+          npm ci
+          npm run generate:sdk:all --workspace=pmxt-core
+          
+      - name: Install build tools & dependencies
+        run: pip install build twine pytest .
+        working-directory: sdks/python
+
+      - name: Run tests
+        run: |
+          npm run build --workspace=pmxt-core
+          npm run server --workspace=pmxt-core &
+          timeout 30 bash -c 'until curl -s http://localhost:3847/health > /dev/null; do sleep 1; done'
+          pytest
+        working-directory: sdks/python
+
+      - name: Build package
+        run: python -m build
+        working-directory: sdks/python
+        
+      - name: Publish to PyPI
+        run: twine upload dist/*
+        working-directory: sdks/python
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

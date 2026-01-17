@@ -1,0 +1,58 @@
+{
+  "name": "pmxt-core",
+  "version": "0.5.0",
+  "description": "pmxt is a unified prediction market data API. The ccxt for prediction markets.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "pmxt-server": "./dist/server/index.js",
+    "pmxt-ensure-server": "./bin/pmxt-ensure-server"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "API_REFERENCE.md"
+  ],
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "build": "tsc",
+    "test": "jest -c jest.config.js",
+    "server": "tsx watch src/server/index.ts",
+    "server:prod": "node dist/server/index.js",
+    "generate:sdk:python": "npx @openapitools/openapi-generator-cli generate -i src/server/openapi.yaml -g python -o ../sdks/python/generated --package-name pmxt_internal --additional-properties=projectName=pmxt-internal,packageVersion=0.5.0,library=urllib3",
+    "generate:sdk:typescript": "npx @openapitools/openapi-generator-cli generate -i src/server/openapi.yaml -g typescript-fetch -o ../sdks/typescript/generated --additional-properties=npmName=pmxtjs,npmVersion=0.5.0,supportsES6=true,typescriptThreePlus=true",
+    "generate:docs": "node ../scripts/generate-api-docs.js",
+    "generate:sdk:all": "npm run generate:sdk:python && npm run generate:sdk:typescript && npm run generate:docs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@polymarket/clob-client": "^5.2.0",
+    "@types/express": "^5.0.6",
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "ethers": "^5.8.0",
+    "express": "^5.2.1",
+    "jest": "^30.2.0",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.27.0",
+    "@types/cors": "^2.8.19",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.3",
+    "handlebars": "^4.7.8",
+    "identity-obj-proxy": "^3.0.0",
+    "js-yaml": "^3.14.2",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3"
+  }
+}

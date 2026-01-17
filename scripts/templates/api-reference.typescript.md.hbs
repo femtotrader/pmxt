@@ -1,0 +1,112 @@
+# pmxtjs - API Reference
+
+A unified TypeScript SDK for interacting with multiple prediction market exchanges (Kalshi, Polymarket) identically.
+
+## Installation
+
+```bash
+npm install pmxtjs
+```
+
+## Quick Start
+
+```typescript
+import pmxt from 'pmxtjs';
+
+// Initialize exchanges (server starts automatically!)
+const poly = new pmxt.Polymarket();
+const kalshi = new pmxt.Kalshi();
+
+// Search for markets
+const markets = await poly.searchMarkets("Trump");
+console.log(markets[0].title);
+```
+
+> **Note**: This SDK automatically manages the PMXT sidecar server.
+
+---
+
+## Methods
+
+{{#each methods}}
+### `{{this.name}}`
+
+{{this.summary}}
+
+{{this.description}}
+
+**Signature:**
+
+```typescript
+async {{this.name}}({{tsParams this.params}}): Promise<{{tsType this.returns.type}}>
+```
+
+**Parameters:**
+
+{{#if this.params}}
+{{#each this.params}}
+- `{{this.name}}` ({{tsType this.type}}){{#if this.optional}} - **Optional**{{/if}}: {{this.description}}
+{{/each}}
+{{else}}
+- None
+{{/if}}
+
+**Returns:** `Promise<{{tsType this.returns.type}}>` - {{this.returns.description}}
+
+**Example:**
+
+```typescript
+{{this.example}}
+```
+
+{{#if this.notes}}
+**Notes:**
+{{#each this.notes}}
+{{this}}
+{{/each}}
+{{/if}}
+
+---
+{{/each}}
+
+## Complete Trading Workflow
+
+```typescript
+{{workflowExample}}
+```
+
+## Data Models
+
+{{#each dataModels}}
+### `{{this.name}}`
+
+{{this.description}}
+
+```typescript
+interface {{this.name}} {
+{{#each this.fields}}
+  {{this.name}}: {{tsType this.type}}; // {{this.description}}
+{{/each}}
+}
+```
+
+---
+{{/each}}
+
+## Filter Parameters
+
+{{#each filterModels}}
+### `{{this.name}}`
+
+{{this.description}}
+
+```typescript
+interface {{this.name}} {
+{{#each this.fields}}
+  {{this.name}}{{tsOptional this.required}}: {{tsType this.type}}; // {{this.description}}
+{{/each}}
+}
+```
+
+---
+{{/each}}

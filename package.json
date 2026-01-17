@@ -1,40 +1,12 @@
 {
-  "name": "pmxtjs",
-  "version": "0.4.4",
-  "description": "pmxt is a unified prediction market data API. The ccxt for prediction markets.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist",
-    "API_REFERENCE.md"
-  ],
-  "directories": {
-    "example": "examples",
-    "test": "test"
-  },
-  "scripts": {
-    "clean": "rm -rf dist",
-    "prebuild": "npm run clean",
-    "build": "tsc",
-    "test": "jest -c jest.config.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
-  "type": "commonjs",
-  "dependencies": {
-    "@polymarket/clob-client": "^5.2.0",
-    "axios": "^1.7.9",
-    "dotenv": "^17.2.3",
-    "ethers": "^5.8.0",
-    "jest": "^30.2.0",
-    "tsx": "^4.21.0"
-  },
-  "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "@types/node": "^25.0.3",
-    "identity-obj-proxy": "^3.0.0",
-    "ts-jest": "^29.4.6",
-    "typescript": "^5.9.3"
-  }
+    "name": "pmxt-monorepo",
+    "private": true,
+    "workspaces": [
+        "core",
+        "sdks/*"
+    ],
+    "scripts": {
+        "server": "npm run server --workspace=pmxt-core",
+        "generate": "npm run generate:sdk:all --workspace=pmxt-core"
+    }
 }

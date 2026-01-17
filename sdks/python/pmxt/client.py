@@ -1,0 +1,660 @@
+"""
+Exchange client implementations.
+
+This module provides clean, Pythonic wrappers around the auto-generated
+OpenAPI client, matching the JavaScript API exactly.
+"""
+
+import os
+import sys
+from typing import List, Optional, Dict, Any
+from datetime import datetime
+from abc import ABC, abstractmethod
+
+# Add generated client to path
+_GENERATED_PATH = os.path.join(os.path.dirname(__file__), "..", "generated")
+if _GENERATED_PATH not in sys.path:
+    sys.path.insert(0, _GENERATED_PATH)
+
+from pmxt_internal import ApiClient, Configuration
+from pmxt_internal.api.default_api import DefaultApi
+from pmxt_internal.exceptions import ApiException
+from pmxt_internal import models as internal_models
+
+from .models import (
+    UnifiedMarket,
+    MarketOutcome,
+    PriceCandle,
+    OrderBook,
+    OrderLevel,
+    Trade,
+    Order,
+    Position,
+    Balance,
+    MarketFilterParams,
+    HistoryFilterParams,
+    CreateOrderParams,
+)
+from .server_manager import ServerManager
+
+
+def _convert_market(raw: Dict[str, Any]) -> UnifiedMarket:
+    """Convert raw API response to UnifiedMarket."""
+    outcomes = [
+        MarketOutcome(
+            id=o.get("id"),
+            label=o.get("label"),
+            price=o.get("price"),
+            price_change_24h=o.get("priceChange24h"),
+            metadata=o.get("metadata"),
+        )
+        for o in raw.get("outcomes", [])
+    ]
+    
+    return UnifiedMarket(
+        id=raw.get("id"),
+        title=raw.get("title"),
+        outcomes=outcomes,
+        volume_24h=raw.get("volume24h", 0),
+        liquidity=raw.get("liquidity", 0),
+        url=raw.get("url"),
+        description=raw.get("description"),
+        resolution_date=None,  # TODO: Parse if present
+        volume=raw.get("volume"),
+        open_interest=raw.get("openInterest"),
+        image=raw.get("image"),
+        category=raw.get("category"),
+        tags=raw.get("tags"),
+    )
+
+
+def _convert_candle(raw: Dict[str, Any]) -> PriceCandle:
+    """Convert raw API response to PriceCandle."""
+    return PriceCandle(
+        timestamp=raw.get("timestamp"),
+        open=raw.get("open"),
+        high=raw.get("high"),
+        low=raw.get("low"),
+        close=raw.get("close"),
+        volume=raw.get("volume"),
+    )
+
+
+def _convert_order_book(raw: Dict[str, Any]) -> OrderBook:
+    """Convert raw API response to OrderBook."""
+    bids = [OrderLevel(price=b.get("price"), size=b.get("size")) for b in raw.get("bids", [])]
+    asks = [OrderLevel(price=a.get("price"), size=a.get("size")) for a in raw.get("asks", [])]
+    
+    return OrderBook(
+        bids=bids,
+        asks=asks,
+        timestamp=raw.get("timestamp"),
+    )
+
+
+def _convert_trade(raw: Dict[str, Any]) -> Trade:
+    """Convert raw API response to Trade."""
+    return Trade(
+        id=raw.get("id"),
+        timestamp=raw.get("timestamp"),
+        price=raw.get("price"),
+        amount=raw.get("amount"),
+        side=raw.get("side", "unknown"),
+    )
+
+
+def _convert_order(raw: Dict[str, Any]) -> Order:
+    """Convert raw API response to Order."""
+    return Order(
+        id=raw.get("id"),
+        market_id=raw.get("marketId"),
+        outcome_id=raw.get("outcomeId"),
+        side=raw.get("side"),
+        type=raw.get("type"),
+        amount=raw.get("amount"),
+        status=raw.get("status"),
+        filled=raw.get("filled"),
+        remaining=raw.get("remaining"),
+        timestamp=raw.get("timestamp"),
+        price=raw.get("price"),
+        fee=raw.get("fee"),
+    )
+
+
+def _convert_position(raw: Dict[str, Any]) -> Position:
+    """Convert raw API response to Position."""
+    return Position(
+        market_id=raw.get("marketId"),
+        outcome_id=raw.get("outcomeId"),
+        outcome_label=raw.get("outcomeLabel"),
+        size=raw.get("size"),
+        entry_price=raw.get("entryPrice"),
+        current_price=raw.get("currentPrice"),
+        unrealized_pnl=raw.get("unrealizedPnL"),
+        realized_pnl=raw.get("realizedPnL"),
+    )
+
+
+def _convert_balance(raw: Dict[str, Any]) -> Balance:
+    """Convert raw API response to Balance."""
+    return Balance(
+        currency=raw.get("currency"),
+        total=raw.get("total"),
+        available=raw.get("available"),
+        locked=raw.get("locked"),
+    )
+
+
+class Exchange(ABC):
+    """
+    Base class for prediction market exchanges.
+    
+    This provides a unified interface for interacting with different
+    prediction market platforms (Polymarket, Kalshi, etc.).
+    """
+    
+    def __init__(
+        self,
+        exchange_name: str,
+        api_key: Optional[str] = None,
+        private_key: Optional[str] = None,
+        base_url: str = "http://localhost:3847",
+        auto_start_server: bool = True,
+    ):
+        """
+        Initialize an exchange client.
+        
+        Args:
+            exchange_name: Name of the exchange ("polymarket" or "kalshi")
+            api_key: API key for authentication (optional)
+            private_key: Private key for authentication (optional)
+            base_url: Base URL of the PMXT sidecar server
+            auto_start_server: Automatically start server if not running (default: True)
+        """
+        self.exchange_name = exchange_name.lower()
+        self.api_key = api_key
+        self.private_key = private_key
+        
+        # Initialize server manager
+        self._server_manager = ServerManager(base_url)
+        
+        # Ensure server is running (unless disabled)
+        if auto_start_server:
+            try:
+                self._server_manager.ensure_server_running()
+            except Exception as e:
+                raise Exception(
+                    f"Failed to start PMXT server: {e}\n\n"
+                    f"Please ensure 'pmxtjs' is installed: npm install -g pmxtjs\n"
+                    f"Or start the server manually: pmxt-server"
+                )
+        
+        # Configure the API client
+        config = Configuration(host=base_url)
+        self._api_client = ApiClient(configuration=config)
+        self._api = DefaultApi(api_client=self._api_client)
+    
+    def _handle_response(self, response: Dict[str, Any]) -> Any:
+        """Handle API response and extract data."""
+        if not response.get("success"):
+            error = response.get("error", {})
+            raise Exception(error.get("message", "Unknown error"))
+        return response.get("data")
+    
+    # Market Data Methods
+    
+    def fetch_markets(self, params: Optional[MarketFilterParams] = None) -> List[UnifiedMarket]:
+        """
+        Get active markets from the exchange.
+        
+        Args:
+            params: Optional filter parameters
+            
+        Returns:
+            List of unified markets
+            
+        Example:
+            >>> markets = exchange.fetch_markets(MarketFilterParams(limit=20, sort="volume"))
+        """
+        try:
+            body_dict = {"args": []}
+            if params:
+                body_dict["args"] = [params.__dict__]
+            
+            request_body = internal_models.FetchMarketsRequest.from_dict(body_dict)
+            
+            response = self._api.fetch_markets(
+                exchange=self.exchange_name,
+                fetch_markets_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return [_convert_market(m) for m in data]
+        except ApiException as e:
+            raise Exception(f"Failed to fetch markets: {e}")
+    
+    def search_markets(
+        self,
+        query: str,
+        params: Optional[MarketFilterParams] = None,
+    ) -> List[UnifiedMarket]:
+        """
+        Search markets by keyword.
+        
+        Args:
+            query: Search query
+            params: Optional filter parameters
+            
+        Returns:
+            List of matching markets
+            
+        Example:
+            >>> markets = exchange.search_markets("Trump", MarketFilterParams(limit=10))
+        """
+        try:
+            args = [query]
+            if params:
+                args.append(params.__dict__)
+            
+            body_dict = {"args": args}
+            request_body = internal_models.SearchMarketsRequest.from_dict(body_dict)
+            
+            response = self._api.search_markets(
+                exchange=self.exchange_name,
+                search_markets_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return [_convert_market(m) for m in data]
+        except ApiException as e:
+            raise Exception(f"Failed to search markets: {e}")
+    
+    def get_markets_by_slug(self, slug: str) -> List[UnifiedMarket]:
+        """
+        Fetch markets by URL slug/ticker.
+        
+        Args:
+            slug: Market slug (Polymarket) or ticker (Kalshi)
+            
+        Returns:
+            List of matching markets
+            
+        Example:
+            >>> # Polymarket
+            >>> markets = poly.get_markets_by_slug("who-will-trump-nominate-as-fed-chair")
+            >>> 
+            >>> # Kalshi
+            >>> markets = kalshi.get_markets_by_slug("KXFEDCHAIRNOM-29")
+        """
+        try:
+            body_dict = {"args": [slug]}
+            request_body = internal_models.GetMarketsBySlugRequest.from_dict(body_dict)
+            
+            response = self._api.get_markets_by_slug(
+                exchange=self.exchange_name,
+                get_markets_by_slug_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return [_convert_market(m) for m in data]
+        except ApiException as e:
+            raise Exception(f"Failed to get markets by slug: {e}")
+    
+    def fetch_ohlcv(
+        self,
+        outcome_id: str,
+        params: HistoryFilterParams,
+    ) -> List[PriceCandle]:
+        """
+        Get historical price candles.
+        
+        **CRITICAL**: Use outcome.id, not market.id.
+        - Polymarket: outcome.id is the CLOB Token ID
+        - Kalshi: outcome.id is the Market Ticker
+        
+        Args:
+            outcome_id: Outcome ID (from market.outcomes[].id)
+            params: History filter parameters
+            
+        Returns:
+            List of price candles
+            
+        Example:
+            >>> markets = exchange.search_markets("Trump")
+            >>> outcome_id = markets[0].outcomes[0].id
+            >>> candles = exchange.fetch_ohlcv(
+            ...     outcome_id,
+            ...     HistoryFilterParams(resolution="1h", limit=100)
+            ... )
+        """
+        try:
+            params_dict = {"resolution": params.resolution}
+            if params.start:
+                params_dict["start"] = params.start.isoformat()
+            if params.end:
+                params_dict["end"] = params.end.isoformat()
+            if params.limit:
+                params_dict["limit"] = params.limit
+            
+            request_body_dict = {"args": [outcome_id, params_dict]}
+            request_body = internal_models.FetchOHLCVRequest.from_dict(request_body_dict)
+            
+            response = self._api.fetch_ohlcv(
+                exchange=self.exchange_name,
+                fetch_ohlcv_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return [_convert_candle(c) for c in data]
+        except ApiException as e:
+            raise Exception(f"Failed to fetch OHLCV: {e}")
+    
+    def fetch_order_book(self, outcome_id: str) -> OrderBook:
+        """
+        Get current order book for an outcome.
+        
+        Args:
+            outcome_id: Outcome ID
+            
+        Returns:
+            Current order book
+            
+        Example:
+            >>> order_book = exchange.fetch_order_book(outcome_id)
+            >>> print(f"Best bid: {order_book.bids[0].price}")
+            >>> print(f"Best ask: {order_book.asks[0].price}")
+        """
+        try:
+            body_dict = {"args": [outcome_id]}
+            request_body = internal_models.FetchOrderBookRequest.from_dict(body_dict)
+            
+            response = self._api.fetch_order_book(
+                exchange=self.exchange_name,
+                fetch_order_book_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return _convert_order_book(data)
+        except ApiException as e:
+            raise Exception(f"Failed to fetch order book: {e}")
+    
+    def fetch_trades(
+        self,
+        outcome_id: str,
+        params: HistoryFilterParams,
+    ) -> List[Trade]:
+        """
+        Get trade history for an outcome.
+        
+        Note: Polymarket requires API key.
+        
+        Args:
+            outcome_id: Outcome ID
+            params: History filter parameters
+            
+        Returns:
+            List of trades
+        """
+        try:
+            params_dict = {"resolution": params.resolution}
+            if params.limit:
+                params_dict["limit"] = params.limit
+            
+            request_body_dict = {"args": [outcome_id, params_dict]}
+            request_body = internal_models.FetchTradesRequest.from_dict(request_body_dict)
+            
+            response = self._api.fetch_trades(
+                exchange=self.exchange_name,
+                fetch_trades_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return [_convert_trade(t) for t in data]
+        except ApiException as e:
+            raise Exception(f"Failed to fetch trades: {e}")
+    
+    # Trading Methods (require authentication)
+    
+    def create_order(self, params: CreateOrderParams) -> Order:
+        """
+        Create a new order.
+        
+        Args:
+            params: Order parameters
+            
+        Returns:
+            Created order
+            
+        Example:
+            >>> order = exchange.create_order(CreateOrderParams(
+            ...     market_id="663583",
+            ...     outcome_id="10991849...",
+            ...     side="buy",
+            ...     type="limit",
+            ...     amount=10,
+            ...     price=0.55
+            ... ))
+        """
+        try:
+            params_dict = {
+                "marketId": params.market_id,
+                "outcomeId": params.outcome_id,
+                "side": params.side,
+                "type": params.type,
+                "amount": params.amount,
+            }
+            if params.price is not None:
+                params_dict["price"] = params.price
+            
+            request_body_dict = {"args": [params_dict]}
+            request_body = internal_models.CreateOrderRequest.from_dict(request_body_dict)
+            
+            response = self._api.create_order(
+                exchange=self.exchange_name,
+                create_order_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return _convert_order(data)
+        except ApiException as e:
+            raise Exception(f"Failed to create order: {e}")
+    
+    def cancel_order(self, order_id: str) -> Order:
+        """
+        Cancel an open order.
+        
+        Args:
+            order_id: Order ID to cancel
+            
+        Returns:
+            Cancelled order
+        """
+        try:
+            body_dict = {"args": [order_id]}
+            request_body = internal_models.CancelOrderRequest.from_dict(body_dict)
+            
+            response = self._api.cancel_order(
+                exchange=self.exchange_name,
+                cancel_order_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return _convert_order(data)
+        except ApiException as e:
+            raise Exception(f"Failed to cancel order: {e}")
+    
+    def fetch_order(self, order_id: str) -> Order:
+        """
+        Get details of a specific order.
+        
+        Args:
+            order_id: Order ID
+            
+        Returns:
+            Order details
+        """
+        try:
+            body_dict = {"args": [order_id]}
+            request_body = internal_models.FetchOrderRequest.from_dict(body_dict)
+            
+            response = self._api.fetch_order(
+                exchange=self.exchange_name,
+                fetch_order_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return _convert_order(data)
+        except ApiException as e:
+            raise Exception(f"Failed to fetch order: {e}")
+    
+    def fetch_open_orders(self, market_id: Optional[str] = None) -> List[Order]:
+        """
+        Get all open orders, optionally filtered by market.
+        
+        Args:
+            market_id: Optional market ID to filter by
+            
+        Returns:
+            List of open orders
+        """
+        try:
+            args = []
+            if market_id:
+                args.append(market_id)
+            
+            body_dict = {"args": args}
+            request_body = internal_models.FetchOpenOrdersRequest.from_dict(body_dict)
+            
+            response = self._api.fetch_open_orders(
+                exchange=self.exchange_name,
+                fetch_open_orders_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return [_convert_order(o) for o in data]
+        except ApiException as e:
+            raise Exception(f"Failed to fetch open orders: {e}")
+    
+    # Account Methods
+    
+    def fetch_positions(self) -> List[Position]:
+        """
+        Get current positions across all markets.
+        
+        Returns:
+            List of positions
+        """
+        try:
+            body_dict = {"args": []}
+            request_body = internal_models.FetchPositionsRequest.from_dict(body_dict)
+            
+            response = self._api.fetch_positions(
+                exchange=self.exchange_name,
+                fetch_positions_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return [_convert_position(p) for p in data]
+        except ApiException as e:
+            raise Exception(f"Failed to fetch positions: {e}")
+    
+    def fetch_balance(self) -> List[Balance]:
+        """
+        Get account balance.
+        
+        Returns:
+            List of balances (by currency)
+        """
+        try:
+            body_dict = {"args": []}
+            # Note: Generator name for this request might be reused from FetchPositionsRequest
+            # if the schemas are identical (empty args array)
+            request_body = internal_models.FetchPositionsRequest.from_dict(body_dict)
+            
+            response = self._api.fetch_balance(
+                exchange=self.exchange_name,
+                fetch_positions_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return [_convert_balance(b) for b in data]
+        except ApiException as e:
+            raise Exception(f"Failed to fetch balance: {e}")
+
+
+class Polymarket(Exchange):
+    """
+    Polymarket exchange client.
+    
+    Example:
+        >>> # Public data (no auth)
+        >>> poly = Polymarket()
+        >>> markets = poly.search_markets("Trump")
+        >>> 
+        >>> # Trading (requires auth)
+        >>> poly = Polymarket(private_key=os.getenv("POLYMARKET_PRIVATE_KEY"))
+        >>> balance = poly.fetch_balance()
+    """
+    
+    def __init__(
+        self,
+        private_key: Optional[str] = None,
+        base_url: str = "http://localhost:3847",
+        auto_start_server: bool = True,
+    ):
+        """
+        Initialize Polymarket client.
+        
+        Args:
+            private_key: Polygon private key (required for trading)
+            base_url: Base URL of the PMXT sidecar server
+            auto_start_server: Automatically start server if not running (default: True)
+        """
+        super().__init__(
+            exchange_name="polymarket",
+            private_key=private_key,
+            base_url=base_url,
+            auto_start_server=auto_start_server,
+        )
+
+
+class Kalshi(Exchange):
+    """
+    Kalshi exchange client.
+    
+    Example:
+        >>> # Public data (no auth)
+        >>> kalshi = Kalshi()
+        >>> markets = kalshi.search_markets("Fed rates")
+        >>> 
+        >>> # Trading (requires auth)
+        >>> kalshi = Kalshi(
+        ...     api_key=os.getenv("KALSHI_API_KEY"),
+        ...     private_key=os.getenv("KALSHI_PRIVATE_KEY")
+        ... )
+        >>> balance = kalshi.fetch_balance()
+    """
+    
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        private_key: Optional[str] = None,
+        base_url: str = "http://localhost:3847",
+        auto_start_server: bool = True,
+    ):
+        """
+        Initialize Kalshi client.
+        
+        Args:
+            api_key: Kalshi API key (required for trading)
+            private_key: Kalshi private key (required for trading)
+            base_url: Base URL of the PMXT sidecar server
+            auto_start_server: Automatically start server if not running (default: True)
+        """
+        super().__init__(
+            exchange_name="kalshi",
+            api_key=api_key,
+            private_key=private_key,
+            base_url=base_url,
+            auto_start_server=auto_start_server,
+        )

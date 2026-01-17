@@ -137,3 +137,22 @@ dist
 
 temp
 KALSHI_FIXES.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.mypy_cache/
+venv/
+env/
+
+# SDK Generated Files (DO NOT COMMIT - regenerate from OpenAPI spec)
+# We commit the generated code so users don't need the generator
+# But mark it clearly as auto-generated

@@ -10,7 +10,6 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "module": "./dist/esm/index.js",
-  "type": "module",
   "sideEffects": false,
   "exports": {
     ".": {
@@ -30,7 +29,7 @@
     "clean": "rm -rf dist",
     "generate": "npm run generate:sdk:typescript --workspace=pmxt-core",
     "prebuild": "npm run clean",
-    "build": "tsc && tsc -p tsconfig.esm.json",
+    "build": "tsc && tsc -p tsconfig.esm.json && echo '{ \"type\": \"module\" }' > dist/esm/package.json",
     "prepack": "npm run build",
     "test": "jest"
   },

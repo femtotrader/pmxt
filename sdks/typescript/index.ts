@@ -27,7 +27,6 @@ export { Exchange, Polymarket, Kalshi } from "./pmxt/client.js";
 export { ServerManager } from "./pmxt/server-manager.js";
 export type * from "./pmxt/models.js";
 
-export const VERSION = "0.0.1";
 
 const pmxt = {
     Exchange,

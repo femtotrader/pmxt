@@ -172,10 +172,10 @@ For deep-dive methods like `fetch_ohlcv()`, `fetch_order_book()`, and `fetch_tra
 
 ```python
 markets = poly.search_markets("Trump")
-outcome_id = markets[0].outcomes[0].id  # ✅ Correct
+outcome_id = markets[0].outcomes[0].id  # Correct
 
-candles = poly.fetch_ohlcv(outcome_id, ...)  # ✅ Works
-candles = poly.fetch_ohlcv(markets[0].id, ...)  # ❌ Wrong!
+candles = poly.fetch_ohlcv(outcome_id, ...)  # Works
+candles = poly.fetch_ohlcv(markets[0].id, ...)  # Wrong!
 ```
 
 ### Prices are 0.0 to 1.0

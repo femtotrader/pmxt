@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-01-25
+
+### Added
+- **Unified WebSocket Support**: Introduced real-time streaming capabilities for prediction markets via a standardized interface.
+  - **New Methods**: Added `watchOrderBook(id)` and `watchTrades(id)` following the CCXT Pro pattern for real-time data ingestion.
+  - **Kalshi WebSocket**: Implemented native WebSocket support for Kalshi, including real-time order book snapshots, incremental deltas, and trade feeds.
+  - **Polymarket CLOB WebSocket**: Integrated with Polymarket's Central Limit Order Book (CLOB) WebSocket for low-latency market updates.
+  - **Sidecar Integration**: Real-time methods are now accessible via the sidecar server, enabling streaming support across Python and TypeScript SDKs.
+- **Examples**: Added comprehensive WebSocket examples in `examples/market-data/`:
+  - `watch_orderbook_kalshi.ts` / `watch_orderbook_polymarket.ts`
+  - `watch_trades_kalshi.ts` / `watch_trades_polymarket.ts`
+
+### Changed
+- **Data Normalization**: Enhanced market ID resolution to ensure consistency between REST snapshots and WebSocket update streams.
+- **Kalshi Order Book Logic**: Optimized the internal book builder to automatically handle Kalshi's "bids-only" data format by synthesizing asks from inverse outcomes.
+
+### Fixed
+- **Build Infrastructure**: Resolved "missing dependency" errors by adding `ws` and `@types/ws` to the core package.
+- **Connection Stability**: Improved WebSocket reconnection logic and error handling to manage network disruptions gracefully.
+- **Type Definitions**: Fixed several edge-case TypeScript errors in WebSocket event handlers.
+
 ## [1.0.4] - 2026-01-22
 
 ### Added

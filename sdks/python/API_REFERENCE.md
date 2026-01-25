@@ -216,6 +216,63 @@ trades &#x3D; kalshi.fetch_trades(&#x27;FED-25JAN&#x27;, pmxt.HistoryFilterParam
 **Note**: Polymarket requires API key. Use &#x60;fetchOHLCV&#x60; for public historical data.
 
 ---
+### `watch_order_book`
+
+Watch Order Book (WebSocket Stream)
+
+Subscribe to real-time order book updates via WebSocket. Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+
+
+**Signature:**
+
+```python
+def watch_order_book(outcome_id: str, limit: Optional[Any] &#x3D; None) -> OrderBook:
+```
+
+**Parameters:**
+
+- `outcome_id` (str): outcomeId
+- `limit` (Any) - **Optional**: limit
+
+**Returns:** `OrderBook` - Next order book update
+
+**Example:**
+
+```python
+# No example available
+```
+
+
+---
+### `watch_trades`
+
+Watch Trades (WebSocket Stream)
+
+Subscribe to real-time trade updates via WebSocket. Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+
+
+**Signature:**
+
+```python
+def watch_trades(outcome_id: str, since: Optional[Any] &#x3D; None, limit: Optional[Any] &#x3D; None) -> List[Trade]:
+```
+
+**Parameters:**
+
+- `outcome_id` (str): outcomeId
+- `since` (Any) - **Optional**: since
+- `limit` (Any) - **Optional**: limit
+
+**Returns:** `List[Trade]` - Next trade update(s)
+
+**Example:**
+
+```python
+# No example available
+```
+
+
+---
 ### `create_order`
 
 Create Order

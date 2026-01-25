@@ -34,6 +34,8 @@ import type {
   GetMarketsBySlugRequest,
   HealthCheck200Response,
   SearchMarketsRequest,
+  WatchOrderBookRequest,
+  WatchTradesRequest,
 } from '../models/index';
 import {
     CancelOrderRequestFromJSON,
@@ -74,6 +76,10 @@ import {
     HealthCheck200ResponseToJSON,
     SearchMarketsRequestFromJSON,
     SearchMarketsRequestToJSON,
+    WatchOrderBookRequestFromJSON,
+    WatchOrderBookRequestToJSON,
+    WatchTradesRequestFromJSON,
+    WatchTradesRequestToJSON,
 } from '../models/index';
 
 export interface CancelOrderOperationRequest {
@@ -134,6 +140,16 @@ export interface GetMarketsBySlugOperationRequest {
 export interface SearchMarketsOperationRequest {
     exchange: SearchMarketsOperationExchangeEnum;
     searchMarketsRequest?: SearchMarketsRequest;
+}
+
+export interface WatchOrderBookOperationRequest {
+    exchange: WatchOrderBookOperationExchangeEnum;
+    watchOrderBookRequest?: WatchOrderBookRequest;
+}
+
+export interface WatchTradesOperationRequest {
+    exchange: WatchTradesOperationExchangeEnum;
+    watchTradesRequest?: WatchTradesRequest;
 }
 
 /**
@@ -652,6 +668,90 @@ export class DefaultApi extends runtime.BaseAPI {
         return await response.value();
     }
 
+    /**
+     * Subscribe to real-time order book updates via WebSocket. Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern). 
+     * Watch Order Book (WebSocket Stream)
+     */
+    async watchOrderBookRaw(requestParameters: WatchOrderBookOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<FetchOrderBook200Response>> {
+        if (requestParameters['exchange'] == null) {
+            throw new runtime.RequiredError(
+                'exchange',
+                'Required parameter "exchange" was null or undefined when calling watchOrderBook().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/{exchange}/watchOrderBook`;
+        urlPath = urlPath.replace(`{${"exchange"}}`, encodeURIComponent(String(requestParameters['exchange'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: WatchOrderBookRequestToJSON(requestParameters['watchOrderBookRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => FetchOrderBook200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Subscribe to real-time order book updates via WebSocket. Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern). 
+     * Watch Order Book (WebSocket Stream)
+     */
+    async watchOrderBook(requestParameters: WatchOrderBookOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<FetchOrderBook200Response> {
+        const response = await this.watchOrderBookRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Subscribe to real-time trade updates via WebSocket. Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern). 
+     * Watch Trades (WebSocket Stream)
+     */
+    async watchTradesRaw(requestParameters: WatchTradesOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<FetchTrades200Response>> {
+        if (requestParameters['exchange'] == null) {
+            throw new runtime.RequiredError(
+                'exchange',
+                'Required parameter "exchange" was null or undefined when calling watchTrades().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/{exchange}/watchTrades`;
+        urlPath = urlPath.replace(`{${"exchange"}}`, encodeURIComponent(String(requestParameters['exchange'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: WatchTradesRequestToJSON(requestParameters['watchTradesRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => FetchTrades200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Subscribe to real-time trade updates via WebSocket. Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern). 
+     * Watch Trades (WebSocket Stream)
+     */
+    async watchTrades(requestParameters: WatchTradesOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<FetchTrades200Response> {
+        const response = await this.watchTradesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
 }
 
 /**
@@ -750,3 +850,19 @@ export const SearchMarketsOperationExchangeEnum = {
     Kalshi: 'kalshi'
 } as const;
 export type SearchMarketsOperationExchangeEnum = typeof SearchMarketsOperationExchangeEnum[keyof typeof SearchMarketsOperationExchangeEnum];
+/**
+ * @export
+ */
+export const WatchOrderBookOperationExchangeEnum = {
+    Polymarket: 'polymarket',
+    Kalshi: 'kalshi'
+} as const;
+export type WatchOrderBookOperationExchangeEnum = typeof WatchOrderBookOperationExchangeEnum[keyof typeof WatchOrderBookOperationExchangeEnum];
+/**
+ * @export
+ */
+export const WatchTradesOperationExchangeEnum = {
+    Polymarket: 'polymarket',
+    Kalshi: 'kalshi'
+} as const;
+export type WatchTradesOperationExchangeEnum = typeof WatchTradesOperationExchangeEnum[keyof typeof WatchTradesOperationExchangeEnum];

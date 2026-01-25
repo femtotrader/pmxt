@@ -442,6 +442,106 @@ class Exchange(ABC):
         except ApiException as e:
             raise Exception(f"Failed to fetch trades: {e}")
     
+    # WebSocket Streaming Methods
+    
+    def watch_order_book(self, outcome_id: str, limit: Optional[int] = None) -> OrderBook:
+        """
+        Watch real-time order book updates via WebSocket.
+        
+        Returns a promise that resolves with the next order book update.
+        Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+        
+        Args:
+            outcome_id: Outcome ID to watch
+            limit: Optional depth limit for order book
+            
+        Returns:
+            Next order book update
+            
+        Example:
+            >>> # Stream order book updates
+            >>> while True:
+            ...     order_book = exchange.watch_order_book(outcome_id)
+            ...     print(f"Best bid: {order_book.bids[0].price}")
+            ...     print(f"Best ask: {order_book.asks[0].price}")
+        """
+        try:
+            args = [outcome_id]
+            if limit is not None:
+                args.append(limit)
+            
+            body_dict = {"args": args}
+            
+            # Add credentials if available
+            creds = self._get_credentials_dict()
+            if creds:
+                body_dict["credentials"] = creds
+            
+            request_body = internal_models.WatchOrderBookRequest.from_dict(body_dict)
+            
+            response = self._api.watch_order_book(
+                exchange=self.exchange_name,
+                watch_order_book_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return _convert_order_book(data)
+        except ApiException as e:
+            raise Exception(f"Failed to watch order book: {e}")
+    
+    def watch_trades(
+        self,
+        outcome_id: str,
+        since: Optional[int] = None,
+        limit: Optional[int] = None
+    ) -> List[Trade]:
+        """
+        Watch real-time trade updates via WebSocket.
+        
+        Returns a promise that resolves with the next trade(s).
+        Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+        
+        Args:
+            outcome_id: Outcome ID to watch
+            since: Optional timestamp to filter trades from
+            limit: Optional limit for number of trades
+            
+        Returns:
+            Next trade update(s)
+            
+        Example:
+            >>> # Stream trade updates
+            >>> while True:
+            ...     trades = exchange.watch_trades(outcome_id)
+            ...     for trade in trades:
+            ...         print(f"Trade: {trade.price} @ {trade.amount}")
+        """
+        try:
+            args = [outcome_id]
+            if since is not None:
+                args.append(since)
+            if limit is not None:
+                args.append(limit)
+            
+            body_dict = {"args": args}
+            
+            # Add credentials if available
+            creds = self._get_credentials_dict()
+            if creds:
+                body_dict["credentials"] = creds
+            
+            request_body = internal_models.WatchTradesRequest.from_dict(body_dict)
+            
+            response = self._api.watch_trades(
+                exchange=self.exchange_name,
+                watch_trades_request=request_body,
+            )
+            
+            data = self._handle_response(response.to_dict())
+            return [_convert_trade(t) for t in data]
+        except ApiException as e:
+            raise Exception(f"Failed to watch trades: {e}")
+    
     # Trading Methods (require authentication)
     
     def create_order(self, params: CreateOrderParams) -> Order:

@@ -1,17 +1,22 @@
 import pmxt from '../../src';
 
 async function run() {
-    // Fetch the Rick Rieder market specifically
-    const slug = 'will-trump-nominate-rick-rieder-as-the-next-fed-chair';
-    const response = await fetch(`https://gamma-api.polymarket.com/markets?slug=${slug}`);
-    const data = await response.json() as any[];
-    const market = data[0];
-    const assetId = JSON.parse(market.clobTokenIds)[0];
-
-    console.log(`Watching trades for: ${market.question}`);
-    console.log(`Outcome: YES (Asset ID: ${assetId})\n`);
-
     const api = new pmxt.polymarket();
+
+    // Search for the Rick Rieder market
+    const markets = await api.searchMarkets('Rick Rieder');
+    const market = markets.find(m => m.title.includes('Rick Rieder') && m.title.includes('Fed'));
+
+    if (!market) {
+        console.error('Market not found');
+        return;
+    }
+
+    const outcome = market.outcomes[0]; // YES outcome
+    const assetId = outcome.id;
+
+    console.log(`Watching trades for: ${market.title}`);
+    console.log(`Outcome: ${outcome.label} (Asset ID: ${assetId})\n`);
 
     while (true) {
         const trades = await api.watchTrades(assetId);

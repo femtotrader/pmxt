@@ -1,6 +1,6 @@
 {
   "name": "pmxtjs",
-  "version": "1.0.0-b4",
+  "version": "1.0.2",
   "description": "OpenAPI client for pmxtjs",
   "author": "OpenAPI-Generator",
   "repository": {

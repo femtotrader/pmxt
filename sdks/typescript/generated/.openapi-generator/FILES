@@ -40,6 +40,9 @@ docs/SearchMarketsRequest.md
 docs/SearchMarketsRequestArgsInner.md
 docs/Trade.md
 docs/UnifiedMarket.md
+docs/WatchOrderBookRequest.md
+docs/WatchOrderBookRequestArgsInner.md
+docs/WatchTradesRequest.md
 package.json
 src/apis/DefaultApi.ts
 src/apis/index.ts
@@ -82,6 +85,9 @@ src/models/SearchMarketsRequest.ts
 src/models/SearchMarketsRequestArgsInner.ts
 src/models/Trade.ts
 src/models/UnifiedMarket.ts
+src/models/WatchOrderBookRequest.ts
+src/models/WatchOrderBookRequestArgsInner.ts
+src/models/WatchTradesRequest.ts
 src/models/index.ts
 src/runtime.ts
 tsconfig.esm.json

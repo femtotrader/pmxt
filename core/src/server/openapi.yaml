@@ -262,6 +262,94 @@ paths:
                           $ref: '#/components/schemas/Trade'
 
   # ---------------------------------------------------------------------------
+  # WebSocket Streaming Endpoints
+  # ---------------------------------------------------------------------------
+
+  /api/{exchange}/watchOrderBook:
+    post:
+      summary: Watch Order Book (WebSocket Stream)
+      operationId: watchOrderBook
+      description: >
+        Subscribe to real-time order book updates via WebSocket.
+        Returns a promise that resolves with the next order book update.
+        Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [args]
+              properties:
+                args:
+                  type: array
+                  minItems: 1
+                  maxItems: 2
+                  description: "[outcomeId, limit?]"
+                  items:
+                    oneOf:
+                      - type: string
+                      - type: integer
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
+      responses:
+        '200':
+          description: Next order book update
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrderBook'
+
+  /api/{exchange}/watchTrades:
+    post:
+      summary: Watch Trades (WebSocket Stream)
+      operationId: watchTrades
+      description: >
+        Subscribe to real-time trade updates via WebSocket.
+        Returns a promise that resolves with the next trade(s).
+        Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [args]
+              properties:
+                args:
+                  type: array
+                  minItems: 1
+                  maxItems: 3
+                  description: "[outcomeId, since?, limit?]"
+                  items:
+                    oneOf:
+                      - type: string
+                      - type: integer
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
+      responses:
+        '200':
+          description: Next trade update(s)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Trade'
+
+  # ---------------------------------------------------------------------------
   # Trading Endpoints
   # ---------------------------------------------------------------------------
 

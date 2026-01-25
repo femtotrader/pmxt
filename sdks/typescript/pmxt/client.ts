@@ -481,6 +481,107 @@ export abstract class Exchange {
         }
     }
 
+    // WebSocket Streaming Methods
+
+    /**
+     * Watch real-time order book updates via WebSocket.
+     * 
+     * Returns a promise that resolves with the next order book update.
+     * Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+     * 
+     * @param outcomeId - Outcome ID to watch
+     * @param limit - Optional depth limit for order book
+     * @returns Next order book update
+     * 
+     * @example
+     * ```typescript
+     * // Stream order book updates
+     * while (true) {
+     *   const orderBook = await exchange.watchOrderBook(outcomeId);
+     *   console.log(`Best bid: ${orderBook.bids[0].price}`);
+     *   console.log(`Best ask: ${orderBook.asks[0].price}`);
+     * }
+     * ```
+     */
+    async watchOrderBook(outcomeId: string, limit?: number): Promise<OrderBook> {
+        await this.initPromise;
+        try {
+            const args: any[] = [outcomeId];
+            if (limit !== undefined) {
+                args.push(limit);
+            }
+
+            const requestBody: any = {
+                args,
+                credentials: this.getCredentials()
+            };
+
+            const response = await this.api.watchOrderBook({
+                exchange: this.exchangeName as any,
+                watchOrderBookRequest: requestBody,
+            });
+
+            const data = this.handleResponse(response);
+            return convertOrderBook(data);
+        } catch (error) {
+            throw new Error(`Failed to watch order book: ${error}`);
+        }
+    }
+
+    /**
+     * Watch real-time trade updates via WebSocket.
+     * 
+     * Returns a promise that resolves with the next trade(s).
+     * Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+     * 
+     * @param outcomeId - Outcome ID to watch
+     * @param since - Optional timestamp to filter trades from
+     * @param limit - Optional limit for number of trades
+     * @returns Next trade update(s)
+     * 
+     * @example
+     * ```typescript
+     * // Stream trade updates
+     * while (true) {
+     *   const trades = await exchange.watchTrades(outcomeId);
+     *   for (const trade of trades) {
+     *     console.log(`Trade: ${trade.price} @ ${trade.amount}`);
+     *   }
+     * }
+     * ```
+     */
+    async watchTrades(
+        outcomeId: string,
+        since?: number,
+        limit?: number
+    ): Promise<Trade[]> {
+        await this.initPromise;
+        try {
+            const args: any[] = [outcomeId];
+            if (since !== undefined) {
+                args.push(since);
+            }
+            if (limit !== undefined) {
+                args.push(limit);
+            }
+
+            const requestBody: any = {
+                args,
+                credentials: this.getCredentials()
+            };
+
+            const response = await this.api.watchTrades({
+                exchange: this.exchangeName as any,
+                watchTradesRequest: requestBody,
+            });
+
+            const data = this.handleResponse(response);
+            return data.map(convertTrade);
+        } catch (error) {
+            throw new Error(`Failed to watch trades: ${error}`);
+        }
+    }
+
     // Trading Methods (require authentication)
 
     /**

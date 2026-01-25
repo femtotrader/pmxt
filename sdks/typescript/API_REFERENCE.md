@@ -217,6 +217,63 @@ const trades &#x3D; await kalshi.fetchTrades(&#x27;FED-25JAN&#x27;, {
 **Note**: Polymarket requires API key. Use &#x60;fetchOHLCV&#x60; for public historical data.
 
 ---
+### `watchOrderBook`
+
+Watch Order Book (WebSocket Stream)
+
+Subscribe to real-time order book updates via WebSocket. Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+
+
+**Signature:**
+
+```typescript
+async watchOrderBook(outcomeId: string, limit?: any): Promise<OrderBook>
+```
+
+**Parameters:**
+
+- `outcomeId` (string): outcomeId
+- `limit` (any) - **Optional**: limit
+
+**Returns:** `Promise<OrderBook>` - Next order book update
+
+**Example:**
+
+```typescript
+// No example available
+```
+
+
+---
+### `watchTrades`
+
+Watch Trades (WebSocket Stream)
+
+Subscribe to real-time trade updates via WebSocket. Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+
+
+**Signature:**
+
+```typescript
+async watchTrades(outcomeId: string, since?: any, limit?: any): Promise<Trade[]>
+```
+
+**Parameters:**
+
+- `outcomeId` (string): outcomeId
+- `since` (any) - **Optional**: since
+- `limit` (any) - **Optional**: limit
+
+**Returns:** `Promise<Trade[]>` - Next trade update(s)
+
+**Example:**
+
+```typescript
+// No example available
+```
+
+
+---
 ### `createOrder`
 
 Create Order

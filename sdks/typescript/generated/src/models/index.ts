@@ -38,3 +38,6 @@ export * from './SearchMarketsRequest';
 export * from './SearchMarketsRequestArgsInner';
 export * from './Trade';
 export * from './UnifiedMarket';
+export * from './WatchOrderBookRequest';
+export * from './WatchOrderBookRequestArgsInner';
+export * from './WatchTradesRequest';

@@ -39,6 +39,8 @@ Market Data Methods:
     fetch_ohlcv(outcome_id, params)     # Historical candles
     fetch_order_book(outcome_id)        # Current order book
     fetch_trades(outcome_id, params)    # Trade history
+    watch_order_book(outcome_id)        # WebSocket order book updates
+    watch_trades(outcome_id)           # WebSocket trade updates
 
 Trading Methods (require auth):
     create_order(params)                # Place order

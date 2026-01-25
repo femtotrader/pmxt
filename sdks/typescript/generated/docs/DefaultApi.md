@@ -17,6 +17,8 @@ All URIs are relative to *http://localhost:3847*
 | [**getMarketsBySlug**](DefaultApi.md#getmarketsbyslugoperation) | **POST** /api/{exchange}/getMarketsBySlug | Get Market by Slug |
 | [**healthCheck**](DefaultApi.md#healthcheck) | **GET** /health | Server Health Check |
 | [**searchMarkets**](DefaultApi.md#searchmarketsoperation) | **POST** /api/{exchange}/searchMarkets | Search Markets |
+| [**watchOrderBook**](DefaultApi.md#watchorderbookoperation) | **POST** /api/{exchange}/watchOrderBook | Watch Order Book (WebSocket Stream) |
+| [**watchTrades**](DefaultApi.md#watchtradesoperation) | **POST** /api/{exchange}/watchTrades | Watch Trades (WebSocket Stream) |
 
 
 
@@ -891,6 +893,146 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Search results |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## watchOrderBook
+
+> FetchOrderBook200Response watchOrderBook(exchange, watchOrderBookRequest)
+
+Watch Order Book (WebSocket Stream)
+
+Subscribe to real-time order book updates via WebSocket. Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern). 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  DefaultApi,
+} from 'pmxtjs';
+import type { WatchOrderBookOperationRequest } from 'pmxtjs';
+
+async function example() {
+  console.log("🚀 Testing pmxtjs SDK...");
+  const api = new DefaultApi();
+
+  const body = {
+    // 'polymarket' | 'kalshi' | The prediction market exchange to target.
+    exchange: exchange_example,
+    // WatchOrderBookRequest (optional)
+    watchOrderBookRequest: ...,
+  } satisfies WatchOrderBookOperationRequest;
+
+  try {
+    const data = await api.watchOrderBook(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **exchange** | `polymarket`, `kalshi` | The prediction market exchange to target. | [Defaults to `undefined`] [Enum: polymarket, kalshi] |
+| **watchOrderBookRequest** | [WatchOrderBookRequest](WatchOrderBookRequest.md) |  | [Optional] |
+
+### Return type
+
+[**FetchOrderBook200Response**](FetchOrderBook200Response.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Next order book update |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## watchTrades
+
+> FetchTrades200Response watchTrades(exchange, watchTradesRequest)
+
+Watch Trades (WebSocket Stream)
+
+Subscribe to real-time trade updates via WebSocket. Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern). 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  DefaultApi,
+} from 'pmxtjs';
+import type { WatchTradesOperationRequest } from 'pmxtjs';
+
+async function example() {
+  console.log("🚀 Testing pmxtjs SDK...");
+  const api = new DefaultApi();
+
+  const body = {
+    // 'polymarket' | 'kalshi' | The prediction market exchange to target.
+    exchange: exchange_example,
+    // WatchTradesRequest (optional)
+    watchTradesRequest: ...,
+  } satisfies WatchTradesOperationRequest;
+
+  try {
+    const data = await api.watchTrades(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **exchange** | `polymarket`, `kalshi` | The prediction market exchange to target. | [Defaults to `undefined`] [Enum: polymarket, kalshi] |
+| **watchTradesRequest** | [WatchTradesRequest](WatchTradesRequest.md) |  | [Optional] |
+
+### Return type
+
+[**FetchTrades200Response**](FetchTrades200Response.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Next trade update(s) |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

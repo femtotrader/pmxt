@@ -26,7 +26,18 @@ export async function fetchOHLCV(id: string, params: HistoryFilterParams): Promi
         let endTs = now;
 
         // Helper to handle string dates (from JSON)
-        const ensureDate = (d: any) => (typeof d === 'string' ? new Date(d) : d);
+        // IMPORTANT: Python sends naive datetimes as ISO strings without 'Z' suffix.
+        // We must treat these as UTC, not local time.
+        const ensureDate = (d: any) => {
+            if (typeof d === 'string') {
+                // If string doesn't end with 'Z' and doesn't have timezone offset, append 'Z'
+                if (!d.endsWith('Z') && !d.match(/[+-]\d{2}:\d{2}$/)) {
+                    return new Date(d + 'Z');
+                }
+                return new Date(d);
+            }
+            return d;
+        };
         const pStart = params.start ? ensureDate(params.start) : undefined;
         const pEnd = params.end ? ensureDate(params.end) : undefined;
 

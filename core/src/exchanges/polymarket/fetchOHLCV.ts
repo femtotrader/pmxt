@@ -21,7 +21,18 @@ export async function fetchOHLCV(id: string, params: HistoryFilterParams): Promi
         // If start/end not provided, calculate window based on limit * resolution
 
         // Helper to handle string dates (from JSON)
-        const ensureDate = (d: any) => (typeof d === 'string' ? new Date(d) : d);
+        // IMPORTANT: Python sends naive datetimes as ISO strings without 'Z' suffix.
+        // We must treat these as UTC, not local time.
+        const ensureDate = (d: any) => {
+            if (typeof d === 'string') {
+                // If string doesn't end with 'Z' and doesn't have timezone offset, append 'Z'
+                if (!d.endsWith('Z') && !d.match(/[+-]\d{2}:\d{2}$/)) {
+                    return new Date(d + 'Z');
+                }
+                return new Date(d);
+            }
+            return d;
+        };
         const pStart = params.start ? ensureDate(params.start) : undefined;
         const pEnd = params.end ? ensureDate(params.end) : undefined;
 
@@ -55,19 +66,38 @@ export async function fetchOHLCV(id: string, params: HistoryFilterParams): Promi
         // We want to normalize this to the start of the bucket (1:00:00).
         const resolutionMs = fidelity * 60 * 1000;
 
-        const candles: PriceCandle[] = history.map((item: any) => {
+        // 2. Client-side Aggregation
+        // Polymarket returns tick data. We must group by time bucket to create true candles.
+        const buckets = new Map<number, PriceCandle>();
+
+        history.forEach((item: any) => {
             const rawMs = item.t * 1000;
             const snappedMs = Math.floor(rawMs / resolutionMs) * resolutionMs;
+            const price = Number(item.p);
+            const volume = Number(item.s || item.v || 0); // specific field depends on api, usually 's' for size
 
-            return {
-                timestamp: snappedMs, // Aligned timestamp
-                open: item.p,
-                high: item.p,
-                low: item.p,
-                close: item.p,
-                volume: undefined
-            };
+            if (!buckets.has(snappedMs)) {
+                buckets.set(snappedMs, {
+                    timestamp: snappedMs,
+                    open: price,
+                    high: price,
+                    low: price,
+                    close: price,
+                    volume: volume
+                });
+            } else {
+                const candle = buckets.get(snappedMs)!;
+                candle.high = Math.max(candle.high, price);
+                candle.low = Math.min(candle.low, price);
+                candle.close = price; // Assuming history is sorted by time. If not, we need to track timestamps.
+                candle.volume = (candle.volume || 0) + volume;
+
+                // If history is not guaranteed sorted, we should track first/last timestamps per bucket.
+                // But usually /prices-history is sorted. We'll assume sorted for efficiency.
+            }
         });
+
+        const candles: PriceCandle[] = Array.from(buckets.values()).sort((a, b) => a.timestamp - b.timestamp);
 
         // Apply limit if specified
         if (params.limit && candles.length > params.limit) {

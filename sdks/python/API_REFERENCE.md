@@ -117,6 +117,35 @@ kalshi_markets &#x3D; kalshi.get_markets_by_slug(&#x27;KXFEDCHAIRNOM-29&#x27;)
 
 
 ---
+### `search_events`
+
+Search Events
+
+Search for events (groups of related markets) by title or description.
+
+**Signature:**
+
+```python
+def search_events(query: str, params: Optional[MarketFilterParams] &#x3D; None) -> List[UnifiedEvent]:
+```
+
+**Parameters:**
+
+- `query` (str): Search query
+- `params` (MarketFilterParams) - **Optional**: Filter parameters
+
+**Returns:** `List[UnifiedEvent]` - Search results
+
+**Example:**
+
+```python
+events &#x3D; poly.search_events(&#x27;Fed Chair&#x27;)
+# Find specific market within event
+warsh &#x3D; events[0].search_markets(&#x27;Kevin Warsh&#x27;)[0]
+```
+
+
+---
 ### `fetch_o_h_l_c_v`
 
 Fetch OHLCV Candles
@@ -535,18 +564,11 @@ url: str #
 image: str # 
 category: str # 
 tags: List[string] # 
-yes: MarketOutcome # Convenience access to Yes outcome
-no: MarketOutcome # Convenience access to No outcome
-up: MarketOutcome # Alias for .yes (used for Up/Down markets)
-down: MarketOutcome # Alias for .no (used for Up/Down markets)
+yes: MarketOutcome # 
+no: MarketOutcome # 
+up: MarketOutcome # 
+down: MarketOutcome # 
 ```
-
-**Binary Outcome Mapping Logic:**
-
-PMXT automatically identifies binary outcomes for markets with exactly two outcomes using the following priority:
-1. **Explicit Labels**: Matches "Yes", "Up", or "Over".
-2. **Opposite Pattern**: Matches pairs like "Kevin Warsh" and "Not Kevin Warsh", identifying the non-"Not" side as `yes`.
-3. **Fallback**: If no pattern is matched, index 0 is mapped to `yes/up` and index 1 to `no/down`.
 
 ---
 ### `MarketOutcome`
@@ -561,6 +583,25 @@ label: str #
 price: float # 
 price_change24h: float # 
 metadata: object # Exchange-specific metadata (e.g., clobTokenId for Polymarket)
+```
+
+---
+### `UnifiedEvent`
+
+A grouped collection of related markets (e.g., &quot;Who will be Fed Chair?&quot; contains multiple candidate markets)
+
+```python
+@dataclass
+class UnifiedEvent:
+id: str # 
+title: str # 
+description: str # 
+slug: str # 
+markets: List[UnifiedMarket] # 
+url: str # 
+image: str # 
+category: str # 
+tags: List[string] # 
 ```
 
 ---

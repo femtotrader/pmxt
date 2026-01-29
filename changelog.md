@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-01-29
+
+### Added
+- **Hierarchical Search API**: Introduced a new, cleaner way to discover markets via the `searchEvents` method.
+  - **Contextual Grouping**: `searchEvents` returns `UnifiedEvent` objects that group related markets (e.g., all candidates in the same election).
+  - **In-Event Search**: Added `event.searchMarkets(query)` to result objects for fast, contextual filtering.
+  - **Unified Support**: Implemented for both Polymarket (Gamma API) and Kalshi (Events API).
+- **OpenAPI Updates**: Exposed the new `/searchEvents` endpoint and `UnifiedEvent` schema in the sidecar server documentation.
+
+### Improved
+- **Developer Experience (DX)**: Updated the README Quickstart to prioritize the new hierarchical search pattern, reducing boilerplate for common tasks.
+- **Documentation**: Simplified the main README for both Python and TypeScript, clearly explaining the **Event -> Market -> Outcome** data hierarchy.
+- **Build Infrastructure**: Hardened `verify-all.sh` to handle monorepo version mismatches more gracefully during local development by making `npm install` conditional.
+
 ## [1.2.0] - 2026-01-29
 
 ### Added

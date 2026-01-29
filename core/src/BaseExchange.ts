@@ -1,4 +1,4 @@
-import { UnifiedMarket, PriceCandle, CandleInterval, OrderBook, Trade, Order, Position, Balance, CreateOrderParams } from './types';
+import { UnifiedMarket, UnifiedEvent, PriceCandle, CandleInterval, OrderBook, Trade, Order, Position, Balance, CreateOrderParams } from './types';
 
 export interface MarketFilterParams {
     limit?: number;
@@ -51,6 +51,16 @@ export abstract class PredictionMarketExchange {
      * By default, searches only in market titles. Use params.searchIn to search descriptions or both.
      */
     abstract searchMarkets(query: string, params?: MarketFilterParams): Promise<UnifiedMarket[]>;
+
+    /**
+     * Search for events matching a keyword query.
+     * Returns grouped events, each containing related markets.
+     * @param query - Search term
+     * @param params - Optional filter parameters
+     */
+    async searchEvents(query: string, params?: MarketFilterParams): Promise<UnifiedEvent[]> {
+        throw new Error("Method searchEvents not implemented.");
+    }
 
     /**
      * Fetch historical price data for a specific market outcome.

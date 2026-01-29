@@ -147,6 +147,47 @@ paths:
                         items:
                           $ref: '#/components/schemas/UnifiedMarket'
 
+  /api/{exchange}/searchEvents:
+    post:
+      summary: Search Events
+      operationId: searchEvents
+      description: Search for events (groups of related markets) by title or description.
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [args]
+              properties:
+                args:
+                  type: array
+                  minItems: 1
+                  maxItems: 2
+                  description: "[query, params?]"
+                  example: ["Fed Chair", { "limit": 5 }]
+                  items:
+                    oneOf:
+                      - type: string
+                      - $ref: '#/components/schemas/MarketFilterParams'
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UnifiedEvent'
+
   /api/{exchange}/fetchOHLCV:
     post:
       summary: Fetch OHLCV Candles
@@ -671,6 +712,33 @@ components:
           type: object
           additionalProperties: true
           description: Exchange-specific metadata (e.g., clobTokenId for Polymarket)
+
+    UnifiedEvent:
+      type: object
+      description: A grouped collection of related markets (e.g., "Who will be Fed Chair?" contains multiple candidate markets)
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        slug:
+          type: string
+        markets:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnifiedMarket'
+        url:
+          type: string
+        image:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
 
     PriceCandle:
       type: object

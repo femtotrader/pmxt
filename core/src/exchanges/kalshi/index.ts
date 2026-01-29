@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { PredictionMarketExchange, MarketFilterParams, HistoryFilterParams, ExchangeCredentials } from '../../BaseExchange';
-import { UnifiedMarket, PriceCandle, OrderBook, Trade, Balance, Order, Position, CreateOrderParams } from '../../types';
+import { UnifiedMarket, UnifiedEvent, PriceCandle, OrderBook, Trade, Balance, Order, Position, CreateOrderParams } from '../../types';
 import { fetchMarkets } from './fetchMarkets';
 import { searchMarkets } from './searchMarkets';
+import { searchEvents } from './searchEvents';
 import { getMarketsBySlug } from './getMarketsBySlug';
 import { fetchOHLCV } from './fetchOHLCV';
 import { fetchOrderBook } from './fetchOrderBook';
@@ -72,6 +73,10 @@ export class KalshiExchange extends PredictionMarketExchange {
 
     async searchMarkets(query: string, params?: MarketFilterParams): Promise<UnifiedMarket[]> {
         return searchMarkets(query, params);
+    }
+
+    async searchEvents(query: string, params?: MarketFilterParams): Promise<UnifiedEvent[]> {
+        return searchEvents(query, params);
     }
 
     async getMarketsBySlug(slug: string): Promise<UnifiedMarket[]> {

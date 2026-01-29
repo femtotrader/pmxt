@@ -13,6 +13,27 @@ export interface MarketOutcome {
     metadata?: Record<string, any>;
 }
 
+export interface UnifiedEvent {
+    id: string;
+    title: string;
+    description: string;
+    slug: string;
+    markets: UnifiedMarket[];
+
+    url: string;
+    image?: string;
+
+    category?: string;
+    tags?: string[];
+
+    /**
+     * Search for markets within this event by keyword.
+     * @param query - Search term to filter markets
+     * @returns Array of markets matching the query
+     */
+    searchMarkets(query: string): UnifiedMarket[];
+}
+
 export interface UnifiedMarket {
     id: string;
     title: string;

@@ -10,7 +10,14 @@ echo "Starting PMXT Verification..."
 # 1. Build Core
 echo "Building Core..."
 cd core
-npm install
+# Skip install if node_modules exists (to avoid version mismatch errors in dev)
+if [ ! -d "node_modules" ] && [ ! -d "../node_modules" ]; then
+    if [ -f "../package.json" ]; then
+        (cd .. && npm install --silent)
+    else
+        npm install --silent
+    fi
+fi
 npm run build
 cd ..
 
@@ -69,8 +76,11 @@ echo "Running TypeScript SDK Integration Tests..."
 if [ -d "sdks/typescript" ]; then
     cd sdks/typescript
     
-    # Install dependencies
-    npm install --silent
+    # Install dependencies only if missing or forced
+    if [ ! -d "node_modules" ]; then
+        echo "Installing TS SDK dependencies..."
+        npm install --silent
+    fi
     
     # Install jest and ts-jest if not present
     npm install --save-dev jest ts-jest @types/jest --silent 2>/dev/null || true

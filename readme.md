@@ -61,26 +61,6 @@
 
 Different prediction market platforms have different APIs, data formats, and conventions. pmxt provides a single, consistent interface to work with all of them.
 
-## Quickstart
-
-Get the current price for any market in seconds.
-
-### Python
-
-```python
-import pmxt
-
-api = pmxt.Polymarket()
-markets = api.get_markets_by_slug('who-will-trump-nominate-as-fed-chair')
-
-# Find the specific candidate in the election event
-warsh = next((m for m in markets if m.yes.label == 'Kevin Warsh'), None) 
-
-print(f"Price: {warsh.yes.price}")
-```
-
-> **Note**: For TypeScript usage, see [pmxtjs documentation](https://pmxt.dev/docs).
-
 ## Installation
 
 ### Python
@@ -93,13 +73,53 @@ pip install pmxt
 npm install pmxtjs
 ```
 
+## Quickstart
+
+Prediction markets are structured in a hierarchy to group related information.
+
+*   **Event**: The broad topic (e.g., *"Who will Trump nominate as Fed Chair?"*)
+*   **Market**: A specific tradeable question (e.g., *"Will Trump nominate Kevin Warsh as the next Fed Chair?"*)
+*   **Outcome**: The actual share you buy (e.g., *"Yes"* or *"No"*)
+
+### Python
+```python
+import pmxt
+
+api = pmxt.Polymarket()
+
+# 1. Search for the broad Event
+events = api.search_events('Who will Trump nominate as Fed Chair?')
+fed_event = events[0]
+
+# 2. Search for the specific Market within that event
+warsh = fed_event.search_markets('Kevin Warsh')[0]
+
+print(f"Price: {warsh.yes.price}")
+```
+
+### TypeScript
+```typescript
+import pmxt from 'pmxtjs';
+
+const api = new pmxt.Polymarket();
+
+// 1. Search for the broad Event
+const events = await api.searchEvents('Who will Trump nominate as Fed Chair?');
+const fedEvent = events[0];
+
+// 2. Search for the specific Market within that event
+const warsh = fedEvent.searchMarkets('Kevin Warsh')[0];
+
+console.log(`Price: ${warsh.yes?.price}`);
+```
+
 ## Supported Exchanges
 
 - Polymarket
 - Kalshi
 
 ## Trading
-pmxt supports trading functionality (placing and cancelling orders).
+pmxt supports unified trading across exchanges.
 
 ### Setup
 To trade, you must provide your private credentials.
@@ -107,29 +127,31 @@ To trade, you must provide your private credentials.
 - **Polymarket**: Requires your Polygon Private Key. [View Setup Guide](core/docs/SETUP_POLYMARKET.md)
 - **Kalshi**: Requires API Key & Private Key.
 
-### Trading Example
+### Example (Python)
 
-```typescript
-import pmxt from 'pmxtjs';
+```python
+import pmxt
+import os
 
-const exchange = new pmxt.Polymarket({
-    privateKey: process.env.POLYMARKET_PRIVATE_KEY
-});
+exchange = pmxt.Polymarket(
+    private_key=os.getenv('POLYMARKET_PRIVATE_KEY')
+)
 
-// Check Balance
-const balance = await exchange.fetchBalance();
-console.log('Balance:', balance);
+# 1. Check Balance
+balance = exchange.fetch_balance()
+print(f"Available USDC: {balance[0].available}")
 
-// Place an Order
-const order = await exchange.createOrder({
-    marketId: 'market-123',
-    outcomeId: 'token-id-456',
-    side: 'buy',
-    type: 'limit',
-    price: 0.50,
-    amount: 100
-});
-console.log('Order:', order);
+# 2. Place an Order
+# Use unique outcome IDs from market.outcomes
+order = exchange.create_order(
+    market_id='market-123',
+    outcome_id='outcome-456',
+    side='buy',
+    type='limit',
+    price=0.33,
+    amount=100
+)
+print(f"Order Status: {order.status}")
 ```
 
 ## Documentation

@@ -16,6 +16,14 @@
                 "example": "const results = await kalshi.searchMarkets('Fed rates', { \n  limit: 10,\n  searchIn: 'title' // 'title' (default) | 'description' | 'both'\n});"
             }
         },
+        "searchEvents": {
+            "python": {
+                "example": "events = poly.search_events('Fed Chair')\n# Find specific market within event\nwarsh = events[0].search_markets('Kevin Warsh')[0]"
+            },
+            "typescript": {
+                "example": "const events = await polymarket.searchEvents('Fed Chair');\n// Find specific market within event\nconst warsh = events[0].searchMarkets('Kevin Warsh')[0];"
+            }
+        },
         "getMarketsBySlug": {
             "python": {
                 "example": "# Polymarket: use URL slug\npoly_markets = poly.get_markets_by_slug('who-will-trump-nominate-as-fed-chair')\n\n# Kalshi: use market ticker (auto-uppercased)\nkalshi_markets = kalshi.get_markets_by_slug('KXFEDCHAIRNOM-29')"

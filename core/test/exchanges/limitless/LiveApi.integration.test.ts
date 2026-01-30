@@ -22,7 +22,7 @@ describe('LimitlessExchange - Live API Integration', () => {
         expect(m.id).toBeDefined();
         expect(m.title.length).toBeGreaterThan(0);
         expect(m.outcomes.length).toBeGreaterThanOrEqual(2);
-        expect(m.url).toContain('limitless.com');
+        expect(m.url).toContain('limitless.exchange');
         expect(m.resolutionDate).toBeInstanceOf(Date);
     });
 

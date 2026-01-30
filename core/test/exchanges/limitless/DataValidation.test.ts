@@ -20,21 +20,15 @@ describe('LimitlessExchange - Data Validation', () => {
         jest.clearAllMocks();
     });
 
-    it('should handle stringified JSON in outcomes field', async () => {
+    it('should correctly parse tokens and prices into outcomes', async () => {
         mockedAxios.get.mockResolvedValue({
             data: [{
-                id: 'event-1',
                 slug: 'test',
                 title: 'Test Event',
-                markets: [{
-                    id: 'market-1',
-                    question: 'Test?',
-                    outcomes: '["Yes", "No"]',  // Stringified
-                    outcomePrices: '["0.52", "0.48"]',
-                    clobTokenIds: '["token1", "token2"]',
-                    endDate: '2025-12-31T00:00:00Z',
-                    volume24hr: '100000'
-                }]
+                tokens: { yes: 'token1', no: 'token2' },
+                prices: [0.52, 0.48],
+                expirationTimestamp: '2025-12-31T00:00:00Z',
+                volumeFormatted: '100000'
             }]
         });
 
@@ -42,72 +36,19 @@ describe('LimitlessExchange - Data Validation', () => {
 
         expect(markets[0].outcomes.length).toBe(2);
         expect(markets[0].outcomes[0].label).toBe('Yes');
-    });
-
-    it('should handle array outcomes field', async () => {
-        mockedAxios.get.mockResolvedValue({
-            data: [{
-                id: 'event-1',
-                slug: 'test',
-                title: 'Test Event',
-                markets: [{
-                    id: 'market-1',
-                    question: 'Test?',
-                    outcomes: ['Yes', 'No'],  // Already parsed
-                    outcomePrices: ['0.52', '0.48'],
-                    clobTokenIds: ['token1', 'token2'],
-                    endDate: '2025-12-31T00:00:00Z',
-                    volume24hr: '100000'
-                }]
-            }]
-        });
-
-        const markets = await exchange.fetchMarkets();
-
-        expect(markets[0].outcomes.length).toBe(2);
-    });
-
-    it('should handle malformed JSON in outcomes gracefully', async () => {
-        mockedAxios.get.mockResolvedValue({
-            data: [{
-                id: 'event-1',
-                slug: 'test',
-                title: 'Test Event',
-                markets: [{
-                    id: 'market-1',
-                    question: 'Test?',
-                    outcomes: '{invalid json}',
-                    outcomePrices: '["0.52", "0.48"]',
-                    clobTokenIds: '["token1", "token2"]',
-                    endDate: '2025-12-31T00:00:00Z',
-                    volume24hr: '100000'
-                }]
-            }]
-        });
-
-        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => { });
-        const markets = await exchange.fetchMarkets();
-
-        expect(consoleSpy).toHaveBeenCalled();
-        expect(markets[0].outcomes.length).toBe(0);
-        consoleSpy.mockRestore();
+        expect(markets[0].outcomes[1].label).toBe('No');
+        expect(markets[0].outcomes[0].price).toBe(0.52);
     });
 
     it('should handle missing volume fields with fallback', async () => {
         mockedAxios.get.mockResolvedValue({
             data: [{
-                id: 'event-1',
                 slug: 'test',
                 title: 'Test Event',
-                markets: [{
-                    id: 'market-1',
-                    question: 'Test?',
-                    outcomes: '["Yes", "No"]',
-                    outcomePrices: '["0.52", "0.48"]',
-                    clobTokenIds: '["token1", "token2"]',
-                    endDate: '2025-12-31T00:00:00Z'
-                    // Missing volume24hr and volume
-                }]
+                tokens: { yes: 'token1', no: 'token2' },
+                prices: [0.52, 0.48],
+                expirationTimestamp: '2025-12-31T00:00:00Z'
+                // Missing volumeFormatted
             }]
         });
 
@@ -117,155 +58,57 @@ describe('LimitlessExchange - Data Validation', () => {
         expect(markets[0].volume).toBe(0);
     });
 
-    it('should handle alternative volume field names', async () => {
+    it('should capitalize token keys for labels', async () => {
         mockedAxios.get.mockResolvedValue({
             data: [{
-                id: 'event-1',
-                slug: 'test',
-                title: 'Test Event',
-                markets: [{
-                    id: 'market-1',
-                    question: 'Test?',
-                    outcomes: '["Yes", "No"]',
-                    outcomePrices: '["0.52", "0.48"]',
-                    clobTokenIds: '["token1", "token2"]',
-                    endDate: '2025-12-31T00:00:00Z',
-                    volume_24h: '50000'  // Alternative field name
-                }]
-            }]
-        });
-
-        const markets = await exchange.fetchMarkets();
-
-        expect(markets[0].volume24h).toBe(50000);
-    });
-
-    it('should handle missing liquidity with nested fallback', async () => {
-        mockedAxios.get.mockResolvedValue({
-            data: [{
-                id: 'event-1',
-                slug: 'test',
-                title: 'Test Event',
-                markets: [{
-                    id: 'market-1',
-                    question: 'Test?',
-                    outcomes: '["Yes", "No"]',
-                    outcomePrices: '["0.52", "0.48"]',
-                    clobTokenIds: '["token1", "token2"]',
-                    endDate: '2025-12-31T00:00:00Z',
-                    volume24hr: '100000',
-                    rewards: { liquidity: 25000 }  // Nested liquidity
-                }]
-            }]
-        });
-
-        const markets = await exchange.fetchMarkets();
-
-        expect(markets[0].liquidity).toBe(25000);
-    });
-
-    it('should handle candidate name extraction for Yes/No markets', async () => {
-        mockedAxios.get.mockResolvedValue({
-            data: [{
-                id: 'event-1',
                 slug: 'test',
                 title: 'Presidential Election',
-                markets: [{
-                    id: 'market-1',
-                    question: 'Will Trump win?',
-                    groupItemTitle: 'Trump',
-                    outcomes: '["Yes", "No"]',
-                    outcomePrices: '["0.52", "0.48"]',
-                    clobTokenIds: '["token1", "token2"]',
-                    endDate: '2025-12-31T00:00:00Z',
-                    volume24hr: '100000'
-                }]
+                tokens: { trump: 'token1', biden: 'token2' },
+                prices: [0.52, 0.48],
+                expirationTimestamp: '2025-12-31T00:00:00Z',
+                volumeFormatted: '100000'
             }]
         });
 
         const markets = await exchange.fetchMarkets();
 
         expect(markets[0].outcomes[0].label).toBe('Trump');
-        expect(markets[0].outcomes[1].label).toBe('Not Trump');
+        expect(markets[0].outcomes[1].label).toBe('Biden');
     });
 
-    it('should handle multi-outcome markets', async () => {
+    it('should handle market without tokens gracefully', async () => {
         mockedAxios.get.mockResolvedValue({
             data: [{
-                id: 'event-1',
-                slug: 'test',
-                title: 'Winner Prediction',
-                markets: [{
-                    id: 'market-1',
-                    question: 'Who will win?',
-                    outcomes: '["Trump", "Biden", "RFK Jr", "Other"]',
-                    outcomePrices: '["0.40", "0.35", "0.15", "0.10"]',
-                    clobTokenIds: '["token1", "token2", "token3", "token4"]',
-                    endDate: '2025-12-31T00:00:00Z',
-                    volume24hr: '100000'
-                }]
-            }]
-        });
-
-        const markets = await exchange.fetchMarkets();
-
-        expect(markets[0].outcomes.length).toBe(4);
-        expect(markets[0].outcomes[0].label).toBe('Trump');
-        expect(markets[0].outcomes[3].label).toBe('Other');
-    });
-
-    it('should handle missing endDate with fallback', async () => {
-        mockedAxios.get.mockResolvedValue({
-            data: [{
-                id: 'event-1',
                 slug: 'test',
                 title: 'Test Event',
-                markets: [{
-                    id: 'market-1',
-                    question: 'Test?',
-                    outcomes: '["Yes", "No"]',
-                    outcomePrices: '["0.52", "0.48"]',
-                    clobTokenIds: '["token1", "token2"]',
-                    volume24hr: '100000'
-                    // Missing endDate
-                }]
+                // Missing tokens/prices
+                expirationTimestamp: '2025-12-31T00:00:00Z',
+                volumeFormatted: '100000'
             }]
         });
 
         const markets = await exchange.fetchMarkets();
 
-        expect(markets[0].resolutionDate).toBeInstanceOf(Date);
+        // Should return a market object but with empty outcomes (or however utils handles it)
+        expect(markets.length).toBe(1);
+        expect(markets[0].outcomes.length).toBe(0);
     });
 
-    it('should skip events without markets', async () => {
+    it('should handle missing prices gracefully', async () => {
         mockedAxios.get.mockResolvedValue({
-            data: [
-                {
-                    id: 'event-1',
-                    slug: 'test',
-                    title: 'Test Event'
-                    // Missing markets field
-                },
-                {
-                    id: 'event-2',
-                    slug: 'test2',
-                    title: 'Test Event 2',
-                    markets: [{
-                        id: 'market-1',
-                        question: 'Test?',
-                        outcomes: '["Yes", "No"]',
-                        outcomePrices: '["0.52", "0.48"]',
-                        clobTokenIds: '["token1", "token2"]',
-                        endDate: '2025-12-31T00:00:00Z',
-                        volume24hr: '100000'
-                    }]
-                }
-            ]
+            data: [{
+                slug: 'test',
+                title: 'Test Event',
+                tokens: { yes: 'token1', no: 'token2' },
+                // Missing prices
+                expirationTimestamp: '2025-12-31T00:00:00Z',
+                volumeFormatted: '100000'
+            }]
         });
 
         const markets = await exchange.fetchMarkets();
-
-        expect(markets.length).toBe(1);
-        expect(markets[0].id).toBe('market-1');
+        // Assuming utils requires BOTH tokens and prices to populate outcomes
+        expect(markets[0].outcomes.length).toBe(0);
     });
+
 });

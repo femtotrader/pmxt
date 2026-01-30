@@ -22,64 +22,42 @@ describe('LimitlessExchange - searchEvents', () => {
 
     it('should return events with nested markets', async () => {
         mockedAxios.get.mockResolvedValue({
-            data: [
-                {
-                    id: 'event-1',
-                    slug: 'fed-chair',
-                    title: 'Who will Trump nominate as Fed Chair?',
-                    description: 'Federal Reserve Chair nomination',
-                    markets: [
-                        {
-                            id: 'market-1',
-                            question: 'Will Trump nominate Kevin Warsh?',
-                            groupItemTitle: 'Kevin Warsh',
-                            outcomes: '["Yes", "No"]',
-                            clobTokenIds: '["token1", "token2"]',
-                            outcomePrices: '["0.33", "0.67"]',
-                            endDate: '2026-12-31T00:00:00Z'
-                        },
-                        {
-                            id: 'market-2',
-                            question: 'Will Trump nominate Rick Rieder?',
-                            groupItemTitle: 'Rick Rieder',
-                            outcomes: '["Yes", "No"]',
-                            clobTokenIds: '["token3", "token4"]',
-                            outcomePrices: '["0.34", "0.66"]',
-                            endDate: '2026-12-31T00:00:00Z'
-                        }
-                    ]
-                }
-            ]
+            data: {
+                markets: [
+                    {
+                        slug: 'fed-chair',
+                        title: 'Who will Trump nominate as Fed Chair?',
+                        description: 'Federal Reserve Chair nomination',
+                        tokens: { yes: 't1', no: 't2' },
+                        prices: [0.33, 0.67],
+                        expirationTimestamp: '2026-12-31T00:00:00Z'
+                    }
+                ]
+            }
         });
 
         const events = await exchange.searchEvents('Fed Chair');
 
+        // searchEvents implementation maps single market to event with 1 market
         expect(events.length).toBe(1);
         expect(events[0].title).toContain('Fed Chair');
-        expect(events[0].markets.length).toBe(2);
-        expect(events[0].markets[0].outcomes[0].label).toBe('Kevin Warsh');
+        expect(events[0].markets.length).toBe(1);
+        expect(events[0].markets[0].outcomes[0].label).toBe('Yes');
     });
 
     it('should support searchMarkets helper on the event object', async () => {
         mockedAxios.get.mockResolvedValue({
-            data: [
-                {
-                    id: 'event-1',
-                    slug: 'fed-chair',
-                    title: 'Who will Trump nominate as Fed Chair?',
-                    markets: [
-                        {
-                            id: 'market-1',
-                            question: 'Will Trump nominate Kevin Warsh?',
-                            groupItemTitle: 'Kevin Warsh',
-                            outcomes: '["Yes", "No"]',
-                            clobTokenIds: '["token1", "token2"]',
-                            outcomePrices: '["0.33", "0.67"]',
-                            endDate: '2026-12-31T00:00:00Z'
-                        }
-                    ]
-                }
-            ]
+            data: {
+                markets: [
+                    {
+                        slug: 'fed-chair-kevin',
+                        title: 'Will Trump nominate Kevin Warsh?',
+                        questions: 'Kevin Warsh',
+                        tokens: { yes: 't1', no: 't2' },
+                        prices: [0.5, 0.5]
+                    }
+                ]
+            }
         });
 
         const events = await exchange.searchEvents('Fed Chair');

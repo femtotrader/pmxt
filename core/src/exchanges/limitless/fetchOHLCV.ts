@@ -23,7 +23,7 @@ export async function fetchOHLCV(id: string, params: HistoryFilterParams): Promi
 
         // Map price points to pmxt PriceCandle format
         // The API returns price points, so we treat each point as a candle
-        return prices.map((p: any) => {
+        let candles = prices.map((p: any) => {
             const price = Number(p.price);
             const ts = Number(p.timestamp);
 
@@ -36,6 +36,18 @@ export async function fetchOHLCV(id: string, params: HistoryFilterParams): Promi
                 volume: 0 // Volume not provided in this specific endpoint
             };
         }).sort((a: any, b: any) => a.timestamp - b.timestamp);
+
+        if (params.start) {
+            candles = candles.filter((c: any) => c.timestamp >= params.start!.getTime());
+        }
+        if (params.end) {
+            candles = candles.filter((c: any) => c.timestamp <= params.end!.getTime());
+        }
+        if (params.limit) {
+            candles = candles.slice(0, params.limit);
+        }
+
+        return candles;
 
     } catch (error: any) {
         console.error(`Error fetching Limitless history for ${id}:`, error.message);

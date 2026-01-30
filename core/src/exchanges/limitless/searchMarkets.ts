@@ -16,7 +16,8 @@ export async function searchMarkets(query: string, params?: MarketFilterParams):
 
         return markets
             .map((m: any) => mapMarketToUnified(m))
-            .filter((m: any): m is UnifiedMarket => m !== null);
+            .filter((m: any): m is UnifiedMarket => m !== null)
+            .slice(0, params?.limit || 20);
 
     } catch (error: any) {
         console.error("Error searching Limitless data:", error.message);

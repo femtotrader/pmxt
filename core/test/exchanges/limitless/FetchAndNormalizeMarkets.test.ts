@@ -24,44 +24,39 @@ describe('LimitlessExchange - Fetch and Normalize Markets', () => {
 
     const mockGammaResponse = [
         {
-            id: "eventId1",
+            slug: "test-slug-1",
             title: "Presidential Election 2024",
-            markets: [
-                {
-                    id: "marketId1",
-                    question: "Winner",
-                    volume_24h: 1000000,
-                    outcomePrices: "[\"0.60\", \"0.40\"]", // Stringified JSON
-                    outcomes: "[\"Candidate A\", \"Candidate B\"]", // Stringified JSON
-                    rewards: { liquidity: 50000 }
-                },
-                {
-                    id: "marketId2",
-                    question: "Runner Up",
-                    outcomes: ["A", "B"], // Actual array
-                    outcomePrices: ["0.1", "0.9"], // Actual array
-                    volume24hr: "500" // Alternative field name
-                }
-            ]
+            tokens: { yes: "token1", no: "token2" },
+            prices: [0.60, 0.40],
+            volumeFormatted: "1000000",
+            expirationTimestamp: "2025-12-31T00:00:00Z"
+        },
+        {
+            slug: "test-slug-2",
+            title: "Runner Up",
+            tokens: { A: "tokenA", B: "tokenB" },
+            prices: [0.1, 0.9],
+            volumeFormatted: "500",
+            expirationTimestamp: "2025-12-31T00:00:00Z"
         }
     ];
 
-    it('should correctly parse stringified and non-stringified outcomes/prices', async () => {
+    it('should correctly parse tokens and prices', async () => {
         mockedAxios.get.mockResolvedValue({ data: mockGammaResponse });
 
         const markets = await exchange.fetchMarkets();
 
         expect(markets).toHaveLength(2);
 
-        // Check Market 1 (Stringified)
+        // Check Market 1
         const m1 = markets[0];
-        expect(m1.id).toBe("marketId1");
-        expect(m1.outcomes[0].label).toBe("Candidate A");
+        expect(m1.title).toBe("Presidential Election 2024");
+        expect(m1.outcomes[0].label).toBe("Yes");
         expect(m1.outcomes[0].price).toBe(0.60);
 
-        // Check Market 2 (Array)
+        // Check Market 2
         const m2 = markets[1];
-        expect(m2.id).toBe("marketId2");
+        expect(m2.title).toBe("Runner Up");
         expect(m2.outcomes[0].label).toBe("A");
         expect(m2.volume24h).toBe(500);
     });

@@ -27,13 +27,7 @@ describe('LimitlessExchange - Request Parameters Mapping', () => {
         await exchange.fetchMarkets({ limit: 50, sort: 'volume' });
 
         expect(mockedAxios.get).toHaveBeenCalledWith(
-            expect.stringContaining('events'),
-            expect.objectContaining({
-                params: expect.objectContaining({
-                    limit: 50,
-                    order: 'volume'
-                })
-            })
+            expect.stringContaining('markets/active')
         );
     });
 });

@@ -22,40 +22,24 @@ describe('LimitlessExchange - searchMarkets', () => {
 
     it('should filter markets by title', async () => {
         mockedAxios.get.mockResolvedValue({
-            data: [
-                {
-                    id: 'event-1',
-                    slug: 'fed-rate-decision',
-                    title: 'Federal Reserve Rate Decision',
-                    description: 'Federal Reserve interest rate decision',
-                    markets: [{
-                        id: 'market-1',
-                        question: 'Will rates be cut?',
-                        description: 'Federal Reserve rate cut prediction',
-                        outcomes: '["Yes", "No"]',
-                        outcomePrices: '["0.52", "0.48"]',
-                        clobTokenIds: '["token1", "token2"]',
-                        endDate: '2025-12-31T00:00:00Z',
-                        volume24hr: '100000'
-                    }]
-                },
-                {
-                    id: 'event-2',
-                    slug: 'election-2024',
-                    title: 'Presidential Election 2024',
-                    description: 'US Presidential Election',
-                    markets: [{
-                        id: 'market-2',
-                        question: 'Winner?',
-                        description: 'Election winner prediction',
-                        outcomes: '["Trump", "Biden"]',
-                        outcomePrices: '["0.48", "0.52"]',
-                        clobTokenIds: '["token3", "token4"]',
-                        endDate: '2024-11-05T00:00:00Z',
-                        volume24hr: '500000'
-                    }]
-                }
-            ]
+            data: {
+                markets: [
+                    {
+                        slug: 'fed-rate-decision',
+                        title: 'Federal Reserve Rate Decision',
+                        tokens: { yes: 't1', no: 't2' },
+                        prices: [0.5, 0.5],
+                        volumeFormatted: '100000'
+                    },
+                    {
+                        slug: 'election-2024',
+                        title: 'Presidential Election 2024',
+                        tokens: { trump: 't3', biden: 't4' },
+                        prices: [0.5, 0.5],
+                        volumeFormatted: '500000'
+                    }
+                ]
+            }
         });
 
         const results = await exchange.searchMarkets('federal');
@@ -65,23 +49,18 @@ describe('LimitlessExchange - searchMarkets', () => {
     });
 
     it('should filter markets by description', async () => {
+        // Since description is not always present in the flat list, we rely on title or other fields 
+        // if description isn't available. But let's mock description if the type definition allows.
         mockedAxios.get.mockResolvedValue({
-            data: [{
-                id: 'event-1',
-                slug: 'climate-policy',
-                title: 'Climate Policy',
-                description: 'Will Congress pass climate legislation?',
+            data: {
                 markets: [{
-                    id: 'market-1',
-                    question: 'Pass by 2025?',
-                    description: 'Detailed climate change policy information',
-                    outcomes: '["Yes", "No"]',
-                    outcomePrices: '["0.30", "0.70"]',
-                    clobTokenIds: '["token1", "token2"]',
-                    endDate: '2025-12-31T00:00:00Z',
-                    volume24hr: '50000'
+                    slug: 'climate-policy',
+                    title: 'Climate Policy',
+                    description: 'Will Congress pass climate legislation?',
+                    tokens: { yes: 't1', no: 't2' },
+                    prices: [0.3, 0.7]
                 }]
-            }]
+            }
         });
 
         const results = await exchange.searchMarkets('climate');
@@ -90,22 +69,14 @@ describe('LimitlessExchange - searchMarkets', () => {
     });
 
     it('should respect limit parameter', async () => {
-        const mockEvents = Array.from({ length: 30 }, (_, i) => ({
-            id: `event-${i}`,
-            slug: `test-event-${i}`,
+        const mockMarkets = Array.from({ length: 30 }, (_, i) => ({
+            slug: `market-${i}`,
             title: `Test Market ${i}`,
-            markets: [{
-                id: `market-${i}`,
-                question: 'Test question',
-                outcomes: '["Yes", "No"]',
-                outcomePrices: '["0.50", "0.50"]',
-                clobTokenIds: '["token1", "token2"]',
-                endDate: '2025-12-31T00:00:00Z',
-                volume24hr: '10000'
-            }]
+            tokens: { yes: 't1', no: 't2' },
+            prices: [0.5, 0.5]
         }));
 
-        mockedAxios.get.mockResolvedValue({ data: mockEvents });
+        mockedAxios.get.mockResolvedValue({ data: { markets: mockMarkets } });
 
         const results = await exchange.searchMarkets('test', { limit: 5 });
 
@@ -114,20 +85,9 @@ describe('LimitlessExchange - searchMarkets', () => {
 
     it('should return empty array when no matches found', async () => {
         mockedAxios.get.mockResolvedValue({
-            data: [{
-                id: 'event-1',
-                slug: 'unrelated',
-                title: 'Completely Different Topic',
-                markets: [{
-                    id: 'market-1',
-                    question: 'Something else',
-                    outcomes: '["Yes", "No"]',
-                    outcomePrices: '["0.50", "0.50"]',
-                    clobTokenIds: '["token1", "token2"]',
-                    endDate: '2025-12-31T00:00:00Z',
-                    volume24hr: '10000'
-                }]
-            }]
+            data: {
+                markets: []
+            }
         });
 
         const results = await exchange.searchMarkets('nonexistent query string');
@@ -148,20 +108,14 @@ describe('LimitlessExchange - searchMarkets', () => {
 
     it('should be case-insensitive', async () => {
         const mockData = {
-            data: [{
-                id: 'event-1',
-                slug: 'test',
-                title: 'FEDERAL RESERVE',
+            data: {
                 markets: [{
-                    id: 'market-1',
-                    question: 'Test',
-                    outcomes: '["Yes", "No"]',
-                    outcomePrices: '["0.50", "0.50"]',
-                    clobTokenIds: '["token1", "token2"]',
-                    endDate: '2025-12-31T00:00:00Z',
-                    volume24hr: '10000'
+                    slug: 'test',
+                    title: 'FEDERAL RESERVE',
+                    tokens: { yes: 't1', no: 't2' },
+                    prices: [0.5, 0.5]
                 }]
-            }]
+            }
         };
 
         mockedAxios.get.mockResolvedValue(mockData);

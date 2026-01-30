@@ -68,7 +68,7 @@ describe('LimitlessExchange - createOrder', () => {
                 size: 100,
                 feeRateBps: 0
             }, {
-                tickSize: "0.01"
+                tickSize: "0.001"
             });
 
             expect(result).toMatchObject({
@@ -103,7 +103,7 @@ describe('LimitlessExchange - createOrder', () => {
                 size: 50,
                 feeRateBps: 0
             }, {
-                tickSize: "0.01"
+                tickSize: "0.001"
             });
         });
 

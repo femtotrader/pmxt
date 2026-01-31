@@ -13,7 +13,7 @@ This document details the feature support and compliance status for each exchang
 | | `searchEvents` | ✅ | ✅ | ✅ | |
 | **Public Data** | `fetchOHLCV` | ✅ | ✅ | ✅ | |
 | | `fetchOrderBook` | ✅ | ✅ | ✅ | |
-| | `fetchTrades` | ✅ | ✅ | ❌ | Limitless fails if no trades found |
+| | `fetchTrades` | ✅ | ✅ | ⚠️ | Limitless: Not Implemented (No public API) |
 | **Private Data** | `fetchBalance` | ✅ | ✅ | ✅ | Verified (Real API calls, balances fetched) |
 | | `fetchPositions` | ✅ | ✅ | ✅ | |
 | **Trading** | `createOrder` | ✅ | ✅ | ❌ | Poly/Kalshi Verified (Funds); Limitless blocked by CLOB lib bug |

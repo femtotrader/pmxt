@@ -139,7 +139,7 @@ export class PolymarketExchange extends PredictionMarketExchange {
             });
 
             if (!response || !response.success) {
-                throw new Error(response?.errorMsg || 'Order placement failed');
+                throw new Error(`${response?.errorMsg || 'Order placement failed'} (Response: ${JSON.stringify(response)})`);
             }
 
             return {

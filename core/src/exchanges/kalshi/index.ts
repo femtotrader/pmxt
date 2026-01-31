@@ -49,6 +49,10 @@ export class KalshiExchange extends PredictionMarketExchange {
         return "Kalshi";
     }
 
+    private getBaseUrl(): string {
+        return 'https://api.elections.kalshi.com';
+    }
+
     // ----------------------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------------------
@@ -106,7 +110,7 @@ export class KalshiExchange extends PredictionMarketExchange {
         // Use demo-api if it's a sandbox key (usually indicated by config, but defaulting to prod for now)
         // Or we could detect it. For now, let's assume Production unless specified.
         // TODO: Make base URL configurable in credentials
-        const baseUrl = 'https://trading-api.kalshi.com';
+        const baseUrl = this.getBaseUrl();
 
         const headers = auth.getHeaders('GET', path);
 
@@ -142,7 +146,7 @@ export class KalshiExchange extends PredictionMarketExchange {
     async createOrder(params: CreateOrderParams): Promise<Order> {
         const auth = this.ensureAuth();
         const path = '/trade-api/v2/portfolio/orders';
-        const baseUrl = 'https://trading-api.kalshi.com';
+        const baseUrl = this.getBaseUrl();
 
         const headers = auth.getHeaders('POST', path);
 
@@ -186,14 +190,14 @@ export class KalshiExchange extends PredictionMarketExchange {
                 timestamp: new Date(order.created_time).getTime()
             };
         } catch (error: any) {
-            throw error;
+            throw new Error(`${error.response?.data?.error?.message || error.message} (Status: ${error.response?.status} - ${JSON.stringify(error.response?.data || {})})`);
         }
     }
 
     async cancelOrder(orderId: string): Promise<Order> {
         const auth = this.ensureAuth();
         const path = `/trade-api/v2/portfolio/orders/${orderId}`;
-        const baseUrl = 'https://trading-api.kalshi.com';
+        const baseUrl = this.getBaseUrl();
 
         const headers = auth.getHeaders('DELETE', path);
 
@@ -221,7 +225,7 @@ export class KalshiExchange extends PredictionMarketExchange {
     async fetchOrder(orderId: string): Promise<Order> {
         const auth = this.ensureAuth();
         const path = `/trade-api/v2/portfolio/orders/${orderId}`;
-        const baseUrl = 'https://trading-api.kalshi.com';
+        const baseUrl = this.getBaseUrl();
 
         const headers = auth.getHeaders('GET', path);
 
@@ -257,7 +261,7 @@ export class KalshiExchange extends PredictionMarketExchange {
             queryParams += `&ticker=${marketId}`;
         }
 
-        const baseUrl = 'https://trading-api.kalshi.com';
+        const baseUrl = this.getBaseUrl();
         // Sign only the base path, not the query parameters
         const headers = auth.getHeaders('GET', basePath);
 
@@ -286,7 +290,7 @@ export class KalshiExchange extends PredictionMarketExchange {
     async fetchPositions(): Promise<Position[]> {
         const auth = this.ensureAuth();
         const path = '/trade-api/v2/portfolio/positions';
-        const baseUrl = 'https://trading-api.kalshi.com';
+        const baseUrl = this.getBaseUrl();
 
         const headers = auth.getHeaders('GET', path);
 

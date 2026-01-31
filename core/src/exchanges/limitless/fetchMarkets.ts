@@ -22,7 +22,8 @@ export async function fetchMarkets(params?: MarketFilterParams): Promise<Unified
 
         for (const market of markets) {
             const unifiedMarket = mapMarketToUnified(market);
-            if (unifiedMarket) {
+            // Only include markets that are valid and have outcomes (compliance requirement)
+            if (unifiedMarket && unifiedMarket.outcomes.length > 0) {
                 unifiedMarkets.push(unifiedMarket);
             }
         }

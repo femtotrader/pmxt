@@ -7,7 +7,7 @@ This document details the feature support and compliance status for each exchang
 | Category | Function | Polymarket | Kalshi | Limitless | Notes |
 | :--- | :--- | :---: | :---: | :---: | :--- |
 | **Identity** | `name` | ✅ | ✅ | ✅ | |
-| **Market Data** | `fetchMarkets` | ✅ | ✅ | ❌ | Limitless fails if no outcomes found |
+| **Market Data** | `fetchMarkets` | ✅ | ✅ | ✅ | |
 | | `searchMarkets` | ✅ | ✅ | ✅ | |
 | | `getMarketsBySlug` | ✅ | ✅ | ✅ | |
 | | `searchEvents` | ✅ | ✅ | ✅ | |

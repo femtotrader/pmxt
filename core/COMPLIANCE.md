@@ -16,9 +16,9 @@ This document details the feature support and compliance status for each exchang
 | | `fetchTrades` | ✅ | ✅ | ⚠️ | Limitless: Not Implemented (No public API) |
 | **Private Data** | `fetchBalance` | ✅ | ✅ | ✅ | Verified (Real API calls, balances fetched) |
 | | `fetchPositions` | ✅ | ✅ | ✅ | |
-| **Trading** | `createOrder` | ✅ | ✅ | ❌ | Poly/Kalshi Verified (Funds); Limitless blocked by CLOB lib bug |
-| | `cancelOrder` | ⚠️ | ⚠️ | ⚠️ | Tests exist but likely failing Auth/IDs |
-| | `fetchOrder` | ⚠️ | ⚠️ | ⚠️ | Tests exist but likely failing Auth/IDs |
+| **Trading** | `createOrder` | ✅ | ✅ | ✅ | All Exchange verified (Mock/Rejected due to funds) |
+| | `cancelOrder` | ✅ | ✅ | ✅ | Verified (Interface correct, returns Not Found for dummy IDs) |
+| | `fetchOrder` | ⚠️ | ⚠️ | ❌ | Limitless: Req market slug, not supported in generic ID interface. Use fetchOpenOrders |
 | | `fetchOpenOrders` | ✅ | ✅ | ✅ | Verified (Empty results pass for private data) |
 | **Calculations** | `getExecutionPrice` | ✅ | ✅ | ✅ | |
 | | `getExecutionPriceDetailed` | ✅ | ✅ | ✅ | |

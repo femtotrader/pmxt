@@ -110,6 +110,8 @@ export class LimitlessAuth {
             funderAddress
         );
 
+
+
         return this.clobClient;
     }
 

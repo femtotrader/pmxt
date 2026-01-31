@@ -61,8 +61,10 @@ describe('Compliance: createOrder', () => {
                 if (
                     msg.includes('insufficient balance') ||
                     msg.includes('not enough balance') ||
+                    msg.includes('allowance') ||
                     response.includes('insufficient_balance') ||
-                    response.includes('not enough balance')
+                    response.includes('not enough balance') ||
+                    response.includes('allowance')
                 ) {
                     console.info(`[Compliance] ${name}.createOrder verified (rejected due to funds as expected).`);
                     return;

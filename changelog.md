@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.5.3] - 2026-01-31
+## [1.5.3 / 1.5.4] - 2026-01-31
 
 ### Added
 - **Limitless Order Cancellation**: Implemented `cancelOrder` support for Limitless exchange.

@@ -23,7 +23,7 @@ This document details the feature support and compliance status for each exchang
 | **Calculations** | `getExecutionPrice` | ✅ | ✅ | ✅ | |
 | | `getExecutionPriceDetailed` | ✅ | ✅ | ✅ | |
 | **Real-time** | `watchOrderBook` | ✅ | ✅ | ⚠️ | Limitless: No websocket support |
-| | `watchTrades` | ❌ | ❌ | ⚠️ | Poly/Kalshi: Timeouts (No live trades during test) |
+| | `watchTrades` | ✅ | ✅ | ⚠️ | Limitless: No websocket support |
 
 ## Legend
 - ✅ Compliance Verified (Strict Test Passed)

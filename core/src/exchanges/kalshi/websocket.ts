@@ -25,11 +25,14 @@ export class KalshiWebSocket {
     private orderBookResolvers = new Map<string, QueuedPromise<OrderBook>[]>();
     private tradeResolvers = new Map<string, QueuedPromise<Trade[]>[]>();
     private orderBooks = new Map<string, OrderBook>();
-    private subscribedTickers = new Set<string>();
+    private subscribedOrderBookTickers = new Set<string>();
+    private subscribedTradeTickers = new Set<string>();
     private messageIdCounter = 1;
     private isConnecting = false;
     private isConnected = false;
     private reconnectTimer?: NodeJS.Timeout;
+    private connectionPromise?: Promise<void>;
+    private isTerminated = false;
 
     constructor(auth: KalshiAuth, config: KalshiWebSocketConfig = {}) {
         this.auth = auth;
@@ -40,13 +43,19 @@ export class KalshiWebSocket {
     }
 
     private async connect(): Promise<void> {
-        if (this.isConnected || this.isConnecting) {
+        if (this.isConnected) {
             return;
+        }
+        if (this.isTerminated) {
+            return;
+        }
+        if (this.connectionPromise) {
+            return this.connectionPromise;
         }
 
         this.isConnecting = true;
 
-        return new Promise((resolve, reject) => {
+        this.connectionPromise = new Promise((resolve, reject) => {
             try {
                 // Extract path from URL for signature
                 const url = new URL(this.config.wsUrl!);
@@ -62,11 +71,15 @@ export class KalshiWebSocket {
                 this.ws.on('open', () => {
                     this.isConnected = true;
                     this.isConnecting = false;
+                    this.connectionPromise = undefined;
                     console.log('Kalshi WebSocket connected');
 
                     // Resubscribe to all tickers if reconnecting
-                    if (this.subscribedTickers.size > 0) {
-                        this.subscribeToOrderbook(Array.from(this.subscribedTickers));
+                    if (this.subscribedOrderBookTickers.size > 0) {
+                        this.subscribeToOrderbook(Array.from(this.subscribedOrderBookTickers));
+                    }
+                    if (this.subscribedTradeTickers.size > 0) {
+                        this.subscribeToTrades(Array.from(this.subscribedTradeTickers));
                     }
 
                     resolve();
@@ -84,24 +97,34 @@ export class KalshiWebSocket {
                 this.ws.on('error', (error: Error) => {
                     console.error('Kalshi WebSocket error:', error);
                     this.isConnecting = false;
+                    this.connectionPromise = undefined;
                     reject(error);
                 });
 
                 this.ws.on('close', () => {
-                    console.log('Kalshi WebSocket closed');
+                    if (!this.isTerminated) {
+                        console.log('Kalshi WebSocket closed');
+                        this.scheduleReconnect();
+                    }
                     this.isConnected = false;
                     this.isConnecting = false;
-                    this.scheduleReconnect();
+                    this.connectionPromise = undefined;
                 });
 
             } catch (error) {
                 this.isConnecting = false;
+                this.connectionPromise = undefined;
                 reject(error);
             }
         });
+
+        return this.connectionPromise;
     }
 
     private scheduleReconnect() {
+        if (this.isTerminated) {
+            return;
+        }
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);
         }
@@ -330,9 +353,9 @@ export class KalshiWebSocket {
         }
 
         // Subscribe if not already subscribed
-        if (!this.subscribedTickers.has(ticker)) {
-            this.subscribedTickers.add(ticker);
-            this.subscribeToOrderbook([ticker]);
+        if (!this.subscribedOrderBookTickers.has(ticker)) {
+            this.subscribedOrderBookTickers.add(ticker);
+            this.subscribeToOrderbook(Array.from(this.subscribedOrderBookTickers));
         }
 
         // Return a promise that resolves on the next orderbook update
@@ -351,9 +374,9 @@ export class KalshiWebSocket {
         }
 
         // Subscribe if not already subscribed
-        if (!this.subscribedTickers.has(ticker)) {
-            this.subscribedTickers.add(ticker);
-            this.subscribeToTrades([ticker]);
+        if (!this.subscribedTradeTickers.has(ticker)) {
+            this.subscribedTradeTickers.add(ticker);
+            this.subscribeToTrades(Array.from(this.subscribedTradeTickers));
         }
 
         // Return a promise that resolves on the next trade
@@ -366,13 +389,38 @@ export class KalshiWebSocket {
     }
 
     async close() {
+        this.isTerminated = true;
+
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = undefined;
         }
 
+        // Reject all pending resolvers
+        this.orderBookResolvers.forEach((resolvers, ticker) => {
+            resolvers.forEach(r => r.reject(new Error(`WebSocket closed for ${ticker}`)));
+        });
+        this.orderBookResolvers.clear();
+
+        this.tradeResolvers.forEach((resolvers, ticker) => {
+            resolvers.forEach(r => r.reject(new Error(`WebSocket closed for ${ticker}`)));
+        });
+        this.tradeResolvers.clear();
+
         if (this.ws) {
-            this.ws.close();
+            const ws = this.ws;
             this.ws = undefined;
+
+            if (ws.readyState !== WebSocket.CLOSED && ws.readyState !== WebSocket.CLOSING) {
+                return new Promise<void>((resolve) => {
+                    ws.once('close', () => {
+                        this.isConnected = false;
+                        this.isConnecting = false;
+                        resolve();
+                    });
+                    ws.close();
+                });
+            }
         }
 
         this.isConnected = false;

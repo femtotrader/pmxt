@@ -347,7 +347,9 @@ export class KalshiExchange extends PredictionMarketExchange {
         if (!this.ws) {
             this.ws = new KalshiWebSocket(auth, this.wsConfig);
         }
-        return this.ws.watchOrderBook(id);
+        // Normalize ticker (strip -NO suffix if present)
+        const marketTicker = id.replace(/-NO$/, '');
+        return this.ws.watchOrderBook(marketTicker);
     }
 
     async watchTrades(id: string, since?: number, limit?: number): Promise<Trade[]> {
@@ -356,7 +358,9 @@ export class KalshiExchange extends PredictionMarketExchange {
         if (!this.ws) {
             this.ws = new KalshiWebSocket(auth, this.wsConfig);
         }
-        return this.ws.watchTrades(id);
+        // Normalize ticker (strip -NO suffix if present)
+        const marketTicker = id.replace(/-NO$/, '');
+        return this.ws.watchTrades(marketTicker);
     }
 
     async close(): Promise<void> {

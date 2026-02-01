@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.6] - 2026-02-01
+
+### Added
+- **Polymarket Proxy Auto-Discovery**: The SDK now automatically identifies Gnosis Safe, PolyProxy, and EOA account types by querying the Polymarket Data API, reducing manual configuration.
+- **Robust Balance Fallback**: Implemented an on-chain USDC balance check for Polymarket that triggers if the CLOB API returns zero, ensuring accurate fund reporting even during API desyncs.
+- **Explicit Proxy Configuration**: Added `funderAddress` (proxy address) and `signatureType` to exchange credentials in both TypeScript and Python SDKs for manual overrides.
+- **OpenAPI Schema Updates**: Exposed proxy configuration fields in the sidecar server API.
+
+### Fixed
+- **Polymarket Balance Accuracy**: Resolved critical issues where proxy-based accounts were incorrectly reporting zero balance.
+- **Polymarket Order Placement**: Fixed signing issues for proxy accounts by ensuring the correct funder address and signature type are used during CLOB client initialization.
+- **Limitless Account Configuration**: Added support for proxy addresses and custom signature types in Limitless exchange.
+
+### Improved
+- **Python SDK Parity**: Updated the Python `Polymarket` and `Limitless` clients to support the new proxy and signature configuration options.
+
 ## [1.5.5] - 2026-02-01
 
 ### Fixed

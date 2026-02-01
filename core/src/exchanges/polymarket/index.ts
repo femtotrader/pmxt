@@ -225,11 +225,15 @@ export class PolymarketExchange extends PredictionMarketExchange {
 
         try {
             const order = await client.getOrder(orderId);
+            if (!order || !order.id) {
+                const errorMsg = (order as any)?.error || 'Order not found (Invalid ID)';
+                throw new Error(errorMsg);
+            }
             return {
                 id: order.id,
                 marketId: order.market || 'unknown',
                 outcomeId: order.asset_id,
-                side: order.side.toLowerCase() as 'buy' | 'sell',
+                side: (order.side || '').toLowerCase() as 'buy' | 'sell',
                 type: order.order_type === 'GTC' ? 'limit' : 'market',
                 price: parseFloat(order.price),
                 amount: parseFloat(order.original_size),

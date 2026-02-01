@@ -18,7 +18,7 @@ This document details the feature support and compliance status for each exchang
 | | `fetchPositions` | ✅ | ✅ | ✅ | |
 | **Trading** | `createOrder` | ✅ | ✅ | ✅ | All Exchange verified (Mock/Rejected due to funds) |
 | | `cancelOrder` | ✅ | ✅ | ✅ | Verified (Interface correct, returns Not Found for dummy IDs) |
-| | `fetchOrder` | ❌ | ❌ | ❌ | All failing. Poly: TypeError, Kalshi: 400, Limitless: Slug required |
+| | `fetchOrder` | ✅ | ✅ | ⚠️ | Limitless: Not supported (requires market slug) |
 | | `fetchOpenOrders` | ✅ | ✅ | ✅ | Verified (Empty results pass for private data) |
 | **Calculations** | `getExecutionPrice` | ✅ | ✅ | ✅ | |
 | | `getExecutionPriceDetailed` | ✅ | ✅ | ✅ | |

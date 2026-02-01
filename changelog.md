@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.5] - 2026-02-01
+
+### Fixed
+- **Kalshi Trading Reliability**: Resolved a critical URL mismatch in `createOrder` that caused order placement to fail in some environments.
+- **TypeScript Integration Tests**: Fixed syntax errors in `tests/integration.test.ts` that were preventing the SDK verification suite from running cleanly.
+- **Compliance Handling**: Updated `fetchTrades` compliance tests to gracefully handle exchanges that return "Not Implemented" instead of failing the test suite.
+- **Order Fetching**: Fixed intermittent `TypeError` issues in `fetchOrder` (specifically for Polymarket) when handling orders with missing side information.
+
+### Improved
+- **Kalshi WebSocket Stability**: Enhanced the `watchTrades` compliance test with smarter market selection (targeting high-volume markets) to eliminate false-positive timeouts.
+
 ## [1.5.3 / 1.5.4] - 2026-01-31
 
 ### Added

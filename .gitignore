@@ -157,3 +157,5 @@ env/
 # We commit the generated code so users don't need the generator
 # But mark it clearly as auto-generated
 pmxt dev.txt
+scripts/simple_buy.py
+scripts/debug_slug.py

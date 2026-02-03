@@ -61,7 +61,7 @@ Fetch Markets
 **Signature:**
 
 ```python
-def fetch_markets(params: Optional[MarketFilterParams] &#x3D; None) -> List[UnifiedMarket]:
+def fetch_markets(params: Optional[MarketFilterParams] = None) -> List[UnifiedMarket]:
 ```
 
 **Parameters:**
@@ -73,9 +73,9 @@ def fetch_markets(params: Optional[MarketFilterParams] &#x3D; None) -> List[Unif
 **Example:**
 
 ```python
-markets &#x3D; poly.fetch_markets(pmxt.MarketFilterParams(
-    limit&#x3D;20,
-    sort&#x3D;&#x27;volume&#x27;  # &#x27;volume&#x27; | &#x27;liquidity&#x27; | &#x27;newest&#x27;
+markets = poly.fetch_markets(pmxt.MarketFilterParams(
+    limit=20,
+    sort='volume'  # 'volume' | 'liquidity' | 'newest'
 ))
 ```
 
@@ -90,7 +90,7 @@ Search for markets by title or description.
 **Signature:**
 
 ```python
-def search_markets(query: str, params: Optional[MarketFilterParams] &#x3D; None) -> List[UnifiedMarket]:
+def search_markets(query: str, params: Optional[MarketFilterParams] = None) -> List[UnifiedMarket]:
 ```
 
 **Parameters:**
@@ -103,9 +103,9 @@ def search_markets(query: str, params: Optional[MarketFilterParams] &#x3D; None)
 **Example:**
 
 ```python
-results &#x3D; kalshi.search_markets(&#x27;Fed rates&#x27;, pmxt.MarketFilterParams(
-    limit&#x3D;10,
-    search_in&#x3D;&#x27;title&#x27;  # &#x27;title&#x27; (default) | &#x27;description&#x27; | &#x27;both&#x27;
+results = kalshi.search_markets('Fed rates', pmxt.MarketFilterParams(
+    limit=10,
+    search_in='title'  # 'title' (default) | 'description' | 'both'
 ))
 ```
 
@@ -133,10 +133,10 @@ def get_markets_by_slug() -> List[UnifiedMarket]:
 
 ```python
 # Polymarket: use URL slug
-poly_markets &#x3D; poly.get_markets_by_slug(&#x27;who-will-trump-nominate-as-fed-chair&#x27;)
+poly_markets = poly.get_markets_by_slug('who-will-trump-nominate-as-fed-chair')
 
 # Kalshi: use market ticker (auto-uppercased)
-kalshi_markets &#x3D; kalshi.get_markets_by_slug(&#x27;KXFEDCHAIRNOM-29&#x27;)
+kalshi_markets = kalshi.get_markets_by_slug('KXFEDCHAIRNOM-29')
 ```
 
 
@@ -150,7 +150,7 @@ Search for events (groups of related markets) by title or description.
 **Signature:**
 
 ```python
-def search_events(query: str, params: Optional[MarketFilterParams] &#x3D; None) -> List[UnifiedEvent]:
+def search_events(query: str, params: Optional[MarketFilterParams] = None) -> List[UnifiedEvent]:
 ```
 
 **Parameters:**
@@ -163,9 +163,9 @@ def search_events(query: str, params: Optional[MarketFilterParams] &#x3D; None) 
 **Example:**
 
 ```python
-events &#x3D; poly.search_events(&#x27;Fed Chair&#x27;)
-# Find specific market within event
-warsh &#x3D; events[0].search_markets(&#x27;Kevin Warsh&#x27;)[0]
+events = poly.search_events('Who will Trump nominate as Fed Chair?')
+# Filter for specific market within the event
+warsh = poly.filter_markets(events[0].markets, 'Kevin Warsh')[0]
 ```
 
 
@@ -179,7 +179,7 @@ Fetch OHLCV Candles
 **Signature:**
 
 ```python
-def fetch_o_h_l_c_v(id: str, params: Optional[HistoryFilterParams] &#x3D; None) -> List[PriceCandle]:
+def fetch_o_h_l_c_v(id: str, params: Optional[HistoryFilterParams] = None) -> List[PriceCandle]:
 ```
 
 **Parameters:**
@@ -192,21 +192,21 @@ def fetch_o_h_l_c_v(id: str, params: Optional[HistoryFilterParams] &#x3D; None) 
 **Example:**
 
 ```python
-markets &#x3D; poly.search_markets(&#x27;Trump&#x27;)
-outcome_id &#x3D; markets[0].outcomes[0].id  # Get the outcome ID
+markets = poly.search_markets('Trump')
+outcome_id = markets[0].outcomes[0].id  # Get the outcome ID
 
-candles &#x3D; poly.fetch_ohlcv(outcome_id, pmxt.HistoryFilterParams(
-    resolution&#x3D;&#x27;1h&#x27;,  # &#x27;1m&#x27; | &#x27;5m&#x27; | &#x27;15m&#x27; | &#x27;1h&#x27; | &#x27;6h&#x27; | &#x27;1d&#x27;
-    start&#x3D;datetime(2024, 1, 1),
-    end&#x3D;datetime(2024, 1, 31),
-    limit&#x3D;100
+candles = poly.fetch_ohlcv(outcome_id, pmxt.HistoryFilterParams(
+    resolution='1h',  # '1m' | '5m' | '15m' | '1h' | '6h' | '1d'
+    start=datetime(2024, 1, 1),
+    end=datetime(2024, 1, 31),
+    limit=100
 ))
 ```
 
 **Notes:**
-**CRITICAL**: Use &#x60;outcome.id&#x60;, not &#x60;market.id&#x60;.
-- **Polymarket**: &#x60;outcome.id&#x60; is the CLOB Token ID
-- **Kalshi**: &#x60;outcome.id&#x60; is the Market Ticker
+**CRITICAL**: Use `outcome.id`, not `market.id`.
+- **Polymarket**: `outcome.id` is the CLOB Token ID
+- **Kalshi**: `outcome.id` is the Market Ticker
 
 ---
 ### `fetch_order_book`
@@ -230,9 +230,9 @@ def fetch_order_book() -> OrderBook:
 **Example:**
 
 ```python
-order_book &#x3D; kalshi.fetch_order_book(&#x27;FED-25JAN&#x27;)
-print(f&#x27;Best bid: {order_book.bids[0].price}&#x27;)
-print(f&#x27;Best ask: {order_book.asks[0].price}&#x27;)
+order_book = kalshi.fetch_order_book('FED-25JAN')
+print(f'Best bid: {order_book.bids[0].price}')
+print(f'Best ask: {order_book.asks[0].price}')
 ```
 
 
@@ -246,7 +246,7 @@ Fetch Trades
 **Signature:**
 
 ```python
-def fetch_trades(id: str, params: Optional[HistoryFilterParams] &#x3D; None) -> List[Trade]:
+def fetch_trades(id: str, params: Optional[HistoryFilterParams] = None) -> List[Trade]:
 ```
 
 **Parameters:**
@@ -259,14 +259,14 @@ def fetch_trades(id: str, params: Optional[HistoryFilterParams] &#x3D; None) -> 
 **Example:**
 
 ```python
-trades &#x3D; kalshi.fetch_trades(&#x27;FED-25JAN&#x27;, pmxt.HistoryFilterParams(
-    resolution&#x3D;&#x27;1h&#x27;,
-    limit&#x3D;100
+trades = kalshi.fetch_trades('FED-25JAN', pmxt.HistoryFilterParams(
+    resolution='1h',
+    limit=100
 ))
 ```
 
 **Notes:**
-**Note**: Polymarket requires API key. Use &#x60;fetchOHLCV&#x60; for public historical data.
+**Note**: Polymarket requires API key. Use `fetchOHLCV` for public historical data.
 
 ---
 ### `watch_order_book`
@@ -279,7 +279,7 @@ Subscribe to real-time order book updates via WebSocket. Returns a promise that 
 **Signature:**
 
 ```python
-def watch_order_book(outcome_id: str, limit: Optional[Any] &#x3D; None) -> OrderBook:
+def watch_order_book(outcome_id: str, limit: Optional[Any] = None) -> OrderBook:
 ```
 
 **Parameters:**
@@ -307,7 +307,7 @@ Subscribe to real-time trade updates via WebSocket. Returns a promise that resol
 **Signature:**
 
 ```python
-def watch_trades(outcome_id: str, since: Optional[Any] &#x3D; None, limit: Optional[Any] &#x3D; None) -> List[Trade]:
+def watch_trades(outcome_id: str, since: Optional[Any] = None, limit: Optional[Any] = None) -> List[Trade]:
 ```
 
 **Parameters:**
@@ -335,7 +335,7 @@ Create Order
 **Signature:**
 
 ```python
-def create_order(params: Optional[CreateOrderParams] &#x3D; None) -> Order:
+def create_order(params: Optional[CreateOrderParams] = None) -> Order:
 ```
 
 **Parameters:**
@@ -348,24 +348,24 @@ def create_order(params: Optional[CreateOrderParams] &#x3D; None) -> Order:
 
 ```python
 # Limit Order Example
-order &#x3D; poly.create_order(pmxt.CreateOrderParams(
-    market_id&#x3D;&#x27;663583&#x27;,
-    outcome_id&#x3D;&#x27;109918492287...&#x27;,
-    side&#x3D;&#x27;buy&#x27;,
-    type&#x3D;&#x27;limit&#x27;,
-    amount&#x3D;10,        # Number of contracts
-    price&#x3D;0.55        # Required for limit orders (0.0-1.0)
+order = poly.create_order(pmxt.CreateOrderParams(
+    market_id='663583',
+    outcome_id='109918492287...',
+    side='buy',
+    type='limit',
+    amount=10,        # Number of contracts
+    price=0.55        # Required for limit orders (0.0-1.0)
 ))
 
-print(f&#x27;Order {order.id}: {order.status}&#x27;)
+print(f'Order {order.id}: {order.status}')
 
 # Market Order Example
-order &#x3D; kalshi.create_order(pmxt.CreateOrderParams(
-    market_id&#x3D;&#x27;FED-25JAN&#x27;,
-    outcome_id&#x3D;&#x27;FED-25JAN-YES&#x27;,
-    side&#x3D;&#x27;sell&#x27;,
-    type&#x3D;&#x27;market&#x27;,
-    amount&#x3D;5          # Price not needed for market orders
+order = kalshi.create_order(pmxt.CreateOrderParams(
+    market_id='FED-25JAN',
+    outcome_id='FED-25JAN-YES',
+    side='sell',
+    type='market',
+    amount=5          # Price not needed for market orders
 ))
 ```
 
@@ -392,8 +392,8 @@ def cancel_order() -> Order:
 **Example:**
 
 ```python
-cancelled_order &#x3D; poly.cancel_order(&#x27;order-123&#x27;)
-print(cancelled_order.status) # &#x27;cancelled&#x27;
+cancelled_order = poly.cancel_order('order-123')
+print(cancelled_order.status) # 'cancelled'
 ```
 
 
@@ -419,8 +419,8 @@ def fetch_order() -> Order:
 **Example:**
 
 ```python
-order &#x3D; kalshi.fetch_order(&#x27;order-456&#x27;)
-print(f&#x27;Filled: {order.filled}/{order.amount}&#x27;)
+order = kalshi.fetch_order('order-456')
+print(f'Filled: {order.filled}/{order.amount}')
 ```
 
 
@@ -447,13 +447,13 @@ def fetch_open_orders() -> List[Order]:
 
 ```python
 # All open orders
-all_orders &#x3D; poly.fetch_open_orders()
+all_orders = poly.fetch_open_orders()
 
 # Open orders for specific market
-market_orders &#x3D; kalshi.fetch_open_orders(&#x27;FED-25JAN&#x27;)
+market_orders = kalshi.fetch_open_orders('FED-25JAN')
 
 for order in all_orders:
-    print(f&#x27;{order.side} {order.amount} @ {order.price}&#x27;)
+    print(f'{order.side} {order.amount} @ {order.price}')
 ```
 
 
@@ -479,10 +479,10 @@ def fetch_positions() -> List[Position]:
 **Example:**
 
 ```python
-positions &#x3D; kalshi.fetch_positions()
+positions = kalshi.fetch_positions()
 for pos in positions:
-    print(f&quot;{pos.outcome_label}: {pos.size} @ ${pos.entry_price}&quot;)
-    print(f&quot;Unrealized P&amp;L: ${pos.unrealized_pnl}&quot;)
+    print(f"{pos.outcome_label}: {pos.size} @ ${pos.entry_price}")
+    print(f"Unrealized P&L: ${pos.unrealized_pnl}")
 ```
 
 
@@ -508,9 +508,9 @@ def fetch_balance() -> List[Balance]:
 **Example:**
 
 ```python
-balances &#x3D; poly.fetch_balance()
+balances = poly.fetch_balance()
 print(balances)
-# [Balance(currency&#x3D;&#x27;USDC&#x27;, total&#x3D;1000, available&#x3D;950, locked&#x3D;50)]
+# [Balance(currency='USDC', total=1000, available=950, locked=50)]
 ```
 
 
@@ -571,6 +571,74 @@ def get_execution_price_detailed(order_book: str, side: OrderBook, amount: Order
 
 
 ---
+### `filter_markets`
+
+Filter a list of markets locally based on structured criteria or a custom function.
+
+Unlike search_markets which calls the exchange's search engine, filter_markets operates on a List/Array of markets that you already have in memory. This is much faster and supports complex logic like price ranges, volume thresholds, and custom lambda functions.
+
+**Signature:**
+
+```python
+def filter_markets(markets: List[UnifiedMarket], criteria: Any) -> List[UnifiedMarket]:
+```
+
+**Parameters:**
+
+- `markets` (List[UnifiedMarket]): List of markets to filter
+- `criteria` (Any): Filter criteria (string, object, or function)
+
+**Returns:** `List[UnifiedMarket]` - Filtered list of markets
+
+**Example:**
+
+```python
+# Simple text search
+filtered = poly.filter_markets(markets, 'Trump')
+
+# Advanced criteria
+undervalued = poly.filter_markets(markets, {
+    'text': 'Election',
+    'volume_24h': {'min': 10000},
+    'price': {'outcome': 'yes', 'max': 0.4}
+})
+
+# Custom function
+volatile = poly.filter_markets(markets, lambda m: m.yes and m.yes.price_change_24h < -0.1)
+```
+
+
+---
+### `filter_events`
+
+Filter a list of events locally.
+
+Filters a list of events based on category, tags, or the number of markets they contain.
+
+**Signature:**
+
+```python
+def filter_events(events: List[UnifiedEvent], criteria: Any) -> List[UnifiedEvent]:
+```
+
+**Parameters:**
+
+- `events` (List[UnifiedEvent]): List of events to filter
+- `criteria` (Any): Filter criteria (string, object, or function)
+
+**Returns:** `List[UnifiedEvent]` - Filtered list of events
+
+**Example:**
+
+```python
+filtered = poly.filter_events(events, {
+    'category': 'Politics',
+    'market_count': {'min': 5}
+})
+```
+
+
+---
 
 ## Complete Trading Workflow
 
@@ -578,48 +646,48 @@ def get_execution_price_detailed(order_book: str, side: OrderBook, amount: Order
 import pmxt
 import os
 
-exchange &#x3D; pmxt.Polymarket(
-    private_key&#x3D;os.getenv(&#x27;POLYMARKET_PRIVATE_KEY&#x27;)
+exchange = pmxt.Polymarket(
+    private_key=os.getenv('POLYMARKET_PRIVATE_KEY')
 )
 
 # 1. Check balance
-balances &#x3D; exchange.fetch_balance()
+balances = exchange.fetch_balance()
 if balances:
-    balance &#x3D; balances[0]
-    print(f&#x27;Available: ${balance.available}&#x27;)
+    balance = balances[0]
+    print(f'Available: ${balance.available}')
 
 # 2. Search for a market
-markets &#x3D; exchange.search_markets(&#x27;Trump&#x27;)
-market &#x3D; markets[0]
-outcome &#x3D; market.outcomes[0]
+markets = exchange.search_markets('Trump')
+market = markets[0]
+outcome = market.outcomes[0]
 
 # 3. Place a limit order
-order &#x3D; exchange.create_order(pmxt.CreateOrderParams(
-    market_id&#x3D;market.id,
-    outcome_id&#x3D;outcome.id,
-    side&#x3D;&#x27;buy&#x27;,
-    type&#x3D;&#x27;limit&#x27;,
-    amount&#x3D;10,
-    price&#x3D;0.50
+order = exchange.create_order(pmxt.CreateOrderParams(
+    market_id=market.id,
+    outcome_id=outcome.id,
+    side='buy',
+    type='limit',
+    amount=10,
+    price=0.50
 ))
 
-print(f&#x27;Order placed: {order.id}&#x27;)
+print(f'Order placed: {order.id}')
 
 # 4. Check order status
-updated_order &#x3D; exchange.fetch_order(order.id)
-print(f&#x27;Status: {updated_order.status}&#x27;)
-print(f&#x27;Filled: {updated_order.filled}/{updated_order.amount}&#x27;)
+updated_order = exchange.fetch_order(order.id)
+print(f'Status: {updated_order.status}')
+print(f'Filled: {updated_order.filled}/{updated_order.amount}')
 
 # 5. Cancel if needed
-if updated_order.status &#x3D;&#x3D; &#x27;open&#x27;:
+if updated_order.status == 'open':
     exchange.cancel_order(order.id)
-    print(&#x27;Order cancelled&#x27;)
+    print('Order cancelled')
 
 # 6. Check positions
-positions &#x3D; exchange.fetch_positions()
+positions = exchange.fetch_positions()
 for pos in positions:
-    pnl_sign &#x3D; &#x27;+&#x27; if pos.unrealized_pnl &gt; 0 else &#x27;&#x27;
-    print(f&#x27;{pos.outcome_label}: {pnl_sign}${pos.unrealized_pnl:.2f}&#x27;)
+    pnl_sign = '+' if pos.unrealized_pnl > 0 else ''
+    print(f'{pos.outcome_label}: {pnl_sign}${pos.unrealized_pnl:.2f}')
 ```
 
 ## Data Models
@@ -668,7 +736,7 @@ metadata: object # Exchange-specific metadata (e.g., clobTokenId for Polymarket)
 ---
 ### `UnifiedEvent`
 
-A grouped collection of related markets (e.g., &quot;Who will be Fed Chair?&quot; contains multiple candidate markets)
+A grouped collection of related markets (e.g., "Who will be Fed Chair?" contains multiple candidate markets)
 
 ```python
 @dataclass
@@ -820,7 +888,7 @@ private_key: str # Private key for signing transactions
 api_secret: str # API secret (if required by exchange)
 passphrase: str # Passphrase (if required by exchange)
 funder_address: str # The address funding the trades (Proxy address)
-signature_type: Any # Signature type (0&#x3D;EOA, 1&#x3D;Poly Proxy, 2&#x3D;Gnosis Safe, or names like &#x27;gnosis_safe&#x27;)
+signature_type: Any # Signature type (0=EOA, 1=Poly Proxy, 2=Gnosis Safe, or names like 'gnosis_safe')
 ```
 
 ---

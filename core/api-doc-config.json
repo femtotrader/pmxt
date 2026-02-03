@@ -18,10 +18,62 @@
         },
         "searchEvents": {
             "python": {
-                "example": "events = poly.search_events('Fed Chair')\n# Find specific market within event\nwarsh = events[0].search_markets('Kevin Warsh')[0]"
+                "example": "events = poly.search_events('Who will Trump nominate as Fed Chair?')\n# Filter for specific market within the event\nwarsh = poly.filter_markets(events[0].markets, 'Kevin Warsh')[0]"
             },
             "typescript": {
-                "example": "const events = await polymarket.searchEvents('Fed Chair');\n// Find specific market within event\nconst warsh = events[0].searchMarkets('Kevin Warsh')[0];"
+                "example": "const events = await polymarket.searchEvents('Who will Trump nominate as Fed Chair?');\n// Filter for specific market within the event\nconst warsh = polymarket.filterMarkets(events[0].markets, 'Kevin Warsh')[0];"
+            }
+        },
+        "filterMarkets": {
+            "python": {
+                "example": "# Simple text search\nfiltered = poly.filter_markets(markets, 'Trump')\n\n# Advanced criteria\nundervalued = poly.filter_markets(markets, {\n    'text': 'Election',\n    'volume_24h': {'min': 10000},\n    'price': {'outcome': 'yes', 'max': 0.4}\n})\n\n# Custom function\nvolatile = poly.filter_markets(markets, lambda m: m.yes and m.yes.price_change_24h < -0.1)"
+            },
+            "typescript": {
+                "example": "// Simple text search\nconst filtered = poly.filterMarkets(markets, 'Trump');\n\n// Advanced criteria\nconst undervalued = poly.filterMarkets(markets, {\n    text: 'Election',\n    volume24h: { min: 10000 },\n    price: { outcome: 'yes', max: 0.4 }\n});\n\n// Custom function\nconst volatile = poly.filterMarkets(markets, m => \n    m.yes?.priceChange24h < -0.1\n);"
+            },
+            "summary": "Filter a list of markets locally based on structured criteria or a custom function.",
+            "description": "Unlike search_markets which calls the exchange's search engine, filter_markets operates on a List/Array of markets that you already have in memory. This is much faster and supports complex logic like price ranges, volume thresholds, and custom lambda functions.",
+            "params": [
+                {
+                    "name": "markets",
+                    "type": "UnifiedMarket[]",
+                    "description": "List of markets to filter"
+                },
+                {
+                    "name": "criteria",
+                    "type": "any",
+                    "description": "Filter criteria (string, object, or function)"
+                }
+            ],
+            "returns": {
+                "type": "UnifiedMarket[]",
+                "description": "Filtered list of markets"
+            }
+        },
+        "filterEvents": {
+            "python": {
+                "example": "filtered = poly.filter_events(events, {\n    'category': 'Politics',\n    'market_count': {'min': 5}\n})"
+            },
+            "typescript": {
+                "example": "const filtered = poly.filterEvents(events, {\n    category: 'Politics',\n    marketCount: { min: 5 }\n});"
+            },
+            "summary": "Filter a list of events locally.",
+            "description": "Filters a list of events based on category, tags, or the number of markets they contain.",
+            "params": [
+                {
+                    "name": "events",
+                    "type": "UnifiedEvent[]",
+                    "description": "List of events to filter"
+                },
+                {
+                    "name": "criteria",
+                    "type": "any",
+                    "description": "Filter criteria (string, object, or function)"
+                }
+            ],
+            "returns": {
+                "type": "UnifiedEvent[]",
+                "description": "Filtered list of events"
             }
         },
         "getMarketsBySlug": {

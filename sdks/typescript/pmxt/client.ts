@@ -37,6 +37,10 @@ import {
     SearchIn,
     UnifiedEvent,
     ExecutionPriceResult,
+    MarketFilterCriteria,
+    MarketFilterFunction,
+    EventFilterCriteria,
+    EventFilterFunction,
 } from "./models.js";
 
 import { ServerManager } from "./server-manager.js";
@@ -934,6 +938,288 @@ export abstract class Exchange {
         } catch (error) {
             throw new Error(`Failed to get execution price: ${error}`);
         }
+    }
+
+    // ----------------------------------------------------------------------------
+    // Filtering Methods
+    // ----------------------------------------------------------------------------
+
+    /**
+     * Filter markets based on criteria or custom function.
+     *
+     * @param markets - Array of markets to filter
+     * @param criteria - Filter criteria object, string (simple text search), or predicate function
+     * @returns Filtered array of markets
+     *
+     * @example Simple text search
+     * api.filterMarkets(markets, 'Trump')
+     *
+     * @example Advanced filtering
+     * api.filterMarkets(markets, {
+     *   text: 'Trump',
+     *   searchIn: ['title', 'tags'],
+     *   volume24h: { min: 10000 },
+     *   category: 'Politics',
+     *   price: { outcome: 'yes', max: 0.5 }
+     * })
+     *
+     * @example Custom predicate
+     * api.filterMarkets(markets, m => m.liquidity > 5000 && m.yes?.price < 0.3)
+     */
+    filterMarkets(
+        markets: UnifiedMarket[],
+        criteria: string | MarketFilterCriteria | MarketFilterFunction
+    ): UnifiedMarket[] {
+        // Handle predicate function
+        if (typeof criteria === 'function') {
+            return markets.filter(criteria);
+        }
+
+        // Handle simple string search
+        if (typeof criteria === 'string') {
+            const lowerQuery = criteria.toLowerCase();
+            return markets.filter(m =>
+                m.title.toLowerCase().includes(lowerQuery)
+            );
+        }
+
+        // Handle criteria object
+        return markets.filter(market => {
+            // Text search
+            if (criteria.text) {
+                const lowerQuery = criteria.text.toLowerCase();
+                const searchIn = criteria.searchIn || ['title'];
+                let textMatch = false;
+
+                for (const field of searchIn) {
+                    if (field === 'title' && market.title?.toLowerCase().includes(lowerQuery)) {
+                        textMatch = true;
+                        break;
+                    }
+                    if (field === 'description' && market.description?.toLowerCase().includes(lowerQuery)) {
+                        textMatch = true;
+                        break;
+                    }
+                    if (field === 'category' && market.category?.toLowerCase().includes(lowerQuery)) {
+                        textMatch = true;
+                        break;
+                    }
+                    if (field === 'tags' && market.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))) {
+                        textMatch = true;
+                        break;
+                    }
+                    if (field === 'outcomes' && market.outcomes?.some(o => o.label.toLowerCase().includes(lowerQuery))) {
+                        textMatch = true;
+                        break;
+                    }
+                }
+
+                if (!textMatch) return false;
+            }
+
+            // Category filter
+            if (criteria.category && market.category !== criteria.category) {
+                return false;
+            }
+
+            // Tags filter (match ANY of the provided tags)
+            if (criteria.tags && criteria.tags.length > 0) {
+                const hasMatchingTag = criteria.tags.some(tag =>
+                    market.tags?.some(marketTag =>
+                        marketTag.toLowerCase() === tag.toLowerCase()
+                    )
+                );
+                if (!hasMatchingTag) return false;
+            }
+
+            // Volume24h filter
+            if (criteria.volume24h) {
+                if (criteria.volume24h.min !== undefined && market.volume24h < criteria.volume24h.min) {
+                    return false;
+                }
+                if (criteria.volume24h.max !== undefined && market.volume24h > criteria.volume24h.max) {
+                    return false;
+                }
+            }
+
+            // Volume filter
+            if (criteria.volume) {
+                if (criteria.volume.min !== undefined && (market.volume || 0) < criteria.volume.min) {
+                    return false;
+                }
+                if (criteria.volume.max !== undefined && (market.volume || 0) > criteria.volume.max) {
+                    return false;
+                }
+            }
+
+            // Liquidity filter
+            if (criteria.liquidity) {
+                if (criteria.liquidity.min !== undefined && market.liquidity < criteria.liquidity.min) {
+                    return false;
+                }
+                if (criteria.liquidity.max !== undefined && market.liquidity > criteria.liquidity.max) {
+                    return false;
+                }
+            }
+
+            // OpenInterest filter
+            if (criteria.openInterest) {
+                if (criteria.openInterest.min !== undefined && (market.openInterest || 0) < criteria.openInterest.min) {
+                    return false;
+                }
+                if (criteria.openInterest.max !== undefined && (market.openInterest || 0) > criteria.openInterest.max) {
+                    return false;
+                }
+            }
+
+            // ResolutionDate filter
+            if (criteria.resolutionDate && market.resolutionDate) {
+                const resDate = market.resolutionDate;
+                if (criteria.resolutionDate.before && resDate >= criteria.resolutionDate.before) {
+                    return false;
+                }
+                if (criteria.resolutionDate.after && resDate <= criteria.resolutionDate.after) {
+                    return false;
+                }
+            }
+
+            // Price filter (for binary markets)
+            if (criteria.price) {
+                const outcome = market[criteria.price.outcome];
+                if (!outcome) return false;
+
+                if (criteria.price.min !== undefined && outcome.price < criteria.price.min) {
+                    return false;
+                }
+                if (criteria.price.max !== undefined && outcome.price > criteria.price.max) {
+                    return false;
+                }
+            }
+
+            // Price change filter
+            if (criteria.priceChange24h) {
+                const outcome = market[criteria.priceChange24h.outcome];
+                if (!outcome || outcome.priceChange24h === undefined) return false;
+
+                if (criteria.priceChange24h.min !== undefined && outcome.priceChange24h < criteria.priceChange24h.min) {
+                    return false;
+                }
+                if (criteria.priceChange24h.max !== undefined && outcome.priceChange24h > criteria.priceChange24h.max) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }
+
+    /**
+     * Filter events based on criteria or custom function.
+     *
+     * @param events - Array of events to filter
+     * @param criteria - Filter criteria object, string (simple text search), or predicate function
+     * @returns Filtered array of events
+     *
+     * @example Simple text search
+     * api.filterEvents(events, 'Trump')
+     *
+     * @example Advanced filtering
+     * api.filterEvents(events, {
+     *   text: 'Election',
+     *   searchIn: ['title', 'tags'],
+     *   category: 'Politics',
+     *   marketCount: { min: 5 }
+     * })
+     *
+     * @example Custom predicate
+     * api.filterEvents(events, e => e.markets.length > 10)
+     */
+    filterEvents(
+        events: UnifiedEvent[],
+        criteria: string | EventFilterCriteria | EventFilterFunction
+    ): UnifiedEvent[] {
+        // Handle predicate function
+        if (typeof criteria === 'function') {
+            return events.filter(criteria);
+        }
+
+        // Handle simple string search
+        if (typeof criteria === 'string') {
+            const lowerQuery = criteria.toLowerCase();
+            return events.filter(e =>
+                e.title.toLowerCase().includes(lowerQuery)
+            );
+        }
+
+        // Handle criteria object
+        return events.filter(event => {
+            // Text search
+            if (criteria.text) {
+                const lowerQuery = criteria.text.toLowerCase();
+                const searchIn = criteria.searchIn || ['title'];
+                let textMatch = false;
+
+                for (const field of searchIn) {
+                    if (field === 'title' && event.title?.toLowerCase().includes(lowerQuery)) {
+                        textMatch = true;
+                        break;
+                    }
+                    if (field === 'description' && event.description?.toLowerCase().includes(lowerQuery)) {
+                        textMatch = true;
+                        break;
+                    }
+                    if (field === 'category' && event.category?.toLowerCase().includes(lowerQuery)) {
+                        textMatch = true;
+                        break;
+                    }
+                    if (field === 'tags' && event.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))) {
+                        textMatch = true;
+                        break;
+                    }
+                }
+
+                if (!textMatch) return false;
+            }
+
+            // Category filter
+            if (criteria.category && event.category !== criteria.category) {
+                return false;
+            }
+
+            // Tags filter (match ANY of the provided tags)
+            if (criteria.tags && criteria.tags.length > 0) {
+                const hasMatchingTag = criteria.tags.some(tag =>
+                    event.tags?.some(eventTag =>
+                        eventTag.toLowerCase() === tag.toLowerCase()
+                    )
+                );
+                if (!hasMatchingTag) return false;
+            }
+
+            // Market count filter
+            if (criteria.marketCount) {
+                const count = event.markets.length;
+                if (criteria.marketCount.min !== undefined && count < criteria.marketCount.min) {
+                    return false;
+                }
+                if (criteria.marketCount.max !== undefined && count > criteria.marketCount.max) {
+                    return false;
+                }
+            }
+
+            // Total volume filter
+            if (criteria.totalVolume) {
+                const totalVolume = event.markets.reduce((sum, m) => sum + m.volume24h, 0);
+                if (criteria.totalVolume.min !== undefined && totalVolume < criteria.totalVolume.min) {
+                    return false;
+                }
+                if (criteria.totalVolume.max !== undefined && totalVolume > criteria.totalVolume.max) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
     }
 }
 

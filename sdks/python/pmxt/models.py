@@ -15,6 +15,7 @@ SortOption = Literal["volume", "liquidity", "newest"]
 SearchIn = Literal["title", "description", "both"]
 OrderSide = Literal["buy", "sell"]
 OrderType = Literal["market", "limit"]
+OutcomeType = Literal["yes", "no", "up", "down"]
 
 
 @dataclass
@@ -398,3 +399,70 @@ class CreateOrderParams:
     
     fee: Optional[int] = None
     """Optional fee rate (e.g., 1000 for 0.1%)"""
+
+
+# ----------------------------------------------------------------------------
+# Filtering Types
+# ----------------------------------------------------------------------------
+
+from typing import TypedDict, Callable, Union
+
+class MinMax(TypedDict, total=False):
+    """Range filter."""
+    min: float
+    max: float
+
+class DateRange(TypedDict, total=False):
+    """Date range filter."""
+    before: datetime
+    after: datetime
+
+class PriceFilter(TypedDict, total=False):
+    """Price filter."""
+    outcome: OutcomeType
+    min: float
+    max: float
+
+class MarketFilterCriteria(TypedDict, total=False):
+    """Criteria for filtering markets locally."""
+    
+    # Text search
+    text: str
+    search_in: List[Literal["title", "description", "category", "tags", "outcomes"]]
+    
+    # Numeric range filters
+    volume_24h: MinMax
+    volume: MinMax
+    liquidity: MinMax
+    open_interest: MinMax
+    
+    # Date filters
+    resolution_date: DateRange
+    
+    # Category/tag filters
+    category: str
+    tags: List[str]
+    
+    # Price filters
+    price: PriceFilter
+    price_change_24h: PriceFilter
+
+MarketFilterFunction = Callable[[UnifiedMarket], bool]
+
+class EventFilterCriteria(TypedDict, total=False):
+    """Criteria for filtering events locally."""
+    
+    # Text search
+    text: str
+    search_in: List[Literal["title", "description", "category", "tags"]]
+    
+    # Category/tag filters
+    category: str
+    tags: List[str]
+    
+    # Market metrics
+    market_count: MinMax
+    total_volume: MinMax
+
+EventFilterFunction = Callable[[UnifiedEvent], bool]
+

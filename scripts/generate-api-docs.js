@@ -160,6 +160,21 @@ function parseMethods(openapi, config) {
         });
     }
 
+    // Add local-only methods (not in OpenAPI spec)
+    for (const [opId, conf] of Object.entries(config.methods)) {
+        if (methods.find(m => m.name === opId)) continue;
+
+        methods.push({
+            name: opId,
+            summary: conf.summary || opId,
+            description: conf.description || '',
+            params: conf.params || [],
+            returns: conf.returns || { type: 'any', description: '' },
+            example: conf,
+            notes: conf.notes || null
+        });
+    }
+
     return methods;
 }
 
@@ -260,7 +275,8 @@ Handlebars.registerHelper('tsOptional', (required) => required ? '' : '?');
 
 // --- Render Python ---
 const pythonTemplate = Handlebars.compile(
-    fs.readFileSync(path.join(__dirname, 'templates/api-reference.python.md.hbs'), 'utf8')
+    fs.readFileSync(path.join(__dirname, 'templates/api-reference.python.md.hbs'), 'utf8'),
+    { noEscape: true }
 );
 
 const pythonMethods = methods.map(m => ({
@@ -280,7 +296,8 @@ console.log(`Generated Python Docs: ${PYTHON_OUT}`);
 
 // --- Render TypeScript ---
 const tsTemplate = Handlebars.compile(
-    fs.readFileSync(path.join(__dirname, 'templates/api-reference.typescript.md.hbs'), 'utf8')
+    fs.readFileSync(path.join(__dirname, 'templates/api-reference.typescript.md.hbs'), 'utf8'),
+    { noEscape: true }
 );
 
 const tsMethods = methods.map(m => ({

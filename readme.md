@@ -106,8 +106,8 @@ api = pmxt.Polymarket()
 events = api.search_events('Who will Trump nominate as Fed Chair?')
 fed_event = events[0]
 
-# 2. Search for the specific Market within that event
-warsh = fed_event.search_markets('Kevin Warsh')[0]
+# 2. Filter for the specific Market within that event
+warsh = api.filter_markets(fed_event.markets, 'Kevin Warsh')[0]
 
 print(f"Price: {warsh.yes.price}")
 ```
@@ -122,8 +122,8 @@ const api = new pmxt.Polymarket();
 const events = await api.searchEvents('Who will Trump nominate as Fed Chair?');
 const fedEvent = events[0];
 
-// 2. Search for the specific Market within that event
-const warsh = fedEvent.searchMarkets('Kevin Warsh')[0];
+// 2. Filter for the specific Market within that event
+const warsh = api.filterMarkets(fedEvent.markets, 'Kevin Warsh')[0];
 
 console.log(`Price: ${warsh.yes?.price}`);
 ```

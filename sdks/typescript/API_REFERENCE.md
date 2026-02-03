@@ -74,10 +74,10 @@ async fetchMarkets(params?: MarketFilterParams): Promise<UnifiedMarket[]>
     **Example:**
 
     ```typescript
-    const markets &#x3D; await polymarket.fetchMarkets({ 
+    const markets = await polymarket.fetchMarkets({ 
   limit: 20, 
   offset: 0,
-  sort: &#x27;volume&#x27; // &#x27;volume&#x27; | &#x27;liquidity&#x27; | &#x27;newest&#x27;
+  sort: 'volume' // 'volume' | 'liquidity' | 'newest'
 });
     ```
 
@@ -105,9 +105,9 @@ async searchMarkets(query: string, params?: MarketFilterParams): Promise<Unified
     **Example:**
 
     ```typescript
-    const results &#x3D; await kalshi.searchMarkets(&#x27;Fed rates&#x27;, { 
+    const results = await kalshi.searchMarkets('Fed rates', { 
   limit: 10,
-  searchIn: &#x27;title&#x27; // &#x27;title&#x27; (default) | &#x27;description&#x27; | &#x27;both&#x27;
+  searchIn: 'title' // 'title' (default) | 'description' | 'both'
 });
     ```
 
@@ -135,10 +135,10 @@ async getMarketsBySlug(): Promise<UnifiedMarket[]>
 
     ```typescript
     // Polymarket: use URL slug
-const polyMarkets &#x3D; await polymarket.getMarketsBySlug(&#x27;who-will-trump-nominate-as-fed-chair&#x27;);
+const polyMarkets = await polymarket.getMarketsBySlug('who-will-trump-nominate-as-fed-chair');
 
 // Kalshi: use market ticker (auto-uppercased)
-const kalshiMarkets &#x3D; await kalshi.getMarketsBySlug(&#x27;KXFEDCHAIRNOM-29&#x27;);
+const kalshiMarkets = await kalshi.getMarketsBySlug('KXFEDCHAIRNOM-29');
     ```
 
 
@@ -165,9 +165,9 @@ async searchEvents(query: string, params?: MarketFilterParams): Promise<UnifiedE
     **Example:**
 
     ```typescript
-    const events &#x3D; await polymarket.searchEvents(&#x27;Fed Chair&#x27;);
-// Find specific market within event
-const warsh &#x3D; events[0].searchMarkets(&#x27;Kevin Warsh&#x27;)[0];
+    const events = await polymarket.searchEvents('Who will Trump nominate as Fed Chair?');
+// Filter for specific market within the event
+const warsh = polymarket.filterMarkets(events[0].markets, 'Kevin Warsh')[0];
     ```
 
 
@@ -194,21 +194,21 @@ async fetchOHLCV(id: string, params?: HistoryFilterParams): Promise<PriceCandle[
     **Example:**
 
     ```typescript
-    const markets &#x3D; await polymarket.searchMarkets(&#x27;Trump&#x27;);
-const outcomeId &#x3D; markets[0].outcomes[0].id; // Get the outcome ID
+    const markets = await polymarket.searchMarkets('Trump');
+const outcomeId = markets[0].outcomes[0].id; // Get the outcome ID
 
-const candles &#x3D; await polymarket.fetchOHLCV(outcomeId, {
-  resolution: &#x27;1h&#x27;, // &#x27;1m&#x27; | &#x27;5m&#x27; | &#x27;15m&#x27; | &#x27;1h&#x27; | &#x27;6h&#x27; | &#x27;1d&#x27;
-  start: new Date(&#x27;2024-01-01&#x27;),
-  end: new Date(&#x27;2024-01-31&#x27;),
+const candles = await polymarket.fetchOHLCV(outcomeId, {
+  resolution: '1h', // '1m' | '5m' | '15m' | '1h' | '6h' | '1d'
+  start: new Date('2024-01-01'),
+  end: new Date('2024-01-31'),
   limit: 100
 });
     ```
 
     **Notes:**
-    **CRITICAL**: Use &#x60;outcome.id&#x60;, not &#x60;market.id&#x60;.
-    - **Polymarket**: &#x60;outcome.id&#x60; is the CLOB Token ID
-    - **Kalshi**: &#x60;outcome.id&#x60; is the Market Ticker
+    **CRITICAL**: Use `outcome.id`, not `market.id`.
+    - **Polymarket**: `outcome.id` is the CLOB Token ID
+    - **Kalshi**: `outcome.id` is the Market Ticker
 
     ---
 ### `fetchOrderBook`
@@ -232,9 +232,9 @@ async fetchOrderBook(): Promise<OrderBook>
     **Example:**
 
     ```typescript
-    const orderBook &#x3D; await kalshi.fetchOrderBook(&#x27;FED-25JAN&#x27;);
-console.log(&#x27;Best bid:&#x27;, orderBook.bids[0].price);
-console.log(&#x27;Best ask:&#x27;, orderBook.asks[0].price);
+    const orderBook = await kalshi.fetchOrderBook('FED-25JAN');
+console.log('Best bid:', orderBook.bids[0].price);
+console.log('Best ask:', orderBook.asks[0].price);
     ```
 
 
@@ -261,14 +261,14 @@ async fetchTrades(id: string, params?: HistoryFilterParams): Promise<Trade[]>
     **Example:**
 
     ```typescript
-    const trades &#x3D; await kalshi.fetchTrades(&#x27;FED-25JAN&#x27;, {
-  resolution: &#x27;1h&#x27;,
+    const trades = await kalshi.fetchTrades('FED-25JAN', {
+  resolution: '1h',
   limit: 100
 });
     ```
 
     **Notes:**
-    **Note**: Polymarket requires API key. Use &#x60;fetchOHLCV&#x60; for public historical data.
+    **Note**: Polymarket requires API key. Use `fetchOHLCV` for public historical data.
 
     ---
 ### `watchOrderBook`
@@ -350,23 +350,23 @@ async createOrder(params?: CreateOrderParams): Promise<Order>
 
     ```typescript
     // Limit Order Example
-const order &#x3D; await polymarket.createOrder({
-  marketId: &#x27;663583&#x27;,
-  outcomeId: &#x27;10991849228756847439673778874175365458450913336396982752046655649803657501964&#x27;,
-  side: &#x27;buy&#x27;,
-  type: &#x27;limit&#x27;,
+const order = await polymarket.createOrder({
+  marketId: '663583',
+  outcomeId: '10991849228756847439673778874175365458450913336396982752046655649803657501964',
+  side: 'buy',
+  type: 'limit',
   amount: 10,        // Number of contracts
   price: 0.55        // Required for limit orders (0.0-1.0)
 });
 
-console.log(&#x60;Order ${order.id}: ${order.status}&#x60;);
+console.log(`Order ${order.id}: ${order.status}`);
 
 // Market Order Example
-const order &#x3D; await kalshi.createOrder({
-  marketId: &#x27;FED-25JAN&#x27;,
-  outcomeId: &#x27;FED-25JAN-YES&#x27;,
-  side: &#x27;sell&#x27;,
-  type: &#x27;market&#x27;,
+const order = await kalshi.createOrder({
+  marketId: 'FED-25JAN',
+  outcomeId: 'FED-25JAN-YES',
+  side: 'sell',
+  type: 'market',
   amount: 5          // Price not needed for market orders
 });
     ```
@@ -394,8 +394,8 @@ async cancelOrder(): Promise<Order>
     **Example:**
 
     ```typescript
-    const cancelledOrder &#x3D; await polymarket.cancelOrder(&#x27;order-123&#x27;);
-console.log(cancelledOrder.status); // &#x27;cancelled&#x27;
+    const cancelledOrder = await polymarket.cancelOrder('order-123');
+console.log(cancelledOrder.status); // 'cancelled'
     ```
 
 
@@ -421,8 +421,8 @@ async fetchOrder(): Promise<Order>
     **Example:**
 
     ```typescript
-    const order &#x3D; await kalshi.fetchOrder(&#x27;order-456&#x27;);
-console.log(&#x60;Filled: ${order.filled}/${order.amount}&#x60;);
+    const order = await kalshi.fetchOrder('order-456');
+console.log(`Filled: ${order.filled}/${order.amount}`);
     ```
 
 
@@ -449,13 +449,13 @@ async fetchOpenOrders(): Promise<Order[]>
 
     ```typescript
     // All open orders
-const allOrders &#x3D; await polymarket.fetchOpenOrders();
+const allOrders = await polymarket.fetchOpenOrders();
 
 // Open orders for specific market
-const marketOrders &#x3D; await kalshi.fetchOpenOrders(&#x27;FED-25JAN&#x27;);
+const marketOrders = await kalshi.fetchOpenOrders('FED-25JAN');
 
-allOrders.forEach(order &#x3D;&gt; {
-  console.log(&#x60;${order.side} ${order.amount} @ ${order.price}&#x60;);
+allOrders.forEach(order => {
+  console.log(`${order.side} ${order.amount} @ ${order.price}`);
 });
     ```
 
@@ -482,10 +482,10 @@ async fetchPositions(): Promise<Position[]>
     **Example:**
 
     ```typescript
-    const positions &#x3D; await kalshi.fetchPositions();
-positions.forEach(pos &#x3D;&gt; {
-  console.log(&#x60;${pos.outcomeLabel}: ${pos.size} @ $${pos.entryPrice}&#x60;);
-  console.log(&#x60;Unrealized P&amp;L: $${pos.unrealizedPnL}&#x60;);
+    const positions = await kalshi.fetchPositions();
+positions.forEach(pos => {
+  console.log(`${pos.outcomeLabel}: ${pos.size} @ $${pos.entryPrice}`);
+  console.log(`Unrealized P&L: $${pos.unrealizedPnL}`);
 });
     ```
 
@@ -512,9 +512,9 @@ async fetchBalance(): Promise<Balance[]>
     **Example:**
 
     ```typescript
-    const balances &#x3D; await polymarket.fetchBalance();
+    const balances = await polymarket.fetchBalance();
 console.log(balances);
-// [{ currency: &#x27;USDC&#x27;, total: 1000, available: 950, locked: 50 }]
+// [{ currency: 'USDC', total: 1000, available: 950, locked: 50 }]
     ```
 
 
@@ -575,52 +575,122 @@ async getExecutionPriceDetailed(orderBook: string, side: OrderBook, amount: Orde
 
 
     ---
+### `filterMarkets`
+
+Filter a list of markets locally based on structured criteria or a custom function.
+
+Unlike search_markets which calls the exchange's search engine, filter_markets operates on a List/Array of markets that you already have in memory. This is much faster and supports complex logic like price ranges, volume thresholds, and custom lambda functions.
+
+**Signature:**
+
+```typescript
+async filterMarkets(markets: UnifiedMarket[], criteria: any): Promise<UnifiedMarket[]>
+  ```
+
+  **Parameters:**
+
+  - `markets` (UnifiedMarket[]): List of markets to filter
+  - `criteria` (any): Filter criteria (string, object, or function)
+
+  **Returns:** `Promise<UnifiedMarket[]>` - Filtered list of markets
+
+    **Example:**
+
+    ```typescript
+    // Simple text search
+const filtered = poly.filterMarkets(markets, 'Trump');
+
+// Advanced criteria
+const undervalued = poly.filterMarkets(markets, {
+    text: 'Election',
+    volume24h: { min: 10000 },
+    price: { outcome: 'yes', max: 0.4 }
+});
+
+// Custom function
+const volatile = poly.filterMarkets(markets, m => 
+    m.yes?.priceChange24h < -0.1
+);
+    ```
+
+
+    ---
+### `filterEvents`
+
+Filter a list of events locally.
+
+Filters a list of events based on category, tags, or the number of markets they contain.
+
+**Signature:**
+
+```typescript
+async filterEvents(events: UnifiedEvent[], criteria: any): Promise<UnifiedEvent[]>
+  ```
+
+  **Parameters:**
+
+  - `events` (UnifiedEvent[]): List of events to filter
+  - `criteria` (any): Filter criteria (string, object, or function)
+
+  **Returns:** `Promise<UnifiedEvent[]>` - Filtered list of events
+
+    **Example:**
+
+    ```typescript
+    const filtered = poly.filterEvents(events, {
+    category: 'Politics',
+    marketCount: { min: 5 }
+});
+    ```
+
+
+    ---
 
     ## Complete Trading Workflow
 
     ```typescript
-    import pmxt from &#x27;pmxtjs&#x27;;
+    import pmxt from 'pmxtjs';
 
-const exchange &#x3D; new pmxt.Polymarket({
+const exchange = new pmxt.Polymarket({
   privateKey: process.env.POLYMARKET_PRIVATE_KEY
 });
 
 // 1. Check balance
-const [balance] &#x3D; await exchange.fetchBalance();
-console.log(&#x60;Available: $${balance.available}&#x60;);
+const [balance] = await exchange.fetchBalance();
+console.log(`Available: $${balance.available}`);
 
 // 2. Search for a market
-const markets &#x3D; await exchange.searchMarkets(&#x27;Trump&#x27;);
-const market &#x3D; markets[0];
-const outcome &#x3D; market.outcomes[0];
+const markets = await exchange.searchMarkets('Trump');
+const market = markets[0];
+const outcome = market.outcomes[0];
 
 // 3. Place a limit order
-const order &#x3D; await exchange.createOrder({
+const order = await exchange.createOrder({
   marketId: market.id,
   outcomeId: outcome.id,
-  side: &#x27;buy&#x27;,
-  type: &#x27;limit&#x27;,
+  side: 'buy',
+  type: 'limit',
   amount: 10,
   price: 0.50
 });
 
-console.log(&#x60;Order placed: ${order.id}&#x60;);
+console.log(`Order placed: ${order.id}`);
 
 // 4. Check order status
-const updatedOrder &#x3D; await exchange.fetchOrder(order.id);
-console.log(&#x60;Status: ${updatedOrder.status}&#x60;);
-console.log(&#x60;Filled: ${updatedOrder.filled}/${updatedOrder.amount}&#x60;);
+const updatedOrder = await exchange.fetchOrder(order.id);
+console.log(`Status: ${updatedOrder.status}`);
+console.log(`Filled: ${updatedOrder.filled}/${updatedOrder.amount}`);
 
 // 5. Cancel if needed
-if (updatedOrder.status &#x3D;&#x3D;&#x3D; &#x27;open&#x27;) {
+if (updatedOrder.status === 'open') {
   await exchange.cancelOrder(order.id);
-  console.log(&#x27;Order cancelled&#x27;);
+  console.log('Order cancelled');
 }
 
 // 6. Check positions
-const positions &#x3D; await exchange.fetchPositions();
-positions.forEach(pos &#x3D;&gt; {
-  console.log(&#x60;${pos.outcomeLabel}: ${pos.unrealizedPnL &gt; 0 ? &#x27;+&#x27; : &#x27;&#x27;}$${pos.unrealizedPnL.toFixed(2)}&#x60;);
+const positions = await exchange.fetchPositions();
+positions.forEach(pos => {
+  console.log(`${pos.outcomeLabel}: ${pos.unrealizedPnL > 0 ? '+' : ''}$${pos.unrealizedPnL.toFixed(2)}`);
 });
     ```
 
@@ -670,7 +740,7 @@ positions.forEach(pos &#x3D;&gt; {
     ---
     ### `UnifiedEvent`
 
-    A grouped collection of related markets (e.g., &quot;Who will be Fed Chair?&quot; contains multiple candidate markets)
+    A grouped collection of related markets (e.g., "Who will be Fed Chair?" contains multiple candidate markets)
 
     ```typescript
     interface UnifiedEvent {
@@ -821,7 +891,7 @@ positions.forEach(pos &#x3D;&gt; {
     apiSecret: string; // API secret (if required by exchange)
     passphrase: string; // Passphrase (if required by exchange)
     funderAddress: string; // The address funding the trades (Proxy address)
-    signatureType: any; // Signature type (0&#x3D;EOA, 1&#x3D;Poly Proxy, 2&#x3D;Gnosis Safe, or names like &#x27;gnosis_safe&#x27;)
+    signatureType: any; // Signature type (0=EOA, 1=Poly Proxy, 2=Gnosis Safe, or names like 'gnosis_safe')
     }
     ```
 

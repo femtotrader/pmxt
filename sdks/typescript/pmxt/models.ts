@@ -352,10 +352,97 @@ export interface UnifiedEvent {
 
     /**
      * Search for markets within this event by keyword.
-     * 
+     *
      * @param query - Search query (case-insensitive)
      * @param searchIn - Where to search - "title", "description", or "both"
      * @returns List of matching markets
      */
     searchMarkets(query: string, searchIn?: SearchIn): UnifiedMarket[];
 }
+
+// ----------------------------------------------------------------------------
+// Advanced Filtering Types
+// ----------------------------------------------------------------------------
+
+/**
+ * Advanced criteria for filtering markets.
+ * Supports text search, numeric ranges, dates, categories, and price filters.
+ */
+export interface MarketFilterCriteria {
+    /** Text search query */
+    text?: string;
+
+    /** Fields to search in (default: ['title']) */
+    searchIn?: ('title' | 'description' | 'category' | 'tags' | 'outcomes')[];
+
+    /** Filter by 24-hour volume */
+    volume24h?: { min?: number; max?: number };
+
+    /** Filter by total volume */
+    volume?: { min?: number; max?: number };
+
+    /** Filter by liquidity */
+    liquidity?: { min?: number; max?: number };
+
+    /** Filter by open interest */
+    openInterest?: { min?: number; max?: number };
+
+    /** Filter by resolution date */
+    resolutionDate?: {
+        before?: Date;
+        after?: Date;
+    };
+
+    /** Filter by category */
+    category?: string;
+
+    /** Filter by tags (matches if market has ANY of these) */
+    tags?: string[];
+
+    /** Filter by outcome price (for binary markets) */
+    price?: {
+        outcome: 'yes' | 'no' | 'up' | 'down';
+        min?: number;
+        max?: number;
+    };
+
+    /** Filter by 24-hour price change */
+    priceChange24h?: {
+        outcome: 'yes' | 'no' | 'up' | 'down';
+        min?: number;
+        max?: number;
+    };
+}
+
+/**
+ * Function type for custom market filtering logic.
+ */
+export type MarketFilterFunction = (market: UnifiedMarket) => boolean;
+
+/**
+ * Advanced criteria for filtering events.
+ */
+export interface EventFilterCriteria {
+    /** Text search query */
+    text?: string;
+
+    /** Fields to search in (default: ['title']) */
+    searchIn?: ('title' | 'description' | 'category' | 'tags')[];
+
+    /** Filter by category */
+    category?: string;
+
+    /** Filter by tags (matches if event has ANY of these) */
+    tags?: string[];
+
+    /** Filter by number of markets in the event */
+    marketCount?: { min?: number; max?: number };
+
+    /** Filter by total volume across all markets */
+    totalVolume?: { min?: number; max?: number };
+}
+
+/**
+ * Function type for custom event filtering logic.
+ */
+export type EventFilterFunction = (event: UnifiedEvent) => boolean;

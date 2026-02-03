@@ -7,7 +7,7 @@ OpenAPI client, matching the JavaScript API exactly.
 
 import os
 import sys
-from typing import List, Optional, Dict, Any, Literal
+from typing import List, Optional, Dict, Any, Literal, Union
 from datetime import datetime
 from abc import ABC, abstractmethod
 import json
@@ -37,6 +37,10 @@ from .models import (
     HistoryFilterParams,
     CreateOrderParams,
     ExecutionPriceResult,
+    MarketFilterCriteria,
+    MarketFilterFunction,
+    EventFilterCriteria,
+    EventFilterFunction,
 )
 from .server_manager import ServerManager
 
@@ -432,7 +436,223 @@ class Exchange(ABC):
             return [_convert_market(m) for m in data]
         except ApiException as e:
             raise Exception(f"Failed to get markets by slug: {e}")
-    
+
+    # ----------------------------------------------------------------------------
+    # Filtering Methods
+    # ----------------------------------------------------------------------------
+
+    def filter_markets(
+        self,
+        markets: List[UnifiedMarket],
+        criteria: Union[str, MarketFilterCriteria, MarketFilterFunction]
+    ) -> List[UnifiedMarket]:
+        """
+        Filter markets based on criteria or custom function.
+
+        Args:
+            markets: List of markets to filter
+            criteria: Filter criteria object, string (simple text search), or predicate function
+            
+        Returns:
+            Filtered list of markets
+            
+        Example:
+            >>> api.filter_markets(markets, "Trump")
+            >>> api.filter_markets(markets, {"volume_24h": {"min": 1000}})
+            >>> api.filter_markets(markets, lambda m: m.yes and m.yes.price > 0.5)
+        """
+        # Handle predicate function
+        if callable(criteria):
+            return list(filter(criteria, markets))
+
+        # Handle simple string search
+        if isinstance(criteria, str):
+            lower_query = criteria.lower()
+            return [m for m in markets if m.title and lower_query in m.title.lower()]
+
+        # Handle criteria object
+        params: MarketFilterCriteria = criteria # type: ignore
+        results = []
+        
+        for market in markets:
+            # Text search
+            if "text" in params:
+                lower_query = params["text"].lower()
+                search_in = params.get("search_in", ["title"])
+                match = False
+                
+                if "title" in search_in and market.title and lower_query in market.title.lower():
+                    match = True
+                elif "description" in search_in and market.description and lower_query in market.description.lower():
+                    match = True
+                elif "category" in search_in and market.category and lower_query in market.category.lower():
+                    match = True
+                elif "tags" in search_in and market.tags and any(lower_query in t.lower() for t in market.tags):
+                    match = True
+                elif "outcomes" in search_in and market.outcomes and any(lower_query in o.label.lower() for o in market.outcomes):
+                    match = True
+                
+                if not match:
+                    continue
+
+            # Category filter
+            if "category" in params:
+                if market.category != params["category"]:
+                    continue
+
+            # Tags filter (match ANY)
+            if "tags" in params and params["tags"]:
+                if not market.tags:
+                    continue
+                query_tags = [t.lower() for t in params["tags"]]
+                market_tags = [t.lower() for t in market.tags]
+                if not any(t in market_tags for t in query_tags):
+                    continue
+
+            # Volume 24h
+            if "volume_24h" in params:
+                f = params["volume_24h"]
+                val = market.volume_24h
+                if "min" in f and val < f["min"]: continue
+                if "max" in f and val > f["max"]: continue
+
+            # Volume
+            if "volume" in params:
+                f = params["volume"]
+                val = market.volume or 0
+                if "min" in f and val < f["min"]: continue
+                if "max" in f and val > f["max"]: continue
+
+            # Liquidity
+            if "liquidity" in params:
+                f = params["liquidity"]
+                val = market.liquidity
+                if "min" in f and val < f["min"]: continue
+                if "max" in f and val > f["max"]: continue
+            
+            # Open Interest
+            if "open_interest" in params:
+                f = params["open_interest"]
+                val = market.open_interest or 0
+                if "min" in f and val < f["min"]: continue
+                if "max" in f and val > f["max"]: continue
+
+            # Resolution Date
+            if "resolution_date" in params:
+                f = params["resolution_date"]
+                val = market.resolution_date
+                
+                if not val:
+                     continue
+                
+                # Ensure val is timezone-aware if the filter dates are, or naive if filter dates are.
+                # Assuming standard library comparison works (or both are TZ aware/naive).
+                if "before" in f and val >= f["before"]: continue
+                if "after" in f and val <= f["after"]: continue
+
+            # Price filter
+            if "price" in params:
+                f = params["price"]
+                outcome_key = f.get("outcome")
+                if outcome_key:
+                    outcome = getattr(market, outcome_key, None)
+                    if not outcome: continue
+                    if "min" in f and outcome.price < f["min"]: continue
+                    if "max" in f and outcome.price > f["max"]: continue
+
+            # Price Change 24h
+            if "price_change_24h" in params:
+                f = params["price_change_24h"]
+                outcome_key = f.get("outcome")
+                if outcome_key:
+                    outcome = getattr(market, outcome_key, None)
+                    if not outcome or outcome.price_change_24h is None: continue
+                    if "min" in f and outcome.price_change_24h < f["min"]: continue
+                    if "max" in f and outcome.price_change_24h > f["max"]: continue
+
+            results.append(market)
+            
+        return results
+
+    def filter_events(
+        self,
+        events: List[UnifiedEvent],
+        criteria: Union[str, EventFilterCriteria, EventFilterFunction]
+    ) -> List[UnifiedEvent]:
+        """
+        Filter events based on criteria or custom function.
+
+        Args:
+            events: List of events to filter
+            criteria: Filter criteria object, string, or function
+            
+        Returns:
+            Filtered list of events
+        """
+        # Handle predicate function
+        if callable(criteria):
+            return list(filter(criteria, events))
+
+        # Handle simple string search
+        if isinstance(criteria, str):
+            lower_query = criteria.lower()
+            return [e for e in events if e.title and lower_query in e.title.lower()]
+
+        # Handle criteria object
+        params: EventFilterCriteria = criteria # type: ignore
+        results = []
+
+        for event in events:
+            # Text search
+            if "text" in params:
+                lower_query = params["text"].lower()
+                search_in = params.get("search_in", ["title"])
+                match = False
+                
+                if "title" in search_in and event.title and lower_query in event.title.lower():
+                    match = True
+                elif "description" in search_in and event.description and lower_query in event.description.lower():
+                    match = True
+                elif "category" in search_in and event.category and lower_query in event.category.lower():
+                    match = True
+                elif "tags" in search_in and event.tags and any(lower_query in t.lower() for t in event.tags):
+                    match = True
+                
+                if not match:
+                    continue
+
+            # Category
+            if "category" in params:
+                if event.category != params["category"]:
+                    continue
+
+            # Tags
+            if "tags" in params and params["tags"]:
+                if not event.tags:
+                    continue
+                query_tags = [t.lower() for t in params["tags"]]
+                event_tags = [t.lower() for t in event.tags]
+                if not any(t in event_tags for t in query_tags):
+                    continue
+
+            # Market Count
+            if "market_count" in params:
+                f = params["market_count"]
+                count = len(event.markets)
+                if "min" in f and count < f["min"]: continue
+                if "max" in f and count > f["max"]: continue
+
+            # Total Volume
+            if "total_volume" in params:
+                f = params["total_volume"]
+                total_vol = sum(m.volume_24h for m in event.markets)
+                if "min" in f and total_vol < f["min"]: continue
+                if "max" in f and total_vol > f["max"]: continue
+
+            results.append(event)
+            
+        return results
+
     def fetch_ohlcv(
         self,
         outcome_id: str,

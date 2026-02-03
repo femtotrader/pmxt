@@ -13,13 +13,8 @@ npm install pmxtjs
 ```typescript
 import pmxt from 'pmxtjs';
 
-// Both PascalCase and lowercase work
 const poly = new pmxt.Polymarket();
 const kalshi = new pmxt.Kalshi();
-
-// Or lowercase if you prefer
-const poly2 = new pmxt.polymarket();
-const kalshi2 = new pmxt.kalshi();
 ```
 
 ### Note for ESM Users
@@ -29,16 +24,16 @@ const kalshi2 = new pmxt.kalshi();
 **Option 1: Default import (recommended)**
 ```typescript
 import pmxt from 'pmxtjs';
-const poly = new pmxt.polymarket();
+const poly = new pmxt.Polymarket();
 ```
 
 **Option 2: Dynamic import**
 ```typescript
 const pmxt = await import('pmxtjs');
-const poly = new pmxt.default.polymarket();
+const poly = new pmxt.default.Polymarket();
 ```
 
-**Note**: Named exports like `import { polymarket } from 'pmxtjs'` will **not work** in ESM projects.
+**Note**: Named exports like `import { Polymarket } from 'pmxtjs'` will **not work** in ESM projects.
 
 ---
 

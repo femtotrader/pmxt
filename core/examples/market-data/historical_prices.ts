@@ -1,7 +1,7 @@
 import pmxt from '../../src';
 
 const main = async () => {
-    const api = new pmxt.polymarket();
+    const api = new pmxt.Polymarket();
     const markets = await api.getMarketsBySlug('who-will-trump-nominate-as-fed-chair');
     const warsh = markets.find(m => m.outcomes[0]?.label === 'Kevin Warsh');
 

@@ -1,8 +1,8 @@
 import pmxt from '../../src';
 
 const main = async () => {
-    const poly = new pmxt.polymarket();
-    // const kalshi = new pmxt.kalshi();
+    const poly = new pmxt.Polymarket();
+    // const kalshi = new pmxt.Kalshi();
 
     const events = await poly.searchEvents('Fed Chair');
 

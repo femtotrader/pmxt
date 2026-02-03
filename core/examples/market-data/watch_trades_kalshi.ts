@@ -7,7 +7,7 @@ async function run() {
     console.log(`Watching trades for: ${title}`);
     console.log(`Ticker: ${ticker}\n`);
 
-    const api = new pmxt.kalshi({
+    const api = new pmxt.Kalshi({
         credentials: {
             apiKey: process.env.KALSHI_API_KEY,
             privateKey: process.env.KALSHI_PRIVATE_KEY

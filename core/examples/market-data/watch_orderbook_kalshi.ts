@@ -1,7 +1,7 @@
 import pmxt from '../../src';
 
 async function run() {
-    const api = new pmxt.kalshi({
+    const api = new pmxt.Kalshi({
         credentials: {
             apiKey: process.env.KALSHI_API_KEY,
             privateKey: process.env.KALSHI_PRIVATE_KEY

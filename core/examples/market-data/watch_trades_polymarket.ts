@@ -1,7 +1,7 @@
 import pmxt from '../../src';
 
 async function run() {
-    const api = new pmxt.polymarket();
+    const api = new pmxt.Polymarket();
 
     // 1. Search for the broad Event
     console.log("Searching for Event: Fed Chair...");

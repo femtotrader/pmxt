@@ -13,16 +13,13 @@ import { LimitlessExchange } from './exchanges/limitless';
 import { KalshiExchange } from './exchanges/kalshi';
 
 const pmxt = {
-    polymarket: PolymarketExchange,
-    limitless: LimitlessExchange,
-    kalshi: KalshiExchange,
     Polymarket: PolymarketExchange,
     Limitless: LimitlessExchange,
     Kalshi: KalshiExchange
 };
 
-export const polymarket = PolymarketExchange;
-export const limitless = LimitlessExchange;
-export const kalshi = KalshiExchange;
+export const Polymarket = PolymarketExchange;
+export const Limitless = LimitlessExchange;
+export const Kalshi = KalshiExchange;
 
 export default pmxt;

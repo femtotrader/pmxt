@@ -14,7 +14,7 @@ async function run() {
 
     const market = markets[0];
     const outcome = market.yes!; // Convenience access
-    const assetId = outcome.id;
+    const assetId = outcome.outcomeId;
 
     console.log(`Watching trades for: ${market.title}`);
     console.log(`Outcome: ${outcome.label} (Asset ID: ${assetId})\n`);

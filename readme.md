@@ -155,10 +155,10 @@ balance = exchange.fetch_balance()
 print(f"Available USDC: {balance[0].available}")
 
 # 2. Place an Order
-# Use unique outcome IDs from market.outcomes
+# Use market.market_id and outcome.outcome_id from your market data
 order = exchange.create_order(
-    market_id='market-123',
-    outcome_id='outcome-456',
+    market_id='market-123',      # From market.market_id
+    outcome_id='outcome-456',    # From outcome.outcome_id
     side='buy',
     type='limit',
     price=0.33,

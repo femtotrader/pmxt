@@ -10,13 +10,13 @@ Start Server:
 
 Basic Usage:
     import pmxt
-    
+
     poly = pmxt.Polymarket()
     markets = poly.search_markets("Trump")
-    
+
     outcome = markets[0].outcomes[0]
     candles = poly.fetch_ohlcv(
-        outcome.id,
+        outcome.outcome_id,
         pmxt.HistoryFilterParams(resolution="1d", limit=30)
     )
 
@@ -53,7 +53,7 @@ Account Methods (require auth):
     fetch_positions()                   # Get positions
 
 Important Notes:
-    - Use outcome.id, not market.id for OHLCV/orderbook/trades
+    - Use outcome.outcome_id, not market.market_id for OHLCV/orderbook/trades
     - Prices are 0.0 to 1.0 (multiply by 100 for %)
     - Timestamps are Unix milliseconds
     - Server must be running on localhost:3847
@@ -75,8 +75,8 @@ Example - Complete Workflow:
     
     # Place order
     order = poly.create_order(pmxt.CreateOrderParams(
-        market_id=market.id,
-        outcome_id=outcome.id,
+        market_id=market.market_id,
+        outcome_id=outcome.outcome_id,
         side="buy",
         type="limit",
         amount=10,

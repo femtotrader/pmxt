@@ -90,13 +90,13 @@ const kalshiMarkets = await kalshi.getMarketsBySlug('KXFEDCHAIRNOM-29');
 ### `fetchOHLCV(outcomeId, params)`
 Get historical price candles.
 
-**CRITICAL**: Use `outcome.id`, not `market.id`.
-- **Polymarket**: `outcome.id` is the CLOB Token ID
-- **Kalshi**: `outcome.id` is the Market Ticker
+**CRITICAL**: Use `outcome.outcomeId`, not `market.marketId`.
+- **Polymarket**: `outcome.outcomeId` is the CLOB Token ID
+- **Kalshi**: `outcome.outcomeId` is the Market Ticker
 
 ```typescript
 const markets = await polymarket.searchMarkets('Trump');
-const outcomeId = markets[0].outcomes[0].id; // Get the outcome ID
+const outcomeId = markets[0].outcomes[0].outcomeId; // Get the outcome ID
 
 const candles = await polymarket.fetchOHLCV(outcomeId, {
   resolution: '1h', // '1m' | '5m' | '15m' | '1h' | '6h' | '1d'
@@ -157,17 +157,17 @@ console.log(`Fully Filled: ${detailed.fullyFilled}`);
 ### `UnifiedMarket`
 ```typescript
 {
-  id: string;              // Market ID
+  marketId: string;        // Market ID (use this for createOrder)
   title: string;
   description: string;
   outcomes: MarketOutcome[]; // All tradeable outcomes
-  
+
   resolutionDate: Date;
   volume24h: number;       // USD
   volume?: number;         // Total volume (USD)
   liquidity: number;       // USD
   openInterest?: number;   // USD
-  
+
   url: string;
   image?: string;
   category?: string;
@@ -178,7 +178,7 @@ console.log(`Fully Filled: ${detailed.fullyFilled}`);
 ### `MarketOutcome`
 ```typescript
 {
-  id: string;              // Use this for fetchOHLCV/fetchOrderBook/fetchTrades
+  outcomeId: string;       // Use this for fetchOHLCV/fetchOrderBook/fetchTrades
                            // Polymarket: CLOB Token ID
                            // Kalshi: Market Ticker
   label: string;           // "Trump", "Yes", etc.
@@ -240,14 +240,14 @@ const market = markets[0];
 const outcome = market.outcomes[0];
 console.log(`${outcome.label}: ${(outcome.price * 100).toFixed(1)}%`);
 
-// 3. Fetch historical data (use outcome.id!)
-const candles = await polymarket.fetchOHLCV(outcome.id, {
+// 3. Fetch historical data (use outcome.outcomeId!)
+const candles = await polymarket.fetchOHLCV(outcome.outcomeId, {
   resolution: '1d',
   limit: 30
 });
 
 // 4. Get current order book
-const orderBook = await polymarket.fetchOrderBook(outcome.id);
+const orderBook = await polymarket.fetchOrderBook(outcome.outcomeId);
 const spread = orderBook.asks[0].price - orderBook.bids[0].price;
 console.log(`Spread: ${(spread * 100).toFixed(2)}%`);
 ```
@@ -418,8 +418,8 @@ const order = await kalshi.createOrder({
 **Parameters**: `CreateOrderParams`
 ```typescript
 interface CreateOrderParams {
-  marketId: string;
-  outcomeId: string;      // Use outcome.id from market data
+  marketId: string;       // Use market.marketId from market data
+  outcomeId: string;      // Use outcome.outcomeId from market data
   side: 'buy' | 'sell';
   type: 'market' | 'limit';
   amount: number;         // Number of contracts/shares
@@ -504,8 +504,8 @@ const outcome = market.outcomes[0];
 
 // 3. Place a limit order
 const order = await exchange.createOrder({
-  marketId: market.id,
-  outcomeId: outcome.id,
+  marketId: market.marketId,
+  outcomeId: outcome.outcomeId,
   side: 'buy',
   type: 'limit',
   amount: 10,
@@ -539,7 +539,7 @@ positions.forEach(pos => {
 - **Prices**: Always 0.0-1.0 (multiply by 100 for %)
 - **Timestamps**: Unix milliseconds
 - **Volumes**: USD
-- **IDs**: Use `outcome.id` for deep-dive methods, not `market.id`
+- **IDs**: Use `outcome.outcomeId` for deep-dive methods (fetchOHLCV, fetchOrderBook, fetchTrades), and `market.marketId` for trading operations
 - **Authentication**: Required for all trading and account methods
 
 For more examples, see [`examples/`](examples/).

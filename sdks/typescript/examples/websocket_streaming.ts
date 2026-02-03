@@ -22,13 +22,13 @@ async function main() {
     console.log(`\nStreaming data for: ${market.title}`);
 
     const outcome = market.outcomes[0];
-    console.log(`Outcome: ${outcome.label} (ID: ${outcome.id})\n`);
+    console.log(`Outcome: ${outcome.label} (ID: ${outcome.outcomeId})\n`);
 
     // Stream order book updates
     console.log('--- Order Book Stream ---');
     for (let i = 0; i < 5; i++) {
         try {
-            const orderBook = await poly.watchOrderBook(outcome.id);
+            const orderBook = await poly.watchOrderBook(outcome.outcomeId);
 
             const bestBid = orderBook.bids[0];
             const bestAsk = orderBook.asks[0];
@@ -48,7 +48,7 @@ async function main() {
     console.log('--- Trade Stream ---');
     for (let i = 0; i < 5; i++) {
         try {
-            const trades = await poly.watchTrades(outcome.id);
+            const trades = await poly.watchTrades(outcome.outcomeId);
 
             for (const trade of trades) {
                 console.log(`[${new Date(trade.timestamp).toISOString()}]`);

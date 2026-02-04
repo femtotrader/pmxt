@@ -48,6 +48,43 @@ export class ErrorMapper {
             return this.mapAxiosError(error);
         }
 
+        // Handle plain objects with status/data (e.g., Polymarket clob-client)
+        if (error && typeof error === 'object' && !Array.isArray(error) && !(error instanceof Error)) {
+            if (error.status && typeof error.status === 'number') {
+                // Treat as axios-like error
+                const message = this.extractErrorMessage(error);
+                const status = error.status;
+                const data = error.data;
+
+                // Map by HTTP status code (same logic as mapAxiosError)
+                switch (status) {
+                    case 400:
+                        return this.mapBadRequestError(message, data);
+                    case 401:
+                        return new AuthenticationError(message, this.exchangeName);
+                    case 403:
+                        return new PermissionDenied(message, this.exchangeName);
+                    case 404:
+                        return this.mapNotFoundError(message, data);
+                    case 429:
+                        return this.mapRateLimitError(message, error);
+                    case 500:
+                    case 502:
+                    case 503:
+                    case 504:
+                        return new ExchangeNotAvailable(
+                            `Exchange error (${status}): ${message}`,
+                            this.exchangeName
+                        );
+                    default:
+                        return new BadRequest(
+                            `HTTP ${status}: ${message}`,
+                            this.exchangeName
+                        );
+                }
+            }
+        }
+
         // Handle network errors
         if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
             return new NetworkError(
@@ -129,6 +166,8 @@ export class ErrorMapper {
         // Detect invalid order
         if (
             lowerMessage.includes('invalid order') ||
+            lowerMessage.includes('invalid orderid') ||
+            lowerMessage.includes('invalid order id') ||
             lowerMessage.includes('tick size') ||
             lowerMessage.includes('price must be') ||
             lowerMessage.includes('size must be') ||
@@ -167,6 +206,9 @@ export class ErrorMapper {
             return new MarketNotFound(marketId, this.exchangeName);
         }
 
+        // Generic "not found" - could be order or market depending on context
+        // Since we can't determine context here, return generic NotFound
+        // The calling code (exchange implementations) should handle this appropriately
         return new NotFound(message, this.exchangeName);
     }
 
@@ -213,6 +255,44 @@ export class ErrorMapper {
 
             // Fallback to stringified data
             return JSON.stringify(data);
+        }
+
+        // Plain object with status and data (e.g., Polymarket clob-client errors)
+        // These aren't AxiosError instances but have similar structure
+        if (error && typeof error === 'object' && !Array.isArray(error) && !(error instanceof Error)) {
+            const data = error.data;
+
+            if (data) {
+                if (typeof data === 'string') {
+                    return data;
+                }
+
+                if (data.error) {
+                    if (typeof data.error === 'string') {
+                        return data.error;
+                    }
+                    if (data.error.message) {
+                        return data.error.message;
+                    }
+                }
+
+                if (data.message) {
+                    return data.message;
+                }
+
+                if (data.errorMsg) {
+                    return data.errorMsg;
+                }
+            }
+
+            // Check for message at top level
+            if (error.message && typeof error.message === 'string') {
+                return error.message;
+            }
+
+            if (error.statusText && typeof error.statusText === 'string') {
+                return error.statusText;
+            }
         }
 
         // Standard Error object

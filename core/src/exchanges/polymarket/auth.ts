@@ -87,7 +87,7 @@ export class PolymarketAuth {
             throw new Error('Authentication failed: Derived credentials are incomplete.');
         }
 
-        console.log(`[PolymarketAuth] Successfully obtained API credentials for key ${creds.key.substring(0, 8)}...`);
+        // console.log(`[PolymarketAuth] Successfully obtained API credentials for key ${creds.key.substring(0, 8)}...`);
         this.apiCreds = creds;
         return creds;
     }
@@ -109,7 +109,7 @@ export class PolymarketAuth {
             // Path-based: https://data-api.polymarket.com/profiles/0x...
             const response = await axios.get(`https://data-api.polymarket.com/profiles/${address}`);
             const profile = response.data;
-            console.log(`[PolymarketAuth] Profile for ${address}:`, JSON.stringify(profile));
+            // console.log(`[PolymarketAuth] Profile for ${address}:`, JSON.stringify(profile));
 
             if (profile && profile.proxyAddress) {
                 this.discoveredProxyAddress = profile.proxyAddress;
@@ -118,14 +118,14 @@ export class PolymarketAuth {
                 // If it's a proxy address but we don't know the type, 1 is a safe default for Polymarket.
                 this.discoveredSignatureType = profile.isGnosisSafe ? 2 : 1;
 
-                console.log(`[PolymarketAuth] Auto-discovered proxy for ${address}: ${this.discoveredProxyAddress} (Type: ${this.discoveredSignatureType})`);
+                // console.log(`[PolymarketAuth] Auto-discovered proxy for ${address}: ${this.discoveredProxyAddress} (Type: ${this.discoveredSignatureType})`);
                 return {
                     proxyAddress: this.discoveredProxyAddress as string,
                     signatureType: this.discoveredSignatureType as number
                 };
             }
         } catch (error: any) {
-            console.warn(`[PolymarketAuth] Could not auto-discover proxy for ${address}:`, error instanceof Error ? error.message : error);
+            // console.warn(`[PolymarketAuth] Could not auto-discover proxy for ${address}:`, error instanceof Error ? error.message : error);
         }
 
         // Fallback to EOA if discovery fails
@@ -191,7 +191,7 @@ export class PolymarketAuth {
         const finalSignatureType: number = signatureType;
 
         // Create L2-authenticated client
-        console.log(`[PolymarketAuth] Initializing ClobClient | Signer: ${signerAddress} | Funder: ${finalProxyAddress} | SigType: ${finalSignatureType}`);
+        // console.log(`[PolymarketAuth] Initializing ClobClient | Signer: ${signerAddress} | Funder: ${finalProxyAddress} | SigType: ${finalSignatureType}`);
 
         this.clobClient = new ClobClient(
             POLYMARKET_HOST,

@@ -9,7 +9,7 @@ describe('Compliance: fetchOHLCV', () => {
 
             // 1. Get multiple markets to increase odds of finding one with history
             // Fetch more markets to ensure we find one with volume
-            const markets = await exchange.fetchMarkets({ limit: 50 });
+            const markets = await exchange.fetchMarkets({ limit: 25 });
             if (!markets || markets.length === 0) {
                 throw new Error(`${name}: No markets found to test fetchOHLCV`);
             }

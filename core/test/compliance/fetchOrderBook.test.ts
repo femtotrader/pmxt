@@ -20,17 +20,17 @@ describe('Compliance: fetchOrderBook', () => {
             const isLimitless = name.toLowerCase().includes('limitless');
 
             for (const market of markets) {
-                // For Limitless, we fetch by market slug (market.id)
+                // For Limitless, we fetch by market slug (market.marketId)
                 if (isLimitless) {
                     try {
-                        console.info(`[Compliance] ${name}: fetching orderbook for market ${market.id}`);
-                        orderbook = await exchange.fetchOrderBook(market.id);
+                        console.info(`[Compliance] ${name}: fetching orderbook for market ${market.marketId}`);
+                        orderbook = await exchange.fetchOrderBook(market.marketId);
                         if (orderbook && (orderbook.bids.length > 0 || orderbook.asks.length > 0)) {
-                            testedOutcomeId = market.id;
+                            testedOutcomeId = market.marketId;
                             break;
                         }
                     } catch (error: any) {
-                        console.warn(`[Compliance] ${name}: Failed to fetch orderbook for market ${market.id}: ${error.message}`);
+                        console.warn(`[Compliance] ${name}: Failed to fetch orderbook for market ${market.marketId}: ${error.message}`);
                     }
                     continue;
                 }
@@ -55,7 +55,7 @@ describe('Compliance: fetchOrderBook', () => {
 
             // If we still don't have an orderbook with data, try the first one we got (even if empty)
             if (!testedOutcomeId && markets.length > 0) {
-                const targetId = isLimitless ? markets[0].id : (markets[0].outcomes[0]?.outcomeId || '');
+                const targetId = isLimitless ? markets[0].marketId : (markets[0].outcomes[0]?.outcomeId || '');
                 if (targetId) {
                     orderbook = await exchange.fetchOrderBook(targetId);
                     testedOutcomeId = targetId;

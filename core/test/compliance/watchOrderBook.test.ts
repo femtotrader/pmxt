@@ -30,7 +30,7 @@ describe('Compliance: watchOrderBook', () => {
                     for (const outcome of market.outcomes) {
                         let timeoutId: NodeJS.Timeout;
                         try {
-                            const watchPromise = exchange.watchOrderBook(outcome.id);
+                            const watchPromise = exchange.watchOrderBook(outcome.outcomeId);
                             const timeoutPromise = new Promise((_, reject) => {
                                 timeoutId = setTimeout(() => reject(new Error('Timeout waiting for watchOrderBook data')), 10000);
                             });
@@ -38,7 +38,7 @@ describe('Compliance: watchOrderBook', () => {
                             orderbook = await Promise.race([watchPromise, timeoutPromise]);
 
                             if (orderbook) {
-                                testedOutcomeId = outcome.id;
+                                testedOutcomeId = outcome.outcomeId;
                                 marketFound = true;
                                 break;
                             }
@@ -48,7 +48,7 @@ describe('Compliance: watchOrderBook', () => {
                             if (msg.includes('not supported') || msg.includes('not implemented') || msg.includes('unavailable') || msg.includes('authentication') || msg.includes('credentials') || msg.includes('api key')) {
                                 throw error;
                             }
-                            console.warn(`[Compliance] ${name}: Failed to watch orderbook for outcome ${outcome.id}: ${error.message}`);
+                            console.warn(`[Compliance] ${name}: Failed to watch orderbook for outcome ${outcome.outcomeId}: ${error.message}`);
                         } finally {
                             if (timeoutId!) clearTimeout(timeoutId);
                         }

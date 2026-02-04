@@ -30,15 +30,15 @@ describe('Compliance: fetchOHLCV', () => {
 
                 if (isLimitless) {
                     try {
-                        console.info(`[Compliance] ${name}: fetching OHLCV for market ${market.id}`);
-                        const result = await exchange.fetchOHLCV(market.id, {
+                        console.info(`[Compliance] ${name}: fetching OHLCV for market ${market.marketId}`);
+                        const result = await exchange.fetchOHLCV(market.marketId, {
                             resolution: '1h',
                             limit: 10
                         });
 
                         if (result && result.length > 0) {
                             candles = result;
-                            testedOutcomeId = market.id;
+                            testedOutcomeId = market.marketId;
                             foundData = true;
                             break marketLoop;
                         }
@@ -53,7 +53,7 @@ describe('Compliance: fetchOHLCV', () => {
 
                 for (const outcome of outcomesToTest) {
                     try {
-                        console.info(`[Compliance] ${name}: fetching OHLCV for market ${market.id} outcome ${outcome.outcomeId}`);
+                        console.info(`[Compliance] ${name}: fetching OHLCV for market ${market.marketId} outcome ${outcome.outcomeId}`);
                         const result = await exchange.fetchOHLCV(outcome.outcomeId, {
                             resolution: '1h',
                             limit: 10

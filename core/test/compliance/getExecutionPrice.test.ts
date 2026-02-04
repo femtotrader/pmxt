@@ -21,10 +21,10 @@ describe('Compliance: getExecutionPrice', () => {
             for (const market of markets) {
                 for (const outcome of market.outcomes) {
                     try {
-                        const ob = await exchange.fetchOrderBook(outcome.id);
+                        const ob = await exchange.fetchOrderBook(outcome.outcomeId);
                         if (ob && (ob.bids.length > 0 || ob.asks.length > 0)) {
                             orderbook = ob;
-                            testedOutcomeId = outcome.id;
+                            testedOutcomeId = outcome.outcomeId;
                             break;
                         }
                     } catch (error) {
@@ -38,7 +38,7 @@ describe('Compliance: getExecutionPrice', () => {
                 // If no orderbook with data found, use an empty one or skip if impossible
                 // For getExecutionPrice, an empty book is a valid test case but we'd prefer one with data
                 const firstOutcome = markets[0].outcomes[0];
-                orderbook = await exchange.fetchOrderBook(firstOutcome.id);
+                orderbook = await exchange.fetchOrderBook(firstOutcome.outcomeId);
             }
 
             // 2. Test getExecutionPrice (Simple)

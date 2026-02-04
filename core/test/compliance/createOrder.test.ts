@@ -28,14 +28,14 @@ describe('Compliance: createOrder', () => {
 
                 const outcome = market.outcomes[0];
 
-                console.log(`[Compliance] Using Market: ${market.id} (${market.title})`);
-                console.log(`[Compliance] Using Outcome: ${outcome.id} (${outcome.label})`);
+                console.log(`[Compliance] Using Market: ${market.marketId} (${market.title})`);
+                console.log(`[Compliance] Using Outcome: ${outcome.outcomeId} (${outcome.label})`);
 
                 // 3. Create a LIMIT order at a price unlikely to execute (e.g. Buy at 0.01 or 0.02)
                 // Note: For Kalshi, price is 1-99 cents. For Poly, 0-1.00.
                 const orderParams = {
-                    marketId: market.id,
-                    outcomeId: outcome.id,
+                    marketId: market.marketId,
+                    outcomeId: outcome.outcomeId,
                     side: 'buy' as const,
                     type: 'limit' as const,
                     amount: 50, // 50 * 0.10 = 5 USDC (Valid > 1 USDC)

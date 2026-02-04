@@ -57,7 +57,7 @@ describe('Compliance: watchTrades', () => {
                     console.info(`[Compliance] ${name}: Found ${allSearchHits.length} potential market hits from search.`);
 
                     const highFreq = allSearchHits.filter((m: any) => {
-                        const id = (m.id || '').toUpperCase();
+                        const id = (m.marketId || '').toUpperCase();
                         const title = (m.title || '').toUpperCase();
                         const isCrypto = id.includes('15M') || id.includes('DAILY') || title.includes('15 MINUTE') || title.includes('DAILY') || title.includes('CRYPTO');
                         const isDateMatch = title.includes(month.toUpperCase()) || title.includes(shortMonth.toUpperCase());
@@ -75,8 +75,8 @@ describe('Compliance: watchTrades', () => {
                     // Deduplicate
                     const seen = new Set();
                     candidates = candidates.filter((m: any) => {
-                        if (seen.has(m.id)) return false;
-                        seen.add(m.id);
+                        if (seen.has(m.marketId)) return false;
+                        seen.add(m.marketId);
                         return true;
                     });
                 }
@@ -101,7 +101,7 @@ describe('Compliance: watchTrades', () => {
                         const chunk = candidates.slice(i, i + CHUNK_SIZE);
                         const chunkResults = await Promise.all(chunk.map(async (m: any) => {
                             try {
-                                const trades = await exchange.fetchTrades(m.id, { limit: 1 });
+                                const trades = await exchange.fetchTrades(m.marketId, { limit: 1 });
                                 if (trades.length > 0 && !isNaN(trades[0].timestamp)) {
                                     return { market: m, lastTradeTs: trades[0].timestamp };
                                 }
@@ -146,8 +146,8 @@ describe('Compliance: watchTrades', () => {
 
                 const watchers = outcomesToWatch.map(async (outcome: any) => {
                     try {
-                        const result = await exchange.watchTrades(outcome.id);
-                        return { result, outcomeId: outcome.id };
+                        const result = await exchange.watchTrades(outcome.outcomeId);
+                        return { result, outcomeId: outcome.outcomeId };
                     } catch (error: any) {
                         // Check for critical errors that should abort the test immediately (like missing auth)
                         const msg = error.message.toLowerCase();

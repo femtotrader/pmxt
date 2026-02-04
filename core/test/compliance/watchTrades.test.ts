@@ -13,7 +13,7 @@ describe('Compliance: watchTrades', () => {
             try {
                 console.info(`[Compliance] Testing ${name}.watchTrades`);
 
-                const markets = await exchange.fetchMarkets({ limit: 1000, sort: 'volume' });
+                const markets = await exchange.fetchMarkets({ limit: 25, sort: 'volume' });
                 if (!markets || markets.length === 0) {
                     throw new Error(`${name}: No markets found to test watchTrades`);
                 }
@@ -48,7 +48,7 @@ describe('Compliance: watchTrades', () => {
 
                     const searchResults = await Promise.all(
                         searchTerms.map(term =>
-                            (exchange as any).fetchMarkets({ query: term, searchIn: 'both', limit: 50 })
+                            (exchange as any).fetchMarkets({ query: term, searchIn: 'both', limit: 25 })
                                 .catch(() => [])
                         )
                     );

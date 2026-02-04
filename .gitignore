@@ -159,3 +159,4 @@ env/
 pmxt dev.txt
 scripts/simple_buy.py
 scripts/debug_slug.py
+CLAUDE.md

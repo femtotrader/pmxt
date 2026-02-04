@@ -1,161 +1,145 @@
-# pmxtjs@0.0.1
+# pmxtjs
 
-A TypeScript SDK client for the localhost API.
+A unified TypeScript/Node.js SDK for prediction markets - The ccxt for prediction markets.
 
-## Usage
-
-First, install the SDK from npm.
+## Installation
 
 ```bash
-npm install pmxtjs --save
+npm install pmxtjs
 ```
 
-Next, try it out.
+## Quick Start
 
+```typescript
+import pmxt from 'pmxtjs';
 
-```ts
-import {
-  Configuration,
-  DefaultApi,
-} from 'pmxtjs';
-import type { CancelOrderOperationRequest } from 'pmxtjs';
+// Initialize exchanges
+const poly = new pmxt.Polymarket();
+const kalshi = new pmxt.Kalshi();
 
-async function example() {
-  console.log("🚀 Testing pmxtjs SDK...");
-  const api = new DefaultApi();
+// Search for markets
+const markets = await poly.fetchMarkets({ query: 'Trump' });
+console.log(markets[0].title);
 
-  const body = {
-    // 'polymarket' | 'kalshi' | The prediction market exchange to target.
-    exchange: exchange_example,
-    // CancelOrderRequest (optional)
-    cancelOrderRequest: ...,
-  } satisfies CancelOrderOperationRequest;
+// Get outcome details
+const outcome = markets[0].outcomes[0];
+console.log(`${outcome.label}: ${(outcome.price * 100).toFixed(1)}%`);
 
-  try {
-    const data = await api.cancelOrder(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
-}
+// Fetch historical data (use outcome.outcomeId!)
+const candles = await poly.fetchOHLCV(outcome.outcomeId, {
+    resolution: '1d',
+    limit: 30
+});
 
-// Run the test
-example().catch(console.error);
+// Get current order book
+const orderBook = await poly.fetchOrderBook(outcome.outcomeId);
+const spread = orderBook.asks[0].price - orderBook.bids[0].price;
+console.log(`Spread: ${(spread * 100).toFixed(2)}%`);
 ```
 
+## Core Methods
+
+### Market Data
+
+- `fetchMarkets(params?)` - Get active markets
+  ```typescript
+  // Fetch recent markets
+  await poly.fetchMarkets({ limit: 20, sort: 'volume' });
+
+  // Search by text
+  await poly.fetchMarkets({ query: 'Fed rates', limit: 10 });
+
+  // Fetch by slug/ticker
+  await poly.fetchMarkets({ slug: 'who-will-trump-nominate-as-fed-chair' });
+  ```
+
+- `fetchEvents(params?)` - Get events (groups of related markets)
+  ```typescript
+  await poly.fetchEvents({ query: 'Fed Chair', limit: 5 });
+  ```
+
+- `filterMarkets(markets, query)` - Filter markets by keyword
+  ```typescript
+  const events = await poly.fetchEvents({ query: 'Fed Chair' });
+  const warsh = poly.filterMarkets(events[0].markets, 'Kevin Warsh')[0];
+  ```
+
+### Deep-Dive Methods
+
+- `fetchOHLCV(outcomeId, params)` - Get historical price candles
+- `fetchOrderBook(outcomeId)` - Get current bids/asks
+- `fetchTrades(outcomeId, params)` - Get trade history
+
+### Helper Methods
+
+- `getExecutionPrice(orderBook, side, amount)` - Calculate volume-weighted average price
+- `getExecutionPriceDetailed(orderBook, side, amount)` - Get detailed execution info
+
+## Trading
+
+### Authentication
+
+**Polymarket:**
+```typescript
+const poly = new pmxt.Polymarket({
+    privateKey: process.env.POLYMARKET_PRIVATE_KEY,
+    funderAddress: process.env.POLYMARKET_PROXY_ADDRESS, // Optional
+    signatureType: 'gnosis-safe' // 'eoa' | 'poly-proxy' | 'gnosis-safe'
+});
+```
+
+**Kalshi:**
+```typescript
+const kalshi = new pmxt.Kalshi({
+    apiKey: process.env.KALSHI_API_KEY,
+    privateKey: process.env.KALSHI_PRIVATE_KEY
+});
+```
+
+**Limitless:**
+```typescript
+const limitless = new pmxt.Limitless({
+    privateKey: process.env.LIMITLESS_PRIVATE_KEY
+});
+```
+
+### Trading Methods
+
+- `createOrder(params)` - Place a new order
+  ```typescript
+  await poly.createOrder({
+      marketId: market.marketId,
+      outcomeId: outcome.outcomeId,
+      side: 'buy',
+      type: 'limit',
+      amount: 10,
+      price: 0.55
+  });
+  ```
+
+- `cancelOrder(orderId)` - Cancel an open order
+- `fetchOrder(orderId)` - Get order details
+- `fetchOpenOrders(marketId?)` - Get all open orders
+
+### Account Methods
+
+- `fetchBalance()` - Get account balance
+- `fetchPositions()` - Get current positions
 
 ## Documentation
 
-### API Endpoints
+For complete API documentation and examples, see:
+- [API Reference](../../core/API_REFERENCE.md)
+- [Examples](./examples/)
+- [Setup Guides](../../core/docs/)
 
-All URIs are relative to *http://localhost:3847*
+## Important Notes
 
-| Class | Method | HTTP request | Description
-| ----- | ------ | ------------ | -------------
-*DefaultApi* | [**cancelOrder**](docs/DefaultApi.md#cancelorderoperation) | **POST** /api/{exchange}/cancelOrder | Cancel Order
-*DefaultApi* | [**createOrder**](docs/DefaultApi.md#createorderoperation) | **POST** /api/{exchange}/createOrder | Create Order
-*DefaultApi* | [**fetchBalance**](docs/DefaultApi.md#fetchbalance) | **POST** /api/{exchange}/fetchBalance | Fetch Balance
-*DefaultApi* | [**fetchMarkets**](docs/DefaultApi.md#fetchmarketsoperation) | **POST** /api/{exchange}/fetchMarkets | Fetch Markets
-*DefaultApi* | [**fetchOHLCV**](docs/DefaultApi.md#fetchohlcvoperation) | **POST** /api/{exchange}/fetchOHLCV | Fetch OHLCV Candles
-*DefaultApi* | [**fetchOpenOrders**](docs/DefaultApi.md#fetchopenordersoperation) | **POST** /api/{exchange}/fetchOpenOrders | Fetch Open Orders
-*DefaultApi* | [**fetchOrder**](docs/DefaultApi.md#fetchorder) | **POST** /api/{exchange}/fetchOrder | Fetch Order
-*DefaultApi* | [**fetchOrderBook**](docs/DefaultApi.md#fetchorderbookoperation) | **POST** /api/{exchange}/fetchOrderBook | Fetch Order Book
-*DefaultApi* | [**fetchPositions**](docs/DefaultApi.md#fetchpositionsoperation) | **POST** /api/{exchange}/fetchPositions | Fetch Positions
-*DefaultApi* | [**fetchTrades**](docs/DefaultApi.md#fetchtradesoperation) | **POST** /api/{exchange}/fetchTrades | Fetch Trades
-*DefaultApi* | [**getMarketsBySlug**](docs/DefaultApi.md#getmarketsbyslugoperation) | **POST** /api/{exchange}/getMarketsBySlug | Get Market by Slug
-*DefaultApi* | [**healthCheck**](docs/DefaultApi.md#healthcheck) | **GET** /health | Server Health Check
-*DefaultApi* | [**searchMarkets**](docs/DefaultApi.md#searchmarketsoperation) | **POST** /api/{exchange}/searchMarkets | Search Markets
-
-
-### Models
-
-- [Balance](docs/Balance.md)
-- [BaseResponse](docs/BaseResponse.md)
-- [CancelOrderRequest](docs/CancelOrderRequest.md)
-- [CreateOrder200Response](docs/CreateOrder200Response.md)
-- [CreateOrderParams](docs/CreateOrderParams.md)
-- [CreateOrderRequest](docs/CreateOrderRequest.md)
-- [ErrorDetail](docs/ErrorDetail.md)
-- [ErrorResponse](docs/ErrorResponse.md)
-- [FetchBalance200Response](docs/FetchBalance200Response.md)
-- [FetchMarkets200Response](docs/FetchMarkets200Response.md)
-- [FetchMarketsRequest](docs/FetchMarketsRequest.md)
-- [FetchOHLCV200Response](docs/FetchOHLCV200Response.md)
-- [FetchOHLCVRequest](docs/FetchOHLCVRequest.md)
-- [FetchOHLCVRequestArgsInner](docs/FetchOHLCVRequestArgsInner.md)
-- [FetchOpenOrders200Response](docs/FetchOpenOrders200Response.md)
-- [FetchOpenOrdersRequest](docs/FetchOpenOrdersRequest.md)
-- [FetchOrderBook200Response](docs/FetchOrderBook200Response.md)
-- [FetchOrderBookRequest](docs/FetchOrderBookRequest.md)
-- [FetchPositions200Response](docs/FetchPositions200Response.md)
-- [FetchPositionsRequest](docs/FetchPositionsRequest.md)
-- [FetchTrades200Response](docs/FetchTrades200Response.md)
-- [FetchTradesRequest](docs/FetchTradesRequest.md)
-- [GetMarketsBySlugRequest](docs/GetMarketsBySlugRequest.md)
-- [HealthCheck200Response](docs/HealthCheck200Response.md)
-- [HistoryFilterParams](docs/HistoryFilterParams.md)
-- [MarketFilterParams](docs/MarketFilterParams.md)
-- [MarketOutcome](docs/MarketOutcome.md)
-- [Order](docs/Order.md)
-- [OrderBook](docs/OrderBook.md)
-- [OrderLevel](docs/OrderLevel.md)
-- [Position](docs/Position.md)
-- [PriceCandle](docs/PriceCandle.md)
-- [SearchMarketsRequest](docs/SearchMarketsRequest.md)
-- [SearchMarketsRequestArgsInner](docs/SearchMarketsRequestArgsInner.md)
-- [Trade](docs/Trade.md)
-- [UnifiedMarket](docs/UnifiedMarket.md)
-
-### Authorization
-
-Endpoints do not require authorization.
-
-
-## About
-
-This TypeScript SDK client supports the [Fetch API](https://fetch.spec.whatwg.org/)
-and is automatically generated by the
-[OpenAPI Generator](https://openapi-generator.tech) project:
-
-- API version: `0.4.4`
-- Package version: `0.0.1`
-- Generator version: `7.18.0`
-- Build package: `org.openapitools.codegen.languages.TypeScriptFetchClientCodegen`
-
-The generated npm module supports the following:
-
-- Environments
-  * Node.js
-  * Webpack
-  * Browserify
-- Language levels
-  * ES5 - you must have a Promises/A+ library installed
-  * ES6
-- Module systems
-  * CommonJS
-  * ES6 module system
-
-
-## Development
-
-### Building
-
-To build the TypeScript source code, you need to have Node.js and npm installed.
-After cloning the repository, navigate to the project directory and run:
-
-```bash
-npm install
-npm run build
-```
-
-### Publishing
-
-Once you've built the package, you can publish it to npm:
-
-```bash
-npm publish
-```
+- **Use `outcome.outcomeId`, not `market.marketId`** for deep-dive methods (fetchOHLCV, fetchOrderBook, fetchTrades)
+- **Prices are 0.0 to 1.0** (multiply by 100 for percentages)
+- **Timestamps are Unix milliseconds**
+- **Volumes are in USD**
 
 ## License
 
-[]()
+MIT

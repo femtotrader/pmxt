@@ -28,7 +28,7 @@ poly = pmxt.Polymarket()
 kalshi = pmxt.Kalshi()
 
 # Search for markets
-markets = poly.search_markets("Trump")
+markets = poly.fetch_markets(query="Trump")
 print(markets[0].title)
 
 # Get outcome details
@@ -121,8 +121,17 @@ for pos in positions:
 ### Market Data Methods
 
 - `fetch_markets(params?)` - Get active markets
-- `search_markets(query, params?)` - Search markets by keyword
-- `get_markets_by_slug(slug)` - Get market by URL slug/ticker
+  ```python
+  # Fetch recent markets
+  poly.fetch_markets(limit=20, sort='volume')
+
+  # Search by text
+  poly.fetch_markets(query='Fed rates', limit=10)
+
+  # Fetch by slug/ticker
+  poly.fetch_markets(slug='who-will-trump-nominate-as-fed-chair')
+  ```
+- `filter_markets(markets, query)` - Filter markets by keyword
 - `fetch_ohlcv(outcome_id, params)` - Get historical price candles
 - `fetch_order_book(outcome_id)` - Get current order book
 - `fetch_trades(outcome_id, params)` - Get trade history
@@ -173,7 +182,7 @@ See the [full API reference](../../API_REFERENCE.md) for complete documentation.
 For deep-dive methods like `fetch_ohlcv()`, `fetch_order_book()`, and `fetch_trades()`, you must use the **outcome ID**, not the market ID:
 
 ```python
-markets = poly.search_markets("Trump")
+markets = poly.fetch_markets(query="Trump")
 outcome_id = markets[0].outcomes[0].outcome_id  # Correct
 
 candles = poly.fetch_ohlcv(outcome_id, ...)  # Works

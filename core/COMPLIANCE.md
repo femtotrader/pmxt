@@ -6,29 +6,29 @@ This document details the feature support and compliance status for each exchang
 
 | Category | Function | Polymarket | Kalshi | Limitless | Notes |
 | :--- | :--- | :---: | :---: | :---: | :--- |
-| **Identity** | `name` | ✅ | ✅ | ✅ | |
-| **Market Data** | `fetchMarkets` | ✅ | ✅ | ✅ | |
-| | `searchMarkets` | ✅ | ✅ | ✅ | |
-| | `getMarketsBySlug` | ✅ | ✅ | ✅ | |
-| | `searchEvents` | ✅ | ✅ | ✅ | |
-| **Public Data** | `fetchOHLCV` | ✅ | ✅ | ✅ | |
-| | `fetchOrderBook` | ✅ | ✅ | ✅ | |
-| | `fetchTrades` | ✅ | ✅ | ⚠️ | Limitless: No public trades API |
-| **Private Data** | `fetchBalance` | ✅ | ✅ | ✅ | Verified (Real API calls, balances fetched) |
-| | `fetchPositions` | ✅ | ✅ | ✅ | |
-| **Trading** | `createOrder` | ✅ | ✅ | ✅ | All Exchange verified (Mock/Rejected due to funds) |
-| | `cancelOrder` | ✅ | ✅ | ✅ | Verified (Interface correct, returns Not Found for dummy IDs) |
-| | `fetchOrder` | ✅ | ✅ | ⚠️ | Limitless: Not supported (requires market slug) |
-| | `fetchOpenOrders` | ✅ | ✅ | ✅ | Verified (Empty results pass for private data) |
-| **Calculations** | `getExecutionPrice` | ✅ | ✅ | ✅ | |
-| | `getExecutionPriceDetailed` | ✅ | ✅ | ✅ | |
-| **Real-time** | `watchOrderBook` | ✅ | ✅ | ⚠️ | Limitless: No websocket support |
-| | `watchTrades` | ✅ | ✅ | ⚠️ | Limitless: No websocket support |
+| **Identity** | `name` | | | | |
+| **Market Data** | `fetchMarkets` | | | | |
+| | `searchMarkets` | | | | |
+| | `getMarketsBySlug` | | | | |
+| | `searchEvents` | | | | |
+| **Public Data** | `fetchOHLCV` | | | | |
+| | `fetchOrderBook` | | | | |
+| | `fetchTrades` | | |  | Limitless: No public trades API |
+| **Private Data** | `fetchBalance` | | | | Verified (Real API calls, balances fetched) |
+| | `fetchPositions` | | | | |
+| **Trading** | `createOrder` | | | | All Exchange verified (Mock/Rejected due to funds) |
+| | `cancelOrder` | | | | Verified (Interface correct, returns Not Found for dummy IDs) |
+| | `fetchOrder` | | |  | Limitless: Not supported (requires market slug) |
+| | `fetchOpenOrders` | | | | Verified (Empty results pass for private data) |
+| **Calculations** | `getExecutionPrice` | | | | |
+| | `getExecutionPriceDetailed` | | | | |
+| **Real-time** | `watchOrderBook` | | |  | Limitless: No websocket support |
+| | `watchTrades` | | |  | Limitless: No websocket support |
 
 ## Legend
-- ✅ Compliance Verified (Strict Test Passed)
-- ❌ Compliance Failure (Test Failed or Feature Broken)
-- ⚠️ Partial Support / Skipped (e.g., Missing API/Websocket)
+- Compliance Verified (Strict Test Passed)
+-  Compliance Failure (Test Failed or Feature Broken)
+-  Partial Support / Skipped (e.g., Missing API/Websocket)
 
 ## Compliance Policy
 - **Failure over Warning**: Tests must fail if no relevant data (markets, events, candles) is found. This ensures that we catch API breakages or unexpected empty responses.

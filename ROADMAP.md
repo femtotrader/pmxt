@@ -29,11 +29,18 @@
 - **SDK Library:** Release official first-party wrappers for **Java**, **C#**, and **Go**.
 - **Unified Authentication:** Streamlined secret management across different exchange protocols.
 
-## v2.0.0: Native Performance
+## v2.0.0: API Cleanup (Current Release)
+**Goal:** Remove deprecated functionality and stabilize the API.
+
+- **Breaking Changes:** Remove deprecated methods (`event.searchMarkets`, `.id` properties)
+- **Status:** Released February 2026
+
+## v3.0.0: Native Performance (Future)
 **Goal:** Optimize for high-frequency usage and remove runtime dependencies.
 
 - **Architecture:** Move to native bindings. Rewrite core logic in a systems language (**Rust**) or using optimized FFI, removing the need for a background Node.js process.
-- **Benefits:** 
+- **Benefits:**
     - Ultra-low latency for high-frequency trading.
     - Zero-dependency installation for Python/Java users.
     - Minimal resource footprint.
+- **Status:** Planned for 2027+

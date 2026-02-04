@@ -54,15 +54,7 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
                 url: `https://polymarket.com/event/${event.slug}`,
                 image: event.image || `https://polymarket.com/api/og?slug=${event.slug}`,
                 category: event.category || event.tags?.[0]?.label,
-                tags: event.tags?.map((t: any) => t.label) || [],
-                searchMarkets: function (marketQuery: string): UnifiedMarket[] {
-                    const lowerMarketQuery = marketQuery.toLowerCase();
-                    return this.markets.filter(m =>
-                        m.title.toLowerCase().includes(lowerMarketQuery) ||
-                        m.description.toLowerCase().includes(lowerMarketQuery) ||
-                        m.outcomes.some(o => o.label.toLowerCase().includes(lowerMarketQuery))
-                    );
-                }
+                tags: event.tags?.map((t: any) => t.label) || []
             };
 
             return unifiedEvent;

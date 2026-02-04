@@ -39,7 +39,7 @@ async function demonstrateWebSockets() {
             console.log(`  Best Ask: ${orderbook.asks[0]?.[0] || 'N/A'}`);
             console.log(`  Timestamp: ${new Date(orderbook.timestamp).toISOString()}`);
         });
-        console.log('✅ Subscribed to orderbook updates\n');
+        console.log('Subscribed to orderbook updates\n');
 
         // 2. Subscribe to AMM price updates (no auth required)
         console.log('2. Subscribing to AMM price updates...');
@@ -49,7 +49,7 @@ async function demonstrateWebSockets() {
             console.log(`  Prices: ${JSON.stringify(data.updatedPrices)}`);
             console.log(`  Block: ${data.blockNumber}`);
         });
-        console.log('✅ Subscribed to AMM price updates\n');
+        console.log('Subscribed to AMM price updates\n');
 
         // 3. Subscribe to user positions (requires API key)
         if (process.env.LIMITLESS_API_KEY) {
@@ -58,7 +58,7 @@ async function demonstrateWebSockets() {
                 console.log('\n[Position Update]');
                 console.log(`  Positions: ${JSON.stringify(data, null, 2)}`);
             });
-            console.log('✅ Subscribed to user position updates\n');
+            console.log('Subscribed to user position updates\n');
 
             // 4. Subscribe to user transactions (requires API key)
             console.log('4. Subscribing to user transaction updates...');
@@ -66,9 +66,9 @@ async function demonstrateWebSockets() {
                 console.log('\n[Transaction Update]');
                 console.log(`  Transaction: ${JSON.stringify(data, null, 2)}`);
             });
-            console.log('✅ Subscribed to user transaction updates\n');
+            console.log('Subscribed to user transaction updates\n');
         } else {
-            console.log('⚠️  Skipping authenticated subscriptions (LIMITLESS_API_KEY not set)\n');
+            console.log('  Skipping authenticated subscriptions (LIMITLESS_API_KEY not set)\n');
         }
 
         console.log('🎧 Listening for updates... (Press Ctrl+C to exit)\n');

@@ -1,5 +1,47 @@
 # Migration Guide
 
+## 2.0.0 Migration Checklist
+
+If you're upgrading from v1.x to v2.0.0, use this checklist to ensure your code is compatible:
+
+### Required Changes
+
+- [ ] **Replace `event.searchMarkets(query)`** with `exchange.filterMarkets(event.markets, query)`
+- [ ] **Replace all `outcome.id`** with `outcome.outcomeId`
+- [ ] **Replace all `market.id`** with `market.marketId`
+- [ ] **Verify all examples** use the new unified API (`fetchMarkets`, `fetchEvents`)
+- [ ] **Update error handling** to use new error classes (if relying on error types)
+
+### Already Migrated in v1.7.0?
+
+If you already migrated to the unified API in v1.7.0, you only need to:
+
+- [ ] **Replace `event.searchMarkets(query)`** with `exchange.filterMarkets(event.markets, query)`
+- [ ] **Replace `.id`** with `.outcomeId` / `.marketId`
+
+### Quick Migration Example
+
+```typescript
+// v1.x Code
+const events = await poly.fetchEvents({ query: 'Fed Chair' });
+const market = events[0].searchMarkets('Kevin Warsh')[0];  //  Removed
+const outcomeId = market.yes.id;  //  Removed
+
+// v2.0.0 Code
+const events = await poly.fetchEvents({ query: 'Fed Chair' });
+const market = poly.filterMarkets(events[0].markets, 'Kevin Warsh')[0];  // ✅
+const outcomeId = market.yes.outcomeId;  // ✅
+```
+
+### Testing Your Migration
+
+Run your test suite and look for:
+- TypeScript compilation errors about missing properties
+- Runtime errors about undefined methods
+- Deprecation warnings in console (should be none in v2.0.0)
+
+---
+
 ## Feb 3, 2026 - v1.7.0: CCXT-Style Unified API
 
 ### Change

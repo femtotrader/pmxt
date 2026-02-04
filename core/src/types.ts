@@ -24,13 +24,6 @@ export interface UnifiedEvent {
 
     category?: string;
     tags?: string[];
-
-    /**
-     * Search for markets within this event by keyword.
-     * @param query - Search term to filter markets
-     * @returns Array of markets matching the query
-     */
-    searchMarkets(query: string): UnifiedMarket[];
 }
 
 export interface UnifiedMarket {

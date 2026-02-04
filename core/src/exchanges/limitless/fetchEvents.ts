@@ -36,14 +36,7 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
                 url: `https://limitless.exchange/markets/${market.slug}`,
                 image: market.logo || `https://limitless.exchange/api/og?slug=${market.slug}`,
                 category: market.categories?.[0],
-                tags: market.tags || [],
-                searchMarkets: function (marketQuery: string): UnifiedMarket[] {
-                    const lowerMarketQuery = marketQuery.toLowerCase();
-                    return this.markets.filter(m =>
-                        m.title.toLowerCase().includes(lowerMarketQuery) ||
-                        (m.description && m.description.toLowerCase().includes(lowerMarketQuery))
-                    );
-                }
+                tags: market.tags || []
             } as UnifiedEvent;
         });
 

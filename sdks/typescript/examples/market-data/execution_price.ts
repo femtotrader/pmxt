@@ -2,8 +2,8 @@ import pmxt from 'pmxtjs';
 
 const main = async () => {
     const api = new pmxt.Polymarket();
-    const markets = await api.searchMarkets('Trump');
-    const outcomeId = markets[0].outcomes[0].id;
+    const markets = await api.fetchMarkets({ query: 'Trump' });
+    const outcomeId = markets[0].outcomes[0].outcomeId;
 
     const orderBook = await api.fetchOrderBook(outcomeId);
     const price = await api.getExecutionPrice(orderBook, 'buy', 100);

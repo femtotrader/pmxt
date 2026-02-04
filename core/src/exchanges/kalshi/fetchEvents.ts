@@ -41,14 +41,7 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
                 url: `https://kalshi.com/events/${event.event_ticker}`,
                 image: event.image_url,
                 category: event.category,
-                tags: event.tags || [],
-                searchMarkets: function (marketQuery: string): UnifiedMarket[] {
-                    const lowerMarketQuery = marketQuery.toLowerCase();
-                    return this.markets.filter(m =>
-                        m.title.toLowerCase().includes(lowerMarketQuery) ||
-                        m.outcomes.some(o => o.label.toLowerCase().includes(lowerMarketQuery))
-                    );
-                }
+                tags: event.tags || []
             };
             return unifiedEvent;
         });

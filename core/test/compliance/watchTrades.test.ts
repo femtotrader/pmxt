@@ -28,63 +28,29 @@ describe('Compliance: watchTrades', () => {
                 // Discovery Phase: Find markets that actually have recent trades
                 let candidates = markets.slice(0, 50);
 
-                if (name === 'KalshiExchange') {
-                    // Strategy: Look for "Daily" or "15m" crypto markers, and date-specific markets.
-                    // These often have low 24h volume but high instantaneous activity.
-                    console.info(`[Compliance] Finding high-liquidity markets for ${name}...`);
-
-                    const now = new Date();
-                    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                    const month = monthNames[now.getMonth()];
-                    const shortMonth = month.substring(0, 3);
-                    const day = now.getDate();
-
-                    // Search terms: Crypto + Date-based
-                    const searchTerms = ['BTC', 'ETH', 'SOL', 'CRYPTO', `${shortMonth} ${day}`, month];
-
-                    // Optimization: We already have 1000 markets in 'markets'.
-                    // Let's use them first, but also do the parallel searches for fresh data if needed.
-                    // Actually, fetchMarkets({ query }) fetches 5000, so it's better.
-
-                    const searchResults = await Promise.all(
-                        searchTerms.map(term =>
-                            (exchange as any).fetchMarkets({ query: term, searchIn: 'both', limit: 25 })
-                                .catch(() => [])
-                        )
-                    );
-
-                    const allSearchHits = searchResults.flat();
-                    console.info(`[Compliance] ${name}: Found ${allSearchHits.length} potential market hits from search.`);
-
-                    const highFreq = allSearchHits.filter((m: any) => {
-                        const id = (m.marketId || '').toUpperCase();
-                        const title = (m.title || '').toUpperCase();
-                        const isCrypto = id.includes('15M') || id.includes('DAILY') || title.includes('15 MINUTE') || title.includes('DAILY') || title.includes('CRYPTO');
-                        const isDateMatch = title.includes(month.toUpperCase()) || title.includes(shortMonth.toUpperCase());
-                        return isCrypto || isDateMatch;
-                    });
-
-                    if (highFreq.length > 0) {
-                        console.info(`[Compliance] Found ${highFreq.length} high-frequency/date-matched Kalshi markets. Prioritizing.`);
-                        candidates = [...highFreq, ...candidates];
-                    } else if (allSearchHits.length > 0) {
-                        // Fallback: any hit from search
-                        candidates = [...allSearchHits.slice(0, 30), ...candidates];
-                    }
-
-                    // Deduplicate
-                    const seen = new Set();
-                    candidates = candidates.filter((m: any) => {
-                        if (seen.has(m.marketId)) return false;
-                        seen.add(m.marketId);
-                        return true;
-                    });
-                }
-
                 // Cap candidates for the deep REST scan (rate limits)
-                // For Kalshi we increase this to find high-activity markets among the crypto/date searches.
+                // For Kalshi we increase this to find high-activity markets
                 const scanLimit = (name === 'KalshiExchange') ? 50 : 20;
-                candidates = candidates.slice(0, scanLimit);
+
+                if (name === 'KalshiExchange') {
+                    // Strategy: Fetch many markets sorted by 24h volume to find the most active ones
+                    console.info(`[Compliance] Finding high-volume markets for ${name}...`);
+
+                    const volumeMarkets = await exchange.fetchMarkets({
+                        limit: 5000,
+                        sort: 'volume',
+                        status: 'active'
+                    });
+
+                    console.info(`[Compliance] ${name}: Found ${volumeMarkets.length} active markets sorted by volume.`);
+
+                    // Use the top volume markets as candidates
+                    if (volumeMarkets.length > 0) {
+                        candidates = volumeMarkets.slice(0, scanLimit);
+                    }
+                } else {
+                    candidates = candidates.slice(0, scanLimit);
+                }
 
                 interface ScoredMarket {
                     market: any;
@@ -162,7 +128,7 @@ describe('Compliance: watchTrades', () => {
 
                 let timeoutId: NodeJS.Timeout;
                 const globalTimeout = new Promise<never>((_, reject) => {
-                    timeoutId = setTimeout(() => reject(new Error('Test timeout: No trades detected on any top market within 90s')), 90000);
+                    timeoutId = setTimeout(() => reject(new Error('Test timeout: No trades detected on any top market within 120s')), 120000);
                 });
 
                 try {
@@ -206,6 +172,6 @@ describe('Compliance: watchTrades', () => {
             } finally {
                 await exchange.close();
             }
-        }, 120000);
+        }, 150000);
     });
 });

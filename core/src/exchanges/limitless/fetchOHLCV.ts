@@ -12,6 +12,11 @@ import { limitlessErrorMapper } from './errors';
 export async function fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams): Promise<PriceCandle[]> {
     validateIdFormat(id, 'OHLCV');
 
+    // Validate resolution is provided
+    if (!params.resolution) {
+        throw new Error('fetchOHLCV requires a resolution parameter. Use OHLCVParams with resolution specified.');
+    }
+
     try {
         const fidelity = mapIntervalToFidelity(params.resolution);
 

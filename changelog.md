@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.6f] - 2026-02-06
+
+### Fixed
+
+- **OHLCV Validation**: Added explicit runtime validation for the `resolution` parameter in `fetchOHLCV` to ensure API compliance and better error messaging.
+
 ## [2.0.5] - 2026-02-06
 
 ### Changed

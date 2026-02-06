@@ -1,5 +1,5 @@
 import { HttpClient, OrderClient, MarketFetcher, Side, OrderType } from '@limitless-exchange/sdk';
-import { Wallet } from 'ethers';
+import { Wallet, providers, Contract, utils } from 'ethers';
 
 const LIMITLESS_API_URL = 'https://api.limitless.exchange';
 
@@ -178,10 +178,10 @@ export class LimitlessClient {
         // Use a public RPC for Base
         const provider = new providers.JsonRpcProvider('https://mainnet.base.org');
         const contract = new Contract(USDC_ADDRESS, ABI, provider);
-        
+
         const balance = await contract.balanceOf(this.signer.address);
         const decimals = await contract.decimals(); // Should be 6
-        
+
         return parseFloat(utils.formatUnits(balance, decimals));
     }
 }

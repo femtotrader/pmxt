@@ -13,6 +13,11 @@ export async function fetchOHLCV(id: string, params: OHLCVParams | HistoryFilter
     validateIdFormat(id, 'OHLCV');
     validateOutcomeId(id, 'OHLCV');
 
+    // Validate resolution is provided
+    if (!params.resolution) {
+        throw new Error('fetchOHLCV requires a resolution parameter. Use OHLCVParams with resolution specified.');
+    }
+
     try {
         const fidelity = mapIntervalToFidelity(params.resolution);
         const nowTs = Math.floor(Date.now() / 1000);

@@ -14,12 +14,12 @@ def api():
 def mock_markets():
     return [
         UnifiedMarket(
-            id='1',
+            market_id='1',
             title='Will Trump win the 2024 election?',
             description='Presidential election market',
             outcomes=[
-                MarketOutcome(id='1a', label='Yes', price=0.55, price_change_24h=0.05),
-                MarketOutcome(id='1b', label='No', price=0.45, price_change_24h=-0.05),
+                MarketOutcome(outcome_id='1a', label='Yes', price=0.55, price_change_24h=0.05),
+                MarketOutcome(outcome_id='1b', label='No', price=0.45, price_change_24h=-0.05),
             ],
             resolution_date=datetime(2024, 11, 5),
             volume_24h=50000.0,
@@ -29,16 +29,16 @@ def mock_markets():
             url='https://example.com/1',
             category='Politics',
             tags=['Election', '2024', 'Presidential'],
-            yes=MarketOutcome(id='1a', label='Yes', price=0.55, price_change_24h=0.05),
-            no=MarketOutcome(id='1b', label='No', price=0.45, price_change_24h=-0.05),
+            yes=MarketOutcome(outcome_id='1a', label='Yes', price=0.55, price_change_24h=0.05),
+            no=MarketOutcome(outcome_id='1b', label='No', price=0.45, price_change_24h=-0.05),
         ),
         UnifiedMarket(
-            id='2',
+            market_id='2',
             title='Will Biden run for reelection?',
             description='Democratic primary speculation',
             outcomes=[
-                MarketOutcome(id='2a', label='Yes', price=0.25, price_change_24h=-0.15),
-                MarketOutcome(id='2b', label='No', price=0.75, price_change_24h=0.15),
+                MarketOutcome(outcome_id='2a', label='Yes', price=0.25, price_change_24h=-0.15),
+                MarketOutcome(outcome_id='2b', label='No', price=0.75, price_change_24h=0.15),
             ],
             resolution_date=datetime(2024, 6, 1),
             volume_24h=30000.0,
@@ -48,16 +48,16 @@ def mock_markets():
             url='https://example.com/2',
             category='Politics',
             tags=['Election', 'Democratic'],
-            yes=MarketOutcome(id='2a', label='Yes', price=0.25, price_change_24h=-0.15),
-            no=MarketOutcome(id='2b', label='No', price=0.75, price_change_24h=0.15),
+            yes=MarketOutcome(outcome_id='2a', label='Yes', price=0.25, price_change_24h=-0.15),
+            no=MarketOutcome(outcome_id='2b', label='No', price=0.75, price_change_24h=0.15),
         ),
         UnifiedMarket(
-            id='3',
+            market_id='3',
             title='Bitcoin above $100k by end of year?',
             description='Crypto price prediction',
             outcomes=[
-                MarketOutcome(id='3a', label='Yes', price=0.35, price_change_24h=0.02),
-                MarketOutcome(id='3b', label='No', price=0.65, price_change_24h=-0.02),
+                MarketOutcome(outcome_id='3a', label='Yes', price=0.35, price_change_24h=0.02),
+                MarketOutcome(outcome_id='3b', label='No', price=0.65, price_change_24h=-0.02),
             ],
             resolution_date=datetime(2024, 12, 31),
             volume_24h=75000.0,
@@ -67,16 +67,16 @@ def mock_markets():
             url='https://example.com/3',
             category='Crypto',
             tags=['Bitcoin', 'Price'],
-            yes=MarketOutcome(id='3a', label='Yes', price=0.35, price_change_24h=0.02),
-            no=MarketOutcome(id='3b', label='No', price=0.65, price_change_24h=-0.02),
+            yes=MarketOutcome(outcome_id='3a', label='Yes', price=0.35, price_change_24h=0.02),
+            no=MarketOutcome(outcome_id='3b', label='No', price=0.65, price_change_24h=-0.02),
         ),
         UnifiedMarket(
-            id='4',
+            market_id='4',
             title='Will Fed Chair be Kevin Warsh?',
             description='Trump Fed Chair nomination',
             outcomes=[
-                MarketOutcome(id='4a', label='Yes', price=0.15, price_change_24h=-0.10),
-                MarketOutcome(id='4b', label='No', price=0.85, price_change_24h=0.10),
+                MarketOutcome(outcome_id='4a', label='Yes', price=0.15, price_change_24h=-0.10),
+                MarketOutcome(outcome_id='4b', label='No', price=0.85, price_change_24h=0.10),
             ],
             resolution_date=datetime(2025, 1, 20),
             volume_24h=10000.0,
@@ -86,8 +86,8 @@ def mock_markets():
             url='https://example.com/4',
             category='Politics',
             tags=['Fed', 'Trump'],
-            yes=MarketOutcome(id='4a', label='Yes', price=0.15, price_change_24h=-0.10),
-            no=MarketOutcome(id='4b', label='No', price=0.85, price_change_24h=0.10),
+            yes=MarketOutcome(outcome_id='4a', label='Yes', price=0.15, price_change_24h=-0.10),
+            no=MarketOutcome(outcome_id='4b', label='No', price=0.85, price_change_24h=0.10),
         ),
     ]
 
@@ -95,19 +95,19 @@ def mock_markets():
 def mock_events(mock_markets):
     def create_market(id_val, title, vol):
         return UnifiedMarket(
-            id=id_val,
+            market_id=id_val,
             title=title,
             description='Market description',
             outcomes=[
-                MarketOutcome(id=f"{id_val}a", label='Yes', price=0.5),
-                MarketOutcome(id=f"{id_val}b", label='No', price=0.5),
+                MarketOutcome(outcome_id=f"{id_val}a", label='Yes', price=0.5),
+                MarketOutcome(outcome_id=f"{id_val}b", label='No', price=0.5),
             ],
             resolution_date=datetime(2025, 1, 1),
             volume_24h=vol,
             liquidity=10000.0,
             url=f"https://example.com/{id_val}",
-            yes=MarketOutcome(id=f"{id_val}a", label='Yes', price=0.5),
-            no=MarketOutcome(id=f"{id_val}b", label='No', price=0.5),
+            yes=MarketOutcome(outcome_id=f"{id_val}a", label='Yes', price=0.5),
+            no=MarketOutcome(outcome_id=f"{id_val}b", label='No', price=0.5),
         )
 
     return [
@@ -171,11 +171,11 @@ def mock_events(mock_markets):
 def test_filter_markets_string_search(api, mock_markets):
     result = api.filter_markets(mock_markets, 'Trump')
     assert len(result) == 1
-    assert result[0].id == '1'
+    assert result[0].market_id == '1'
 
     result = api.filter_markets(mock_markets, 'bitcoin')
     assert len(result) == 1
-    assert result[0].id == '3'
+    assert result[0].market_id == '3'
 
     result = api.filter_markets(mock_markets, 'xyz123notfound')
     assert len(result) == 0
@@ -186,11 +186,11 @@ def test_filter_markets_text_search_in(api, mock_markets):
 
     result = api.filter_markets(mock_markets, {"text": "nomination", "search_in": ["description"]})
     assert len(result) == 1
-    assert result[0].id == '4'
+    assert result[0].market_id == '4'
 
     result = api.filter_markets(mock_markets, {"text": "Presidential", "search_in": ["tags"]})
     assert len(result) == 1
-    assert result[0].id == '1'
+    assert result[0].market_id == '1'
 
     result = api.filter_markets(mock_markets, {"text": "Yes", "search_in": ["outcomes"]})
     assert len(result) == 4
@@ -204,58 +204,58 @@ def test_filter_markets_text_search_in(api, mock_markets):
 def test_filter_markets_volume(api, mock_markets):
     result = api.filter_markets(mock_markets, {"volume_24h": {"min": 40000}})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '1' in ids
     assert '3' in ids
 
     result = api.filter_markets(mock_markets, {"volume_24h": {"max": 35000}})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '2' in ids
     assert '4' in ids
 
     result = api.filter_markets(mock_markets, {"volume_24h": {"min": 25000, "max": 60000}})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '1' in ids
     assert '2' in ids
 
     result = api.filter_markets(mock_markets, {"volume": {"min": 400000}})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '1' in ids
     assert '3' in ids
 
 def test_filter_markets_liquidity(api, mock_markets):
     result = api.filter_markets(mock_markets, {"liquidity": {"min": 75000}})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '1' in ids
     assert '3' in ids
 
     result = api.filter_markets(mock_markets, {"liquidity": {"max": 60000}})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '2' in ids
     assert '4' in ids
 
 def test_filter_markets_open_interest(api, mock_markets):
     result = api.filter_markets(mock_markets, {"open_interest": {"min": 70000}})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '1' in ids
     assert '3' in ids
 
 def test_filter_markets_date(api, mock_markets):
     result = api.filter_markets(mock_markets, {"resolution_date": {"before": datetime(2024, 12, 1)}})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '1' in ids
     assert '2' in ids
 
     result = api.filter_markets(mock_markets, {"resolution_date": {"after": datetime(2024, 7, 1)}})
     assert len(result) == 3
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '1' in ids
     assert '3' in ids
     assert '4' in ids
@@ -266,33 +266,33 @@ def test_filter_markets_tags(api, mock_markets):
     
     result = api.filter_markets(mock_markets, {"tags": ["Bitcoin", "Fed"]})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '3' in ids
     assert '4' in ids
 
 def test_filter_markets_price(api, mock_markets):
     result = api.filter_markets(mock_markets, {"price": {"outcome": "yes", "max": 0.3}})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '2' in ids
     assert '4' in ids
 
     result = api.filter_markets(mock_markets, {"price": {"outcome": "no", "min": 0.7}})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '2' in ids
     assert '4' in ids
 
 def test_filter_markets_price_change(api, mock_markets):
     result = api.filter_markets(mock_markets, {"price_change_24h": {"outcome": "yes", "max": -0.08}})
     assert len(result) == 2
-    ids = [m.id for m in result]
+    ids = [m.market_id for m in result]
     assert '2' in ids
     assert '4' in ids
 
     result = api.filter_markets(mock_markets, {"price_change_24h": {"outcome": "yes", "min": 0.03}})
     assert len(result) == 1
-    assert result[0].id == '1'
+    assert result[0].market_id == '1'
 
 def test_filter_markets_predicate(api, mock_markets):
     result = api.filter_markets(mock_markets, lambda m: m.volume_24h > 40000)
@@ -300,11 +300,11 @@ def test_filter_markets_predicate(api, mock_markets):
     
     result = api.filter_markets(mock_markets, lambda m: m.category == 'Politics' and any(o.price < 0.3 for o in m.outcomes) and m.volume_24h > 10000)
     assert len(result) == 1
-    assert result[0].id == '2'
+    assert result[0].market_id == '2'
 
 def test_filter_markets_edge_cases(api):
     # Empty yes/no accessors
-    m = UnifiedMarket(id='1', title='Multi', outcomes=[], volume_24h=0.0, liquidity=0.0, url='')
+    m = UnifiedMarket(market_id='1', title='Multi', outcomes=[], volume_24h=0.0, liquidity=0.0, url='')
     result = api.filter_markets([m], {"price": {"outcome": "yes", "max": 0.5}})
     assert len(result) == 0
 

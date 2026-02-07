@@ -13,7 +13,8 @@ import pmxt
 api = pmxt.Polymarket()
 
 # Fetch markets to verify connection works
-markets = api.get_markets_by_slug('who-will-trump-nominate-as-fed-chair')
+# Note: get_markets_by_slug is removed in v2.0, so we use fetch_markets with slug filter
+markets = api.fetch_markets(slug='who-will-trump-nominate-as-fed-chair')
 
 # Find Kevin Warsh outcome
 warsh = next((m for m in markets if m.outcomes[0].label == 'Kevin Warsh'), None)

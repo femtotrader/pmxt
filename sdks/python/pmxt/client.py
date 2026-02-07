@@ -56,6 +56,19 @@ def _convert_outcome(raw: Dict[str, Any]) -> MarketOutcome:
 def _convert_market(raw: Dict[str, Any]) -> UnifiedMarket:
     """Convert raw API response to UnifiedMarket."""
     outcomes = [_convert_outcome(o) for o in raw.get("outcomes", [])]
+    
+    # Handle resolution date (could be str or datetime)
+    res_date_raw = raw.get("resolutionDate")
+    res_date = None
+    
+    if res_date_raw:
+        if isinstance(res_date_raw, str):
+            try:
+                res_date = datetime.fromisoformat(res_date_raw.replace("Z", "+00:00"))
+            except ValueError:
+                pass # Keep as None if parsing fails
+        elif isinstance(res_date_raw, datetime):
+            res_date = res_date_raw
 
     return UnifiedMarket(
         market_id=raw.get("marketId"),
@@ -65,7 +78,7 @@ def _convert_market(raw: Dict[str, Any]) -> UnifiedMarket:
         liquidity=raw.get("liquidity", 0),
         url=raw.get("url"),
         description=raw.get("description"),
-        resolution_date=datetime.fromisoformat(raw["resolutionDate"].replace("Z", "+00:00")) if raw.get("resolutionDate") else None,
+        resolution_date=res_date,
         volume=raw.get("volume"),
         open_interest=raw.get("openInterest"),
         image=raw.get("image"),

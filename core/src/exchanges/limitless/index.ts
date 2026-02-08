@@ -340,10 +340,19 @@ export class LimitlessExchange extends PredictionMarketExchange {
     }
 
     /**
-     * Watch AMM price updates for a market address.
+     * Watch AMM price updates for a market address (Limitless only).
      * Requires WebSocket connection.
+     *
      * @param marketAddress - Market contract address
      * @param callback - Callback for price updates
+     *
+     * @example-ts Watch prices
+     * await exchange.watchPrices(marketAddress, (data) => {
+     *   console.log('Price update:', data);
+     * });
+     *
+     * @example-python Watch prices
+     * exchange.watch_prices(market_address, callback=lambda data: print('Price update:', data))
      */
     async watchPrices(marketAddress: string, callback: (data: any) => void): Promise<void> {
         const ws = this.initWebSocket();
@@ -351,9 +360,18 @@ export class LimitlessExchange extends PredictionMarketExchange {
     }
 
     /**
-     * Watch user positions in real-time.
+     * Watch user positions in real-time (Limitless only).
      * Requires API key authentication.
+     *
      * @param callback - Callback for position updates
+     *
+     * @example-ts Watch positions
+     * await exchange.watchUserPositions((data) => {
+     *   console.log('Position update:', data);
+     * });
+     *
+     * @example-python Watch positions
+     * exchange.watch_user_positions(callback=lambda data: print('Position update:', data))
      */
     async watchUserPositions(callback: (data: any) => void): Promise<void> {
         this.ensureAuth(); // Ensure API key is available
@@ -362,9 +380,18 @@ export class LimitlessExchange extends PredictionMarketExchange {
     }
 
     /**
-     * Watch user transactions in real-time.
+     * Watch user transactions in real-time (Limitless only).
      * Requires API key authentication.
+     *
      * @param callback - Callback for transaction updates
+     *
+     * @example-ts Watch transactions
+     * await exchange.watchUserTransactions((data) => {
+     *   console.log('Transaction:', data);
+     * });
+     *
+     * @example-python Watch transactions
+     * exchange.watch_user_transactions(callback=lambda data: print('Transaction:', data))
      */
     async watchUserTransactions(callback: (data: any) => void): Promise<void> {
         this.ensureAuth(); // Ensure API key is available

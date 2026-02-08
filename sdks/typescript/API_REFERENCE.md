@@ -1,6 +1,6 @@
 # pmxtjs - API Reference
 
-A unified TypeScript SDK for interacting with multiple prediction market exchanges (Kalshi, Polymarket) identically.
+A unified TypeScript SDK for interacting with multiple prediction market exchanges (Polymarket, Kalshi, Limitless) identically.
 
 ## Installation
 
@@ -16,9 +16,10 @@ import pmxt from 'pmxtjs';
 // Initialize exchanges (server starts automatically!)
 const poly = new pmxt.Polymarket();
 const kalshi = new pmxt.Kalshi();
+const limitless = new pmxt.Limitless();  // Requires API key for authenticated operations
 
 // Search for markets
-const markets = await poly.searchMarkets("Trump");
+const markets = await poly.fetchMarkets({ query: "Trump" });
 console.log(markets[0].title);
 ```
 
@@ -55,137 +56,38 @@ await pmxt.restartServer();
 
 ### `fetchMarkets`
 
-Fetch Markets
+Fetch markets with optional filtering, search, or slug lookup.
 
-Fetch Markets
 
 **Signature:**
 
 ```typescript
-async fetchMarkets(params?: MarketFilterParams): Promise<UnifiedMarket[]>
+async fetchMarkets(params?: MarketFetchParams): Promise<UnifiedMarket[]>
   ```
 
   **Parameters:**
 
-  - `params` (MarketFilterParams) - **Optional**: Filter parameters
+  - `params` (MarketFetchParams) - **Optional**: Optional parameters for filtering and search
 
-  **Returns:** `Promise<UnifiedMarket[]>` - List of unified markets
-
-    **Example:**
-
-    ```typescript
-    const markets = await polymarket.fetchMarkets({ 
-  limit: 20, 
-  offset: 0,
-  sort: 'volume' // 'volume' | 'liquidity' | 'newest'
-});
-    ```
-
-
-    ---
-### `fetchOHLCV`
-
-Fetch OHLCV Candles
-
-Fetch OHLCV Candles
-
-**Signature:**
-
-```typescript
-async fetchOHLCV(id: string, params?: OHLCVParams): Promise<PriceCandle[]>
-  ```
-
-  **Parameters:**
-
-  - `id` (string): id
-  - `params` (OHLCVParams) - **Optional**: Filter parameters
-
-  **Returns:** `Promise<PriceCandle[]>` - Historical prices
+  **Returns:** `Promise<UnifiedMarket[]>` - Array of unified markets
 
     **Example:**
 
     ```typescript
-    const markets = await polymarket.searchMarkets('Trump');
-const outcomeId = markets[0].outcomes[0].id; // Get the outcome ID
+    // Fetch markets
+const markets = await exchange.fetchMarkets({ query: 'Trump', limit: 20 });
+console.log(markets[0].title);
 
-const candles = await polymarket.fetchOHLCV(outcomeId, {
-  resolution: '1h', // '1m' | '5m' | '15m' | '1h' | '6h' | '1d'
-  start: new Date('2024-01-01'),
-  end: new Date('2024-01-31'),
-  limit: 100
-});
+// Get market by slug
+const markets = await exchange.fetchMarkets({ slug: 'will-trump-win' });
     ```
 
-    **Notes:**
-    **CRITICAL**: Use `outcome.id`, not `market.id`.
-    - **Polymarket**: `outcome.id` is the CLOB Token ID
-    - **Kalshi**: `outcome.id` is the Market Ticker
-
-    ---
-### `fetchOrderBook`
-
-Fetch Order Book
-
-Fetch Order Book
-
-**Signature:**
-
-```typescript
-async fetchOrderBook(): Promise<OrderBook>
-  ```
-
-  **Parameters:**
-
-  - None
-
-  **Returns:** `Promise<OrderBook>` - Current order book
-
-    **Example:**
-
-    ```typescript
-    const orderBook = await kalshi.fetchOrderBook('FED-25JAN');
-console.log('Best bid:', orderBook.bids[0].price);
-console.log('Best ask:', orderBook.asks[0].price);
-    ```
-
-
-    ---
-### `fetchTrades`
-
-Fetch Trades
-
-Fetch Trades
-
-**Signature:**
-
-```typescript
-async fetchTrades(id: string, params?: TradesParams): Promise<Trade[]>
-  ```
-
-  **Parameters:**
-
-  - `id` (string): id
-  - `params` (TradesParams) - **Optional**: Filter parameters
-
-  **Returns:** `Promise<Trade[]>` - Recent trades
-
-    **Example:**
-
-    ```typescript
-    const trades = await kalshi.fetchTrades('FED-25JAN', {
-  limit: 100
-});
-    ```
-
-    **Notes:**
-    **Note**: Polymarket requires API key. Use `fetchOHLCV` for public historical data.
 
     ---
 ### `fetchEvents`
 
-Fetch Events
+Fetch events with optional keyword search.
 
-Fetch Events
 
 **Signature:**
 
@@ -195,193 +97,157 @@ async fetchEvents(params?: EventFetchParams): Promise<UnifiedEvent[]>
 
   **Parameters:**
 
-  - `params` (EventFetchParams) - **Optional**: Filter parameters
+  - `params` (EventFetchParams) - **Optional**: Optional parameters for search and filtering
 
-  **Returns:** `Promise<UnifiedEvent[]>` - List of unified events
+  **Returns:** `Promise<UnifiedEvent[]>` - Array of unified events
 
     **Example:**
 
     ```typescript
-    // No example available
+    // Search events
+const events = await exchange.fetchEvents({ query: 'Fed Chair' });
+const fedEvent = events[0];
+console.log(fedEvent.title, fedEvent.markets.length, 'markets');
     ```
 
 
     ---
-### `watchOrderBook`
+### `fetchOHLCV`
 
-Watch Order Book (WebSocket Stream)
-
-Subscribe to real-time order book updates via WebSocket. Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+Fetch historical OHLCV (candlestick) price data for a specific market outcome.
 
 
 **Signature:**
 
 ```typescript
-async watchOrderBook(outcomeId: string, limit?: any): Promise<OrderBook>
+async fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams): Promise<PriceCandle[]>
   ```
 
   **Parameters:**
 
-  - `outcomeId` (string): outcomeId
-  - `limit` (any) - **Optional**: limit
+  - `id` (string): The Outcome ID (outcomeId). Use outcome.outcomeId, NOT market.marketId
+  - `params` (OHLCVParams | HistoryFilterParams): OHLCV parameters including resolution (required)
 
-  **Returns:** `Promise<OrderBook>` - Next order book update
+  **Returns:** `Promise<PriceCandle[]>` - Array of price candles
 
     **Example:**
 
     ```typescript
-    // No example available
+    // Fetch hourly candles
+const markets = await exchange.fetchMarkets({ query: 'Trump' });
+const outcomeId = markets[0].yes.outcomeId;
+const candles = await exchange.fetchOHLCV(outcomeId, {
+  resolution: '1h',
+  limit: 100
+});
+console.log(`Latest close: ${candles[candles.length - 1].close}`);
     ```
 
+    **Notes:**
+    **CRITICAL**: Use `outcome.outcomeId` (TS) / `outcome.outcome_id` (Python), not the market ID.
+    Polymarket: outcomeId is the CLOB Token ID. Kalshi: outcomeId is the Market Ticker.
+    Resolution options: '1m' | '5m' | '15m' | '1h' | '6h' | '1d'
 
     ---
-### `watchTrades`
+### `fetchOrderBook`
 
-Watch Trades (WebSocket Stream)
-
-Subscribe to real-time trade updates via WebSocket. Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+Fetch the current order book (bids/asks) for a specific outcome.
 
 
 **Signature:**
 
 ```typescript
-async watchTrades(outcomeId: string, since?: any, limit?: any): Promise<Trade[]>
+async fetchOrderBook(id: string): Promise<OrderBook>
   ```
 
   **Parameters:**
 
-  - `outcomeId` (string): outcomeId
-  - `since` (any) - **Optional**: since
-  - `limit` (any) - **Optional**: limit
+  - `id` (string): The Outcome ID (outcomeId)
 
-  **Returns:** `Promise<Trade[]>` - Next trade update(s)
+  **Returns:** `Promise<OrderBook>` - Current order book with bids and asks
 
     **Example:**
 
     ```typescript
-    // No example available
+    // Fetch order book
+const book = await exchange.fetchOrderBook(outcome.outcomeId);
+console.log(`Best bid: ${book.bids[0].price}`);
+console.log(`Best ask: ${book.asks[0].price}`);
+console.log(`Spread: ${(book.asks[0].price - book.bids[0].price) * 100}%`);
     ```
 
 
     ---
-### `watchPrices`
+### `fetchTrades`
 
-Watch Prices (WebSocket Stream)
+Fetch raw trade history for a specific outcome.
 
-Watch Prices (WebSocket Stream)
 
 **Signature:**
 
 ```typescript
-async watchPrices(): Promise<any>
+async fetchTrades(id: string, params: TradesParams | HistoryFilterParams): Promise<Trade[]>
   ```
 
   **Parameters:**
 
-  - None
+  - `id` (string): The Outcome ID (outcomeId)
+  - `params` (TradesParams | HistoryFilterParams): Trade filter parameters
 
-  **Returns:** `Promise<any>` - Price update
-
-    **Example:**
-
-    ```typescript
-    // No example available
-    ```
-
-
-    ---
-### `watchUserPositions`
-
-Watch User Positions (WebSocket Stream)
-
-Watch User Positions (WebSocket Stream)
-
-**Signature:**
-
-```typescript
-async watchUserPositions(): Promise<any>
-  ```
-
-  **Parameters:**
-
-  - None
-
-  **Returns:** `Promise<any>` - User position update
+  **Returns:** `Promise<Trade[]>` - Array of recent trades
 
     **Example:**
 
     ```typescript
-    // No example available
+    // Fetch recent trades
+const trades = await exchange.fetchTrades(outcome.outcomeId, { limit: 100 });
+for (const trade of trades) {
+  console.log(`${trade.side} ${trade.amount} @ ${trade.price}`);
+}
     ```
 
-
-    ---
-### `watchUserTransactions`
-
-Watch User Transactions (WebSocket Stream)
-
-Watch User Transactions (WebSocket Stream)
-
-**Signature:**
-
-```typescript
-async watchUserTransactions(): Promise<any>
-  ```
-
-  **Parameters:**
-
-  - None
-
-  **Returns:** `Promise<any>` - User transaction update
-
-    **Example:**
-
-    ```typescript
-    // No example available
-    ```
-
+    **Notes:**
+    Polymarket requires an API key for trade history. Use fetchOHLCV for public historical data.
 
     ---
 ### `createOrder`
 
-Create Order
+Place a new order on the exchange.
 
-Create Order
 
 **Signature:**
 
 ```typescript
-async createOrder(params?: CreateOrderParams): Promise<Order>
+async createOrder(params: CreateOrderParams): Promise<Order>
   ```
 
   **Parameters:**
 
-  - `params` (CreateOrderParams) - **Optional**: Filter parameters
+  - `params` (CreateOrderParams): Order parameters
 
-  **Returns:** `Promise<Order>` - Order created
+  **Returns:** `Promise<Order>` - The created order
 
     **Example:**
 
     ```typescript
-    // Limit Order Example
-const order = await polymarket.createOrder({
-  marketId: '663583',
-  outcomeId: '10991849228756847439673778874175365458450913336396982752046655649803657501964',
+    // Place a limit order
+const order = await exchange.createOrder({
+  marketId: market.marketId,
+  outcomeId: market.yes.outcomeId,
   side: 'buy',
   type: 'limit',
-  amount: 10,        // Number of contracts
-  price: 0.55        // Required for limit orders (0.0-1.0)
+  amount: 10,
+  price: 0.55
 });
-
 console.log(`Order ${order.id}: ${order.status}`);
 
-// Market Order Example
-const order = await kalshi.createOrder({
-  marketId: 'FED-25JAN',
-  outcomeId: 'FED-25JAN-YES',
-  side: 'sell',
+// Place a market order
+const order = await exchange.createOrder({
+  marketId: market.marketId,
+  outcomeId: market.yes.outcomeId,
+  side: 'buy',
   type: 'market',
-  amount: 5          // Price not needed for market orders
+  amount: 5
 });
     ```
 
@@ -389,53 +255,53 @@ const order = await kalshi.createOrder({
     ---
 ### `cancelOrder`
 
-Cancel Order
+Cancel an existing open order.
 
-Cancel Order
 
 **Signature:**
 
 ```typescript
-async cancelOrder(): Promise<Order>
+async cancelOrder(orderId: string): Promise<Order>
   ```
 
   **Parameters:**
 
-  - None
+  - `orderId` (string): The order ID to cancel
 
-  **Returns:** `Promise<Order>` - Order cancelled
+  **Returns:** `Promise<Order>` - The cancelled order
 
     **Example:**
 
     ```typescript
-    const cancelledOrder = await polymarket.cancelOrder('order-123');
-console.log(cancelledOrder.status); // 'cancelled'
+    // Cancel an order
+const cancelled = await exchange.cancelOrder('order-123');
+console.log(cancelled.status); // 'cancelled'
     ```
 
 
     ---
 ### `fetchOrder`
 
-Fetch Order
+Fetch a specific order by ID.
 
-Fetch Order
 
 **Signature:**
 
 ```typescript
-async fetchOrder(): Promise<Order>
+async fetchOrder(orderId: string): Promise<Order>
   ```
 
   **Parameters:**
 
-  - None
+  - `orderId` (string): The order ID to look up
 
-  **Returns:** `Promise<Order>` - Order details
+  **Returns:** `Promise<Order>` - The order details
 
     **Example:**
 
     ```typescript
-    const order = await kalshi.fetchOrder('order-456');
+    // Fetch order status
+const order = await exchange.fetchOrder('order-456');
 console.log(`Filled: ${order.filled}/${order.amount}`);
     ```
 
@@ -443,43 +309,40 @@ console.log(`Filled: ${order.filled}/${order.amount}`);
     ---
 ### `fetchOpenOrders`
 
-Fetch Open Orders
+Fetch all open orders, optionally filtered by market.
 
-Fetch Open Orders
 
 **Signature:**
 
 ```typescript
-async fetchOpenOrders(): Promise<Order[]>
+async fetchOpenOrders(marketId?: string): Promise<Order[]>
   ```
 
   **Parameters:**
 
-  - None
+  - `marketId` (string) - **Optional**: Optional market ID to filter by
 
-  **Returns:** `Promise<Order[]>` - List of open orders
+  **Returns:** `Promise<Order[]>` - Array of open orders
 
     **Example:**
 
     ```typescript
-    // All open orders
-const allOrders = await polymarket.fetchOpenOrders();
-
-// Open orders for specific market
-const marketOrders = await kalshi.fetchOpenOrders('FED-25JAN');
-
-allOrders.forEach(order => {
+    // Fetch all open orders
+const orders = await exchange.fetchOpenOrders();
+for (const order of orders) {
   console.log(`${order.side} ${order.amount} @ ${order.price}`);
-});
+}
+
+// Fetch orders for a specific market
+const orders = await exchange.fetchOpenOrders('FED-25JAN');
     ```
 
 
     ---
 ### `fetchPositions`
 
-Fetch Positions
+Fetch current user positions across all markets.
 
-Fetch Positions
 
 **Signature:**
 
@@ -491,25 +354,25 @@ async fetchPositions(): Promise<Position[]>
 
   - None
 
-  **Returns:** `Promise<Position[]>` - User positions
+  **Returns:** `Promise<Position[]>` - Array of user positions
 
     **Example:**
 
     ```typescript
-    const positions = await kalshi.fetchPositions();
-positions.forEach(pos => {
+    // Fetch positions
+const positions = await exchange.fetchPositions();
+for (const pos of positions) {
   console.log(`${pos.outcomeLabel}: ${pos.size} @ $${pos.entryPrice}`);
-  console.log(`Unrealized P&L: $${pos.unrealizedPnL}`);
-});
+  console.log(`Unrealized P&L: $${pos.unrealizedPnL.toFixed(2)}`);
+}
     ```
 
 
     ---
 ### `fetchBalance`
 
-Fetch Balance
+Fetch account balances.
 
-Fetch Balance
 
 **Signature:**
 
@@ -521,110 +384,114 @@ async fetchBalance(): Promise<Balance[]>
 
   - None
 
-  **Returns:** `Promise<Balance[]>` - Account balances
+  **Returns:** `Promise<Balance[]>` - Array of account balances
 
     **Example:**
 
     ```typescript
-    const balances = await polymarket.fetchBalance();
-console.log(balances);
-// [{ currency: 'USDC', total: 1000, available: 950, locked: 50 }]
+    // Fetch balance
+const balances = await exchange.fetchBalance();
+console.log(`Available: $${balances[0].available}`);
     ```
 
 
     ---
 ### `getExecutionPrice`
 
-Get Execution Price
+Calculate the volume-weighted average execution price for a given order size.
 
-Get Execution Price
 
 **Signature:**
 
 ```typescript
-async getExecutionPrice(orderBook: string, side: OrderBook, amount: OrderBook): Promise<any>
+async getExecutionPrice(orderBook: OrderBook, side: 'buy' | 'sell', amount: number): Promise<number>
   ```
 
   **Parameters:**
 
-  - `orderBook` (string): orderBook
-  - `side` (OrderBook): side
-  - `amount` (OrderBook): amount
+  - `orderBook` (OrderBook): The current order book
+  - `side` ('buy' | 'sell'): 'buy' or 'sell'
+  - `amount` (number): Number of contracts to simulate
 
-  **Returns:** `Promise<any>` - Average execution price
+  **Returns:** `Promise<number>` - Average execution price, or 0 if insufficient liquidity
 
     **Example:**
 
     ```typescript
-    // No example available
+    // Get execution price
+const book = await exchange.fetchOrderBook(outcome.outcomeId);
+const price = exchange.getExecutionPrice(book, 'buy', 100);
+console.log(`Avg price for 100 contracts: ${price}`);
     ```
 
 
     ---
 ### `getExecutionPriceDetailed`
 
-Get Detailed Execution Price
+Calculate detailed execution price information including partial fill data.
 
-Get Detailed Execution Price
 
 **Signature:**
 
 ```typescript
-async getExecutionPriceDetailed(orderBook: string, side: OrderBook, amount: OrderBook): Promise<ExecutionPriceResult>
+async getExecutionPriceDetailed(orderBook: OrderBook, side: 'buy' | 'sell', amount: number): Promise<ExecutionPriceResult>
   ```
 
   **Parameters:**
 
-  - `orderBook` (string): orderBook
-  - `side` (OrderBook): side
-  - `amount` (OrderBook): amount
+  - `orderBook` (OrderBook): The current order book
+  - `side` ('buy' | 'sell'): 'buy' or 'sell'
+  - `amount` (number): Number of contracts to simulate
 
-  **Returns:** `Promise<ExecutionPriceResult>` - Detailed execution result
+  **Returns:** `Promise<ExecutionPriceResult>` - Detailed execution result with price, filled amount, and fill status
 
     **Example:**
 
     ```typescript
-    // No example available
+    // Get detailed execution price
+const book = await exchange.fetchOrderBook(outcome.outcomeId);
+const result = exchange.getExecutionPriceDetailed(book, 'buy', 100);
+console.log(`Price: ${result.price}`);
+console.log(`Filled: ${result.filledAmount}/${100}`);
+console.log(`Fully filled: ${result.fullyFilled}`);
     ```
 
 
     ---
 ### `filterMarkets`
 
-Filter Markets
-
-Filter a list of markets by criteria. Can filter by string query, structured criteria object, or custom filter function.
+Filter a list of markets by criteria.
 
 
 **Signature:**
 
 ```typescript
-async filterMarkets(markets: any, criteria: any): Promise<UnifiedMarket[]>
+async filterMarkets(markets: UnifiedMarket[], criteria: string | MarketFilterCriteria | MarketFilterFunction): Promise<UnifiedMarket[]>
   ```
 
   **Parameters:**
 
-  - `markets` (any): markets
-  - `criteria` (any): criteria
+  - `markets` (UnifiedMarket[]): Array of markets to filter
+  - `criteria` (string | MarketFilterCriteria | MarketFilterFunction): Filter criteria: string (text search), object (structured), or function (predicate)
 
-  **Returns:** `Promise<UnifiedMarket[]>` - Filtered markets
+  **Returns:** `Promise<UnifiedMarket[]>` - Filtered array of markets
 
     **Example:**
 
     ```typescript
     // Simple text search
-const filtered = poly.filterMarkets(markets, 'Trump');
+const filtered = exchange.filterMarkets(markets, 'Trump');
 
 // Advanced criteria
-const undervalued = poly.filterMarkets(markets, {
-    text: 'Election',
-    volume24h: { min: 10000 },
-    price: { outcome: 'yes', max: 0.4 }
+const undervalued = exchange.filterMarkets(markets, {
+  text: 'Election',
+  volume24h: { min: 10000 },
+  price: { outcome: 'yes', max: 0.4 }
 });
 
-// Custom function
-const volatile = poly.filterMarkets(markets, m => 
-    m.yes?.priceChange24h < -0.1
+// Custom predicate
+const volatile = exchange.filterMarkets(markets,
+  m => m.yes?.priceChange24h < -0.1
 );
     ```
 
@@ -632,145 +499,210 @@ const volatile = poly.filterMarkets(markets, m =>
     ---
 ### `filterEvents`
 
-Filter Events
-
-Filter a list of events by criteria. Can filter by string query, structured criteria object, or custom filter function.
+Filter a list of events by criteria.
 
 
 **Signature:**
 
 ```typescript
-async filterEvents(events: any, criteria: any): Promise<UnifiedEvent[]>
+async filterEvents(events: UnifiedEvent[], criteria: string | EventFilterCriteria | EventFilterFunction): Promise<UnifiedEvent[]>
   ```
 
   **Parameters:**
 
-  - `events` (any): events
-  - `criteria` (any): criteria
+  - `events` (UnifiedEvent[]): Array of events to filter
+  - `criteria` (string | EventFilterCriteria | EventFilterFunction): Filter criteria: string (text search), object (structured), or function (predicate)
 
-  **Returns:** `Promise<UnifiedEvent[]>` - Filtered events
+  **Returns:** `Promise<UnifiedEvent[]>` - Filtered array of events
 
     **Example:**
 
     ```typescript
-    const filtered = poly.filterEvents(events, {
-    category: 'Politics',
-    marketCount: { min: 5 }
+    // Filter by category
+const filtered = exchange.filterEvents(events, {
+  category: 'Politics',
+  marketCount: { min: 5 }
 });
+    ```
+
+
+    ---
+### `watchOrderBook`
+
+Watch order book updates in real-time via WebSocket.
+
+
+**Signature:**
+
+```typescript
+async watchOrderBook(id: string, limit?: number): Promise<OrderBook>
+  ```
+
+  **Parameters:**
+
+  - `id` (string): The Outcome ID to watch
+  - `limit` (number) - **Optional**: Optional limit for orderbook depth
+
+  **Returns:** `Promise<OrderBook>` - Promise that resolves with the current orderbook state
+
+    **Example:**
+
+    ```typescript
+    // Stream order book
+while (true) {
+  const book = await exchange.watchOrderBook(outcome.outcomeId);
+  console.log(`Bid: ${book.bids[0]?.price} Ask: ${book.asks[0]?.price}`);
+}
+    ```
+
+
+    ---
+### `watchTrades`
+
+Watch trade executions in real-time via WebSocket.
+
+
+**Signature:**
+
+```typescript
+async watchTrades(id: string, since?: number, limit?: number): Promise<Trade[]>
+  ```
+
+  **Parameters:**
+
+  - `id` (string): The Outcome ID to watch
+  - `since` (number) - **Optional**: Optional timestamp to filter trades from
+  - `limit` (number) - **Optional**: Optional limit for number of trades
+
+  **Returns:** `Promise<Trade[]>` - Promise that resolves with recent trades
+
+    **Example:**
+
+    ```typescript
+    // Stream trades
+while (true) {
+  const trades = await exchange.watchTrades(outcome.outcomeId);
+  for (const trade of trades) {
+    console.log(`${trade.side} ${trade.amount} @ ${trade.price}`);
+  }
+}
     ```
 
 
     ---
 ### `close`
 
-Close WebSocket Connections
-
-Close all WebSocket connections and cleanup resources. Call this when you're done streaming to properly release connections.
+Close all WebSocket connections and clean up resources.
 
 
 **Signature:**
 
 ```typescript
-async close(): Promise<any>
+async close(): Promise<void>
   ```
 
   **Parameters:**
 
   - None
 
-  **Returns:** `Promise<any>` - WebSocket connections closed successfully
+  **Returns:** `Promise<void>` - Result
 
     **Example:**
 
     ```typescript
-    // No example available
+    // Close connections
+await exchange.close();
     ```
 
 
     ---
-### `searchMarkets`
+### `watchPrices`
 
-searchMarkets
+Watch AMM price updates for a market address (Limitless only).
 
+> **Note**: This method is only available on **limitless** exchange.
 
 
 **Signature:**
 
 ```typescript
-async searchMarkets(): Promise<any>
+async watchPrices(marketAddress: string, callback: (data: any)): Promise<void>
   ```
 
   **Parameters:**
 
-  - None
+  - `marketAddress` (string): Market contract address
+  - `callback` ((data: any)): Callback for price updates
 
-  **Returns:** `Promise<any>` - 
+  **Returns:** `Promise<void>` - Result
 
     **Example:**
 
     ```typescript
-    const results = await kalshi.searchMarkets('Fed rates', { 
-  limit: 10,
-  searchIn: 'title' // 'title' (default) | 'description' | 'both'
+    // Watch prices
+await exchange.watchPrices(marketAddress, (data) => {
+  console.log('Price update:', data);
 });
     ```
 
 
     ---
-### `searchEvents`
+### `watchUserPositions`
 
-searchEvents
+Watch user positions in real-time (Limitless only).
 
+> **Note**: This method is only available on **limitless** exchange.
 
 
 **Signature:**
 
 ```typescript
-async searchEvents(): Promise<any>
+async watchUserPositions(callback: (data: any)): Promise<void>
   ```
 
   **Parameters:**
 
-  - None
+  - `callback` ((data: any)): Callback for position updates
 
-  **Returns:** `Promise<any>` - 
+  **Returns:** `Promise<void>` - Result
 
     **Example:**
 
     ```typescript
-    const events = await polymarket.searchEvents('Who will Trump nominate as Fed Chair?');
-// Filter for specific market within the event
-const warsh = polymarket.filterMarkets(events[0].markets, 'Kevin Warsh')[0];
+    // Watch positions
+await exchange.watchUserPositions((data) => {
+  console.log('Position update:', data);
+});
     ```
 
 
     ---
-### `getMarketsBySlug`
+### `watchUserTransactions`
 
-getMarketsBySlug
+Watch user transactions in real-time (Limitless only).
 
+> **Note**: This method is only available on **limitless** exchange.
 
 
 **Signature:**
 
 ```typescript
-async getMarketsBySlug(): Promise<any>
+async watchUserTransactions(callback: (data: any)): Promise<void>
   ```
 
   **Parameters:**
 
-  - None
+  - `callback` ((data: any)): Callback for transaction updates
 
-  **Returns:** `Promise<any>` - 
+  **Returns:** `Promise<void>` - Result
 
     **Example:**
 
     ```typescript
-    // Polymarket: use URL slug
-const polyMarkets = await polymarket.getMarketsBySlug('who-will-trump-nominate-as-fed-chair');
-
-// Kalshi: use market ticker (auto-uppercased)
-const kalshiMarkets = await kalshi.getMarketsBySlug('KXFEDCHAIRNOM-29');
+    // Watch transactions
+await exchange.watchUserTransactions((data) => {
+  console.log('Transaction:', data);
+});
     ```
 
 
@@ -790,14 +722,17 @@ const [balance] = await exchange.fetchBalance();
 console.log(`Available: $${balance.available}`);
 
 // 2. Search for a market
-const markets = await exchange.searchMarkets('Trump');
+const markets = await exchange.fetchMarkets({ query: 'Trump' });
 const market = markets[0];
-const outcome = market.outcomes[0];
+const outcome = market.yes;
+
+console.log(market.title);
+console.log(`Price: ${(outcome.price * 100).toFixed(1)}%`);
 
 // 3. Place a limit order
 const order = await exchange.createOrder({
-  marketId: market.id,
-  outcomeId: outcome.id,
+  marketId: market.marketId,
+  outcomeId: outcome.outcomeId,
   side: 'buy',
   type: 'limit',
   amount: 10,

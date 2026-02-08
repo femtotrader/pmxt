@@ -129,25 +129,30 @@ export abstract class PredictionMarketExchange {
 
     /**
      * Fetch markets with optional filtering, search, or slug lookup.
-     * This is the primary method for retrieving markets in CCXT-style.
+     * This is the primary method for retrieving markets.
      *
      * @param params - Optional parameters for filtering and search
      * @param params.query - Search keyword to filter markets
      * @param params.slug - Market slug/ticker for direct lookup
      * @param params.limit - Maximum number of results
      * @param params.offset - Pagination offset
-     * @param params.sort - Sort order
-     * @param params.searchIn - Where to search (title, description, or both)
+     * @param params.sort - Sort order ('volume' | 'liquidity' | 'newest')
+     * @param params.searchIn - Where to search ('title' | 'description' | 'both')
      * @returns Array of unified markets
      *
-     * @example Fetch all markets
-     * await exchange.fetchMarkets()
+     * @example-ts Fetch markets
+     * const markets = await exchange.fetchMarkets({ query: 'Trump', limit: 20 });
+     * console.log(markets[0].title);
      *
-     * @example Search markets
-     * await exchange.fetchMarkets({ query: 'Trump' })
+     * @example-ts Get market by slug
+     * const markets = await exchange.fetchMarkets({ slug: 'will-trump-win' });
      *
-     * @example Get market by slug
-     * await exchange.fetchMarkets({ slug: 'will-trump-win' })
+     * @example-python Fetch markets
+     * markets = exchange.fetch_markets(query='Trump', limit=20)
+     * print(markets[0].title)
+     *
+     * @example-python Get market by slug
+     * markets = exchange.fetch_markets(slug='will-trump-win')
      */
     async fetchMarkets(params?: MarketFetchParams): Promise<UnifiedMarket[]> {
         return this.fetchMarketsImpl(params);
@@ -155,17 +160,24 @@ export abstract class PredictionMarketExchange {
 
     /**
      * Fetch events with optional keyword search.
-     * Events group related markets together.
+     * Events group related markets together (e.g., "Who will be Fed Chair?" contains multiple candidate markets).
      *
      * @param params - Optional parameters for search and filtering
-     * @param params.query - Search keyword to filter events
+     * @param params.query - Search keyword to filter events (required)
      * @param params.limit - Maximum number of results
      * @param params.offset - Pagination offset
-     * @param params.searchIn - Where to search (title, description, or both)
+     * @param params.searchIn - Where to search ('title' | 'description' | 'both')
      * @returns Array of unified events
      *
-     * @example Search events
-     * await exchange.fetchEvents({ query: 'Election' })
+     * @example-ts Search events
+     * const events = await exchange.fetchEvents({ query: 'Fed Chair' });
+     * const fedEvent = events[0];
+     * console.log(fedEvent.title, fedEvent.markets.length, 'markets');
+     *
+     * @example-python Search events
+     * events = exchange.fetch_events(query='Fed Chair')
+     * fed_event = events[0]
+     * print(fed_event.title, len(fed_event.markets), 'markets')
      */
     async fetchEvents(params?: EventFetchParams): Promise<UnifiedEvent[]> {
         if (!params?.query) {
@@ -196,9 +208,30 @@ export abstract class PredictionMarketExchange {
     }
 
     /**
-     * Fetch historical price data for a specific market outcome.
-     * @param id - The Outcome ID (MarketOutcome.id). This should be the ID of the specific tradeable asset.
+     * Fetch historical OHLCV (candlestick) price data for a specific market outcome.
+     *
+     * @param id - The Outcome ID (outcomeId). Use outcome.outcomeId, NOT market.marketId
      * @param params - OHLCV parameters including resolution (required)
+     * @returns Array of price candles
+     *
+     * @example-ts Fetch hourly candles
+     * const markets = await exchange.fetchMarkets({ query: 'Trump' });
+     * const outcomeId = markets[0].yes.outcomeId;
+     * const candles = await exchange.fetchOHLCV(outcomeId, {
+     *   resolution: '1h',
+     *   limit: 100
+     * });
+     * console.log(`Latest close: ${candles[candles.length - 1].close}`);
+     *
+     * @example-python Fetch hourly candles
+     * markets = exchange.fetch_markets(query='Trump')
+     * outcome_id = markets[0].yes.outcome_id
+     * candles = exchange.fetch_ohlcv(outcome_id, resolution='1h', limit=100)
+     * print(f"Latest close: {candles[-1].close}")
+     *
+     * @notes **CRITICAL**: Use `outcome.outcomeId` (TS) / `outcome.outcome_id` (Python), not the market ID.
+     * @notes Polymarket: outcomeId is the CLOB Token ID. Kalshi: outcomeId is the Market Ticker.
+     * @notes Resolution options: '1m' | '5m' | '15m' | '1h' | '6h' | '1d'
      */
     async fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams): Promise<PriceCandle[]> {
         throw new Error("Method fetchOHLCV not implemented.");
@@ -206,16 +239,46 @@ export abstract class PredictionMarketExchange {
 
     /**
      * Fetch the current order book (bids/asks) for a specific outcome.
-     * Essential for calculating localized spread and depth.
+     * Essential for calculating spread, depth, and execution prices.
+     *
+     * @param id - The Outcome ID (outcomeId)
+     * @returns Current order book with bids and asks
+     *
+     * @example-ts Fetch order book
+     * const book = await exchange.fetchOrderBook(outcome.outcomeId);
+     * console.log(`Best bid: ${book.bids[0].price}`);
+     * console.log(`Best ask: ${book.asks[0].price}`);
+     * console.log(`Spread: ${(book.asks[0].price - book.bids[0].price) * 100}%`);
+     *
+     * @example-python Fetch order book
+     * book = exchange.fetch_order_book(outcome.outcome_id)
+     * print(f"Best bid: {book.bids[0].price}")
+     * print(f"Best ask: {book.asks[0].price}")
+     * print(f"Spread: {(book.asks[0].price - book.bids[0].price) * 100:.2f}%")
      */
     async fetchOrderBook(id: string): Promise<OrderBook> {
         throw new Error("Method fetchOrderBook not implemented.");
     }
 
     /**
-     * Fetch raw trade history.
-     * @param id - The Outcome ID
-     * @param params - Trade filter parameters (resolution is deprecated and ignored)
+     * Fetch raw trade history for a specific outcome.
+     *
+     * @param id - The Outcome ID (outcomeId)
+     * @param params - Trade filter parameters
+     * @returns Array of recent trades
+     *
+     * @example-ts Fetch recent trades
+     * const trades = await exchange.fetchTrades(outcome.outcomeId, { limit: 100 });
+     * for (const trade of trades) {
+     *   console.log(`${trade.side} ${trade.amount} @ ${trade.price}`);
+     * }
+     *
+     * @example-python Fetch recent trades
+     * trades = exchange.fetch_trades(outcome.outcome_id, limit=100)
+     * for trade in trades:
+     *     print(f"{trade.side} {trade.amount} @ {trade.price}")
+     *
+     * @notes Polymarket requires an API key for trade history. Use fetchOHLCV for public historical data.
      */
     async fetchTrades(id: string, params: TradesParams | HistoryFilterParams): Promise<Trade[]> {
         // Deprecation warning for resolution parameter
@@ -233,14 +296,68 @@ export abstract class PredictionMarketExchange {
     // ----------------------------------------------------------------------------
 
     /**
-     * Place a new order.
+     * Place a new order on the exchange.
+     *
+     * @param params - Order parameters
+     * @returns The created order
+     *
+     * @example-ts Place a limit order
+     * const order = await exchange.createOrder({
+     *   marketId: market.marketId,
+     *   outcomeId: market.yes.outcomeId,
+     *   side: 'buy',
+     *   type: 'limit',
+     *   amount: 10,
+     *   price: 0.55
+     * });
+     * console.log(`Order ${order.id}: ${order.status}`);
+     *
+     * @example-ts Place a market order
+     * const order = await exchange.createOrder({
+     *   marketId: market.marketId,
+     *   outcomeId: market.yes.outcomeId,
+     *   side: 'buy',
+     *   type: 'market',
+     *   amount: 5
+     * });
+     *
+     * @example-python Place a limit order
+     * order = exchange.create_order(
+     *     market_id=market.market_id,
+     *     outcome_id=market.yes.outcome_id,
+     *     side='buy',
+     *     type='limit',
+     *     amount=10,
+     *     price=0.55
+     * )
+     * print(f"Order {order.id}: {order.status}")
+     *
+     * @example-python Place a market order
+     * order = exchange.create_order(
+     *     market_id=market.market_id,
+     *     outcome_id=market.yes.outcome_id,
+     *     side='buy',
+     *     type='market',
+     *     amount=5
+     * )
      */
     async createOrder(params: CreateOrderParams): Promise<Order> {
         throw new Error("Method createOrder not implemented.");
     }
 
     /**
-     * Cancel an existing order.
+     * Cancel an existing open order.
+     *
+     * @param orderId - The order ID to cancel
+     * @returns The cancelled order
+     *
+     * @example-ts Cancel an order
+     * const cancelled = await exchange.cancelOrder('order-123');
+     * console.log(cancelled.status); // 'cancelled'
+     *
+     * @example-python Cancel an order
+     * cancelled = exchange.cancel_order('order-123')
+     * print(cancelled.status)  # 'cancelled'
      */
     async cancelOrder(orderId: string): Promise<Order> {
         throw new Error("Method cancelOrder not implemented.");
@@ -248,21 +365,66 @@ export abstract class PredictionMarketExchange {
 
     /**
      * Fetch a specific order by ID.
+     *
+     * @param orderId - The order ID to look up
+     * @returns The order details
+     *
+     * @example-ts Fetch order status
+     * const order = await exchange.fetchOrder('order-456');
+     * console.log(`Filled: ${order.filled}/${order.amount}`);
+     *
+     * @example-python Fetch order status
+     * order = exchange.fetch_order('order-456')
+     * print(f"Filled: {order.filled}/{order.amount}")
      */
     async fetchOrder(orderId: string): Promise<Order> {
         throw new Error("Method fetchOrder not implemented.");
     }
 
     /**
-     * Fetch all open orders.
-     * @param marketId - Optional filter by market.
+     * Fetch all open orders, optionally filtered by market.
+     *
+     * @param marketId - Optional market ID to filter by
+     * @returns Array of open orders
+     *
+     * @example-ts Fetch all open orders
+     * const orders = await exchange.fetchOpenOrders();
+     * for (const order of orders) {
+     *   console.log(`${order.side} ${order.amount} @ ${order.price}`);
+     * }
+     *
+     * @example-ts Fetch orders for a specific market
+     * const orders = await exchange.fetchOpenOrders('FED-25JAN');
+     *
+     * @example-python Fetch all open orders
+     * orders = exchange.fetch_open_orders()
+     * for order in orders:
+     *     print(f"{order.side} {order.amount} @ {order.price}")
+     *
+     * @example-python Fetch orders for a specific market
+     * orders = exchange.fetch_open_orders('FED-25JAN')
      */
     async fetchOpenOrders(marketId?: string): Promise<Order[]> {
         throw new Error("Method fetchOpenOrders not implemented.");
     }
 
     /**
-     * Fetch current user positions.
+     * Fetch current user positions across all markets.
+     *
+     * @returns Array of user positions
+     *
+     * @example-ts Fetch positions
+     * const positions = await exchange.fetchPositions();
+     * for (const pos of positions) {
+     *   console.log(`${pos.outcomeLabel}: ${pos.size} @ $${pos.entryPrice}`);
+     *   console.log(`Unrealized P&L: $${pos.unrealizedPnL.toFixed(2)}`);
+     * }
+     *
+     * @example-python Fetch positions
+     * positions = exchange.fetch_positions()
+     * for pos in positions:
+     *     print(f"{pos.outcome_label}: {pos.size} @ ${pos.entry_price}")
+     *     print(f"Unrealized P&L: ${pos.unrealized_pnl:.2f}")
      */
     async fetchPositions(): Promise<Position[]> {
         throw new Error("Method fetchPositions not implemented.");
@@ -270,15 +432,66 @@ export abstract class PredictionMarketExchange {
 
     /**
      * Fetch account balances.
+     *
+     * @returns Array of account balances
+     *
+     * @example-ts Fetch balance
+     * const balances = await exchange.fetchBalance();
+     * console.log(`Available: $${balances[0].available}`);
+     *
+     * @example-python Fetch balance
+     * balances = exchange.fetch_balance()
+     * print(f"Available: ${balances[0].available}")
      */
     async fetchBalance(): Promise<Balance[]> {
         throw new Error("Method fetchBalance not implemented.");
     }
 
+    /**
+     * Calculate the volume-weighted average execution price for a given order size.
+     * Returns 0 if the order cannot be fully filled.
+     *
+     * @param orderBook - The current order book
+     * @param side - 'buy' or 'sell'
+     * @param amount - Number of contracts to simulate
+     * @returns Average execution price, or 0 if insufficient liquidity
+     *
+     * @example-ts Get execution price
+     * const book = await exchange.fetchOrderBook(outcome.outcomeId);
+     * const price = exchange.getExecutionPrice(book, 'buy', 100);
+     * console.log(`Avg price for 100 contracts: ${price}`);
+     *
+     * @example-python Get execution price
+     * book = exchange.fetch_order_book(outcome.outcome_id)
+     * price = exchange.get_execution_price(book, 'buy', 100)
+     * print(f"Avg price for 100 contracts: {price}")
+     */
     getExecutionPrice(orderBook: OrderBook, side: 'buy' | 'sell', amount: number): number {
         return getExecutionPrice(orderBook, side, amount);
     }
 
+    /**
+     * Calculate detailed execution price information including partial fill data.
+     *
+     * @param orderBook - The current order book
+     * @param side - 'buy' or 'sell'
+     * @param amount - Number of contracts to simulate
+     * @returns Detailed execution result with price, filled amount, and fill status
+     *
+     * @example-ts Get detailed execution price
+     * const book = await exchange.fetchOrderBook(outcome.outcomeId);
+     * const result = exchange.getExecutionPriceDetailed(book, 'buy', 100);
+     * console.log(`Price: ${result.price}`);
+     * console.log(`Filled: ${result.filledAmount}/${100}`);
+     * console.log(`Fully filled: ${result.fullyFilled}`);
+     *
+     * @example-python Get detailed execution price
+     * book = exchange.fetch_order_book(outcome.outcome_id)
+     * result = exchange.get_execution_price_detailed(book, 'buy', 100)
+     * print(f"Price: {result.price}")
+     * print(f"Filled: {result.filled_amount}/100")
+     * print(f"Fully filled: {result.fully_filled}")
+     */
     getExecutionPriceDetailed(
         orderBook: OrderBook,
         side: 'buy' | 'sell',
@@ -292,26 +505,42 @@ export abstract class PredictionMarketExchange {
     // ----------------------------------------------------------------------------
 
     /**
-     * Filter markets based on criteria or custom function.
+     * Filter a list of markets by criteria.
+     * Can filter by string query, structured criteria object, or custom filter function.
      *
      * @param markets - Array of markets to filter
-     * @param criteria - Filter criteria object, string (simple text search), or predicate function
+     * @param criteria - Filter criteria: string (text search), object (structured), or function (predicate)
      * @returns Filtered array of markets
      *
-     * @example Simple text search
-     * api.filterMarkets(markets, 'Trump')
+     * @example-ts Simple text search
+     * const filtered = exchange.filterMarkets(markets, 'Trump');
      *
-     * @example Advanced filtering
-     * api.filterMarkets(markets, {
-     *   text: 'Trump',
-     *   searchIn: ['title', 'tags'],
+     * @example-ts Advanced criteria
+     * const undervalued = exchange.filterMarkets(markets, {
+     *   text: 'Election',
      *   volume24h: { min: 10000 },
-     *   category: 'Politics',
-     *   price: { outcome: 'yes', max: 0.5 }
+     *   price: { outcome: 'yes', max: 0.4 }
+     * });
+     *
+     * @example-ts Custom predicate
+     * const volatile = exchange.filterMarkets(markets,
+     *   m => m.yes?.priceChange24h < -0.1
+     * );
+     *
+     * @example-python Simple text search
+     * filtered = exchange.filter_markets(markets, 'Trump')
+     *
+     * @example-python Advanced criteria
+     * undervalued = exchange.filter_markets(markets, {
+     *     'text': 'Election',
+     *     'volume_24h': {'min': 10000},
+     *     'price': {'outcome': 'yes', 'max': 0.4}
      * })
      *
-     * @example Custom predicate
-     * api.filterMarkets(markets, m => m.liquidity > 5000 && m.yes?.price < 0.3)
+     * @example-python Custom predicate
+     * volatile = exchange.filter_markets(markets,
+     *     lambda m: m.yes and m.yes.price_change_24h < -0.1
+     * )
      */
     filterMarkets(
         markets: UnifiedMarket[],
@@ -461,25 +690,24 @@ export abstract class PredictionMarketExchange {
     }
 
     /**
-     * Filter events based on criteria or custom function.
+     * Filter a list of events by criteria.
+     * Can filter by string query, structured criteria object, or custom filter function.
      *
      * @param events - Array of events to filter
-     * @param criteria - Filter criteria object, string (simple text search), or predicate function
+     * @param criteria - Filter criteria: string (text search), object (structured), or function (predicate)
      * @returns Filtered array of events
      *
-     * @example Simple text search
-     * api.filterEvents(events, 'Trump')
-     *
-     * @example Advanced filtering
-     * api.filterEvents(events, {
-     *   text: 'Election',
-     *   searchIn: ['title', 'tags'],
+     * @example-ts Filter by category
+     * const filtered = exchange.filterEvents(events, {
      *   category: 'Politics',
      *   marketCount: { min: 5 }
-     * })
+     * });
      *
-     * @example Custom predicate
-     * api.filterEvents(events, e => e.markets.length > 10)
+     * @example-python Filter by category
+     * filtered = exchange.filter_events(events, {
+     *     'category': 'Politics',
+     *     'market_count': {'min': 5}
+     * })
      */
     filterEvents(
         events: UnifiedEvent[],
@@ -574,21 +802,23 @@ export abstract class PredictionMarketExchange {
     // ----------------------------------------------------------------------------
 
     /**
-     * Watch orderbook updates in real-time via WebSocket.
-     * Returns a promise that resolves with the latest orderbook state.
-     * The orderbook is maintained internally with incremental updates.
-     * 
-     * Usage (async iterator pattern):
-     * ```typescript
-     * while (true) {
-     *     const orderbook = await exchange.watchOrderBook(outcomeId);
-     *     console.log(orderbook);
-     * }
-     * ```
-     * 
+     * Watch order book updates in real-time via WebSocket.
+     * Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+     *
      * @param id - The Outcome ID to watch
      * @param limit - Optional limit for orderbook depth
      * @returns Promise that resolves with the current orderbook state
+     *
+     * @example-ts Stream order book
+     * while (true) {
+     *   const book = await exchange.watchOrderBook(outcome.outcomeId);
+     *   console.log(`Bid: ${book.bids[0]?.price} Ask: ${book.asks[0]?.price}`);
+     * }
+     *
+     * @example-python Stream order book
+     * while True:
+     *     book = exchange.watch_order_book(outcome.outcome_id)
+     *     print(f"Bid: {book.bids[0].price} Ask: {book.asks[0].price}")
      */
     async watchOrderBook(id: string, limit?: number): Promise<OrderBook> {
         throw new Error(`watchOrderBook() is not supported by ${this.name}`);
@@ -596,20 +826,26 @@ export abstract class PredictionMarketExchange {
 
     /**
      * Watch trade executions in real-time via WebSocket.
-     * Returns a promise that resolves with an array of recent trades.
-     * 
-     * Usage (async iterator pattern):
-     * ```typescript
-     * while (true) {
-     *     const trades = await exchange.watchTrades(outcomeId);
-     *     console.log(trades);
-     * }
-     * ```
-     * 
+     * Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+     *
      * @param id - The Outcome ID to watch
      * @param since - Optional timestamp to filter trades from
      * @param limit - Optional limit for number of trades
      * @returns Promise that resolves with recent trades
+     *
+     * @example-ts Stream trades
+     * while (true) {
+     *   const trades = await exchange.watchTrades(outcome.outcomeId);
+     *   for (const trade of trades) {
+     *     console.log(`${trade.side} ${trade.amount} @ ${trade.price}`);
+     *   }
+     * }
+     *
+     * @example-python Stream trades
+     * while True:
+     *     trades = exchange.watch_trades(outcome.outcome_id)
+     *     for trade in trades:
+     *         print(f"{trade.side} {trade.amount} @ {trade.price}")
      */
     async watchTrades(id: string, since?: number, limit?: number): Promise<Trade[]> {
         throw new Error(`watchTrades() is not supported by ${this.name}`);
@@ -617,12 +853,13 @@ export abstract class PredictionMarketExchange {
 
     /**
      * Close all WebSocket connections and clean up resources.
-     * Should be called when done with real-time data to prevent memory leaks.
-     * 
-     * Usage:
-     * ```typescript
+     * Call this when you're done streaming to properly release connections.
+     *
+     * @example-ts Close connections
      * await exchange.close();
-     * ```
+     *
+     * @example-python Close connections
+     * exchange.close()
      */
     async close(): Promise<void> {
         // Default implementation: no-op

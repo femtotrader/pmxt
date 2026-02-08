@@ -5,24 +5,22 @@ const Handlebars = require('handlebars');
 
 const CORE_DIR = path.resolve(__dirname, '../core');
 const OPENAPI_PATH = path.join(CORE_DIR, 'src/server/openapi.yaml');
-const CONFIG_PATH = path.join(CORE_DIR, 'api-doc-config.json');
+const GENERATED_CONFIG_PATH = path.join(CORE_DIR, 'api-doc-config.generated.json');
 const PYTHON_OUT = path.resolve(__dirname, '../sdks/python/API_REFERENCE.md');
 const TS_OUT = path.resolve(__dirname, '../sdks/typescript/API_REFERENCE.md');
 
 // --- Helper Functions ---
 
 function toSnakeCase(str) {
-    return str.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
-}
-
-function resolveRef(ref, spec) {
-    if (!ref || !ref.startsWith('#/')) return 'any';
-    const parts = ref.split('/').slice(1);
-    let current = spec;
-    for (const part of parts) {
-        current = current[part];
-    }
-    return current;
+    // Handle consecutive uppercase letters and mixed-case acronyms (like PnL)
+    // Insert underscore before uppercase letter if:
+    // 1. Preceded by lowercase letter, UNLESS that lowercase is part of an acronym
+    //    (e.g., testData -> test_data, but PnL -> pnl)
+    // 2. Preceded by uppercase AND followed by lowercase (XMLParser -> xml_parser)
+    return str
+        .replace(/(?<![A-Z])([a-z])([A-Z])/g, '$1_$2')  // aB -> a_B, but not after uppercase
+        .replace(/([A-Z])([A-Z][a-z])/g, '$1_$2')       // ABc -> A_Bc
+        .toLowerCase();
 }
 
 function getRefName(ref) {
@@ -31,152 +29,48 @@ function getRefName(ref) {
     return parts[parts.length - 1];
 }
 
-// --- Main Generation Logic ---
+// --- Load Sources ---
 
 function loadSpecs() {
-    const openapiFn = fs.readFileSync(OPENAPI_PATH, 'utf8');
-    const openapi = yaml.load(openapiFn);
-    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    const openapi = yaml.load(fs.readFileSync(OPENAPI_PATH, 'utf8'));
+
+    if (!fs.existsSync(GENERATED_CONFIG_PATH)) {
+        console.error(`Error: ${GENERATED_CONFIG_PATH} not found. Run 'npm run extract:jsdoc' first.`);
+        process.exit(1);
+    }
+    const config = JSON.parse(fs.readFileSync(GENERATED_CONFIG_PATH, 'utf8'));
+
     return { openapi, config };
 }
 
-function parseMethods(openapi, config) {
+// --- Method Parsing (from JSDoc-extracted config) ---
+
+function parseMethods(config) {
     const methods = [];
 
-    for (const [route, pathItem] of Object.entries(openapi.paths)) {
-        // We only care about POST/GET with operationId
-        const method = pathItem.post || pathItem.get;
-        if (!method || !method.operationId) continue;
-
-        // Skip healthCheck
-        if (method.operationId === 'healthCheck') continue;
-
-        const opId = method.operationId;
-        const conf = config.methods[opId] || {};
-
-        // Extract Description/Summary
-        const summary = method.summary;
-        const description = method.description || summary;
-
-        // Extract Parameters from 'args' in requestBody
-        const params = [];
-        let argsSchema = null;
-        let paramNames = [];
-
-        if (method.requestBody) {
-            const content = method.requestBody.content['application/json'];
-            if (content && content.schema && content.schema.properties && content.schema.properties.args) {
-                argsSchema = content.schema.properties.args;
-            }
-        } else if (method.parameters) {
-            // Handle GET params if any (none in current spec for sidecar methods except exchange param)
-        }
-
-        if (argsSchema) {
-            // Try to extract param names from description "[param1, param2]"
-            if (argsSchema.description && argsSchema.description.startsWith('[')) {
-                const inner = argsSchema.description.replace(/^\[|\]$/g, '');
-                if (inner.trim().length > 0) {
-                    paramNames = inner.split(',').map(s => s.trim().replace('?', ''));
-                }
-            }
-            // Fallback if no description or empty
-            if (paramNames.length === 0 && argsSchema.items && argsSchema.items.$ref) {
-                // Single param case with defined type
-                const refName = getRefName(argsSchema.items.$ref);
-                paramNames = ['params'];
-            }
-
-            // Map names to types
-            paramNames.forEach((name, idx) => {
-                let type = 'any';
-                let optional = name.endsWith('?') || (argsSchema.minItems !== undefined && idx >= argsSchema.minItems);
-
-                // Determine type from items
-                if (argsSchema.items) {
-                    if (argsSchema.items.oneOf) {
-                        // Heuristic: if index 0 is string, use string
-                        if (idx === 0 && argsSchema.items.oneOf.some(s => s.type === 'string')) {
-                            type = 'string';
-                        } else {
-                            // Try to find the complex type
-                            const complex = argsSchema.items.oneOf.find(s => s.$ref);
-                            if (complex) type = getRefName(complex.$ref);
-                        }
-                    } else if (argsSchema.items.$ref) {
-                        type = getRefName(argsSchema.items.$ref);
-                    } else if (argsSchema.items.type) {
-                        type = argsSchema.items.type;
-                    }
-                }
-
-                // Manual override for common ones
-                if (name === 'id' || name === 'slug' || name === 'outcomeId' || name === 'marketId' || name === 'orderId' || name === 'query') type = 'string';
-                if (name === 'params') optional = true;
-
-                params.push({
-                    name,
-                    type,
-                    optional,
-                    description: name === 'params' ? 'Filter parameters' : (name === 'query' ? 'Search query' : name)
-                });
-            });
-        }
-
-        // Extract Return Type
-        let returnType = 'any';
-        const success = method.responses['200'];
-        if (success && success.content && success.content['application/json']) {
-            const schema = success.content['application/json'].schema;
-            // Usually allOf: [BaseResponse, { properties: { data: ... } }]
-            if (schema.allOf) {
-                const dataPart = schema.allOf.find(s => s.properties && s.properties.data);
-                if (dataPart) {
-                    const dataSchema = dataPart.properties.data;
-                    if (dataSchema.type === 'array' && dataSchema.items) {
-                        const itemType = getRefName(dataSchema.items.$ref);
-                        returnType = `${itemType}[]`;
-                    } else if (dataSchema.$ref) {
-                        returnType = getRefName(dataSchema.$ref);
-                    }
-                }
-            }
-        }
-
-        // Add Workflow Example for this method if stored in config
-        const examples = conf || { python: {}, typescript: {} };
-
+    for (const [name, data] of Object.entries(config.methods)) {
         methods.push({
-            name: opId,
-            summary,
-            description,
-            params,
-            returns: {
-                type: returnType,
-                description: success.description || 'Result'
-            },
-            example: examples, // contains .python.example and .typescript.example
-            notes: typeof examples.notes === 'undefined' ? null : examples.notes
-        });
-    }
-
-    // Add local-only methods (not in OpenAPI spec)
-    for (const [opId, conf] of Object.entries(config.methods)) {
-        if (methods.find(m => m.name === opId)) continue;
-
-        methods.push({
-            name: opId,
-            summary: conf.summary || opId,
-            description: conf.description || '',
-            params: conf.params || [],
-            returns: conf.returns || { type: 'any', description: '' },
-            example: conf,
-            notes: conf.notes || null
+            name,
+            summary: data.summary || name,
+            description: data.description || data.summary || '',
+            params: (data.params || []).map(p => ({
+                name: p.name,
+                type: p.type || 'any',
+                optional: p.optional || false,
+                description: p.description || p.name
+            })),
+            returns: data.returns || { type: 'any', description: 'Result' },
+            python: data.python || { examples: [] },
+            typescript: data.typescript || { examples: [] },
+            notes: data.notes || null,
+            exchangeOnly: data.exchangeOnly || null
         });
     }
 
     return methods;
 }
+
+// --- Model Parsing (from OpenAPI spec - unchanged) ---
 
 function parseModels(openapi) {
     const dataModels = [];
@@ -221,22 +115,23 @@ function parseModels(openapi) {
     return { dataModels, filterModels };
 }
 
+// --- Format Examples ---
+
+function formatExamples(examples, commentPrefix) {
+    if (!examples || examples.length === 0) {
+        return `${commentPrefix} No example available`;
+    }
+    return examples.map(ex => {
+        const title = ex.title ? `${commentPrefix} ${ex.title}\n` : '';
+        return `${title}${ex.code}`;
+    }).join('\n\n');
+}
+
 // --- Main Execution ---
 
 const { openapi, config } = loadSpecs();
-const methods = parseMethods(openapi, config);
+const methods = parseMethods(config);
 const { dataModels, filterModels } = parseModels(openapi);
-
-const context = {
-    methods: methods.map(m => ({
-        ...m,
-        // Inject language specific example
-        example: '{{LANGUAGE_EXAMPLE_PLACEHOLDER}}'
-    })),
-    workflowExample: '{{WORKFLOW_PLACEHOLDER}}',
-    dataModels,
-    filterModels
-};
 
 // --- Handlebars Setup ---
 
@@ -281,7 +176,8 @@ const pythonTemplate = Handlebars.compile(
 
 const pythonMethods = methods.map(m => ({
     ...m,
-    example: (m.example && m.example.python && m.example.python.example) ? m.example.python.example : '# No example available'
+    example: formatExamples(m.python.examples, '#'),
+    exchangeNote: m.exchangeOnly ? `> **Note**: This method is only available on **${m.exchangeOnly}** exchange.\n` : ''
 }));
 
 const pythonOut = pythonTemplate({
@@ -302,7 +198,8 @@ const tsTemplate = Handlebars.compile(
 
 const tsMethods = methods.map(m => ({
     ...m,
-    example: (m.example && m.example.typescript && m.example.typescript.example) ? m.example.typescript.example : '// No example available'
+    example: formatExamples(m.typescript.examples, '//'),
+    exchangeNote: m.exchangeOnly ? `> **Note**: This method is only available on **${m.exchangeOnly}** exchange.\n` : ''
 }));
 
 const tsOut = tsTemplate({

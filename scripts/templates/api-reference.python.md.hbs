@@ -1,6 +1,6 @@
 # PMXT Python SDK - API Reference
 
-A unified Python interface for interacting with multiple prediction market exchanges (Kalshi, Polymarket) identically.
+A unified Python interface for interacting with multiple prediction market exchanges (Polymarket, Kalshi, Limitless) identically.
 
 ## Installation
 
@@ -16,9 +16,10 @@ import pmxt
 # Initialize exchanges (server starts automatically!)
 poly = pmxt.Polymarket()
 kalshi = pmxt.Kalshi()
+limitless = pmxt.Limitless()  # Requires API key for authenticated operations
 
 # Search for markets
-markets = poly.search_markets("Trump")
+markets = poly.fetch_markets(query="Trump")
 print(markets[0].title)
 ```
 
@@ -57,7 +58,9 @@ pmxt.restart_server()
 
 {{this.summary}}
 
-{{this.description}}
+{{#if this.exchangeNote}}
+{{{this.exchangeNote}}}
+{{/if}}
 
 **Signature:**
 

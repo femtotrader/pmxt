@@ -1,6 +1,6 @@
 # PMXT Python SDK - API Reference
 
-A unified Python interface for interacting with multiple prediction market exchanges (Kalshi, Polymarket) identically.
+A unified Python interface for interacting with multiple prediction market exchanges (Polymarket, Kalshi, Limitless) identically.
 
 ## Installation
 
@@ -16,9 +16,10 @@ import pmxt
 # Initialize exchanges (server starts automatically!)
 poly = pmxt.Polymarket()
 kalshi = pmxt.Kalshi()
+limitless = pmxt.Limitless()  # Requires API key for authenticated operations
 
 # Search for markets
-markets = poly.search_markets("Trump")
+markets = poly.fetch_markets(query="Trump")
 print(markets[0].title)
 ```
 
@@ -54,134 +55,38 @@ pmxt.restart_server()
 
 ### `fetch_markets`
 
-Fetch Markets
+Fetch markets with optional filtering, search, or slug lookup.
 
-Fetch Markets
 
 **Signature:**
 
 ```python
-def fetch_markets(params: Optional[MarketFilterParams] = None) -> List[UnifiedMarket]:
+def fetch_markets(params: Optional[MarketFetchParams] = None) -> List[UnifiedMarket]:
 ```
 
 **Parameters:**
 
-- `params` (MarketFilterParams) - **Optional**: Filter parameters
+- `params` (MarketFetchParams) - **Optional**: Optional parameters for filtering and search
 
-**Returns:** `List[UnifiedMarket]` - List of unified markets
-
-**Example:**
-
-```python
-markets = poly.fetch_markets(pmxt.MarketFilterParams(
-    limit=20,
-    sort='volume'  # 'volume' | 'liquidity' | 'newest'
-))
-```
-
-
----
-### `fetch_o_h_l_c_v`
-
-Fetch OHLCV Candles
-
-Fetch OHLCV Candles
-
-**Signature:**
-
-```python
-def fetch_o_h_l_c_v(id: str, params: Optional[OHLCVParams] = None) -> List[PriceCandle]:
-```
-
-**Parameters:**
-
-- `id` (str): id
-- `params` (OHLCVParams) - **Optional**: Filter parameters
-
-**Returns:** `List[PriceCandle]` - Historical prices
+**Returns:** `List[UnifiedMarket]` - Array of unified markets
 
 **Example:**
 
 ```python
-markets = poly.search_markets('Trump')
-outcome_id = markets[0].outcomes[0].id  # Get the outcome ID
+# Fetch markets
+markets = exchange.fetch_markets(query='Trump', limit=20)
+print(markets[0].title)
 
-candles = poly.fetch_ohlcv(outcome_id, pmxt.OHLCVParams(
-    resolution='1h',  # '1m' | '5m' | '15m' | '1h' | '6h' | '1d'
-    start=datetime(2024, 1, 1),
-    end=datetime(2024, 1, 31),
-    limit=100
-))
+# Get market by slug
+markets = exchange.fetch_markets(slug='will-trump-win')
 ```
 
-**Notes:**
-**CRITICAL**: Use `outcome.id`, not `market.id`.
-- **Polymarket**: `outcome.id` is the CLOB Token ID
-- **Kalshi**: `outcome.id` is the Market Ticker
-
----
-### `fetch_order_book`
-
-Fetch Order Book
-
-Fetch Order Book
-
-**Signature:**
-
-```python
-def fetch_order_book() -> OrderBook:
-```
-
-**Parameters:**
-
-- None
-
-**Returns:** `OrderBook` - Current order book
-
-**Example:**
-
-```python
-order_book = kalshi.fetch_order_book('FED-25JAN')
-print(f'Best bid: {order_book.bids[0].price}')
-print(f'Best ask: {order_book.asks[0].price}')
-```
-
-
----
-### `fetch_trades`
-
-Fetch Trades
-
-Fetch Trades
-
-**Signature:**
-
-```python
-def fetch_trades(id: str, params: Optional[TradesParams] = None) -> List[Trade]:
-```
-
-**Parameters:**
-
-- `id` (str): id
-- `params` (TradesParams) - **Optional**: Filter parameters
-
-**Returns:** `List[Trade]` - Recent trades
-
-**Example:**
-
-```python
-trades = kalshi.fetch_trades('FED-25JAN', limit=100)
-```
-
-**Notes:**
-**Note**: Polymarket requires API key. Use `fetchOHLCV` for public historical data.
 
 ---
 ### `fetch_events`
 
-Fetch Events
+Fetch events with optional keyword search.
 
-Fetch Events
 
 **Signature:**
 
@@ -191,290 +96,247 @@ def fetch_events(params: Optional[EventFetchParams] = None) -> List[UnifiedEvent
 
 **Parameters:**
 
-- `params` (EventFetchParams) - **Optional**: Filter parameters
+- `params` (EventFetchParams) - **Optional**: Optional parameters for search and filtering
 
-**Returns:** `List[UnifiedEvent]` - List of unified events
+**Returns:** `List[UnifiedEvent]` - Array of unified events
 
 **Example:**
 
 ```python
-# No example available
+# Search events
+events = exchange.fetch_events(query='Fed Chair')
+fed_event = events[0]
+print(fed_event.title, len(fed_event.markets), 'markets')
 ```
 
 
 ---
-### `watch_order_book`
+### `fetch_ohlcv`
 
-Watch Order Book (WebSocket Stream)
-
-Subscribe to real-time order book updates via WebSocket. Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+Fetch historical OHLCV (candlestick) price data for a specific market outcome.
 
 
 **Signature:**
 
 ```python
-def watch_order_book(outcome_id: str, limit: Optional[Any] = None) -> OrderBook:
+def fetch_ohlcv(id: str, params: OHLCVParams | HistoryFilterParams) -> List[PriceCandle]:
 ```
 
 **Parameters:**
 
-- `outcome_id` (str): outcomeId
-- `limit` (Any) - **Optional**: limit
+- `id` (str): The Outcome ID (outcomeId). Use outcome.outcomeId, NOT market.marketId
+- `params` (OHLCVParams | HistoryFilterParams): OHLCV parameters including resolution (required)
 
-**Returns:** `OrderBook` - Next order book update
+**Returns:** `List[PriceCandle]` - Array of price candles
 
 **Example:**
 
 ```python
-# No example available
+# Fetch hourly candles
+markets = exchange.fetch_markets(query='Trump')
+outcome_id = markets[0].yes.outcome_id
+candles = exchange.fetch_ohlcv(outcome_id, resolution='1h', limit=100)
+print(f"Latest close: {candles[-1].close}")
 ```
 
+**Notes:**
+**CRITICAL**: Use `outcome.outcomeId` (TS) / `outcome.outcome_id` (Python), not the market ID.
+Polymarket: outcomeId is the CLOB Token ID. Kalshi: outcomeId is the Market Ticker.
+Resolution options: '1m' | '5m' | '15m' | '1h' | '6h' | '1d'
 
 ---
-### `watch_trades`
+### `fetch_order_book`
 
-Watch Trades (WebSocket Stream)
-
-Subscribe to real-time trade updates via WebSocket. Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+Fetch the current order book (bids/asks) for a specific outcome.
 
 
 **Signature:**
 
 ```python
-def watch_trades(outcome_id: str, since: Optional[Any] = None, limit: Optional[Any] = None) -> List[Trade]:
+def fetch_order_book(id: str) -> OrderBook:
 ```
 
 **Parameters:**
 
-- `outcome_id` (str): outcomeId
-- `since` (Any) - **Optional**: since
-- `limit` (Any) - **Optional**: limit
+- `id` (str): The Outcome ID (outcomeId)
 
-**Returns:** `List[Trade]` - Next trade update(s)
+**Returns:** `OrderBook` - Current order book with bids and asks
 
 **Example:**
 
 ```python
-# No example available
+# Fetch order book
+book = exchange.fetch_order_book(outcome.outcome_id)
+print(f"Best bid: {book.bids[0].price}")
+print(f"Best ask: {book.asks[0].price}")
+print(f"Spread: {(book.asks[0].price - book.bids[0].price) * 100:.2f}%")
 ```
 
 
 ---
-### `watch_prices`
+### `fetch_trades`
 
-Watch Prices (WebSocket Stream)
+Fetch raw trade history for a specific outcome.
 
-Watch Prices (WebSocket Stream)
 
 **Signature:**
 
 ```python
-def watch_prices() -> Any:
+def fetch_trades(id: str, params: TradesParams | HistoryFilterParams) -> List[Trade]:
 ```
 
 **Parameters:**
 
-- None
+- `id` (str): The Outcome ID (outcomeId)
+- `params` (TradesParams | HistoryFilterParams): Trade filter parameters
 
-**Returns:** `Any` - Price update
-
-**Example:**
-
-```python
-# No example available
-```
-
-
----
-### `watch_user_positions`
-
-Watch User Positions (WebSocket Stream)
-
-Watch User Positions (WebSocket Stream)
-
-**Signature:**
-
-```python
-def watch_user_positions() -> Any:
-```
-
-**Parameters:**
-
-- None
-
-**Returns:** `Any` - User position update
+**Returns:** `List[Trade]` - Array of recent trades
 
 **Example:**
 
 ```python
-# No example available
+# Fetch recent trades
+trades = exchange.fetch_trades(outcome.outcome_id, limit=100)
+for trade in trades:
+    print(f"{trade.side} {trade.amount} @ {trade.price}")
 ```
 
-
----
-### `watch_user_transactions`
-
-Watch User Transactions (WebSocket Stream)
-
-Watch User Transactions (WebSocket Stream)
-
-**Signature:**
-
-```python
-def watch_user_transactions() -> Any:
-```
-
-**Parameters:**
-
-- None
-
-**Returns:** `Any` - User transaction update
-
-**Example:**
-
-```python
-# No example available
-```
-
+**Notes:**
+Polymarket requires an API key for trade history. Use fetchOHLCV for public historical data.
 
 ---
 ### `create_order`
 
-Create Order
+Place a new order on the exchange.
 
-Create Order
 
 **Signature:**
 
 ```python
-def create_order(params: Optional[CreateOrderParams] = None) -> Order:
+def create_order(params: CreateOrderParams) -> Order:
 ```
 
 **Parameters:**
 
-- `params` (CreateOrderParams) - **Optional**: Filter parameters
+- `params` (CreateOrderParams): Order parameters
 
-**Returns:** `Order` - Order created
+**Returns:** `Order` - The created order
 
 **Example:**
 
 ```python
-# Limit Order Example
-order = poly.create_order(pmxt.CreateOrderParams(
-    market_id='663583',
-    outcome_id='109918492287...',
+# Place a limit order
+order = exchange.create_order(
+    market_id=market.market_id,
+    outcome_id=market.yes.outcome_id,
     side='buy',
     type='limit',
-    amount=10,        # Number of contracts
-    price=0.55        # Required for limit orders (0.0-1.0)
-))
+    amount=10,
+    price=0.55
+)
+print(f"Order {order.id}: {order.status}")
 
-print(f'Order {order.id}: {order.status}')
-
-# Market Order Example
-order = kalshi.create_order(pmxt.CreateOrderParams(
-    market_id='FED-25JAN',
-    outcome_id='FED-25JAN-YES',
-    side='sell',
+# Place a market order
+order = exchange.create_order(
+    market_id=market.market_id,
+    outcome_id=market.yes.outcome_id,
+    side='buy',
     type='market',
-    amount=5          # Price not needed for market orders
-))
+    amount=5
+)
 ```
 
 
 ---
 ### `cancel_order`
 
-Cancel Order
+Cancel an existing open order.
 
-Cancel Order
 
 **Signature:**
 
 ```python
-def cancel_order() -> Order:
+def cancel_order(order_id: str) -> Order:
 ```
 
 **Parameters:**
 
-- None
+- `order_id` (str): The order ID to cancel
 
-**Returns:** `Order` - Order cancelled
+**Returns:** `Order` - The cancelled order
 
 **Example:**
 
 ```python
-cancelled_order = poly.cancel_order('order-123')
-print(cancelled_order.status) # 'cancelled'
+# Cancel an order
+cancelled = exchange.cancel_order('order-123')
+print(cancelled.status)  # 'cancelled'
 ```
 
 
 ---
 ### `fetch_order`
 
-Fetch Order
+Fetch a specific order by ID.
 
-Fetch Order
 
 **Signature:**
 
 ```python
-def fetch_order() -> Order:
+def fetch_order(order_id: str) -> Order:
 ```
 
 **Parameters:**
 
-- None
+- `order_id` (str): The order ID to look up
 
-**Returns:** `Order` - Order details
+**Returns:** `Order` - The order details
 
 **Example:**
 
 ```python
-order = kalshi.fetch_order('order-456')
-print(f'Filled: {order.filled}/{order.amount}')
+# Fetch order status
+order = exchange.fetch_order('order-456')
+print(f"Filled: {order.filled}/{order.amount}")
 ```
 
 
 ---
 ### `fetch_open_orders`
 
-Fetch Open Orders
+Fetch all open orders, optionally filtered by market.
 
-Fetch Open Orders
 
 **Signature:**
 
 ```python
-def fetch_open_orders() -> List[Order]:
+def fetch_open_orders(market_id: Optional[str] = None) -> List[Order]:
 ```
 
 **Parameters:**
 
-- None
+- `market_id` (str) - **Optional**: Optional market ID to filter by
 
-**Returns:** `List[Order]` - List of open orders
+**Returns:** `List[Order]` - Array of open orders
 
 **Example:**
 
 ```python
-# All open orders
-all_orders = poly.fetch_open_orders()
+# Fetch all open orders
+orders = exchange.fetch_open_orders()
+for order in orders:
+    print(f"{order.side} {order.amount} @ {order.price}")
 
-# Open orders for specific market
-market_orders = kalshi.fetch_open_orders('FED-25JAN')
-
-for order in all_orders:
-    print(f'{order.side} {order.amount} @ {order.price}')
+# Fetch orders for a specific market
+orders = exchange.fetch_open_orders('FED-25JAN')
 ```
 
 
 ---
 ### `fetch_positions`
 
-Fetch Positions
+Fetch current user positions across all markets.
 
-Fetch Positions
 
 **Signature:**
 
@@ -486,24 +348,24 @@ def fetch_positions() -> List[Position]:
 
 - None
 
-**Returns:** `List[Position]` - User positions
+**Returns:** `List[Position]` - Array of user positions
 
 **Example:**
 
 ```python
-positions = kalshi.fetch_positions()
+# Fetch positions
+positions = exchange.fetch_positions()
 for pos in positions:
     print(f"{pos.outcome_label}: {pos.size} @ ${pos.entry_price}")
-    print(f"Unrealized P&L: ${pos.unrealized_pnl}")
+    print(f"Unrealized P&L: ${pos.unrealized_pnl:.2f}")
 ```
 
 
 ---
 ### `fetch_balance`
 
-Fetch Balance
+Fetch account balances.
 
-Fetch Balance
 
 **Signature:**
 
@@ -515,137 +377,142 @@ def fetch_balance() -> List[Balance]:
 
 - None
 
-**Returns:** `List[Balance]` - Account balances
+**Returns:** `List[Balance]` - Array of account balances
 
 **Example:**
 
 ```python
-balances = poly.fetch_balance()
-print(balances)
-# [Balance(currency='USDC', total=1000, available=950, locked=50)]
+# Fetch balance
+balances = exchange.fetch_balance()
+print(f"Available: ${balances[0].available}")
 ```
 
 
 ---
 ### `get_execution_price`
 
-Get Execution Price
+Calculate the volume-weighted average execution price for a given order size.
 
-Get Execution Price
 
 **Signature:**
 
 ```python
-def get_execution_price(order_book: str, side: OrderBook, amount: OrderBook) -> Any:
+def get_execution_price(order_book: OrderBook, side: 'buy' | 'sell', amount: float) -> float:
 ```
 
 **Parameters:**
 
-- `order_book` (str): orderBook
-- `side` (OrderBook): side
-- `amount` (OrderBook): amount
+- `order_book` (OrderBook): The current order book
+- `side` ('buy' | 'sell'): 'buy' or 'sell'
+- `amount` (float): Number of contracts to simulate
 
-**Returns:** `Any` - Average execution price
+**Returns:** `float` - Average execution price, or 0 if insufficient liquidity
 
 **Example:**
 
 ```python
-# No example available
+# Get execution price
+book = exchange.fetch_order_book(outcome.outcome_id)
+price = exchange.get_execution_price(book, 'buy', 100)
+print(f"Avg price for 100 contracts: {price}")
 ```
 
 
 ---
 ### `get_execution_price_detailed`
 
-Get Detailed Execution Price
+Calculate detailed execution price information including partial fill data.
 
-Get Detailed Execution Price
 
 **Signature:**
 
 ```python
-def get_execution_price_detailed(order_book: str, side: OrderBook, amount: OrderBook) -> ExecutionPriceResult:
+def get_execution_price_detailed(order_book: OrderBook, side: 'buy' | 'sell', amount: float) -> ExecutionPriceResult:
 ```
 
 **Parameters:**
 
-- `order_book` (str): orderBook
-- `side` (OrderBook): side
-- `amount` (OrderBook): amount
+- `order_book` (OrderBook): The current order book
+- `side` ('buy' | 'sell'): 'buy' or 'sell'
+- `amount` (float): Number of contracts to simulate
 
-**Returns:** `ExecutionPriceResult` - Detailed execution result
+**Returns:** `ExecutionPriceResult` - Detailed execution result with price, filled amount, and fill status
 
 **Example:**
 
 ```python
-# No example available
+# Get detailed execution price
+book = exchange.fetch_order_book(outcome.outcome_id)
+result = exchange.get_execution_price_detailed(book, 'buy', 100)
+print(f"Price: {result.price}")
+print(f"Filled: {result.filled_amount}/100")
+print(f"Fully filled: {result.fully_filled}")
 ```
 
 
 ---
 ### `filter_markets`
 
-Filter Markets
-
-Filter a list of markets by criteria. Can filter by string query, structured criteria object, or custom filter function.
+Filter a list of markets by criteria.
 
 
 **Signature:**
 
 ```python
-def filter_markets(markets: Any, criteria: Any) -> List[UnifiedMarket]:
+def filter_markets(markets: List[UnifiedMarket], criteria: string | MarketFilterCriteria | MarketFilterFunction) -> List[UnifiedMarket]:
 ```
 
 **Parameters:**
 
-- `markets` (Any): markets
-- `criteria` (Any): criteria
+- `markets` (List[UnifiedMarket]): Array of markets to filter
+- `criteria` (string | MarketFilterCriteria | MarketFilterFunction): Filter criteria: string (text search), object (structured), or function (predicate)
 
-**Returns:** `List[UnifiedMarket]` - Filtered markets
+**Returns:** `List[UnifiedMarket]` - Filtered array of markets
 
 **Example:**
 
 ```python
 # Simple text search
-filtered = poly.filter_markets(markets, 'Trump')
+filtered = exchange.filter_markets(markets, 'Trump')
 
 # Advanced criteria
-undervalued = poly.filter_markets(markets, {
+undervalued = exchange.filter_markets(markets, {
     'text': 'Election',
     'volume_24h': {'min': 10000},
     'price': {'outcome': 'yes', 'max': 0.4}
 })
 
-# Custom function
-volatile = poly.filter_markets(markets, lambda m: m.yes and m.yes.price_change_24h < -0.1)
+# Custom predicate
+volatile = exchange.filter_markets(markets,
+    lambda m: m.yes and m.yes.price_change_24h < -0.1
+)
 ```
 
 
 ---
 ### `filter_events`
 
-Filter Events
-
-Filter a list of events by criteria. Can filter by string query, structured criteria object, or custom filter function.
+Filter a list of events by criteria.
 
 
 **Signature:**
 
 ```python
-def filter_events(events: Any, criteria: Any) -> List[UnifiedEvent]:
+def filter_events(events: List[UnifiedEvent], criteria: string | EventFilterCriteria | EventFilterFunction) -> List[UnifiedEvent]:
 ```
 
 **Parameters:**
 
-- `events` (Any): events
-- `criteria` (Any): criteria
+- `events` (List[UnifiedEvent]): Array of events to filter
+- `criteria` (string | EventFilterCriteria | EventFilterFunction): Filter criteria: string (text search), object (structured), or function (predicate)
 
-**Returns:** `List[UnifiedEvent]` - Filtered events
+**Returns:** `List[UnifiedEvent]` - Filtered array of events
 
 **Example:**
 
 ```python
-filtered = poly.filter_events(events, {
+# Filter by category
+filtered = exchange.filter_events(events, {
     'category': 'Politics',
     'market_count': {'min': 5}
 })
@@ -653,116 +520,173 @@ filtered = poly.filter_events(events, {
 
 
 ---
+### `watch_order_book`
+
+Watch order book updates in real-time via WebSocket.
+
+
+**Signature:**
+
+```python
+def watch_order_book(id: str, limit: Optional[float] = None) -> OrderBook:
+```
+
+**Parameters:**
+
+- `id` (str): The Outcome ID to watch
+- `limit` (float) - **Optional**: Optional limit for orderbook depth
+
+**Returns:** `OrderBook` - Promise that resolves with the current orderbook state
+
+**Example:**
+
+```python
+# Stream order book
+while True:
+    book = exchange.watch_order_book(outcome.outcome_id)
+    print(f"Bid: {book.bids[0].price} Ask: {book.asks[0].price}")
+```
+
+
+---
+### `watch_trades`
+
+Watch trade executions in real-time via WebSocket.
+
+
+**Signature:**
+
+```python
+def watch_trades(id: str, since: Optional[float] = None, limit: Optional[float] = None) -> List[Trade]:
+```
+
+**Parameters:**
+
+- `id` (str): The Outcome ID to watch
+- `since` (float) - **Optional**: Optional timestamp to filter trades from
+- `limit` (float) - **Optional**: Optional limit for number of trades
+
+**Returns:** `List[Trade]` - Promise that resolves with recent trades
+
+**Example:**
+
+```python
+# Stream trades
+while True:
+    trades = exchange.watch_trades(outcome.outcome_id)
+    for trade in trades:
+        print(f"{trade.side} {trade.amount} @ {trade.price}")
+```
+
+
+---
 ### `close`
 
-Close WebSocket Connections
-
-Close all WebSocket connections and cleanup resources. Call this when you're done streaming to properly release connections.
+Close all WebSocket connections and clean up resources.
 
 
 **Signature:**
 
 ```python
-def close() -> Any:
+def close() -> void:
 ```
 
 **Parameters:**
 
 - None
 
-**Returns:** `Any` - WebSocket connections closed successfully
+**Returns:** `void` - Result
 
 **Example:**
 
 ```python
-# No example available
+# Close connections
+exchange.close()
 ```
 
 
 ---
-### `search_markets`
+### `watch_prices`
 
-searchMarkets
+Watch AMM price updates for a market address (Limitless only).
 
+> **Note**: This method is only available on **limitless** exchange.
 
 
 **Signature:**
 
 ```python
-def search_markets() -> Any:
+def watch_prices(market_address: str, callback: (data: any)) -> void:
 ```
 
 **Parameters:**
 
-- None
+- `market_address` (str): Market contract address
+- `callback` ((data: any)): Callback for price updates
 
-**Returns:** `Any` - 
+**Returns:** `void` - Result
 
 **Example:**
 
 ```python
-results = kalshi.search_markets('Fed rates', pmxt.MarketFilterParams(
-    limit=10,
-    search_in='title'  # 'title' (default) | 'description' | 'both'
-))
+# Watch prices
+exchange.watch_prices(market_address, callback=lambda data: print('Price update:', data))
 ```
 
 
 ---
-### `search_events`
+### `watch_user_positions`
 
-searchEvents
+Watch user positions in real-time (Limitless only).
 
+> **Note**: This method is only available on **limitless** exchange.
 
 
 **Signature:**
 
 ```python
-def search_events() -> Any:
+def watch_user_positions(callback: (data: any)) -> void:
 ```
 
 **Parameters:**
 
-- None
+- `callback` ((data: any)): Callback for position updates
 
-**Returns:** `Any` - 
+**Returns:** `void` - Result
 
 **Example:**
 
 ```python
-events = poly.search_events('Who will Trump nominate as Fed Chair?')
-# Filter for specific market within the event
-warsh = poly.filter_markets(events[0].markets, 'Kevin Warsh')[0]
+# Watch positions
+exchange.watch_user_positions(callback=lambda data: print('Position update:', data))
 ```
 
 
 ---
-### `get_markets_by_slug`
+### `watch_user_transactions`
 
-getMarketsBySlug
+Watch user transactions in real-time (Limitless only).
 
+> **Note**: This method is only available on **limitless** exchange.
 
 
 **Signature:**
 
 ```python
-def get_markets_by_slug() -> Any:
+def watch_user_transactions(callback: (data: any)) -> void:
 ```
 
 **Parameters:**
 
-- None
+- `callback` ((data: any)): Callback for transaction updates
 
-**Returns:** `Any` - 
+**Returns:** `void` - Result
 
 **Example:**
 
 ```python
-# Polymarket: use URL slug
-poly_markets = poly.get_markets_by_slug('who-will-trump-nominate-as-fed-chair')
-
-# Kalshi: use market ticker (auto-uppercased)
-kalshi_markets = kalshi.get_markets_by_slug('KXFEDCHAIRNOM-29')
+# Watch transactions
+exchange.watch_user_transactions(callback=lambda data: print('Transaction:', data))
 ```
 
 
@@ -785,19 +709,22 @@ if balances:
     print(f'Available: ${balance.available}')
 
 # 2. Search for a market
-markets = exchange.search_markets('Trump')
+markets = exchange.fetch_markets(query='Trump')
 market = markets[0]
-outcome = market.outcomes[0]
+outcome = market.yes
+
+print(f'{market.title}')
+print(f'Price: {outcome.price * 100:.1f}%')
 
 # 3. Place a limit order
-order = exchange.create_order(pmxt.CreateOrderParams(
-    market_id=market.id,
-    outcome_id=outcome.id,
+order = exchange.create_order(
+    market_id=market.market_id,
+    outcome_id=outcome.outcome_id,
     side='buy',
     type='limit',
     amount=10,
     price=0.50
-))
+)
 
 print(f'Order placed: {order.id}')
 
@@ -972,8 +899,8 @@ outcome_label: str #
 size: float # 
 entry_price: float # 
 current_price: float # 
-unrealized_pn_l: float # 
-realized_pn_l: float # 
+unrealized_pnl: float # 
+realized_pnl: float # 
 ```
 
 ---

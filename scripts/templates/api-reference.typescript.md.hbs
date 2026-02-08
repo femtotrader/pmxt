@@ -1,6 +1,6 @@
 # pmxtjs - API Reference
 
-A unified TypeScript SDK for interacting with multiple prediction market exchanges (Kalshi, Polymarket) identically.
+A unified TypeScript SDK for interacting with multiple prediction market exchanges (Polymarket, Kalshi, Limitless) identically.
 
 ## Installation
 
@@ -16,9 +16,10 @@ import pmxt from 'pmxtjs';
 // Initialize exchanges (server starts automatically!)
 const poly = new pmxt.Polymarket();
 const kalshi = new pmxt.Kalshi();
+const limitless = new pmxt.Limitless();  // Requires API key for authenticated operations
 
 // Search for markets
-const markets = await poly.searchMarkets("Trump");
+const markets = await poly.fetchMarkets({ query: "Trump" });
 console.log(markets[0].title);
 ```
 
@@ -58,7 +59,9 @@ await pmxt.restartServer();
 
 {{this.summary}}
 
-{{this.description}}
+{{#if this.exchangeNote}}
+{{{this.exchangeNote}}}
+{{/if}}
 
 **Signature:**
 

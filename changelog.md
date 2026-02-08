@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.8] - 2026-02-08
+
+### Changed
+
+- **API Documentation**: Significantly refactored the API reference generation system. 
+  - Introduced `extract-jsdoc.js` for more robust metadata extraction and multi-language example support.
+  - Updated Handlebars templates for Python and TypeScript documentation.
+  - Refined documentation and examples for all core exchange methods in `BaseExchange`.
+- **BaseExchange Architecture**: Improved the `BaseExchange` class with enriched JSDoc metadata to better support the automated documentation pipeline.
+- **CI/CD Pipeline**: Streamlined the testing process by unifying Core and Python test execution under the `npm test` command via `verify-all.sh`.
+
+### Fixed
+
+- **Python SDK Compatibility**: Migrated all remaining tests and examples in the Python SDK to the v2.0.0 API standards, fixing several integration regressions and ensuring full parity.
+- **Limitless Exchange**: Refined parameter handling and data normalization for the Limitless implementation.
+
+### Added
+
+- **Project Metadata**: Updated download badges and workflow examples to reflect recent project updates and usage patterns.
+
+
 ## [2.0.7] - 2026-02-07
 
 ### Fixed

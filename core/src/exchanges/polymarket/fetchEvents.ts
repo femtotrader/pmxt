@@ -1,23 +1,18 @@
 import { EventFetchParams } from '../../BaseExchange';
 import { UnifiedEvent, UnifiedMarket } from '../../types';
-import axios from 'axios';
-import { GAMMA_API_URL, mapMarketToUnified } from './utils';
+import { GAMMA_API_URL, mapMarketToUnified, paginateParallel } from './utils';
 import { polymarketErrorMapper } from './errors';
 
 export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEvent[]> {
     const searchLimit = 100000; // Fetch all events for comprehensive search
 
     try {
-        // Fetch events from Gamma API
-        const response = await axios.get(GAMMA_API_URL, {
-            params: {
-                active: 'true',
-                closed: 'false',
-                limit: searchLimit
-            }
+        // Fetch events from Gamma API using parallel pagination
+        const events = await paginateParallel(GAMMA_API_URL, {
+            active: 'true',
+            closed: 'false',
+            limit: searchLimit
         });
-
-        const events = response.data || [];
 
         // Client-side text filtering
         const lowerQuery = (params?.query || '').toLowerCase();

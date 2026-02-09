@@ -104,3 +104,48 @@ export function mapIntervalToFidelity(interval: CandleInterval): number {
     };
     return mapping[interval];
 }
+
+/**
+ * Fetch all results from Gamma API using parallel pagination for best DX.
+ * Polymarket Gamma API has a hard limit of 500 results per request.
+ */
+export async function paginateParallel(url: string, params: any, maxResults: number = 10000): Promise<any[]> {
+    const PAGE_SIZE = 500;
+    const initialLimit = Math.min(params.limit || PAGE_SIZE, PAGE_SIZE);
+
+    // 1. Fetch the first page to see if we even need more
+    const firstPageResponse = await import('axios').then(axios => axios.default.get(url, {
+        params: { ...params, limit: initialLimit, offset: 0 }
+    }));
+
+    const firstPage = firstPageResponse.data || [];
+
+    // If the first page isn't full, or we specifically asked for a small amount, we're done
+    if (firstPage.length < initialLimit || (params.limit && params.limit <= PAGE_SIZE)) {
+        return firstPage;
+    }
+
+    // 2. Determine how many more pages to fetch
+    const targetLimit = params.limit || maxResults;
+    const numPages = Math.ceil(targetLimit / PAGE_SIZE);
+
+    const offsets = [];
+    for (let i = 1; i < numPages; i++) {
+        offsets.push(i * PAGE_SIZE);
+    }
+
+    // 3. Fetch remaining pages in parallel
+    const axios = (await import('axios')).default;
+    const remainingPages = await Promise.all(offsets.map(async (offset) => {
+        try {
+            const res = await axios.get(url, {
+                params: { ...params, limit: PAGE_SIZE, offset }
+            });
+            return res.data || [];
+        } catch (e) {
+            return []; // Swallow individual page errors to be robust
+        }
+    }));
+
+    return [firstPage, ...remainingPages].flat();
+}

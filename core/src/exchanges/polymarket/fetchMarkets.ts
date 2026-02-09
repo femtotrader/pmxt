@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { MarketFetchParams } from '../../BaseExchange';
 import { UnifiedMarket } from '../../types';
-import { GAMMA_API_URL, mapMarketToUnified } from './utils';
+import { GAMMA_API_URL, mapMarketToUnified, paginateParallel } from './utils';
 import { polymarketErrorMapper } from './errors';
 
 export async function fetchMarkets(params?: MarketFetchParams): Promise<UnifiedMarket[]> {
@@ -101,12 +101,8 @@ async function fetchMarketsDefault(params?: MarketFetchParams): Promise<UnifiedM
     }
 
     try {
-        // Fetch active events from Gamma
-        const response = await axios.get(GAMMA_API_URL, {
-            params: queryParams
-        });
-
-        const events = response.data;
+        // Fetch active events from Gamma using parallel pagination
+        const events = await paginateParallel(GAMMA_API_URL, queryParams);
         const unifiedMarkets: UnifiedMarket[] = [];
 
         for (const event of events) {

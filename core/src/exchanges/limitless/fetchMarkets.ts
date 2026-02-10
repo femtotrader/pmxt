@@ -2,7 +2,7 @@ import { HttpClient, MarketFetcher } from '@limitless-exchange/sdk';
 import { MarketFetchParams } from '../../BaseExchange';
 import { UnifiedMarket } from '../../types';
 import axios from 'axios';
-import { LIMITLESS_API_URL, mapMarketToUnified } from './utils';
+import { LIMITLESS_API_URL, mapMarketToUnified, paginateLimitlessMarkets } from './utils';
 import { limitlessErrorMapper } from './errors';
 
 export async function fetchMarkets(
@@ -97,22 +97,16 @@ async function fetchMarketsDefault(
         sortBy = 'high_value';
     }
 
-    // Calculate page number from offset
-    const page = Math.floor(offset / limit) + 1;
-
     try {
-        // Use SDK's getActiveMarkets method
-        const response = await marketFetcher.getActiveMarkets({
-            limit: limit,
-            page: page,
-            sortBy: sortBy,
-        });
+        // Use pagination utility to handle limits > 25
+        // The utility over-fetches to account for markets that get filtered out
+        const totalToFetch = limit + offset;
+        const rawMarkets = await paginateLimitlessMarkets(marketFetcher, totalToFetch, sortBy);
 
-        const markets = response.data || [];
-
+        // Map and filter markets
         const unifiedMarkets: UnifiedMarket[] = [];
 
-        for (const market of markets) {
+        for (const market of rawMarkets) {
             const unifiedMarket = mapMarketToUnified(market);
             // Only include markets that are valid and have outcomes (compliance requirement)
             if (unifiedMarket && unifiedMarket.outcomes.length > 0) {
@@ -125,7 +119,9 @@ async function fetchMarketsDefault(
             unifiedMarkets.sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0));
         }
 
-        return unifiedMarkets;
+        // Apply offset and limit to the FILTERED results
+        const marketsAfterOffset = offset > 0 ? unifiedMarkets.slice(offset) : unifiedMarkets;
+        return marketsAfterOffset.slice(0, limit);
     } catch (error: any) {
         throw limitlessErrorMapper.mapError(error);
     }

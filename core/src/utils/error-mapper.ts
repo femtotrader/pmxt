@@ -306,6 +306,13 @@ export class ErrorMapper {
         }
 
         // Unknown error format
+        if (typeof error === 'object' && error !== null) {
+            try {
+                return JSON.stringify(error, Object.getOwnPropertyNames(error));
+            } catch (e) {
+                return String(error);
+            }
+        }
         return String(error);
     }
 }

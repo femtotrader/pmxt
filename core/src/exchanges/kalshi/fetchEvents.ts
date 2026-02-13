@@ -7,22 +7,32 @@ import { kalshiErrorMapper } from './errors';
 export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEvent[]> {
     try {
         const status = params?.status || 'active';
-        let apiStatus = 'open';
-        if (status === 'closed') apiStatus = 'closed';
+        const limit = params?.limit || 10000;
+        const query = (params?.query || '').toLowerCase();
 
-        const queryParams: any = {
-            limit: 200, // Reasonable batch for search
-            with_nested_markets: true,
-            status: apiStatus
+        const fetchWithStatus = async (apiStatus: string) => {
+            const queryParams: any = {
+                limit: 200,
+                with_nested_markets: true,
+                status: apiStatus
+            };
+            const response = await axios.get(KALSHI_API_URL, { params: queryParams });
+            return response.data.events || [];
         };
 
-        const response = await axios.get(KALSHI_API_URL, { params: queryParams });
-        const events = response.data.events || [];
-
-        const lowerQuery = (params?.query || '').toLowerCase();
+        let events = [];
+        if (status === 'all') {
+            const [openEvents, closedEvents] = await Promise.all([
+                fetchWithStatus('open'),
+                fetchWithStatus('closed')
+            ]);
+            events = [...openEvents, ...closedEvents];
+        } else {
+            events = await fetchWithStatus(status === 'closed' ? 'closed' : 'open');
+        }
 
         const filtered = events.filter((event: any) => {
-            return (event.title || '').toLowerCase().includes(lowerQuery);
+            return (event.title || '').toLowerCase().includes(query);
         });
 
         const unifiedEvents: UnifiedEvent[] = filtered.map((event: any) => {
@@ -50,7 +60,6 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
             return unifiedEvent;
         });
 
-        const limit = params?.limit || 10000;
         return unifiedEvents.slice(0, limit);
 
     } catch (error: any) {

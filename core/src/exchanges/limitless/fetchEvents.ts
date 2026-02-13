@@ -12,7 +12,8 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
         const response = await axios.get(`${LIMITLESS_API_URL}/markets/search`, {
             params: {
                 query: params.query,
-                limit: params?.limit || 10000
+                limit: params?.limit || 10000,
+                similarityThreshold: 0.5
             }
         });
 

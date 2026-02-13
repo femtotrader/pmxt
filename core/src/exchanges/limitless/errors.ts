@@ -26,16 +26,16 @@ export class LimitlessErrorMapper extends ErrorMapper {
 
             // Limitless uses errorMsg field (CLOB client)
             if (data.errorMsg) {
-                return data.errorMsg;
+                return typeof data.errorMsg === 'string' ? data.errorMsg : JSON.stringify(data.errorMsg);
             }
 
             // Also check standard error paths
             if (data.error?.message) {
-                return data.error.message;
+                return String(data.error.message);
             }
 
             if (data.message) {
-                return data.message;
+                return String(data.message);
             }
         }
 
@@ -46,7 +46,7 @@ export class LimitlessErrorMapper extends ErrorMapper {
      * Override to detect Limitless-specific error patterns
      */
     protected mapBadRequestError(message: string, data: any): BadRequest {
-        const lowerMessage = message.toLowerCase();
+        const lowerMessage = (message || '').toString().toLowerCase();
 
         // Limitless-specific authentication errors (400 status)
         if (

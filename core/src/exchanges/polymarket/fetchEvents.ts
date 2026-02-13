@@ -17,21 +17,46 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
 
         const queryParams: any = {
             q: params.query,
-            limit_per_type: 50, // Fetch 50 per page for better efficiency
-            events_status: status === 'all' ? undefined : status,
+            limit_per_type: 50,
             sort: 'volume',
             ascending: false
         };
 
-        // If specific status requested
-        if (status === 'active') {
-            queryParams.events_status = 'active';
-        } else if (status === 'closed') {
-            queryParams.events_status = 'closed';
-        }
+        const fetchWithStatus = async (eventStatus: string | undefined) => {
+            const currentParams = { ...queryParams, events_status: eventStatus };
+            return paginateSearchParallel(GAMMA_SEARCH_URL, currentParams, limit * 10);
+        };
 
-        // Use parallel pagination to fetch all matching events
-        const events = await paginateSearchParallel(GAMMA_SEARCH_URL, queryParams, limit * 10);
+        // Client-side filtering logic
+        // The API returns active events when querying for 'closed' status sometimes.
+        // We must strictly filter based on the event's `active` and `closed` properties.
+        const filterActive = (e: any) => e.active === true;
+        const filterClosed = (e: any) => e.closed === true;
+
+        let events: any[] = [];
+        if (status === 'all') {
+            const [activeEvents, closedEvents] = await Promise.all([
+                fetchWithStatus('active'),
+                fetchWithStatus('closed')
+            ]);
+
+            // Merge and de-duplicate by ID
+            const seenIds = new Set();
+            events = [...activeEvents, ...closedEvents].filter(event => {
+                const id = event.id || event.slug;
+                if (seenIds.has(id)) return false;
+                seenIds.add(id);
+                return true;
+            });
+        } else if (status === 'active') {
+            const rawEvents = await fetchWithStatus('active');
+            events = rawEvents.filter(filterActive);
+        } else if (status === 'closed') {
+            // Polymarket sometimes returns active events when querying for closed
+            // So we fetch 'closed' but strictly filter
+            const rawEvents = await fetchWithStatus('closed');
+            events = rawEvents.filter(filterClosed);
+        }
 
         // Client-side filtering to ensure title matches (API does fuzzy search)
         const lowerQuery = params.query.toLowerCase();

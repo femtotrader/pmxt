@@ -155,3 +155,161 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  create-github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [publish-npm, publish-python]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+
+          # Strip 'f' suffix if present (force release)
+          if [[ "$VERSION" == *f ]]; then
+            VERSION=${VERSION%f}
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+          # Detect if this is a pre-release (beta, alpha, rc)
+          if [[ "$VERSION" =~ (alpha|beta|rc|a|b) ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "Pre-release detected"
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "Stable release"
+          fi
+
+      - name: Extract Release Notes from Changelog
+        id: extract_notes
+        uses: ffurrer2/extract-release-notes@v2
+        with:
+          changelog_file: changelog.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.get_version.outputs.version }}"
+          body: |
+            ${{ steps.extract_notes.outputs.release_notes }}
+
+            ---
+
+            ## Installation
+
+            **npm:**
+            ```bash
+            npm install pmxtjs@${{ steps.get_version.outputs.version }}
+            ```
+
+            **PyPI:**
+            ```bash
+            pip install pmxt==${{ steps.get_version.outputs.version }}
+            ```
+
+            ## Links
+            - [npm: pmxtjs](https://www.npmjs.com/package/pmxtjs/v/${{ steps.get_version.outputs.version }})
+            - [npm: pmxt-core](https://www.npmjs.com/package/pmxt-core/v/${{ steps.get_version.outputs.version }})
+            - [PyPI: pmxt](https://pypi.org/project/pmxt/${{ steps.get_version.outputs.version }}/)
+          prerelease: ${{ steps.get_version.outputs.is_prerelease }}
+          generate_release_notes: true
+          make_latest: ${{ steps.get_version.outputs.is_prerelease == 'false' }}
+
+      - name: Backfill Missing Releases for Historical Tags
+        run: |
+          echo "Checking for missing releases on historical tags..."
+
+          # Fetch all tags
+          git fetch --tags --force
+
+          # Get all version tags
+          TAGS=$(git tag -l 'v*' | sort -V)
+
+          for tag in $TAGS; do
+            # Skip the current tag (already created above)
+            if [ "$tag" = "$GITHUB_REF_NAME" ]; then
+              echo "Skipping current tag: $tag"
+              continue
+            fi
+
+            # Check if release already exists
+            if gh release view "$tag" &>/dev/null; then
+              echo "Release already exists for $tag - skipping"
+              continue
+            fi
+
+            echo "Creating missing release for tag: $tag"
+
+            # Extract version from tag
+            VERSION=${tag#v}
+
+            # Strip 'f' suffix if present (force release)
+            ORIGINAL_VERSION=$VERSION
+            if [[ "$VERSION" == *f ]]; then
+              VERSION=${VERSION%f}
+            fi
+
+            # Detect if this is a pre-release
+            IS_PRERELEASE=""
+            MAKE_LATEST="true"
+            if [[ "$VERSION" =~ (alpha|beta|rc|a|b) ]]; then
+              IS_PRERELEASE="--prerelease"
+              MAKE_LATEST="false"
+              echo "  → Pre-release detected"
+            fi
+
+            # Try to extract changelog notes for this version
+            RELEASE_NOTES=""
+            if grep -q "## \[$VERSION\]" changelog.md 2>/dev/null; then
+              # Extract the section for this version
+              RELEASE_NOTES=$(awk "/^## \[$VERSION\]/,/^## \[/" changelog.md | sed '1d;$d' | sed '/^$/d')
+              echo "  → Extracted changelog notes"
+            else
+              RELEASE_NOTES="Release $VERSION
+
+See [changelog.md](https://github.com/${{ github.repository }}/blob/main/changelog.md) for details."
+              echo "  → No changelog entry found, using generic notes"
+            fi
+
+            # Create the release body
+            RELEASE_BODY="$RELEASE_NOTES
+
+---
+
+## Installation
+
+**npm:**
+\`\`\`bash
+npm install pmxtjs@$VERSION
+\`\`\`
+
+**PyPI:**
+\`\`\`bash
+pip install pmxt==$VERSION
+\`\`\`
+
+## Links
+- [npm: pmxtjs](https://www.npmjs.com/package/pmxtjs/v/$VERSION)
+- [npm: pmxt-core](https://www.npmjs.com/package/pmxt-core/v/$VERSION)
+- [PyPI: pmxt](https://pypi.org/project/pmxt/$VERSION/)"
+
+            # Create release using GitHub CLI
+            echo "$RELEASE_BODY" | gh release create "$tag" \
+              --title "v$VERSION" \
+              --notes-file - \
+              $IS_PRERELEASE \
+              --verify-tag
+
+            echo "  ✓ Created release for $tag"
+          done
+
+          echo "Backfill complete!"
+        env:
+          GH_TOKEN: ${{ github.token }}

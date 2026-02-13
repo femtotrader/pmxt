@@ -1,0 +1,134 @@
+name: Backfill Historical Releases
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/backfill-releases.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backfill-releases:
+    name: Create Releases for All Historical Tags
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history and tags
+
+      - name: Backfill All Missing Releases
+        run: |
+          echo "Starting backfill of all historical releases..."
+
+          # Fetch all tags
+          git fetch --tags --force
+
+          # Get all version tags, sorted
+          TAGS=$(git tag -l 'v*' | sort -V)
+          TOTAL=$(echo "$TAGS" | wc -l)
+          CREATED=0
+          SKIPPED=0
+
+          echo "Found $TOTAL version tags"
+          echo ""
+
+          for tag in $TAGS; do
+            # Check if release already exists
+            if gh release view "$tag" &>/dev/null; then
+              echo "[$((CREATED + SKIPPED + 1))/$TOTAL] Release exists for $tag - skipping"
+              SKIPPED=$((SKIPPED + 1))
+              continue
+            fi
+
+            echo "[$((CREATED + SKIPPED + 1))/$TOTAL] Creating release for tag: $tag"
+
+            # Extract version from tag
+            VERSION=${tag#v}
+
+            # Strip 'f' suffix if present (force release)
+            if [[ "$VERSION" == *f ]]; then
+              VERSION=${VERSION%f}
+            fi
+
+            # Detect if this is a pre-release
+            IS_PRERELEASE=""
+            if [[ "$VERSION" =~ (alpha|beta|rc|a|b) ]]; then
+              IS_PRERELEASE="--prerelease"
+              echo "  → Pre-release detected"
+            fi
+
+            # Try to extract changelog notes for this version
+            RELEASE_NOTES=""
+            if grep -q "## \[$VERSION\]" changelog.md 2>/dev/null; then
+              # Extract the section for this version
+              RELEASE_NOTES=$(awk "/^## \[$VERSION\]/,/^## \[/" changelog.md | sed '1d;$d')
+              if [ -n "$RELEASE_NOTES" ]; then
+                echo "  → Extracted changelog notes ($(echo "$RELEASE_NOTES" | wc -l) lines)"
+              else
+                RELEASE_NOTES="Release $VERSION
+
+See [changelog.md](https://github.com/${{ github.repository }}/blob/main/changelog.md) for details."
+                echo "  → Changelog section empty, using generic notes"
+              fi
+            else
+              RELEASE_NOTES="Release $VERSION
+
+See [changelog.md](https://github.com/${{ github.repository }}/blob/main/changelog.md) for details."
+              echo "  → No changelog entry found, using generic notes"
+            fi
+
+            # Create the release body
+            RELEASE_BODY="$RELEASE_NOTES
+
+---
+
+## Installation
+
+**npm:**
+\`\`\`bash
+npm install pmxtjs@$VERSION
+\`\`\`
+
+**PyPI:**
+\`\`\`bash
+pip install pmxt==$VERSION
+\`\`\`
+
+## Links
+- [npm: pmxtjs](https://www.npmjs.com/package/pmxtjs/v/$VERSION)
+- [npm: pmxt-core](https://www.npmjs.com/package/pmxt-core/v/$VERSION)
+- [PyPI: pmxt](https://pypi.org/project/pmxt/$VERSION/)
+
+---
+
+*This release was automatically generated from historical tags.*"
+
+            # Create release using GitHub CLI
+            if echo "$RELEASE_BODY" | gh release create "$tag" \
+              --title "v$VERSION" \
+              --notes-file - \
+              $IS_PRERELEASE \
+              --verify-tag 2>/dev/null; then
+              echo "  ✓ Successfully created release for $tag"
+              CREATED=$((CREATED + 1))
+            else
+              echo "  ✗ Failed to create release for $tag"
+            fi
+
+            # Small delay to avoid rate limiting
+            sleep 1
+          done
+
+          echo ""
+          echo "========================================="
+          echo "Backfill Complete!"
+          echo "  Created: $CREATED releases"
+          echo "  Skipped: $SKIPPED releases (already existed)"
+          echo "  Total tags: $TOTAL"
+          echo "========================================="
+        env:
+          GH_TOKEN: ${{ github.token }}

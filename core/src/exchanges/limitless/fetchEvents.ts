@@ -5,10 +5,10 @@ import { LIMITLESS_API_URL, mapMarketToUnified } from './utils';
 import { limitlessErrorMapper } from './errors';
 
 export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEvent[]> {
-    if (params?.status === 'closed') {
-        return [];
-    }
     try {
+        // NOTE: The Limitless /markets/search endpoint currently only returns active/funded markets.
+        // It does not include expired or resolved markets in search results.
+        // Consequently, status 'inactive' will likely return 0 results and 'all' will only show active markets.
         const response = await axios.get(`${LIMITLESS_API_URL}/markets/search`, {
             params: {
                 query: params.query,
@@ -17,7 +17,18 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
             }
         });
 
-        const markets = response.data?.markets || [];
+        let markets = response.data?.markets || [];
+
+        // Filter by status based on expired/resolved state
+        // Active: not expired and not resolved
+        // Inactive: expired OR resolved (has winningOutcomeIndex)
+        const status = params?.status || 'active';
+        if (status === 'active') {
+            markets = markets.filter((m: any) => !m.expired && m.winningOutcomeIndex === null);
+        } else if (status === 'inactive') {
+            markets = markets.filter((m: any) => m.expired === true || m.winningOutcomeIndex !== null);
+        }
+        // If status === 'all', don't filter
 
         return markets.map((market: any) => {
             let marketsList: UnifiedMarket[] = [];

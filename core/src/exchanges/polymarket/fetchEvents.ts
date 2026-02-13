@@ -51,7 +51,7 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
         } else if (status === 'active') {
             const rawEvents = await fetchWithStatus('active');
             events = rawEvents.filter(filterActive);
-        } else if (status === 'closed') {
+        } else if (status === 'inactive') {
             // Polymarket sometimes returns active events when querying for closed
             // So we fetch 'closed' but strictly filter
             const rawEvents = await fetchWithStatus('closed');
@@ -99,7 +99,7 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
             return unifiedEvent;
         });
 
-        return unifiedEvents;
+        return unifiedEvents.slice(0, limit);
 
     } catch (error: any) {
         throw polymarketErrorMapper.mapError(error);

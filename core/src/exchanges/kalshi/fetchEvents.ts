@@ -10,25 +10,57 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
         const limit = params?.limit || 10000;
         const query = (params?.query || '').toLowerCase();
 
-        const fetchWithStatus = async (apiStatus: string) => {
-            const queryParams: any = {
-                limit: 200,
-                with_nested_markets: true,
-                status: apiStatus
-            };
-            const response = await axios.get(KALSHI_API_URL, { params: queryParams });
-            return response.data.events || [];
+        const fetchAllWithStatus = async (apiStatus: string) => {
+            let allEvents: any[] = [];
+            let cursor = null;
+            let page = 0;
+
+            const MAX_PAGES = 1000; // Safety cap against infinite loops
+            const BATCH_SIZE = 200; // Max limit per Kalshi API docs
+
+            do {
+                const queryParams: any = {
+                    limit: BATCH_SIZE,
+                    with_nested_markets: true,
+                    status: apiStatus
+                };
+                if (cursor) queryParams.cursor = cursor;
+
+                const response = await axios.get(KALSHI_API_URL, { params: queryParams });
+                const events = response.data.events || [];
+
+                if (events.length === 0) break;
+
+                allEvents = allEvents.concat(events);
+                cursor = response.data.cursor;
+                page++;
+
+                // If we have no search query and have fetched enough events, we can stop early
+                if (!query && allEvents.length >= limit * 1.5) {
+                    break;
+                }
+
+            } while (cursor && page < MAX_PAGES);
+
+            return allEvents;
         };
 
         let events = [];
         if (status === 'all') {
-            const [openEvents, closedEvents] = await Promise.all([
-                fetchWithStatus('open'),
-                fetchWithStatus('closed')
+            const [openEvents, closedEvents, settledEvents] = await Promise.all([
+                fetchAllWithStatus('open'),
+                fetchAllWithStatus('closed'),
+                fetchAllWithStatus('settled')
             ]);
-            events = [...openEvents, ...closedEvents];
+            events = [...openEvents, ...closedEvents, ...settledEvents];
+        } else if (status === 'closed') {
+            const [closedEvents, settledEvents] = await Promise.all([
+                fetchAllWithStatus('closed'),
+                fetchAllWithStatus('settled')
+            ]);
+            events = [...closedEvents, ...settledEvents];
         } else {
-            events = await fetchWithStatus(status === 'closed' ? 'closed' : 'open');
+            events = await fetchAllWithStatus('open');
         }
 
         const filtered = events.filter((event: any) => {

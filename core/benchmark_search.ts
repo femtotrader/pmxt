@@ -16,7 +16,7 @@ async function runBenchmark() {
         new LimitlessExchange()
     ];
 
-    const statuses = ['active', 'closed', 'all'] as const;
+    const statuses = ['active', 'inactive', 'all'] as const;
     const results: any[] = [];
 
     for (const exchange of exchanges) {
@@ -32,7 +32,7 @@ async function runBenchmark() {
                 const events = await exchange.fetchEvents({
                     query: SEARCH_TERM,
                     status: status,
-                    limit: 10_000
+                    limit: 10000
                 });
                 count = events.length;
             } catch (e: any) {

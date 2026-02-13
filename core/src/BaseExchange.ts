@@ -5,7 +5,7 @@ export interface MarketFilterParams {
     limit?: number;
     offset?: number;
     sort?: 'volume' | 'liquidity' | 'newest';
-    status?: 'active' | 'closed' | 'all'; // Filter by market status (default: 'active')
+    status?: 'active' | 'inactive' | 'all'; // Filter by market status (default: 'active')
     searchIn?: 'title' | 'description' | 'both'; // Where to search (default: 'title')
     query?: string;  // For keyword search
     slug?: string;   // For slug/ticker lookup
@@ -19,7 +19,7 @@ export interface EventFetchParams {
     query?: string;  // For keyword search (will be required in practice)
     limit?: number;
     offset?: number;
-    status?: 'active' | 'closed' | 'all'; // Filter by event status (default: 'active')
+    status?: 'active' | 'inactive' | 'all'; // Filter by event status (default: 'active')
     searchIn?: 'title' | 'description' | 'both';
 }
 
@@ -142,6 +142,8 @@ export abstract class PredictionMarketExchange {
      * @param params.searchIn - Where to search ('title' | 'description' | 'both')
      * @returns Array of unified markets
      *
+     * @note Some exchanges (like Limitless) may only support status 'active' for search results.
+     *
      * @example-ts Fetch markets
      * const markets = await exchange.fetchMarkets({ query: 'Trump', limit: 10000 });
      * console.log(markets[0].title);
@@ -170,6 +172,8 @@ export abstract class PredictionMarketExchange {
      * @param params.offset - Pagination offset
      * @param params.searchIn - Where to search ('title' | 'description' | 'both')
      * @returns Array of unified events
+     *
+     * @note Some exchanges (like Limitless) may only support status 'active' for search results.
      *
      * @example-ts Search events
      * const events = await exchange.fetchEvents({ query: 'Fed Chair' });

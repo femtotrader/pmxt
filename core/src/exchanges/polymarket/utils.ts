@@ -2,6 +2,7 @@ import { UnifiedMarket, MarketOutcome, CandleInterval } from '../../types';
 import { addBinaryOutcomes } from '../../utils/market-utils';
 
 export const GAMMA_API_URL = 'https://gamma-api.polymarket.com/events';
+export const GAMMA_SEARCH_URL = 'https://gamma-api.polymarket.com/public-search';
 export const CLOB_API_URL = 'https://clob.polymarket.com';
 export const DATA_API_URL = 'https://data-api.polymarket.com';
 
@@ -149,3 +150,50 @@ export async function paginateParallel(url: string, params: any, maxResults: num
 
     return [firstPage, ...remainingPages].flat();
 }
+
+/**
+ * Fetch all results from Gamma public-search API using parallel pagination.
+ * Uses 'page' parameter instead of 'offset'.
+ */
+export async function paginateSearchParallel(url: string, params: any, maxResults: number = 10000): Promise<any[]> {
+    const axios = (await import('axios')).default;
+
+    // 1. Fetch the first page to check pagination info
+    const firstPageResponse = await axios.get(url, {
+        params: { ...params, page: 1 }
+    });
+
+    const data = firstPageResponse.data;
+    const firstPageEvents = data.events || [];
+    const pagination = data.pagination;
+
+    // If no more pages, return what we have
+    if (!pagination?.hasMore || firstPageEvents.length === 0) {
+        return firstPageEvents;
+    }
+
+    // 2. Calculate how many pages to fetch based on totalResults and limit_per_type
+    const limitPerType = params.limit_per_type || 20;
+    const totalResults = Math.min(pagination.totalResults || 0, maxResults);
+    const totalPages = Math.ceil(totalResults / limitPerType);
+
+    // Fetch remaining pages in parallel
+    const pageNumbers = [];
+    for (let i = 2; i <= totalPages; i++) {
+        pageNumbers.push(i);
+    }
+
+    const remainingPages = await Promise.all(pageNumbers.map(async (pageNum) => {
+        try {
+            const res = await axios.get(url, {
+                params: { ...params, page: pageNum }
+            });
+            return res.data?.events || [];
+        } catch (e) {
+            return []; // Swallow individual page errors to be robust
+        }
+    }));
+
+    return [firstPageEvents, ...remainingPages].flat();
+}
+

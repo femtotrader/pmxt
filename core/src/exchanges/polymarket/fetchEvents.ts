@@ -1,48 +1,56 @@
 import { EventFetchParams } from '../../BaseExchange';
 import { UnifiedEvent, UnifiedMarket } from '../../types';
-import { GAMMA_API_URL, mapMarketToUnified, paginateParallel } from './utils';
+import { GAMMA_SEARCH_URL, mapMarketToUnified, paginateSearchParallel } from './utils';
 import { polymarketErrorMapper } from './errors';
 
 export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEvent[]> {
-    const searchLimit = 100000; // Fetch all events for comprehensive search
-
     try {
-        const status = params?.status || 'active';
-        const queryParams: any = {
-            limit: searchLimit
-        };
-
-        if (status === 'active') {
-            queryParams.active = 'true';
-            queryParams.closed = 'false';
-        } else if (status === 'closed') {
-            queryParams.active = 'false';
-            queryParams.closed = 'true';
-        } else {
-            // 'all' - no filter, maybe handled by default or API behavior
+        if (!params.query) {
+            // If no query is provided, we can't use the search endpoint effectively.
+            // However, the BaseExchange interface enforces query presence for fetchEvents.
+            // Just in case, we return empty or throw.
+            throw new Error("Query is required for Polymarket event search");
         }
 
-        // Fetch events from Gamma API using parallel pagination
-        const events = await paginateParallel(GAMMA_API_URL, queryParams);
+        const limit = params.limit || 10000;
+        const status = params.status || 'active';
 
-        // Client-side text filtering
-        const lowerQuery = (params?.query || '').toLowerCase();
-        const searchIn = params?.searchIn || 'title';
+        const queryParams: any = {
+            q: params.query,
+            limit_per_type: 50, // Fetch 50 per page for better efficiency
+            events_status: status === 'all' ? undefined : status,
+            sort: 'volume',
+            ascending: false
+        };
 
-        const filtered = events.filter((event: any) => {
+        // If specific status requested
+        if (status === 'active') {
+            queryParams.events_status = 'active';
+        } else if (status === 'closed') {
+            queryParams.events_status = 'closed';
+        }
+
+        // Use parallel pagination to fetch all matching events
+        const events = await paginateSearchParallel(GAMMA_SEARCH_URL, queryParams, limit * 10);
+
+        // Client-side filtering to ensure title matches (API does fuzzy search)
+        const lowerQuery = params.query.toLowerCase();
+        const searchIn = params.searchIn || 'title';
+
+        const filteredEvents = events.filter((event: any) => {
             const titleMatch = (event.title || '').toLowerCase().includes(lowerQuery);
             const descMatch = (event.description || '').toLowerCase().includes(lowerQuery);
 
             if (searchIn === 'title') return titleMatch;
             if (searchIn === 'description') return descMatch;
-            return titleMatch || descMatch;
+            return titleMatch || descMatch; // 'both'
         });
 
-        // Map to UnifiedEvent
-        const unifiedEvents: UnifiedEvent[] = filtered.map((event: any) => {
+        // Map events to UnifiedEvent
+        const unifiedEvents: UnifiedEvent[] = filteredEvents.map((event: any) => {
             const markets: UnifiedMarket[] = [];
 
-            if (event.markets) {
+            if (event.markets && Array.isArray(event.markets)) {
                 for (const market of event.markets) {
                     const unifiedMarket = mapMarketToUnified(event, market, { useQuestionAsCandidateFallback: true });
                     if (unifiedMarket) {
@@ -66,9 +74,7 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
             return unifiedEvent;
         });
 
-        // Apply limit to filtered results
-        const limit = params?.limit || 20;
-        return unifiedEvents.slice(0, limit);
+        return unifiedEvents;
 
     } catch (error: any) {
         throw polymarketErrorMapper.mapError(error);

@@ -50,7 +50,7 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
             return unifiedEvent;
         });
 
-        const limit = params?.limit || 20;
+        const limit = params?.limit || 10000;
         return unifiedEvents.slice(0, limit);
 
     } catch (error: any) {

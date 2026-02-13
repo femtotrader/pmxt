@@ -156,7 +156,7 @@ async function fetchMarketsBySlug(eventTicker: string): Promise<UnifiedMarket[]>
 
 async function searchMarkets(query: string, params?: MarketFetchParams): Promise<UnifiedMarket[]> {
     // We must fetch ALL markets to search them locally since we don't have server-side search
-    const searchLimit = 5000;
+    const searchLimit = 10000;
     const markets = await fetchMarketsDefault({ ...params, limit: searchLimit });
     const lowerQuery = query.toLowerCase();
     const searchIn = params?.searchIn || 'title'; // Default to title-only search
@@ -170,12 +170,12 @@ async function searchMarkets(query: string, params?: MarketFetchParams): Promise
         return titleMatch || descMatch; // 'both'
     });
 
-    const limit = params?.limit || 20;
+    const limit = params?.limit || 10000;
     return filtered.slice(0, limit);
 }
 
 async function fetchMarketsDefault(params?: MarketFetchParams): Promise<UnifiedMarket[]> {
-    const limit = params?.limit || 50;
+    const limit = params?.limit || 10000;
     const offset = params?.offset || 0;
     const now = Date.now();
     const status = params?.status || 'active'; // Default to 'active'

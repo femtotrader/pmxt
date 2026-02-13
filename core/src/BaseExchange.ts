@@ -143,14 +143,14 @@ export abstract class PredictionMarketExchange {
      * @returns Array of unified markets
      *
      * @example-ts Fetch markets
-     * const markets = await exchange.fetchMarkets({ query: 'Trump', limit: 20 });
+     * const markets = await exchange.fetchMarkets({ query: 'Trump', limit: 10000 });
      * console.log(markets[0].title);
      *
      * @example-ts Get market by slug
      * const markets = await exchange.fetchMarkets({ slug: 'will-trump-win' });
      *
      * @example-python Fetch markets
-     * markets = exchange.fetch_markets(query='Trump', limit=20)
+     * markets = exchange.fetch_markets(query='Trump', limit=10000)
      * print(markets[0].title)
      *
      * @example-python Get market by slug

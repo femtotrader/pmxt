@@ -1073,6 +1073,7 @@ components:
       properties:
         limit:
           type: integer
+          default: 10000
         offset:
           type: integer
         sort:
@@ -1101,6 +1102,7 @@ components:
           type: string
         limit:
           type: integer
+          default: 10000
         offset:
           type: integer
         status:

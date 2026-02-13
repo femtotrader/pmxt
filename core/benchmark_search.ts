@@ -16,7 +16,7 @@ async function runBenchmark() {
         new LimitlessExchange()
     ];
 
-    const statuses = ['active', 'inactive', 'all'] as const;
+    const statuses = ['active', 'inactive', 'closed', 'all'] as const;
     const results: any[] = [];
 
     for (const exchange of exchanges) {

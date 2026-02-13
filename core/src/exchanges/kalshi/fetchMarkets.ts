@@ -183,7 +183,7 @@ async function fetchMarketsDefault(params?: MarketFetchParams): Promise<UnifiedM
     // Map 'active' -> 'open', 'closed' -> 'closed'
     // Kalshi statuses: 'open', 'closed', 'settled'
     let apiStatus = 'open';
-    if (status === 'closed') apiStatus = 'closed';
+    if (status === 'closed' || status === 'inactive') apiStatus = 'closed';
     else if (status === 'all') apiStatus = 'open'; // Fallback for all? Or loop? For now default to open.
 
     try {

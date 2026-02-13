@@ -10,7 +10,7 @@ export async function fetchMarkets(
     apiKey?: string
 ): Promise<UnifiedMarket[]> {
     // Limitless API currently only supports fetching active markets for lists
-    if (params?.status === 'inactive') {
+    if (params?.status === 'inactive' || params?.status === 'closed') {
         return [];
     }
 

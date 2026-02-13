@@ -53,7 +53,7 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
                 fetchAllWithStatus('settled')
             ]);
             events = [...openEvents, ...closedEvents, ...settledEvents];
-        } else if (status === 'closed') {
+        } else if (status === 'closed' || status === 'inactive') {
             const [closedEvents, settledEvents] = await Promise.all([
                 fetchAllWithStatus('closed'),
                 fetchAllWithStatus('settled')

@@ -54,7 +54,7 @@ async function searchMarkets(query: string, params?: MarketFetchParams): Promise
     const queryParams: any = {
         q: query,
         limit_per_type: 50, // Fetch 50 events per page
-        events_status: params?.status === 'all' ? undefined : (params?.status || 'active'),
+        events_status: params?.status === 'all' ? undefined : (params?.status === 'inactive' || params?.status === 'closed' ? 'closed' : 'active'),
         sort: 'volume',
         ascending: false
     };
@@ -107,7 +107,7 @@ async function fetchMarketsDefault(params?: MarketFetchParams): Promise<UnifiedM
     if (status === 'active') {
         queryParams.active = 'true';
         queryParams.closed = 'false';
-    } else if (status === 'closed') {
+    } else if (status === 'closed' || status === 'inactive') {
         queryParams.active = 'false';
         queryParams.closed = 'true';
     } else {

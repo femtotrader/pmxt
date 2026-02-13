@@ -25,7 +25,7 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
         const status = params?.status || 'active';
         if (status === 'active') {
             markets = markets.filter((m: any) => !m.expired && m.winningOutcomeIndex === null);
-        } else if (status === 'inactive') {
+        } else if (status === 'inactive' || status === 'closed') {
             markets = markets.filter((m: any) => m.expired === true || m.winningOutcomeIndex !== null);
         }
         // If status === 'all', don't filter

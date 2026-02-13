@@ -5,6 +5,9 @@ import { LIMITLESS_API_URL, mapMarketToUnified } from './utils';
 import { limitlessErrorMapper } from './errors';
 
 export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEvent[]> {
+    if (params?.status === 'closed') {
+        return [];
+    }
     try {
         const response = await axios.get(`${LIMITLESS_API_URL}/markets/search`, {
             params: {

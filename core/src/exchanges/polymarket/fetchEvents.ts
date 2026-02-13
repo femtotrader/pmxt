@@ -7,12 +7,23 @@ export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEven
     const searchLimit = 100000; // Fetch all events for comprehensive search
 
     try {
-        // Fetch events from Gamma API using parallel pagination
-        const events = await paginateParallel(GAMMA_API_URL, {
-            active: 'true',
-            closed: 'false',
+        const status = params?.status || 'active';
+        const queryParams: any = {
             limit: searchLimit
-        });
+        };
+
+        if (status === 'active') {
+            queryParams.active = 'true';
+            queryParams.closed = 'false';
+        } else if (status === 'closed') {
+            queryParams.active = 'false';
+            queryParams.closed = 'true';
+        } else {
+            // 'all' - no filter, maybe handled by default or API behavior
+        }
+
+        // Fetch events from Gamma API using parallel pagination
+        const events = await paginateParallel(GAMMA_API_URL, queryParams);
 
         // Client-side text filtering
         const lowerQuery = (params?.query || '').toLowerCase();

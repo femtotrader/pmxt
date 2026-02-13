@@ -4,7 +4,7 @@ import { UnifiedMarket } from '../../types';
 import { KALSHI_API_URL, KALSHI_SERIES_URL, mapMarketToUnified } from './utils';
 import { kalshiErrorMapper } from './errors';
 
-async function fetchActiveEvents(targetMarketCount?: number): Promise<any[]> {
+async function fetchActiveEvents(targetMarketCount?: number, status: string = 'open'): Promise<any[]> {
     let allEvents: any[] = [];
     let totalMarketCount = 0;
     let cursor = null;
@@ -23,7 +23,7 @@ async function fetchActiveEvents(targetMarketCount?: number): Promise<any[]> {
             const queryParams: any = {
                 limit: BATCH_SIZE,
                 with_nested_markets: true,
-                status: 'open' // Filter to open markets to improve relevance and speed
+                status: status // Filter by status (default 'open')
             };
             if (cursor) queryParams.cursor = cursor;
 
@@ -178,13 +178,23 @@ async function fetchMarketsDefault(params?: MarketFetchParams): Promise<UnifiedM
     const limit = params?.limit || 50;
     const offset = params?.offset || 0;
     const now = Date.now();
+    const status = params?.status || 'active'; // Default to 'active'
+
+    // Map 'active' -> 'open', 'closed' -> 'closed'
+    // Kalshi statuses: 'open', 'closed', 'settled'
+    let apiStatus = 'open';
+    if (status === 'closed') apiStatus = 'closed';
+    else if (status === 'all') apiStatus = 'open'; // Fallback for all? Or loop? For now default to open.
 
     try {
         let events: any[];
         let seriesMap: Map<string, string[]>;
 
         // Check if we have valid cached data
-        if (cachedEvents && cachedSeriesMap && (now - lastCacheTime < CACHE_TTL)) {
+        // Only use global cache for the default 'active'/'open' case
+        const useCache = (status === 'active' || !params?.status);
+
+        if (useCache && cachedEvents && cachedSeriesMap && (now - lastCacheTime < CACHE_TTL)) {
             events = cachedEvents;
             seriesMap = cachedSeriesMap;
         } else {
@@ -195,7 +205,7 @@ async function fetchMarketsDefault(params?: MarketFetchParams): Promise<UnifiedM
             const fetchLimit = isSorted ? 1000 : limit;
 
             const [allEvents, fetchedSeriesMap] = await Promise.all([
-                fetchActiveEvents(fetchLimit),
+                fetchActiveEvents(fetchLimit, apiStatus),
                 fetchSeriesMap()
             ]);
 
@@ -205,9 +215,10 @@ async function fetchMarketsDefault(params?: MarketFetchParams): Promise<UnifiedM
             events = allEvents;
             seriesMap = fetchedSeriesMap;
 
-            // Cache the dataset ONLY if we fetched a comprehensive set (intended for global sorting/pagination)
-            // If we only fetched a partial set (e.g. limit=5), we shouldn't cache it as the "full" logic assumes we have everything.
-            if (fetchLimit >= 1000) {
+            // Cache the dataset ONLY if:
+            // 1. We fetched a comprehensive set (>= 1000)
+            // 2. It's the standard 'open' status query
+            if (fetchLimit >= 1000 && useCache) {
                 cachedEvents = allEvents;
                 cachedSeriesMap = fetchedSeriesMap;
                 lastCacheTime = now;

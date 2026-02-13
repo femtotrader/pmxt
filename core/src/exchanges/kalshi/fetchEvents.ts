@@ -6,10 +6,14 @@ import { kalshiErrorMapper } from './errors';
 
 export async function fetchEvents(params: EventFetchParams): Promise<UnifiedEvent[]> {
     try {
+        const status = params?.status || 'active';
+        let apiStatus = 'open';
+        if (status === 'closed') apiStatus = 'closed';
+
         const queryParams: any = {
             limit: 200, // Reasonable batch for search
             with_nested_markets: true,
-            status: 'open'
+            status: apiStatus
         };
 
         const response = await axios.get(KALSHI_API_URL, { params: queryParams });

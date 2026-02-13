@@ -9,6 +9,11 @@ export async function fetchMarkets(
     params?: MarketFetchParams,
     apiKey?: string
 ): Promise<UnifiedMarket[]> {
+    // Limitless API currently only supports fetching active markets for lists
+    if (params?.status === 'closed') {
+        return [];
+    }
+
     try {
         // Create HTTP client (no auth needed for market data)
         const httpClient = new HttpClient({

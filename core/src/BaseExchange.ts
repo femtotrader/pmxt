@@ -5,6 +5,7 @@ export interface MarketFilterParams {
     limit?: number;
     offset?: number;
     sort?: 'volume' | 'liquidity' | 'newest';
+    status?: 'active' | 'closed' | 'all'; // Filter by market status (default: 'active')
     searchIn?: 'title' | 'description' | 'both'; // Where to search (default: 'title')
     query?: string;  // For keyword search
     slug?: string;   // For slug/ticker lookup
@@ -18,6 +19,7 @@ export interface EventFetchParams {
     query?: string;  // For keyword search (will be required in practice)
     limit?: number;
     offset?: number;
+    status?: 'active' | 'closed' | 'all'; // Filter by event status (default: 'active')
     searchIn?: 'title' | 'description' | 'both';
 }
 

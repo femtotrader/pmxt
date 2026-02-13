@@ -79,11 +79,21 @@ async function fetchMarketsDefault(params?: MarketFetchParams): Promise<UnifiedM
 
     // Map generic sort params to Polymarket Gamma API params
     let queryParams: any = {
-        active: 'true',
-        closed: 'false',
         limit: limit,
         offset: offset,
     };
+
+    const status = params?.status || 'active';
+
+    if (status === 'active') {
+        queryParams.active = 'true';
+        queryParams.closed = 'false';
+    } else if (status === 'closed') {
+        queryParams.active = 'false';
+        queryParams.closed = 'true';
+    } else {
+        // 'all' - don't filter by status
+    }
 
     // Gamma API uses 'order' and 'ascending' for sorting
     if (params?.sort === 'volume') {

@@ -1078,6 +1078,10 @@ components:
         sort:
           type: string
           enum: [volume, liquidity, newest]
+        status:
+          type: string
+          enum: [active, closed, all]
+          description: "Filter by market status (default: active)"
         searchIn:
           type: string
           enum: [title, description, both]
@@ -1099,6 +1103,10 @@ components:
           type: integer
         offset:
           type: integer
+        status:
+          type: string
+          enum: [active, closed, all]
+          description: "Filter by event status (default: active)"
         searchIn:
           type: string
           enum: [title, description, both]

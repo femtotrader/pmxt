@@ -11,7 +11,7 @@ import { readFileSync, statSync } from 'fs';
 import { join } from 'path';
 
 function getServerVersion(): string {
-    let baseVersion = '1.0.0-b4'; // Hardcoded fallback matching package.json
+    let baseVersion = '2.0.2'; // Hardcoded fallback matching package.json
     let packageJson;
 
     try {

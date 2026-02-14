@@ -102,6 +102,60 @@ class UnifiedMarket:
         return self.title
 
 
+class MarketList(list):
+    """A list of UnifiedMarket objects with a convenience match() method."""
+
+    def match(
+        self,
+        query: str,
+        search_in: Optional[List[Literal["title", "description", "category", "tags", "outcomes"]]] = None,
+    ) -> "UnifiedMarket":
+        """Find a single market by case-insensitive substring match.
+
+        Args:
+            query: Substring to search for.
+            search_in: Fields to search in (default: ["title"]).
+
+        Returns:
+            The matching UnifiedMarket.
+
+        Raises:
+            ValueError: If zero or multiple markets match.
+        """
+        if search_in is None:
+            search_in = ["title"]
+        lower_query = query.lower()
+        matches = []
+        for m in self:
+            for field in search_in:
+                if field == "title" and m.title and lower_query in m.title.lower():
+                    matches.append(m)
+                    break
+                if field == "description" and m.description and lower_query in m.description.lower():
+                    matches.append(m)
+                    break
+                if field == "category" and m.category and lower_query in m.category.lower():
+                    matches.append(m)
+                    break
+                if field == "tags" and m.tags and any(lower_query in t.lower() for t in m.tags):
+                    matches.append(m)
+                    break
+                if field == "outcomes" and m.outcomes and any(lower_query in o.label.lower() for o in m.outcomes):
+                    matches.append(m)
+                    break
+        if len(matches) == 0:
+            raise ValueError(f"No markets matching '{query}'")
+        if len(matches) > 1:
+            titles_str = "\n  ".join(
+                f"{i+1}. {m.title[:70]}{'...' if len(m.title) > 70 else ''}"
+                for i, m in enumerate(matches)
+            )
+            raise ValueError(
+                f"Multiple markets matching '{query}' ({len(matches)} matches):\n  {titles_str}\n\nPlease refine your search."
+            )
+        return matches[0]
+
+
 @dataclass
 class PriceCandle:
     """OHLCV price candle."""
@@ -141,7 +195,7 @@ class UnifiedEvent:
     slug: str
     """Event slug"""
     
-    markets: List[UnifiedMarket]
+    markets: "MarketList"
     """Related markets in this event"""
     
     url: str

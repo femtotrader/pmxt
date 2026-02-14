@@ -320,6 +320,65 @@ export interface CreateOrderParams {
     fee?: number;
 }
 /**
+ * A list of UnifiedMarket objects with a convenience match() method.
+ * Extends Array so all standard array operations work unchanged.
+ */
+export class MarketList extends Array<UnifiedMarket> {
+    /**
+     * Find a single market by case-insensitive substring match.
+     *
+     * @param query - Substring to search for
+     * @param searchIn - Fields to search in (default: ['title'])
+     * @returns The matching UnifiedMarket
+     * @throws Error if zero or multiple markets match
+     */
+    match(query: string, searchIn?: ('title' | 'description' | 'category' | 'tags' | 'outcomes')[]): UnifiedMarket {
+        const fields = searchIn || ['title'];
+        const lowerQuery = query.toLowerCase();
+        const matches: UnifiedMarket[] = [];
+
+        for (const m of this) {
+            for (const field of fields) {
+                if (field === 'title' && m.title?.toLowerCase().includes(lowerQuery)) {
+                    matches.push(m);
+                    break;
+                }
+                if (field === 'description' && m.description?.toLowerCase().includes(lowerQuery)) {
+                    matches.push(m);
+                    break;
+                }
+                if (field === 'category' && m.category?.toLowerCase().includes(lowerQuery)) {
+                    matches.push(m);
+                    break;
+                }
+                if (field === 'tags' && m.tags?.some(t => t.toLowerCase().includes(lowerQuery))) {
+                    matches.push(m);
+                    break;
+                }
+                if (field === 'outcomes' && m.outcomes?.some(o => o.label.toLowerCase().includes(lowerQuery))) {
+                    matches.push(m);
+                    break;
+                }
+            }
+        }
+
+        if (matches.length === 0) {
+            throw new Error(`No markets matching '${query}'`);
+        }
+        if (matches.length > 1) {
+            const titlesStr = matches
+                .map((m, i) => {
+                    const truncated = m.title.length > 70 ? m.title.substring(0, 70) + '...' : m.title;
+                    return `${i + 1}. ${truncated}`;
+                })
+                .join('\n  ');
+            throw new Error(`Multiple markets matching '${query}' (${matches.length} matches):\n  ${titlesStr}\n\nPlease refine your search.`);
+        }
+        return matches[0];
+    }
+}
+
+/**
  * A grouped collection of related markets (e.g., "Who will be Fed Chair?" contains multiple candidate markets)
  */
 export interface UnifiedEvent {
@@ -336,7 +395,7 @@ export interface UnifiedEvent {
     slug: string;
 
     /** Related markets in this event */
-    markets: UnifiedMarket[];
+    markets: MarketList;
 
     /** Event URL */
     url: string;

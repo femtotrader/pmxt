@@ -26,6 +26,7 @@ from .models import (
     UnifiedMarket,
     UnifiedEvent,
     MarketOutcome,
+    MarketList,
     PriceCandle,
     OrderBook,
     OrderLevel,
@@ -93,8 +94,8 @@ def _convert_market(raw: Dict[str, Any]) -> UnifiedMarket:
 
 def _convert_event(raw: Dict[str, Any]) -> UnifiedEvent:
     """Convert raw API response to UnifiedEvent."""
-    markets = [_convert_market(m) for m in raw.get("markets", [])]
-    
+    markets = MarketList(_convert_market(m) for m in raw.get("markets", []))
+
     return UnifiedEvent(
         id=raw.get("id"),
         title=raw.get("title"),
@@ -251,12 +252,20 @@ class Exchange(ABC):
         # Configure the API client with the actual base URL
         config = Configuration(host=base_url)
         self._api_client = ApiClient(configuration=config)
-        
-        # Add access token from lock file
-        server_info = self._server_manager.get_server_info()
+
+        # Add access token from lock file (with retry for timing issues)
+        server_info = None
+        for attempt in range(5):
+            server_info = self._server_manager.get_server_info()
+            if server_info and 'accessToken' in server_info:
+                break
+            if attempt < 4:
+                import time
+                time.sleep(0.1)
+
         if server_info and 'accessToken' in server_info:
             self._api_client.default_headers['x-pmxt-access-token'] = server_info['accessToken']
-            
+
         self._api = DefaultApi(api_client=self._api_client)
     
     def close(self):

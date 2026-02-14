@@ -92,22 +92,21 @@ class ServerManager:
         server_info = self.get_server_info()
         if not server_info or 'version' not in server_info:
             return True # Old server without version
-        
-        # Get expected version
-        try:
-            # 1. Check production path (bundled)
-            pkg_path = Path(__file__).parent / '_server' / 'package.json'
-            
-            # 2. Check dev path (monorepo)
-            if not pkg_path.exists():
-                # Traverse up to find core/package.json
-                pkg_path = Path(__file__).parent.parent.parent.parent / 'core' / 'package.json'
 
-            if pkg_path.exists():
+        # Get expected version
+        # 1. Check production path (bundled)
+        pkg_path = Path(__file__).parent / '_server' / 'package.json'
+
+        # 2. Check dev path (monorepo)
+        if not pkg_path.exists():
+            pkg_path = Path(__file__).parent.parent.parent.parent / 'core' / 'package.json'
+
+        if pkg_path.exists():
+            try:
                 data = json.loads(pkg_path.read_text())
                 expected_version = data.get('version')
                 server_version = server_info['version']
-                
+
                 if expected_version:
                     # Extract major.minor.patch (ignore prerelease/dev suffixes)
                     def normalize_version(v: str) -> str:
@@ -117,17 +116,17 @@ class ServerManager:
                         # Get major.minor.patch
                         parts = base.split('.')[:3]
                         return '.'.join(parts)
-                    
+
                     expected_base = normalize_version(expected_version)
                     server_base = normalize_version(server_version)
-                    
+
                     # Only restart if major.minor.patch differs
                     # This allows 1.0.0 and 1.0.0-b4 to coexist in dev
                     if expected_base != server_base:
                         return True
-        except:
-            pass
-            
+            except Exception:
+                pass
+
         return False
 
     def stop(self) -> None:

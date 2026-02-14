@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.3] - 2026-02-14
+
+### Features
+
+- **Polymarket Performance Optimization**:
+  - Implemented `preWarmMarket` in the `PolymarketExchange` class. This allows for caching market metadata (such as `tokenAddress` and `negRisk` status) before placing orders, significantly reducing latency during critical execution moments.
+  - Streamlined the `createOrder` workflow by removing redundant `inferTickSize` logic and delegating default handling to the Polymarket SDK.
+- **API Enhancements**: Added support for the `negRisk` parameter in `CreateOrderParams`, enabling more granular control over order types on Polymarket. <-- not in openapi schema yet
+- **Developer Experience**: Added a new benchmarking script `core/scripts/test-order-speed.ts` for measuring end-to-end order placement latency.
+
 ## [2.1.2] - 2026-02-13
 
 ### Fixed

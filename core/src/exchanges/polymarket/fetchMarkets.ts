@@ -3,6 +3,12 @@ import { MarketFetchParams } from '../../BaseExchange';
 import { UnifiedMarket } from '../../types';
 import { GAMMA_API_URL, GAMMA_SEARCH_URL, mapMarketToUnified, paginateParallel, paginateSearchParallel } from './utils';
 import { polymarketErrorMapper } from './errors';
+import { deduplicateMarkets } from '../../utils/market-utils';
+
+// Polymarket slugs are kebab-case (e.g., who-will-trump-nominate-as-fed-chair)
+const POLYMARKET_SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)+$/;
+// Polymarket numeric market IDs (3+ digits)
+const POLYMARKET_ID_PATTERN = /^\d{3,}$/;
 
 export async function fetchMarkets(params?: MarketFetchParams): Promise<UnifiedMarket[]> {
     try {
@@ -48,48 +54,68 @@ async function fetchMarketsBySlug(slug: string): Promise<UnifiedMarket[]> {
 
 async function searchMarkets(query: string, params?: MarketFetchParams): Promise<UnifiedMarket[]> {
     const limit = params?.limit || 10000;
+    const trimmedQuery = query.trim();
+    const looksLikeSlug = POLYMARKET_SLUG_PATTERN.test(trimmedQuery.toLowerCase());
+    const looksLikeId = POLYMARKET_ID_PATTERN.test(trimmedQuery);
 
-    // Use parallel pagination to fetch all matching events
-    // Each event can contain multiple markets, so we need a larger pool
-    const queryParams: any = {
-        q: query,
-        limit_per_type: 50, // Fetch 50 events per page
-        events_status: params?.status === 'all' ? undefined : (params?.status === 'inactive' || params?.status === 'closed' ? 'closed' : 'active'),
-        sort: 'volume',
-        ascending: false
-    };
+    // Normal keyword search logic
+    const searchPromise = (async () => {
+        const queryParams: any = {
+            q: query,
+            limit_per_type: 50,
+            events_status: params?.status === 'all' ? undefined : (params?.status === 'inactive' || params?.status === 'closed' ? 'closed' : 'active'),
+            sort: 'volume',
+            ascending: false
+        };
 
-    // Fetch events with parallel pagination
-    const events = await paginateSearchParallel(GAMMA_SEARCH_URL, queryParams, limit * 5);
+        const events = await paginateSearchParallel(GAMMA_SEARCH_URL, queryParams, limit * 5);
 
-    const unifiedMarkets: UnifiedMarket[] = [];
-    const lowerQuery = query.toLowerCase();
-    const searchIn = params?.searchIn || 'title';
+        const unifiedMarkets: UnifiedMarket[] = [];
+        const lowerQuery = query.toLowerCase();
+        const searchIn = params?.searchIn || 'title';
 
-    // Flatten events into markets
-    for (const event of events) {
-        if (!event.markets) continue;
+        for (const event of events) {
+            if (!event.markets) continue;
 
-        for (const market of event.markets) {
-            const unifiedMarket = mapMarketToUnified(event, market, { useQuestionAsCandidateFallback: true });
-            if (!unifiedMarket) continue;
+            for (const market of event.markets) {
+                const unifiedMarket = mapMarketToUnified(event, market, { useQuestionAsCandidateFallback: true });
+                if (!unifiedMarket) continue;
 
-            // Apply client-side filtering on market title
-            const titleMatch = (unifiedMarket.title || '').toLowerCase().includes(lowerQuery);
-            const descMatch = (unifiedMarket.description || '').toLowerCase().includes(lowerQuery);
+                const titleMatch = (unifiedMarket.title || '').toLowerCase().includes(lowerQuery);
+                const descMatch = (unifiedMarket.description || '').toLowerCase().includes(lowerQuery);
 
-            let matches = false;
-            if (searchIn === 'title') matches = titleMatch;
-            else if (searchIn === 'description') matches = descMatch;
-            else matches = titleMatch || descMatch;
+                let matches = false;
+                if (searchIn === 'title') matches = titleMatch;
+                else if (searchIn === 'description') matches = descMatch;
+                else matches = titleMatch || descMatch;
 
-            if (matches) {
-                unifiedMarkets.push(unifiedMarket);
+                if (matches) {
+                    unifiedMarkets.push(unifiedMarket);
+                }
             }
         }
+        return unifiedMarkets;
+    })();
+
+    // Run exact-match fetch in parallel when the query looks like a slug or numeric ID
+    if (looksLikeSlug || looksLikeId) {
+        const exactPromise = looksLikeSlug
+            ? fetchMarketsBySlug(trimmedQuery.toLowerCase())
+            : fetchMarketsBySlug(trimmedQuery);
+
+        const [exactResult, searchResult] = await Promise.allSettled([
+            exactPromise,
+            searchPromise
+        ]);
+
+        const exactMatches = exactResult.status === 'fulfilled' ? exactResult.value : [];
+        const searchResults = searchResult.status === 'fulfilled' ? searchResult.value : [];
+
+        return deduplicateMarkets(exactMatches, searchResults).slice(0, limit);
     }
 
-    return unifiedMarkets.slice(0, limit);
+    const searchResults = await searchPromise;
+    return searchResults.slice(0, limit);
 }
 
 async function fetchMarketsDefault(params?: MarketFetchParams): Promise<UnifiedMarket[]> {

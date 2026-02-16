@@ -3,6 +3,10 @@ import { MarketFetchParams } from '../../BaseExchange';
 import { UnifiedMarket } from '../../types';
 import { KALSHI_API_URL, KALSHI_SERIES_URL, mapMarketToUnified } from './utils';
 import { kalshiErrorMapper } from './errors';
+import { deduplicateMarkets } from '../../utils/market-utils';
+
+// Kalshi tickers are uppercase alphanumeric with hyphens and dots (e.g., KXFEDCHAIRNOM-29, FED-25JAN29-B4.75)
+const KALSHI_TICKER_PATTERN = /^[A-Z0-9][A-Z0-9._-]+$/;
 
 async function fetchActiveEvents(targetMarketCount?: number, status: string = 'open'): Promise<any[]> {
     let allEvents: any[] = [];
@@ -155,23 +159,45 @@ async function fetchMarketsBySlug(eventTicker: string): Promise<UnifiedMarket[]>
 }
 
 async function searchMarkets(query: string, params?: MarketFetchParams): Promise<UnifiedMarket[]> {
-    // We must fetch ALL markets to search them locally since we don't have server-side search
-    const searchLimit = 10000;
-    const markets = await fetchMarketsDefault({ ...params, limit: searchLimit });
-    const lowerQuery = query.toLowerCase();
-    const searchIn = params?.searchIn || 'title'; // Default to title-only search
-
-    const filtered = markets.filter(market => {
-        const titleMatch = (market.title || '').toLowerCase().includes(lowerQuery);
-        const descMatch = (market.description || '').toLowerCase().includes(lowerQuery);
-
-        if (searchIn === 'title') return titleMatch;
-        if (searchIn === 'description') return descMatch;
-        return titleMatch || descMatch; // 'both'
-    });
-
     const limit = params?.limit || 10000;
-    return filtered.slice(0, limit);
+    const normalizedQuery = query.trim().toUpperCase();
+    const looksLikeTicker = KALSHI_TICKER_PATTERN.test(normalizedQuery);
+
+    // Run exact-match fetch in parallel with the normal search when the query looks like a ticker
+    const searchPromise = (async () => {
+        const searchLimit = 10000;
+        const markets = await fetchMarketsDefault({ ...params, limit: searchLimit });
+        const lowerQuery = query.toLowerCase();
+        const searchIn = params?.searchIn || 'title';
+
+        return markets.filter(market => {
+            const titleMatch = (market.title || '').toLowerCase().includes(lowerQuery);
+            const descMatch = (market.description || '').toLowerCase().includes(lowerQuery);
+
+            if (searchIn === 'title') return titleMatch;
+            if (searchIn === 'description') return descMatch;
+            return titleMatch || descMatch; // 'both'
+        });
+    })();
+
+    if (looksLikeTicker) {
+        const [exactResult, searchResult] = await Promise.allSettled([
+            fetchMarketsBySlug(normalizedQuery),
+            searchPromise
+        ]);
+
+        const exactMatches = exactResult.status === 'fulfilled' ? exactResult.value : [];
+        const searchResults = searchResult.status === 'fulfilled' ? searchResult.value : [];
+
+        // Also check for direct marketId matches in the search results
+        const marketIdMatches = searchResults.filter(m => m.marketId.toUpperCase() === normalizedQuery);
+        const allExact = deduplicateMarkets(exactMatches, marketIdMatches);
+
+        return deduplicateMarkets(allExact, searchResults).slice(0, limit);
+    }
+
+    const searchResults = await searchPromise;
+    return searchResults.slice(0, limit);
 }
 
 async function fetchMarketsDefault(params?: MarketFetchParams): Promise<UnifiedMarket[]> {

@@ -3,6 +3,10 @@ import { UnifiedMarket } from '../../types';
 import axios from 'axios';
 import { LIMITLESS_API_URL, mapMarketToUnified, paginateLimitlessMarkets } from './utils';
 import { limitlessErrorMapper } from './errors';
+import { deduplicateMarkets } from '../../utils/market-utils';
+
+// Limitless slugs are kebab-case (e.g., will-trump-win)
+const LIMITLESS_SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export async function fetchMarkets(
     params?: MarketFetchParams,
@@ -60,37 +64,58 @@ async function searchMarkets(
     query: string,
     params?: MarketFetchParams
 ): Promise<UnifiedMarket[]> {
-    // SDK doesn't have a search method yet, use axios directly
-    // NOTE: The Limitless /markets/search endpoint currently only returns active/funded markets.
-    // It does not include expired or resolved markets in search results.
-    const response = await axios.get(`${LIMITLESS_API_URL}/markets/search`, {
-        params: {
-            query: query,
-            limit: params?.limit || 10000,
-            page: params?.page || 1,
-            similarityThreshold: params?.similarityThreshold || 0.5
-        }
-    });
+    const limit = params?.limit || 10000;
+    const trimmedQuery = query.trim();
+    const looksLikeSlug = LIMITLESS_SLUG_PATTERN.test(trimmedQuery.toLowerCase());
 
-    const rawResults = response?.data?.markets || [];
-    const allMarkets: UnifiedMarket[] = [];
+    // Normal API search logic
+    const searchPromise = (async () => {
+        // SDK doesn't have a search method yet, use axios directly
+        // NOTE: The Limitless /markets/search endpoint currently only returns active/funded markets.
+        // It does not include expired or resolved markets in search results.
+        const response = await axios.get(`${LIMITLESS_API_URL}/markets/search`, {
+            params: {
+                query: query,
+                limit: limit,
+                page: params?.page || 1,
+                similarityThreshold: params?.similarityThreshold || 0.5
+            }
+        });
 
-    for (const res of rawResults) {
-        if (res.markets && Array.isArray(res.markets)) {
-            // It's a group market, extract individual markets
-            for (const child of res.markets) {
-                const mapped = mapMarketToUnified(child);
+        const rawResults = response?.data?.markets || [];
+        const allMarkets: UnifiedMarket[] = [];
+
+        for (const res of rawResults) {
+            if (res.markets && Array.isArray(res.markets)) {
+                for (const child of res.markets) {
+                    const mapped = mapMarketToUnified(child);
+                    if (mapped) allMarkets.push(mapped);
+                }
+            } else {
+                const mapped = mapMarketToUnified(res);
                 if (mapped) allMarkets.push(mapped);
             }
-        } else {
-            const mapped = mapMarketToUnified(res);
-            if (mapped) allMarkets.push(mapped);
         }
+
+        return allMarkets
+            .filter((m: any): m is UnifiedMarket => m !== null && m.outcomes.length > 0);
+    })();
+
+    // Run exact-match fetch in parallel when the query looks like a slug
+    if (looksLikeSlug) {
+        const [exactResult, searchResult] = await Promise.allSettled([
+            fetchMarketsBySlug(marketFetcher, trimmedQuery.toLowerCase()),
+            searchPromise
+        ]);
+
+        const exactMatches = exactResult.status === 'fulfilled' ? exactResult.value : [];
+        const searchResults = searchResult.status === 'fulfilled' ? searchResult.value : [];
+
+        return deduplicateMarkets(exactMatches, searchResults).slice(0, limit);
     }
 
-    return allMarkets
-        .filter((m: any): m is UnifiedMarket => m !== null && m.outcomes.length > 0)
-        .slice(0, params?.limit || 10000);
+    const searchResults = await searchPromise;
+    return searchResults.slice(0, limit);
 }
 
 async function fetchMarketsDefault(

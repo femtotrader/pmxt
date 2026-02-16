@@ -1,4 +1,4 @@
-import { addBinaryOutcomes } from '../../src/utils/market-utils';
+import { addBinaryOutcomes, deduplicateMarkets } from '../../src/utils/market-utils';
 import { UnifiedMarket, MarketOutcome } from '../../src/types';
 
 describe('addBinaryOutcomes', () => {
@@ -86,5 +86,77 @@ describe('addBinaryOutcomes', () => {
 
         expect(market.yes?.label).toBe('Alpha');
         expect(market.no?.label).toBe('Beta');
+    });
+});
+
+describe('deduplicateMarkets', () => {
+    const createMarket = (id: string, title: string): UnifiedMarket => ({
+        marketId: id,
+        title,
+        description: '',
+        outcomes: [],
+        resolutionDate: new Date(),
+        volume24h: 0,
+        liquidity: 0,
+        url: `https://example.com/${id}`,
+    } as UnifiedMarket);
+
+    test('should prepend exact matches before search results', () => {
+        const exact = [createMarket('A', 'Exact A')];
+        const search = [createMarket('B', 'Search B'), createMarket('C', 'Search C')];
+
+        const result = deduplicateMarkets(exact, search);
+
+        expect(result).toHaveLength(3);
+        expect(result[0].marketId).toBe('A');
+        expect(result[1].marketId).toBe('B');
+        expect(result[2].marketId).toBe('C');
+    });
+
+    test('should deduplicate when exact match also appears in search results', () => {
+        const exact = [createMarket('A', 'Exact A')];
+        const search = [createMarket('A', 'Search A'), createMarket('B', 'Search B')];
+
+        const result = deduplicateMarkets(exact, search);
+
+        expect(result).toHaveLength(2);
+        expect(result[0].marketId).toBe('A');
+        expect(result[0].title).toBe('Exact A'); // Exact version is kept
+        expect(result[1].marketId).toBe('B');
+    });
+
+    test('should return only search results when no exact matches', () => {
+        const search = [createMarket('A', 'A'), createMarket('B', 'B')];
+
+        const result = deduplicateMarkets([], search);
+
+        expect(result).toHaveLength(2);
+        expect(result[0].marketId).toBe('A');
+    });
+
+    test('should return only exact matches when no search results', () => {
+        const exact = [createMarket('A', 'A')];
+
+        const result = deduplicateMarkets(exact, []);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].marketId).toBe('A');
+    });
+
+    test('should return empty array when both inputs are empty', () => {
+        const result = deduplicateMarkets([], []);
+        expect(result).toHaveLength(0);
+    });
+
+    test('should handle multiple exact matches with deduplication', () => {
+        const exact = [createMarket('A', 'Exact A'), createMarket('B', 'Exact B')];
+        const search = [createMarket('B', 'Search B'), createMarket('C', 'Search C'), createMarket('A', 'Search A')];
+
+        const result = deduplicateMarkets(exact, search);
+
+        expect(result).toHaveLength(3);
+        expect(result[0].marketId).toBe('A');
+        expect(result[1].marketId).toBe('B');
+        expect(result[2].marketId).toBe('C');
     });
 });

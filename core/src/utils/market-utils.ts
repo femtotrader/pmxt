@@ -1,6 +1,19 @@
 import { MarketOutcome, UnifiedMarket } from '../types';
 
 /**
+ * Merges exact-match results to the front of search results, deduplicating by marketId.
+ * Used by exchange searchMarkets implementations to prioritize exact ticker/slug matches.
+ */
+export function deduplicateMarkets(
+    exactMatches: UnifiedMarket[],
+    searchResults: UnifiedMarket[]
+): UnifiedMarket[] {
+    const seenIds = new Set(exactMatches.map(m => m.marketId));
+    const dedupedSearch = searchResults.filter(m => !seenIds.has(m.marketId));
+    return [...exactMatches, ...dedupedSearch];
+}
+
+/**
  * Standardizes binary market outcomes into yes/no/up/down properties.
  */
 export function addBinaryOutcomes(market: UnifiedMarket): void {

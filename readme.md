@@ -1,6 +1,7 @@
 # pmxt [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=The%20ccxt%20for%20prediction%20markets.&url=https://github.com/pmxt-dev/pmxt&hashtags=predictionmarkets,trading)
 
 **The [ccxt](https://github.com/ccxt/ccxt) for prediction markets.** A unified API for accessing prediction market data across multiple exchanges.
+
 NOTE: pmxt is not associated with any cryptocurrencies. 
 
 <img width="3840" height="2160" alt="plot" src="https://github.com/user-attachments/assets/ed77d244-c95f-4fe0-a7a7-89af713c053f" />

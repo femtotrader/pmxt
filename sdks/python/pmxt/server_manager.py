@@ -150,12 +150,18 @@ class ServerManager:
         """Kill the currently running server (Internal)."""
         server_info = self.get_server_info()
         if server_info and 'pid' in server_info:
-            import signal
+            pid = server_info['pid']
             try:
-                os.kill(server_info['pid'], signal.SIGTERM)
-                # Brief wait for cleanup
+                if os.name == 'nt':
+                    subprocess.run(
+                        ['taskkill', '/PID', str(pid), '/F'],
+                        capture_output=True, timeout=5
+                    )
+                else:
+                    import signal
+                    os.kill(pid, signal.SIGTERM)
                 time.sleep(0.5)
-            except:
+            except Exception:
                 pass
         self._remove_stale_lock()
     
@@ -203,15 +209,25 @@ class ServerManager:
     def _is_process_running(self, pid: int) -> bool:
         """
         Check if a process with given PID is running.
-        
+
         Cross-platform implementation.
         """
-        try:
-            # Signal 0 doesn't kill the process, just checks if it exists
-            os.kill(pid, 0)
-            return True
-        except (OSError, ProcessLookupError):
-            return False
+        if os.name == 'nt':
+            # Windows: signal 0 doesn't work reliably, use tasklist instead
+            try:
+                result = subprocess.run(
+                    ['tasklist', '/FI', f'PID eq {pid}', '/NH'],
+                    capture_output=True, text=True, timeout=5
+                )
+                return str(pid) in result.stdout
+            except Exception:
+                return False
+        else:
+            try:
+                os.kill(pid, 0)
+                return True
+            except (OSError, ProcessLookupError):
+                return False
     
     def _remove_stale_lock(self) -> None:
         """Remove stale lock file."""

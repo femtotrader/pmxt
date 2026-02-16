@@ -1,9 +1,9 @@
-import { exchangeClasses } from './shared';
+import { exchangeClasses, initExchange } from './shared';
 import { OrderBook } from '../../src/types';
 
 describe('Compliance: getExecutionPrice', () => {
     test.each(exchangeClasses)('$name should comply with getExecutionPrice standards', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             console.info(`[Compliance] Testing ${name}.getExecutionPrice`);

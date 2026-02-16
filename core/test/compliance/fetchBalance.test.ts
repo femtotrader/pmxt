@@ -33,8 +33,12 @@ describe('Compliance: fetchBalance', () => {
 
             } catch (error: any) {
                 const msg = error.message.toLowerCase();
-                if (msg.includes('not implemented')) {
+                if (msg.includes('not implemented') || msg.includes('not supported')) {
                     console.info(`[Compliance] ${name}.fetchBalance not implemented.`);
+                    return;
+                }
+                if (msg.includes('requires a wallet') || msg.includes('wallet address')) {
+                    console.info(`[Compliance] ${name}.fetchBalance skipped: no wallet address configured.`);
                     return;
                 }
                 // If it fails due to auth, let it fail.

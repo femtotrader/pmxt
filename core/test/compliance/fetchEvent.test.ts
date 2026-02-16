@@ -1,8 +1,8 @@
-import { exchangeClasses, validateUnifiedEvent } from './shared';
+import { exchangeClasses, validateUnifiedEvent, initExchange } from './shared';
 
 describe('Compliance: fetchEvents with new ID params', () => {
     test.each(exchangeClasses)('$name should support eventId param in fetchEvents', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             console.info(`[Compliance] Testing ${name}.fetchEvents({ eventId })`);
@@ -36,7 +36,7 @@ describe('Compliance: fetchEvents with new ID params', () => {
     }, 120000);
 
     test.each(exchangeClasses)('$name should support slug param in fetchEvents', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             console.info(`[Compliance] Testing ${name}.fetchEvents({ slug })`);
@@ -75,7 +75,7 @@ describe('Compliance: fetchEvents with new ID params', () => {
 
 describe('Compliance: fetchEvent (singular)', () => {
     test.each(exchangeClasses)('$name should return a single event via fetchEvent', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             console.info(`[Compliance] Testing ${name}.fetchEvent (singular)`);
@@ -107,7 +107,7 @@ describe('Compliance: fetchEvent (singular)', () => {
     }, 120000);
 
     test.each(exchangeClasses)('$name should throw for nonexistent eventId', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             console.info(`[Compliance] Testing ${name}.fetchEvent (not found case)`);

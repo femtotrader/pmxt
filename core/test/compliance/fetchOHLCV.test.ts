@@ -1,8 +1,8 @@
-import { exchangeClasses, validatePriceCandle } from './shared';
+import { exchangeClasses, validatePriceCandle, initExchange } from './shared';
 
 describe('Compliance: fetchOHLCV', () => {
     test.each(exchangeClasses)('$name should comply with fetchOHLCV standards', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             console.info(`[Compliance] Testing ${name}.fetchOHLCV`);

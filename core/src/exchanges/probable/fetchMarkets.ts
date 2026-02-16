@@ -74,10 +74,14 @@ async function fetchMarketByIdOrSlug(slug: string): Promise<UnifiedMarket[]> {
             await enrichMarketsWithPrices(results);
             return results;
         } catch (error: any) {
-            if (error.response?.status === 404) {
-                return [];
+            if (isMarketNotFoundError(error)) {
+                // Individual market endpoint returned 500/404; fall back to list and filter
+                const allMarkets = await fetchMarketsList({ limit: 100 });
+                const match = allMarkets.filter(m => m.marketId === cleanSlug);
+                if (match.length > 0) return match;
+            } else {
+                throw error;
             }
-            throw error;
         }
     }
 
@@ -240,4 +244,15 @@ async function searchAndExtractMarkets(
 
     await enrichMarketsWithPrices(allMarkets);
     return allMarkets;
+}
+
+function isMarketNotFoundError(error: any): boolean {
+    const status = error.response?.status;
+    if (status === 404 || status === 400) return true;
+    if (status === 500) {
+        const data = error.response?.data;
+        const msg = typeof data === 'string' ? data : (data?.detail || data?.message || '');
+        return /not found|failed to retrieve/i.test(String(msg));
+    }
+    return false;
 }

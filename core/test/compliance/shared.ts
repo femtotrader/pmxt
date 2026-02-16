@@ -316,13 +316,17 @@ export function getMockCredentials() {
  * Required variables:
  * - Polymarket: POLYMARKET_PRIVATE_KEY
  * - Kalshi: KALSHI_API_KEY, KALSHI_PRIVATE_KEY
- * - Limitless: LIMITLESS_PRIVATE_KEY
+ * - Limitless: LIMITLESS_PRIVATE_KEY, LIMITLESS_API_KEY
+ * - Myriad: MYRIAD_PROD or MYRIAD_STAGING
+ * - Baozi: BAOZI_PRIVATE_KEY
  */
 export function hasAuth(exchangeName: string): boolean {
     const polyPk = process.env.POLYMARKET_PRIVATE_KEY?.trim();
     const kalshiKey = process.env.KALSHI_API_KEY?.trim();
     const kalshiPk = process.env.KALSHI_PRIVATE_KEY?.trim();
     const limitlessPk = process.env.LIMITLESS_PRIVATE_KEY?.trim();
+    const myriadKey = (process.env.MYRIAD_PROD || process.env.MYRIAD_STAGING)?.trim();
+    const baoziPk = process.env.BAOZI_PRIVATE_KEY?.trim();
 
     if (exchangeName === 'PolymarketExchange') {
         return !!polyPk && polyPk.length > 10;
@@ -332,6 +336,12 @@ export function hasAuth(exchangeName: string): boolean {
     }
     if (exchangeName === 'LimitlessExchange') {
         return !!limitlessPk && limitlessPk.length > 10;
+    }
+    if (exchangeName === 'MyriadExchange') {
+        return !!myriadKey && myriadKey.length > 5;
+    }
+    if (exchangeName === 'BaoziExchange') {
+        return !!baoziPk && baoziPk.length > 10;
     }
     return false;
 }
@@ -347,7 +357,18 @@ export function initExchange(name: string, cls: any) {
         });
     }
     if (name === 'LimitlessExchange') {
-        return new cls({ privateKey: process.env.LIMITLESS_PRIVATE_KEY?.trim() });
+        return new cls({
+            privateKey: process.env.LIMITLESS_PRIVATE_KEY?.trim(),
+            apiKey: process.env.LIMITLESS_API_KEY?.trim()
+        });
+    }
+    if (name === 'MyriadExchange') {
+        return new cls({
+            apiKey: (process.env.MYRIAD_PROD || process.env.MYRIAD_STAGING)?.trim()
+        });
+    }
+    if (name === 'BaoziExchange') {
+        return new cls({ privateKey: process.env.BAOZI_PRIVATE_KEY?.trim() });
     }
     return new cls();
 }

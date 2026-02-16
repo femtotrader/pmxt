@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
+import { execSync } from 'child_process';
 
 export class LockFile {
     public lockPath: string;
@@ -34,18 +35,38 @@ export class LockFile {
         }
     }
 
+    private isProcessRunning(pid: number): boolean {
+        if (process.platform === 'win32') {
+            // process.kill(pid, 0) is unreliable on Windows
+            try {
+                const output = execSync(`tasklist /FI "PID eq ${pid}" /NH`, {
+                    encoding: 'utf-8',
+                    timeout: 5000,
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                });
+                return output.includes(String(pid));
+            } catch {
+                return false;
+            }
+        }
+        try {
+            process.kill(pid, 0);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
     async isServerRunning(): Promise<boolean> {
         const lock = await this.read();
         if (!lock) return false;
 
-        // Check if process is still alive
-        try {
-            process.kill(lock.pid, 0); // Signal 0 checks existence without killing
+        if (this.isProcessRunning(lock.pid)) {
             return true;
-        } catch {
-            // Process doesn't exist, remove stale lock file
-            await this.remove();
-            return false;
         }
+
+        // Process doesn't exist, remove stale lock file
+        await this.remove();
+        return false;
     }
 }

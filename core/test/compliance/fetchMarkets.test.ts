@@ -1,8 +1,8 @@
-import { exchangeClasses, validateUnifiedMarket } from './shared';
+import { exchangeClasses, validateUnifiedMarket, initExchange } from './shared';
 
 describe('Compliance: fetchMarkets', () => {
     test.each(exchangeClasses)('$name should comply with fetchMarkets standards', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             console.info(`[Compliance] Testing ${name}.fetchMarkets`);

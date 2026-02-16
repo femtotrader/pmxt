@@ -1,10 +1,10 @@
-import { exchangeClasses, validateUnifiedMarket } from './shared';
+import { exchangeClasses, validateUnifiedMarket, initExchange } from './shared';
 
 describe('Compliance: fetchMarket (singular)', () => {
     // First, fetch markets normally to get known IDs, then test fetchMarket lookups
 
     test.each(exchangeClasses)('$name should return a single market via fetchMarket with slug', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             // Step 1: Get a known market via fetchMarkets
@@ -38,7 +38,7 @@ describe('Compliance: fetchMarket (singular)', () => {
     }, 120000);
 
     test.each(exchangeClasses)('$name should throw for nonexistent marketId', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             console.info(`[Compliance] Testing ${name}.fetchMarket (not found case)`);
@@ -59,7 +59,7 @@ describe('Compliance: fetchMarket (singular)', () => {
 
 describe('Compliance: fetchMarkets with new ID params', () => {
     test.each(exchangeClasses)('$name should support marketId param in fetchMarkets', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             console.info(`[Compliance] Testing ${name}.fetchMarkets({ marketId })`);
@@ -94,7 +94,7 @@ describe('Compliance: fetchMarkets with new ID params', () => {
     }, 120000);
 
     test.each(exchangeClasses)('$name should support outcomeId param in fetchMarkets', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             console.info(`[Compliance] Testing ${name}.fetchMarkets({ outcomeId })`);

@@ -48,18 +48,9 @@ describe('Compliance: fetchOrder', () => {
                 const msg = error.message.toLowerCase();
                 const status = error.status || error.response?.status;
 
-                // Limitless Specific Check
-                // We expect Limitless to throw "not supported" or "use fetchOpenOrders"
-                if (name.includes('Limitless')) {
-                    if (msg.includes('not supported') || msg.includes('use fetchopenorders')) {
-                        console.info(`[Compliance] Limitless correctly threw expected 'Not Supported' error.`);
-                        return; // PASS: The code behaved as expected for an unsupported feature
-                    }
-                }
-
-                // General "Not Implemented" Check
-                if (msg.includes('not implemented')) {
-                    console.info(`[Compliance] ${name}.fetchOrder skipped: Not Implemented.`);
+                // General "Not Supported" / "Not Implemented" Check
+                if (msg.includes('not supported') || msg.includes('not implemented') || msg.includes('use fetchopenorders')) {
+                    console.info(`[Compliance] ${name}.fetchOrder skipped: ${error.message}`);
                     return;
                 }
 

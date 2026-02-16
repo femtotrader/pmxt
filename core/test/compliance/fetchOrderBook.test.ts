@@ -1,8 +1,8 @@
-import { exchangeClasses, validateOrderBook } from './shared';
+import { exchangeClasses, validateOrderBook, initExchange } from './shared';
 
 describe('Compliance: fetchOrderBook', () => {
     test.each(exchangeClasses)('$name should comply with fetchOrderBook standards', async ({ name, cls }) => {
-        const exchange = new cls();
+        const exchange = initExchange(name, cls);
 
         try {
             console.info(`[Compliance] Testing ${name}.fetchOrderBook`);

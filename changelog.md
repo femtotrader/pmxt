@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.0] - 2026-02-16
+
+### Added
+
+- **Baozi Exchange Integration**: New exchange adapter for [baozi.bet](https://baozi.bet), a decentralized pari-mutuel prediction market on Solana. NOTE: Not fully working.
+  - **Market Data**: `fetchMarkets`, `fetchEvents`, `fetchOrderBook` (synthetic from pool ratios).
+  - **Trading**: `createOrder` via on-chain Solana instructions (`place_bet_sol` / `bet_on_race_outcome_sol`).
+  - **Account Management**: `fetchBalance` (SOL), `fetchPositions` (PDA-based position lookup).
+  - **Real-time Data**: `watchOrderBook` via Solana `onAccountChange` subscriptions.
+  - Note: No `fetchOHLCV`, `fetchTrades`, or `cancelOrder` (pari-mutuel bets are irrevocable).
+
+- **Myriad Markets Integration**: Full support for Myriad Markets, an AMM-based prediction market platform.
+  - **Market Data**: `fetchMarkets`, `fetchEvents`, `fetchOHLCV`, `fetchOrderBook` (synthetic from AMM), `fetchTrades`.
+  - **Trading**: `createOrder` (returns quote + calldata for on-chain execution), `fetchPositions`, `fetchBalance`.
+  - **Real-time Data**: Poll-based `watchOrderBook` and `watchTrades`.
+  - **Multi-chain Support**: Abstract (2741), Linea (59144), BNB (56) with composite IDs (`{networkId}:{marketId}:{outcomeId}`).
+  - Key difference from CLOB exchanges: AMM-based, no limit orders or open order cancellation.
+
+- **`fetchMarket` / `fetchEvent` Singular Lookup Methods**: Convenience methods for fetching a single market or event by ID, slug, or ticker. Throws `MarketNotFound` / `EventNotFound` if not found.
+  - Extended `MarketFilterParams` with `marketId`, `outcomeId`, `eventId` for direct lookups.
+  - Extended `EventFetchParams` with `eventId`, `slug` for direct lookups.
+  - Exchange-specific implementations for Kalshi, Probable, and Limitless.
+
+- **Improved Market Search**: Deduplication logic and exact-match fetching in parallel for Kalshi, Limitless, and Polymarket. Queries resembling tickers or slugs now prioritize exact matches.
+
+### Fixed
+
+- **Baozi**: Improved robustness of order parsing and position data.
+- **Probable**: Added fallback lookup logic for slug search in `fetchMarkets`.
+
+### Changed
+
+- **Windows Compatibility**: Cross-platform process checking in LockFile and Python SDK.
+- **Compliance Tests**: Enhanced with authentication support for Myriad and Baozi; refactored to use `initExchange` helper.
+- **Generated SDK Code**: Now gitignored instead of committed.
+
 ## [2.4.0] - 2026-02-15
 
 ### Added

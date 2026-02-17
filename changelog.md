@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.8.0] - 2026-02-17
+
+### Added
+
+- **CCXT-Style Market Caching (`loadMarkets`)**: Implemented stateful market caching in `BaseExchange` to improve performance and enable synchronous-like metadata lookups.
+  - New `loadMarkets(reload: boolean)` method fetches and caches all market definitions (by ID and slug).
+  - Updated `fetchMarket` to check the local cache first, enabling 0ms lookups for frequently accessed markets.
+  - Added `slug` property to `UnifiedMarket` for consistent multi-identifier caching.
+- **Testing Infrastructure**: Added comprehensive unit tests and a cross-exchange manual verification script for the market caching system.
+
+### Changed
+
+- **Increased Default Market Limits**: Raised the default `fetchMarkets` limit from 10,000 to **250,000** results across Polymarket, Kalshi, and Limitless.
+
 ## [2.7.0] - 2026-02-17
 
 ### Changed

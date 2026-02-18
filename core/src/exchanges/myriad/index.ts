@@ -260,7 +260,7 @@ export class MyriadExchange extends PredictionMarketExchange {
     async watchOrderBook(id: string, _limit?: number): Promise<OrderBook> {
         this.ensureAuth();
         if (!this.ws) {
-            this.ws = new MyriadWebSocket(this.getHeaders(), this.callApi.bind(this));
+            this.ws = new MyriadWebSocket(this.callApi.bind(this));
         }
         return this.ws.watchOrderBook(id);
     }
@@ -268,7 +268,7 @@ export class MyriadExchange extends PredictionMarketExchange {
     async watchTrades(id: string, _since?: number, _limit?: number): Promise<Trade[]> {
         this.ensureAuth();
         if (!this.ws) {
-            this.ws = new MyriadWebSocket(this.getHeaders(), this.callApi.bind(this));
+            this.ws = new MyriadWebSocket(this.callApi.bind(this));
         }
         return this.ws.watchTrades(id);
     }

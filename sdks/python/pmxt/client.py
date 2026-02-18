@@ -1482,18 +1482,26 @@ class Kalshi(Exchange):
         >>> kalshi = Kalshi()
         >>> markets = kalshi.fetch_markets(query="Fed rates")
         >>>
-        >>> # Trading (requires auth)
+        >>> # Trading on production (requires auth)
         >>> kalshi = Kalshi(
         ...     api_key=os.getenv("KALSHI_API_KEY"),
         ...     private_key=os.getenv("KALSHI_PRIVATE_KEY")
         ... )
         >>> balance = kalshi.fetch_balance()
+        >>>
+        >>> # Trading on demo / test
+        >>> kalshi = Kalshi(
+        ...     api_key=os.getenv("KALSHI_API_KEY"),
+        ...     private_key=os.getenv("KALSHI_PRIVATE_KEY"),
+        ...     demo_mode=True
+        ... )
     """
     
     def __init__(
         self,
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
+        demo_mode: bool = False,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
     ):
@@ -1503,9 +1511,19 @@ class Kalshi(Exchange):
         Args:
             api_key: Kalshi API key (required for trading)
             private_key: Kalshi private key (required for trading)
+            demo_mode: Use Kalshi's demo/paper-trading environment instead of
+                production. Overrides the KALSHI_DEMO_MODE environment variable.
+                Defaults to False (production).
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
         """
+        # Propagate demo_mode to the sidecar server via environment variable.
+        # Must be set before super().__init__() which starts the server.
+        if demo_mode:
+            os.environ["KALSHI_DEMO_MODE"] = "true"
+        elif "KALSHI_DEMO_MODE" not in os.environ:
+            os.environ["KALSHI_DEMO_MODE"] = "false"
+
         super().__init__(
             exchange_name="kalshi",
             api_key=api_key,

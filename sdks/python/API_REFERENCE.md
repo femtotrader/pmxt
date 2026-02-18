@@ -67,6 +67,15 @@ def fetch_markets(params: Optional[MarketFetchParams] = None) -> List[UnifiedMar
 **Parameters:**
 
 - `params` (MarketFetchParams) - **Optional**: Optional parameters for filtering and search
+  - `query` (str) - **Optional**: Search query string to filter markets by title/description
+  - `slug` (str) - **Optional**: Fetch a specific market by its slug
+  - `limit` (int) - **Optional**: Maximum number of markets to return
+  - `offset` (int) - **Optional**: Number of markets to skip (for pagination)
+  - `page` (int) - **Optional**: Page number (for pagination)
+  - `status` (str) - **Optional**: Filter by market status (default: `active`)
+  - `sort` (str) - **Optional**: Sort order for results
+  - `search_in` (str) - **Optional**: Fields to search within
+  - `similarity_threshold` (float) - **Optional**: Minimum similarity score for fuzzy search results
 
 **Returns:** `List[UnifiedMarket]` - Array of unified markets
 

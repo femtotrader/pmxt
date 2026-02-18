@@ -130,7 +130,9 @@ export class ServerManager {
         }
 
         // Locate pmxt-ensure-server
-        let launcherPath = 'pmxt-ensure-server'; // Default to PATH
+        const isWindows = process.platform === 'win32';
+        const launcherName = isWindows ? 'pmxt-ensure-server.js' : 'pmxt-ensure-server';
+        let launcherPath = launcherName; // Default to PATH
 
         try {
             // Try to resolve from pmxt-core dependency
@@ -138,7 +140,7 @@ export class ServerManager {
             // For ESM build, this will be transpiled appropriately
             const corePackageJson = require.resolve('pmxt-core/package.json');
             const coreDir = dirname(corePackageJson);
-            const binPath = join(coreDir, 'bin', 'pmxt-ensure-server');
+            const binPath = join(coreDir, 'bin', launcherName);
 
             if (existsSync(binPath)) {
                 launcherPath = binPath;
@@ -151,8 +153,12 @@ export class ServerManager {
         // Try to start the server using pmxt-ensure-server
         const { spawn } = await import("child_process");
 
+        // On Windows, .js scripts must be run via node explicitly
+        const spawnCmd = launcherPath.endsWith('.js') ? 'node' : launcherPath;
+        const spawnArgs = launcherPath.endsWith('.js') ? [launcherPath] : [];
+
         try {
-            const proc = spawn(launcherPath, [], {
+            const proc = spawn(spawnCmd, spawnArgs, {
                 detached: true,
                 stdio: "ignore",
             });

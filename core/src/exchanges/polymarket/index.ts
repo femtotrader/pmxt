@@ -8,7 +8,6 @@ import { mapMarketToUnified } from './utils';
 import { fetchOHLCV } from './fetchOHLCV';
 import { fetchOrderBook } from './fetchOrderBook';
 import { fetchTrades } from './fetchTrades';
-import { fetchPositions } from './fetchPositions';
 import { PolymarketAuth } from './auth';
 import { Side, OrderType, AssetType } from '@polymarket/clob-client';
 import { PolymarketWebSocket, PolymarketWebSocketConfig } from './websocket';
@@ -386,7 +385,18 @@ export class PolymarketExchange extends PredictionMarketExchange {
         try {
             const auth = this.ensureAuth();
             const address = await auth.getEffectiveFunderAddress();
-            return fetchPositions(address);
+            const result = await this.callApi('getPositions', { user: address, limit: 100 });
+            const data = Array.isArray(result) ? result : [];
+            return data.map((p: any) => ({
+                marketId: p.conditionId,
+                outcomeId: p.asset,
+                outcomeLabel: p.outcome || 'Unknown',
+                size: parseFloat(p.size),
+                entryPrice: parseFloat(p.avgPrice),
+                currentPrice: parseFloat(p.curPrice || '0'),
+                unrealizedPnL: parseFloat(p.cashPnl || '0'),
+                realizedPnL: parseFloat(p.realizedPnl || '0'),
+            }));
         } catch (error: any) {
             throw polymarketErrorMapper.mapError(error);
         }

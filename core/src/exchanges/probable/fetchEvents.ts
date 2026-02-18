@@ -4,40 +4,40 @@ import axios, { AxiosInstance } from 'axios';
 import { BASE_URL, SEARCH_PATH, EVENTS_PATH, mapEventToUnified, enrichMarketsWithPrices } from './utils';
 import { probableErrorMapper } from './errors';
 
-export async function fetchEvents(params: EventFetchParams, http: AxiosInstance = axios): Promise<UnifiedEvent[]> {
+export async function fetchEvents(params: EventFetchParams, http: AxiosInstance = axios, callMidpoint?: (tokenId: string) => Promise<any>): Promise<UnifiedEvent[]> {
     try {
         // Handle eventId lookup
         if (params.eventId) {
-            const event = await fetchEventById(params.eventId, http);
+            const event = await fetchEventById(params.eventId, http, callMidpoint);
             return event ? [event] : [];
         }
 
         // Handle slug lookup
         if (params.slug) {
-            const event = await fetchEventBySlug(params.slug, http);
+            const event = await fetchEventBySlug(params.slug, http, callMidpoint);
             return event ? [event] : [];
         }
 
         // Query-based search: use the search endpoint (only endpoint with text search)
         if (params.query) {
-            return await searchEvents(params, http);
+            return await searchEvents(params, http, callMidpoint);
         }
 
         // Default: use the dedicated events API for listing
-        return await fetchEventsList(params, http);
+        return await fetchEventsList(params, http, callMidpoint);
     } catch (error: any) {
         throw probableErrorMapper.mapError(error);
     }
 }
 
-export async function fetchEventById(id: string, http: AxiosInstance = axios): Promise<UnifiedEvent | null> {
+export async function fetchEventById(id: string, http: AxiosInstance = axios, callMidpoint?: (tokenId: string) => Promise<any>): Promise<UnifiedEvent | null> {
     try {
         const numericId = Number(id);
         if (isNaN(numericId)) return null;
 
         const response = await http.get(`${BASE_URL}${EVENTS_PATH}${numericId}`);
         const event = mapEventToUnified(response.data);
-        if (event) await enrichMarketsWithPrices(event.markets);
+        if (event && callMidpoint) await enrichMarketsWithPrices(event.markets, callMidpoint);
         return event;
     } catch (error: any) {
         if (isNotFoundError(error)) return null;
@@ -45,11 +45,11 @@ export async function fetchEventById(id: string, http: AxiosInstance = axios): P
     }
 }
 
-export async function fetchEventBySlug(slug: string, http: AxiosInstance = axios): Promise<UnifiedEvent | null> {
+export async function fetchEventBySlug(slug: string, http: AxiosInstance = axios, callMidpoint?: (tokenId: string) => Promise<any>): Promise<UnifiedEvent | null> {
     try {
         const response = await http.get(`${BASE_URL}${EVENTS_PATH}slug/${slug}`);
         const event = mapEventToUnified(response.data);
-        if (event) await enrichMarketsWithPrices(event.markets);
+        if (event && callMidpoint) await enrichMarketsWithPrices(event.markets, callMidpoint);
         return event;
     } catch (error: any) {
         if (isNotFoundError(error)) return null;
@@ -57,7 +57,7 @@ export async function fetchEventBySlug(slug: string, http: AxiosInstance = axios
     }
 }
 
-async function fetchEventsList(params: EventFetchParams, http: AxiosInstance): Promise<UnifiedEvent[]> {
+async function fetchEventsList(params: EventFetchParams, http: AxiosInstance, callMidpoint?: (tokenId: string) => Promise<any>): Promise<UnifiedEvent[]> {
     const limit = params.limit || 20;
     const page = params.offset ? Math.floor(params.offset / limit) + 1 : 1;
 
@@ -98,11 +98,11 @@ async function fetchEventsList(params: EventFetchParams, http: AxiosInstance): P
         .map((event: any) => mapEventToUnified(event))
         .filter((e: any): e is UnifiedEvent => e !== null);
     const allMarkets = result.flatMap((e: UnifiedEvent) => e.markets);
-    await enrichMarketsWithPrices(allMarkets);
+    if (callMidpoint) await enrichMarketsWithPrices(allMarkets, callMidpoint);
     return result;
 }
 
-async function searchEvents(params: EventFetchParams, http: AxiosInstance): Promise<UnifiedEvent[]> {
+async function searchEvents(params: EventFetchParams, http: AxiosInstance, callMidpoint?: (tokenId: string) => Promise<any>): Promise<UnifiedEvent[]> {
     const limit = params.limit || 20;
     const page = params.offset ? Math.floor(params.offset / limit) + 1 : 1;
 
@@ -122,7 +122,7 @@ async function searchEvents(params: EventFetchParams, http: AxiosInstance): Prom
         .map((event: any) => mapEventToUnified(event))
         .filter((e: any): e is UnifiedEvent => e !== null);
     const allMarkets = result.flatMap((e: UnifiedEvent) => e.markets);
-    await enrichMarketsWithPrices(allMarkets);
+    if (callMidpoint) await enrichMarketsWithPrices(allMarkets, callMidpoint);
     return result;
 }
 

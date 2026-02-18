@@ -1,9 +1,7 @@
 import { UnifiedMarket, UnifiedEvent, MarketOutcome } from '../../types';
 import { addBinaryOutcomes } from '../../utils/market-utils';
-import axios from 'axios';
 
 export const BASE_URL = 'https://market-api.probable.markets';
-export const CLOB_BASE_URL = 'https://api.probable.markets/public/api/v1';
 export const SEARCH_PATH = '/public/api/v1/public-search/';
 export const EVENTS_PATH = '/public/api/v1/events/';
 export const MARKETS_PATH = '/public/api/v1/markets/';
@@ -72,7 +70,7 @@ export function mapEventToUnified(event: any): UnifiedEvent | null {
     };
 }
 
-export async function enrichMarketsWithPrices(markets: UnifiedMarket[]): Promise<void> {
+export async function enrichMarketsWithPrices(markets: UnifiedMarket[], callMidpoint: (tokenId: string) => Promise<any>): Promise<void> {
     const outcomes: MarketOutcome[] = [];
     for (const market of markets) {
         for (const outcome of market.outcomes) {
@@ -83,10 +81,8 @@ export async function enrichMarketsWithPrices(markets: UnifiedMarket[]): Promise
 
     const results = await Promise.allSettled(
         outcomes.map(async (outcome) => {
-            const response = await axios.get(`${CLOB_BASE_URL}/midpoint`, {
-                params: { token_id: outcome.outcomeId },
-            });
-            return { outcomeId: outcome.outcomeId, mid: Number(response.data?.mid ?? 0) };
+            const response = await callMidpoint(outcome.outcomeId);
+            return { outcomeId: outcome.outcomeId, mid: Number(response?.mid ?? 0) };
         })
     );
 

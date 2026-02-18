@@ -21,7 +21,6 @@ import {
 } from '../../types';
 import { fetchMarkets } from './fetchMarkets';
 import { fetchEvents, fetchEventById, fetchEventBySlug } from './fetchEvents';
-import { fetchPositions } from './fetchPositions';
 import { fetchTrades } from './fetchTrades';
 import { ProbableAuth } from './auth';
 import { ProbableWebSocket, ProbableWebSocketConfig } from './websocket';
@@ -107,19 +106,19 @@ export class ProbableExchange extends PredictionMarketExchange {
     // --------------------------------------------------------------------------
 
     protected async fetchMarketsImpl(params?: MarketFetchParams): Promise<UnifiedMarket[]> {
-        return fetchMarkets(params, this.http);
+        return fetchMarkets(params, this.http, (tokenId) => this.callApi('getPublicApiV1Midpoint', { token_id: tokenId }));
     }
 
     protected async fetchEventsImpl(params: EventFetchParams): Promise<UnifiedEvent[]> {
-        return fetchEvents(params, this.http);
+        return fetchEvents(params, this.http, (tokenId) => this.callApi('getPublicApiV1Midpoint', { token_id: tokenId }));
     }
 
     async getEventById(id: string): Promise<UnifiedEvent | null> {
-        return fetchEventById(id, this.http);
+        return fetchEventById(id, this.http, (tokenId) => this.callApi('getPublicApiV1Midpoint', { token_id: tokenId }));
     }
 
     async getEventBySlug(slug: string): Promise<UnifiedEvent | null> {
-        return fetchEventBySlug(slug, this.http);
+        return fetchEventBySlug(slug, this.http, (tokenId) => this.callApi('getPublicApiV1Midpoint', { token_id: tokenId }));
     }
 
     async fetchOrderBook(id: string): Promise<OrderBook> {
@@ -367,7 +366,18 @@ export class ProbableExchange extends PredictionMarketExchange {
         try {
             const auth = this.ensureAuth();
             const address = auth.getAddress();
-            return fetchPositions(address);
+            const result = await this.callApi('getPublicApiV1PositionCurrent', { user: address, limit: 500 });
+            const data = Array.isArray(result) ? result : (result?.data || []);
+            return data.map((p: any) => ({
+                marketId: String(p.conditionId || p.condition_id || ''),
+                outcomeId: String(p.asset || p.token_id || ''),
+                outcomeLabel: p.outcome || p.title || 'Unknown',
+                size: parseFloat(p.size || '0'),
+                entryPrice: parseFloat(p.avgPrice || p.avg_price || '0'),
+                currentPrice: parseFloat(p.curPrice || p.cur_price || '0'),
+                unrealizedPnL: parseFloat(p.cashPnl || p.cash_pnl || '0'),
+                realizedPnL: parseFloat(p.realizedPnl || p.realized_pnl || '0'),
+            }));
         } catch (error: any) {
             throw probableErrorMapper.mapError(error);
         }

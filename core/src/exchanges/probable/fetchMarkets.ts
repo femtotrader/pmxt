@@ -4,21 +4,21 @@ import axios, { AxiosInstance } from 'axios';
 import { BASE_URL, SEARCH_PATH, MARKETS_PATH, mapMarketToUnified, enrichMarketsWithPrices } from './utils';
 import { probableErrorMapper } from './errors';
 
-export async function fetchMarkets(params?: MarketFetchParams, http: AxiosInstance = axios): Promise<UnifiedMarket[]> {
+export async function fetchMarkets(params?: MarketFetchParams, http: AxiosInstance = axios, callMidpoint?: (tokenId: string) => Promise<any>): Promise<UnifiedMarket[]> {
     try {
         // Handle marketId lookup (numeric ID or slug)
         if (params?.marketId) {
-            return await fetchMarketByIdOrSlug(params.marketId, http);
+            return await fetchMarketByIdOrSlug(params.marketId, http, callMidpoint);
         }
 
         // Slug-based lookup: try market ID or slug via dedicated endpoint
         if (params?.slug) {
-            return await fetchMarketByIdOrSlug(params.slug, http);
+            return await fetchMarketByIdOrSlug(params.slug, http, callMidpoint);
         }
 
         // Handle outcomeId lookup (no direct API, fetch and filter client-side)
         if (params?.outcomeId) {
-            const markets = await fetchMarketsList(params, http);
+            const markets = await fetchMarketsList(params, http, callMidpoint);
             return markets.filter(m =>
                 m.outcomes.some(o => o.outcomeId === params.outcomeId)
             );
@@ -26,22 +26,22 @@ export async function fetchMarkets(params?: MarketFetchParams, http: AxiosInstan
 
         // Handle eventId lookup (use markets list with eventId param)
         if (params?.eventId) {
-            return await fetchMarketsList(params, http);
+            return await fetchMarketsList(params, http, callMidpoint);
         }
 
         // Query-based search: use the search endpoint (only endpoint with text search)
         if (params?.query) {
-            return await searchAndExtractMarkets(params.query, params, http);
+            return await searchAndExtractMarkets(params.query, params, http, callMidpoint);
         }
 
         // Default: use the dedicated markets API for listing
-        return await fetchMarketsList(params, http);
+        return await fetchMarketsList(params, http, callMidpoint);
     } catch (error: any) {
         throw probableErrorMapper.mapError(error);
     }
 }
 
-async function fetchMarketByIdOrSlug(slug: string, http: AxiosInstance): Promise<UnifiedMarket[]> {
+async function fetchMarketByIdOrSlug(slug: string, http: AxiosInstance, callMidpoint?: (tokenId: string) => Promise<any>): Promise<UnifiedMarket[]> {
     let cleanSlug = slug;
     let marketIdFromQuery: string | null = null;
 
@@ -56,7 +56,7 @@ async function fetchMarketByIdOrSlug(slug: string, http: AxiosInstance): Promise
 
             // If we have a market ID from the query, try that first
             if (marketIdFromQuery) {
-                const result = await fetchMarketByIdOrSlug(marketIdFromQuery, http);
+                const result = await fetchMarketByIdOrSlug(marketIdFromQuery, http, callMidpoint);
                 if (result.length > 0) return result;
             }
         } catch (e) {
@@ -71,12 +71,12 @@ async function fetchMarketByIdOrSlug(slug: string, http: AxiosInstance): Promise
             const response = await http.get(`${BASE_URL}${MARKETS_PATH}${numericId}`);
             const mapped = mapMarketToUnified(response.data, response.data?.event);
             const results = mapped ? [mapped] : [];
-            await enrichMarketsWithPrices(results);
+            if (callMidpoint) await enrichMarketsWithPrices(results, callMidpoint);
             return results;
         } catch (error: any) {
             if (isMarketNotFoundError(error)) {
                 // Individual market endpoint returned 500/404; fall back to list and filter
-                const allMarkets = await fetchMarketsList({ limit: 100 }, http);
+                const allMarkets = await fetchMarketsList({ limit: 100 }, http, callMidpoint);
                 const match = allMarkets.filter(m => m.marketId === cleanSlug);
                 if (match.length > 0) return match;
             } else {
@@ -86,10 +86,10 @@ async function fetchMarketByIdOrSlug(slug: string, http: AxiosInstance): Promise
     }
 
     // Fall back to search for slug-based matching
-    return await searchAndExtractMarkets(cleanSlug, { slug: cleanSlug }, http);
+    return await searchAndExtractMarkets(cleanSlug, { slug: cleanSlug }, http, callMidpoint);
 }
 
-async function fetchMarketsList(params: MarketFetchParams | undefined, http: AxiosInstance): Promise<UnifiedMarket[]> {
+async function fetchMarketsList(params: MarketFetchParams | undefined, http: AxiosInstance, callMidpoint?: (tokenId: string) => Promise<any>): Promise<UnifiedMarket[]> {
     const limit = params?.limit || 20;
     const page = params?.offset ? Math.floor(params.offset / limit) + 1 : 1;
 
@@ -133,14 +133,15 @@ async function fetchMarketsList(params: MarketFetchParams | undefined, http: Axi
         if (mapped) allMarkets.push(mapped);
     }
 
-    await enrichMarketsWithPrices(allMarkets);
+    if (callMidpoint) await enrichMarketsWithPrices(allMarkets, callMidpoint);
     return allMarkets;
 }
 
 async function searchAndExtractMarkets(
     query: string,
     params: MarketFetchParams | undefined,
-    http: AxiosInstance
+    http: AxiosInstance,
+    callMidpoint?: (tokenId: string) => Promise<any>
 ): Promise<UnifiedMarket[]> {
     const limit = params?.limit || 20;
     const page = params?.offset ? Math.floor(params.offset / limit) + 1 : 1;
@@ -234,7 +235,7 @@ async function searchAndExtractMarkets(
             delete (m as any)._eventSlug;
         }
         if (exact.length > 0) {
-            await enrichMarketsWithPrices(exact);
+            if (callMidpoint) await enrichMarketsWithPrices(exact, callMidpoint);
             return exact;
         }
     }
@@ -243,7 +244,7 @@ async function searchAndExtractMarkets(
         delete (m as any)._eventSlug;
     }
 
-    await enrichMarketsWithPrices(allMarkets);
+    if (callMidpoint) await enrichMarketsWithPrices(allMarkets, callMidpoint);
     return allMarkets;
 }
 

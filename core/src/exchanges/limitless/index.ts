@@ -24,7 +24,6 @@ import { fetchEvents } from './fetchEvents';
 import { fetchOHLCV } from './fetchOHLCV';
 import { fetchOrderBook } from './fetchOrderBook';
 import { fetchTrades } from './fetchTrades';
-import { fetchPositions } from './fetchPositions';
 import { LimitlessAuth } from './auth';
 import { LimitlessClient } from './client';
 import { LimitlessWebSocket, LimitlessWebSocketConfig } from './websocket';
@@ -295,7 +294,18 @@ export class LimitlessExchange extends PredictionMarketExchange {
     async fetchPositions(): Promise<Position[]> {
         const auth = this.ensureAuth();
         const address = auth.getAddress();
-        return fetchPositions(address);
+        const result = await this.callApi('PublicPortfolioController_getPositions', { account: address });
+        const data = result?.data || result || [];
+        return data.map((p: any) => ({
+            marketId: p.market?.slug || p.conditionId,
+            outcomeId: p.asset,
+            outcomeLabel: p.outcome || 'Unknown',
+            size: parseFloat(p.size || '0'),
+            entryPrice: parseFloat(p.avgPrice || '0'),
+            currentPrice: parseFloat(p.curPrice || '0'),
+            unrealizedPnL: parseFloat(p.cashPnl || '0'),
+            realizedPnL: parseFloat(p.realizedPnl || '0'),
+        }));
     }
 
     async fetchBalance(): Promise<Balance[]> {

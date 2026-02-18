@@ -3,9 +3,8 @@ import { UnifiedMarket, UnifiedEvent, PriceCandle, OrderBook, Trade, Balance, Or
 import { fetchMarkets } from './fetchMarkets';
 import { fetchEvents } from './fetchEvents';
 import { fetchOHLCV } from './fetchOHLCV';
-import { fetchOrderBook } from './fetchOrderBook';
-import { fetchTrades } from './fetchTrades';
 import { KalshiAuth } from './auth';
+import { validateIdFormat } from '../../utils/validation';
 import { KalshiWebSocket, KalshiWebSocketConfig } from './websocket';
 import { kalshiErrorMapper } from './errors';
 import { AuthenticationError } from '../../errors';
@@ -116,18 +115,58 @@ export class KalshiExchange extends PredictionMarketExchange {
     }
 
     async fetchOrderBook(id: string): Promise<OrderBook> {
-        return fetchOrderBook(id, this.http);
+        validateIdFormat(id, 'OrderBook');
+
+        const isNoOutcome = id.endsWith('-NO');
+        const ticker = id.replace(/-NO$/, '');
+        const data = (await this.callApi('GetMarketOrderbook', { ticker })).orderbook;
+
+        let bids: any[];
+        let asks: any[];
+
+        if (isNoOutcome) {
+            bids = (data.no || []).map((level: number[]) => ({
+                price: level[0] / 100,
+                size: level[1],
+            }));
+            asks = (data.yes || []).map((level: number[]) => ({
+                price: 1 - (level[0] / 100),
+                size: level[1],
+            }));
+        } else {
+            bids = (data.yes || []).map((level: number[]) => ({
+                price: level[0] / 100,
+                size: level[1],
+            }));
+            asks = (data.no || []).map((level: number[]) => ({
+                price: 1 - (level[0] / 100),
+                size: level[1],
+            }));
+        }
+
+        bids.sort((a: any, b: any) => b.price - a.price);
+        asks.sort((a: any, b: any) => a.price - b.price);
+
+        return { bids, asks, timestamp: Date.now() };
     }
 
     async fetchTrades(id: string, params: TradesParams | HistoryFilterParams): Promise<Trade[]> {
-        // Deprecation warning
         if ('resolution' in params && params.resolution !== undefined) {
             console.warn(
                 '[pmxt] Warning: The "resolution" parameter is deprecated for fetchTrades() and will be ignored. ' +
                 'It will be removed in v3.0.0. Please remove it from your code.'
             );
         }
-        return fetchTrades(id, params, this.http);
+        const ticker = id.replace(/-NO$/, '');
+        const data = await this.callApi('GetTrades', { ticker, limit: params.limit || 100 });
+        const trades = data.trades || [];
+        return trades.map((t: any) => ({
+            id: t.trade_id,
+            timestamp: new Date(t.created_time).getTime(),
+            price: t.yes_price / 100,
+            amount: t.count,
+            side: t.taker_side === 'yes' ? 'buy' : 'sell',
+        }));
     }
 
     // ----------------------------------------------------------------------------

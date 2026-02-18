@@ -4,7 +4,6 @@ import { fetchMarkets } from './fetchMarkets';
 import { fetchEvents } from './fetchEvents';
 import { fetchOHLCV } from './fetchOHLCV';
 import { fetchOrderBook } from './fetchOrderBook';
-import { fetchTrades } from './fetchTrades';
 import { MyriadAuth } from './auth';
 import { MyriadWebSocket } from './websocket';
 import { myriadErrorMapper } from './errors';
@@ -99,7 +98,48 @@ export class MyriadExchange extends PredictionMarketExchange {
                 'It will be removed in v3.0.0. Please remove it from your code.'
             );
         }
-        return fetchTrades(id, params, this.getHeaders(), this.http);
+
+        const parts = id.split(':');
+        if (parts.length < 2) {
+            throw new Error(`Invalid Myriad ID format: "${id}". Expected "{networkId}:{marketId}" or "{networkId}:{marketId}:{outcomeId}".`);
+        }
+
+        const [networkId, marketId] = parts;
+        const outcomeId = parts.length >= 3 ? parts[2] : undefined;
+
+        const ensureDate = (d: any): Date => {
+            if (typeof d === 'string') {
+                if (!d.endsWith('Z') && !d.match(/[+-]\d{2}:\d{2}$/)) return new Date(d + 'Z');
+                return new Date(d);
+            }
+            return d;
+        };
+
+        const queryParams: Record<string, any> = {
+            id: marketId,
+            network_id: Number(networkId),
+            page: 1,
+            limit: params.limit || 100,
+        };
+
+        if (params.start) queryParams.since = Math.floor(ensureDate(params.start).getTime() / 1000);
+        if (params.end) queryParams.until = Math.floor(ensureDate(params.end).getTime() / 1000);
+
+        const data = await this.callApi('getMarketsEvents', queryParams);
+        const events = data.data || data.events || [];
+
+        const tradeEvents = events.filter((e: any) => e.action === 'buy' || e.action === 'sell');
+        const filtered = outcomeId
+            ? tradeEvents.filter((e: any) => String(e.outcomeId) === outcomeId)
+            : tradeEvents;
+
+        return filtered.map((t: any, index: number) => ({
+            id: `${t.blockNumber || t.timestamp}-${index}`,
+            timestamp: (t.timestamp || 0) * 1000,
+            price: t.shares > 0 ? Number(t.value) / Number(t.shares) : 0,
+            amount: Number(t.shares || 0),
+            side: t.action === 'buy' ? 'buy' as const : 'sell' as const,
+        }));
     }
 
     // ------------------------------------------------------------------------

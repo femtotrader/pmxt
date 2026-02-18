@@ -12,6 +12,7 @@ import {
     UnifiedEvent,
     OrderBook,
     PriceCandle,
+    CandleInterval,
     Trade,
     Order,
     Position,
@@ -20,8 +21,6 @@ import {
 } from '../../types';
 import { fetchMarkets } from './fetchMarkets';
 import { fetchEvents, fetchEventById, fetchEventBySlug } from './fetchEvents';
-import { fetchOrderBook } from './fetchOrderBook';
-import { fetchOHLCV } from './fetchOHLCV';
 import { fetchPositions } from './fetchPositions';
 import { fetchTrades } from './fetchTrades';
 import { ProbableAuth } from './auth';
@@ -33,6 +32,23 @@ import { parseOpenApiSpec } from '../../utils/openapi';
 import { probableApiSpec } from './api';
 
 const BSC_USDT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
+
+function aggregateCandles(candles: PriceCandle[], intervalMs: number): PriceCandle[] {
+    if (candles.length === 0) return [];
+    const buckets = new Map<number, PriceCandle>();
+    for (const c of candles) {
+        const key = Math.floor(c.timestamp / intervalMs) * intervalMs;
+        const existing = buckets.get(key);
+        if (!existing) {
+            buckets.set(key, { ...c, timestamp: key });
+        } else {
+            existing.high = Math.max(existing.high, c.high);
+            existing.low = Math.min(existing.low, c.low);
+            existing.close = c.close;
+        }
+    }
+    return Array.from(buckets.values()).sort((a, b) => a.timestamp - b.timestamp);
+}
 
 export class ProbableExchange extends PredictionMarketExchange {
     override readonly has = {
@@ -71,6 +87,10 @@ export class ProbableExchange extends PredictionMarketExchange {
         return 'Probable';
     }
 
+    protected override mapImplicitApiError(error: any): any {
+        throw probableErrorMapper.mapError(error);
+    }
+
     private ensureAuth(): ProbableAuth {
         if (!this.auth) {
             throw new AuthenticationError(
@@ -103,11 +123,63 @@ export class ProbableExchange extends PredictionMarketExchange {
     }
 
     async fetchOrderBook(id: string): Promise<OrderBook> {
-        return fetchOrderBook(id, this.http);
+        const data = await this.callApi('getPublicApiV1Book', { token_id: id });
+        const bids = (data.bids || [])
+            .map((level: any) => ({ price: parseFloat(level.price), size: parseFloat(level.size) }))
+            .sort((a: any, b: any) => b.price - a.price);
+        const asks = (data.asks || [])
+            .map((level: any) => ({ price: parseFloat(level.price), size: parseFloat(level.size) }))
+            .sort((a: any, b: any) => a.price - b.price);
+        return {
+            bids,
+            asks,
+            timestamp: data.timestamp ? new Date(data.timestamp).getTime() : Date.now(),
+        };
     }
 
     async fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams): Promise<PriceCandle[]> {
-        return fetchOHLCV(id, params, this.http);
+        if (!params.resolution) {
+            throw new Error('fetchOHLCV requires a resolution parameter.');
+        }
+
+        const INTERVAL_MAP: Record<CandleInterval, string> = {
+            '1m': '1m',
+            '5m': '1m',
+            '15m': '1m',
+            '1h': '1h',
+            '6h': '6h',
+            '1d': '1d',
+        };
+
+        const queryParams: Record<string, any> = {
+            market: id,
+            interval: INTERVAL_MAP[params.resolution] || '1h',
+        };
+        if (params.start) queryParams.startTs = Math.floor(params.start.getTime() / 1000);
+        if (params.end) queryParams.endTs = Math.floor(params.end.getTime() / 1000);
+
+        const data = await this.callApi('getPublicApiV1PricesHistory', queryParams);
+        const points: any[] = data?.history || data || [];
+
+        let candles: PriceCandle[] = points
+            .map((p: any) => {
+                const price = Number(p.p);
+                const ts = Number(p.t) * 1000;
+                return { timestamp: ts, open: price, high: price, low: price, close: price, volume: 0 };
+            })
+            .sort((a: PriceCandle, b: PriceCandle) => a.timestamp - b.timestamp);
+
+        if (params.resolution === '5m') {
+            candles = aggregateCandles(candles, 5 * 60 * 1000);
+        } else if (params.resolution === '15m') {
+            candles = aggregateCandles(candles, 15 * 60 * 1000);
+        }
+
+        if (params.limit) {
+            candles = candles.slice(-params.limit);
+        }
+
+        return candles;
     }
 
     // --------------------------------------------------------------------------

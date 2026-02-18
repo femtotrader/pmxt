@@ -4,6 +4,7 @@ import { UnifiedMarket, UnifiedEvent, PriceCandle, OrderBook, Trade, Order, Posi
 import { parseOpenApiSpec } from '../../utils/openapi';
 import { fetchMarkets } from './fetchMarkets';
 import { fetchEvents } from './fetchEvents';
+import { mapMarketToUnified } from './utils';
 import { fetchOHLCV } from './fetchOHLCV';
 import { fetchOrderBook } from './fetchOrderBook';
 import { fetchTrades } from './fetchTrades';
@@ -160,6 +161,30 @@ export class PolymarketExchange extends PredictionMarketExchange {
     }
 
     protected async fetchEventsImpl(params: EventFetchParams): Promise<UnifiedEvent[]> {
+        if (params.eventId || params.slug) {
+            const queryParams = params.eventId ? { id: params.eventId } : { slug: params.slug };
+            const events = await this.callApi('listEvents', queryParams);
+            return (events || []).map((event: any) => {
+                const markets: UnifiedMarket[] = [];
+                if (event.markets && Array.isArray(event.markets)) {
+                    for (const market of event.markets) {
+                        const unified = mapMarketToUnified(event, market, { useQuestionAsCandidateFallback: true });
+                        if (unified) markets.push(unified);
+                    }
+                }
+                return {
+                    id: event.id || event.slug,
+                    title: event.title,
+                    description: event.description || '',
+                    slug: event.slug,
+                    markets,
+                    url: `https://polymarket.com/event/${event.slug}`,
+                    image: event.image || `https://polymarket.com/api/og?slug=${event.slug}`,
+                    category: event.category || event.tags?.[0]?.label,
+                    tags: event.tags?.map((t: any) => t.label) || [],
+                } as UnifiedEvent;
+            });
+        }
         return fetchEvents(params, this.http);
     }
 

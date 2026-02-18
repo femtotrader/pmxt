@@ -29,6 +29,7 @@ import { AuthenticationError } from '../../errors';
 import { OrderSide } from '@prob/clob';
 import { parseOpenApiSpec } from '../../utils/openapi';
 import { probableApiSpec } from './api';
+import { BASE_URL } from './utils';
 
 const BSC_USDT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
 
@@ -78,7 +79,7 @@ export class ProbableExchange extends PredictionMarketExchange {
             this.auth = new ProbableAuth(credentials);
         }
 
-        const descriptor = parseOpenApiSpec(probableApiSpec);
+        const descriptor = parseOpenApiSpec(probableApiSpec, BASE_URL);
         this.defineImplicitApi(descriptor);
     }
 

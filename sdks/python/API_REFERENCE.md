@@ -53,6 +53,31 @@ pmxt.restart_server()
 
 ## Methods
 
+### `load_markets`
+
+Load and cache markets from the exchange.
+
+
+**Signature:**
+
+```python
+def load_markets(reload: bool) -> Record<string, UnifiedMarket>:
+```
+
+**Parameters:**
+
+- `reload` (bool): Force a reload of markets from the API even if already loaded
+
+**Returns:** `Record<string, UnifiedMarket>` - Dictionary of markets indexed by marketId
+
+**Example:**
+
+```python
+# No example available
+```
+
+
+---
 ### `fetch_markets`
 
 Fetch markets with optional filtering, search, or slug lookup.
@@ -80,13 +105,15 @@ def fetch_markets(params: Optional[MarketFetchParams] = None) -> List[UnifiedMar
 
 ```python
 # Fetch markets
-markets = exchange.fetch_markets(query='Trump', limit=20)
+markets = exchange.fetch_markets(query='Trump', limit=10000)
 print(markets[0].title)
 
 # Get market by slug
 markets = exchange.fetch_markets(slug='will-trump-win')
 ```
 
+**Notes:**
+Some exchanges (like Limitless) may only support status 'active' for search results.
 
 ---
 ### `fetch_events`
@@ -117,6 +144,60 @@ def fetch_events(params: Optional[EventFetchParams] = None) -> List[UnifiedEvent
 events = exchange.fetch_events(query='Fed Chair')
 fed_event = events[0]
 print(fed_event.title, len(fed_event.markets), 'markets')
+```
+
+**Notes:**
+Some exchanges (like Limitless) may only support status 'active' for search results.
+
+---
+### `fetch_market`
+
+Fetch a single market by lookup parameters.
+
+
+**Signature:**
+
+```python
+def fetch_market(params: Optional[MarketFetchParams] = None) -> UnifiedMarket:
+```
+
+**Parameters:**
+
+- `params` (MarketFetchParams) - **Optional**: Lookup parameters (marketId, outcomeId, slug, etc.)
+
+**Returns:** `UnifiedMarket` - A single unified market
+
+**Example:**
+
+```python
+# Fetch by market ID
+market = exchange.fetch_market(market_id='663583')
+```
+
+
+---
+### `fetch_event`
+
+Fetch a single event by lookup parameters.
+
+
+**Signature:**
+
+```python
+def fetch_event(params: Optional[EventFetchParams] = None) -> UnifiedEvent:
+```
+
+**Parameters:**
+
+- `params` (EventFetchParams) - **Optional**: Lookup parameters (eventId, slug, query)
+
+**Returns:** `UnifiedEvent` - A single unified event
+
+**Example:**
+
+```python
+# Fetch by event ID
+event = exchange.fetch_event(event_id='TRUMP25DEC')
 ```
 
 
@@ -612,6 +693,31 @@ def close() -> void:
 ```python
 # Close connections
 exchange.close()
+```
+
+
+---
+### `implicit_api`
+
+Introspection getter: returns info about all implicit API methods.
+
+
+**Signature:**
+
+```python
+def implicit_api() -> List[ImplicitApiMethodInfo]:
+```
+
+**Parameters:**
+
+- None
+
+**Returns:** `List[ImplicitApiMethodInfo]` - Result
+
+**Example:**
+
+```python
+# No example available
 ```
 
 

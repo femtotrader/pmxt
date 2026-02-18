@@ -4,7 +4,27 @@ import { PolymarketExchange } from '../src/exchanges/polymarket';
 import { KalshiExchange } from '../src/exchanges/kalshi';
 import { LimitlessExchange } from '../src/exchanges/limitless';
 
-jest.mock('axios');
+jest.mock('axios', () => {
+    const mockInstance: any = {
+        get: jest.fn(),
+        post: jest.fn(),
+        delete: jest.fn(),
+        request: jest.fn(),
+        interceptors: {
+            request: { use: jest.fn() },
+            response: { use: jest.fn() },
+        },
+        defaults: { headers: { common: {} } },
+    };
+    const actualAxios = jest.requireActual('axios');
+    mockInstance.create = jest.fn(() => mockInstance);
+    mockInstance.isAxiosError = actualAxios.isAxiosError;
+    return {
+        __esModule: true,
+        default: mockInstance,
+        ...mockInstance,
+    };
+});
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('Exchange Status Filtering Implementation', () => {
@@ -59,11 +79,10 @@ describe('Exchange Status Filtering Implementation', () => {
         const kalshi = new KalshiExchange();
 
         it('should map status: "active" to status="open"', async () => {
-            mockedAxios.get.mockResolvedValue({ data: { events: [] } });
+            (mockedAxios as any).request.mockResolvedValue({ data: { events: [] } });
             await kalshi.fetchMarkets({ status: 'active' });
 
-            expect(mockedAxios.get).toHaveBeenCalledWith(
-                expect.any(String),
+            expect((mockedAxios as any).request).toHaveBeenCalledWith(
                 expect.objectContaining({
                     params: expect.objectContaining({
                         status: 'open'
@@ -73,11 +92,10 @@ describe('Exchange Status Filtering Implementation', () => {
         });
 
         it('should map status: "closed" to status="closed"', async () => {
-            mockedAxios.get.mockResolvedValue({ data: { events: [] } });
+            (mockedAxios as any).request.mockResolvedValue({ data: { events: [] } });
             await kalshi.fetchMarkets({ status: 'closed' });
 
-            expect(mockedAxios.get).toHaveBeenCalledWith(
-                expect.any(String),
+            expect((mockedAxios as any).request).toHaveBeenCalledWith(
                 expect.objectContaining({
                     params: expect.objectContaining({
                         status: 'closed'

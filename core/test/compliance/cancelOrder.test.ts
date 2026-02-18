@@ -2,7 +2,8 @@ import { exchangeClasses, hasAuth, initExchange } from './shared';
 
 describe('Compliance: cancelOrder', () => {
     exchangeClasses.forEach(({ name, cls }) => {
-        const testFn = hasAuth(name) ? test : test.skip;
+        const supportsCancel = new cls().has.cancelOrder !== false;
+        const testFn = hasAuth(name) && supportsCancel ? test : test.skip;
 
         testFn(`${name} should comply with cancelOrder standards`, async () => {
             const exchange = initExchange(name, cls);

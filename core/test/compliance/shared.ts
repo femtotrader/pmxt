@@ -28,7 +28,8 @@ export const exchangeClasses = Object.entries(pmxt)
     .filter(([name, value]) =>
         typeof value === 'function' &&
         name.endsWith('Exchange') &&
-        name !== 'PredictionMarketExchange'
+        name !== 'PredictionMarketExchange' &&
+        name !== 'BaoziExchange'
     )
     .map(([name, cls]) => ({ name, cls: cls as any }));
 

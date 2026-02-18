@@ -55,6 +55,31 @@ await pmxt.restartServer();
 
 ## Methods
 
+### `loadMarkets`
+
+Load and cache markets from the exchange.
+
+
+**Signature:**
+
+```typescript
+async loadMarkets(reload: boolean): Promise<Record<string, UnifiedMarket>>
+  ```
+
+  **Parameters:**
+
+  - `reload` (boolean): Force a reload of markets from the API even if already loaded
+
+  **Returns:** `Promise<Record<string, UnifiedMarket>>` - Dictionary of markets indexed by marketId
+
+    **Example:**
+
+    ```typescript
+    // No example available
+    ```
+
+
+    ---
 ### `fetchMarkets`
 
 Fetch markets with optional filtering, search, or slug lookup.
@@ -82,13 +107,15 @@ async fetchMarkets(params?: MarketFetchParams): Promise<UnifiedMarket[]>
 
     ```typescript
     // Fetch markets
-const markets = await exchange.fetchMarkets({ query: 'Trump', limit: 20 });
+const markets = await exchange.fetchMarkets({ query: 'Trump', limit: 10000 });
 console.log(markets[0].title);
 
 // Get market by slug
 const markets = await exchange.fetchMarkets({ slug: 'will-trump-win' });
     ```
 
+    **Notes:**
+    Some exchanges (like Limitless) may only support status 'active' for search results.
 
     ---
 ### `fetchEvents`
@@ -119,6 +146,63 @@ async fetchEvents(params?: EventFetchParams): Promise<UnifiedEvent[]>
 const events = await exchange.fetchEvents({ query: 'Fed Chair' });
 const fedEvent = events[0];
 console.log(fedEvent.title, fedEvent.markets.length, 'markets');
+    ```
+
+    **Notes:**
+    Some exchanges (like Limitless) may only support status 'active' for search results.
+
+    ---
+### `fetchMarket`
+
+Fetch a single market by lookup parameters.
+
+
+**Signature:**
+
+```typescript
+async fetchMarket(params?: MarketFetchParams): Promise<UnifiedMarket>
+  ```
+
+  **Parameters:**
+
+  - `params` (MarketFetchParams) - **Optional**: Lookup parameters (marketId, outcomeId, slug, etc.)
+
+  **Returns:** `Promise<UnifiedMarket>` - A single unified market
+
+    **Example:**
+
+    ```typescript
+    // Fetch by market ID
+const market = await exchange.fetchMarket({ marketId: '663583' });
+
+// Fetch by outcome ID
+const market = await exchange.fetchMarket({ outcomeId: '10991849...' });
+    ```
+
+
+    ---
+### `fetchEvent`
+
+Fetch a single event by lookup parameters.
+
+
+**Signature:**
+
+```typescript
+async fetchEvent(params?: EventFetchParams): Promise<UnifiedEvent>
+  ```
+
+  **Parameters:**
+
+  - `params` (EventFetchParams) - **Optional**: Lookup parameters (eventId, slug, query)
+
+  **Returns:** `Promise<UnifiedEvent>` - A single unified event
+
+    **Example:**
+
+    ```typescript
+    // Fetch by event ID
+const event = await exchange.fetchEvent({ eventId: 'TRUMP25DEC' });
     ```
 
 
@@ -623,6 +707,31 @@ async close(): Promise<void>
     ```typescript
     // Close connections
 await exchange.close();
+    ```
+
+
+    ---
+### `implicitApi`
+
+Introspection getter: returns info about all implicit API methods.
+
+
+**Signature:**
+
+```typescript
+async implicitApi(): Promise<ImplicitApiMethodInfo[]>
+  ```
+
+  **Parameters:**
+
+  - None
+
+  **Returns:** `Promise<ImplicitApiMethodInfo[]>` - Result
+
+    **Example:**
+
+    ```typescript
+    // No example available
     ```
 
 

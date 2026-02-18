@@ -8,7 +8,7 @@ describe('Compliance: fetchOrderBook', () => {
             console.info(`[Compliance] Testing ${name}.fetchOrderBook`);
 
             // 1. Get a market to find an outcome ID
-            const markets = await exchange.fetchMarkets({ limit: 5 });
+            const markets = (await exchange.fetchMarkets({ limit: 5 })).data;
             if (!markets || markets.length === 0) {
                 throw new Error(`${name}: No markets found to test fetchOrderBook`);
             }

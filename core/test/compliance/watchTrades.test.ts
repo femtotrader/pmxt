@@ -13,7 +13,7 @@ describe('Compliance: watchTrades', () => {
             try {
                 console.info(`[Compliance] Testing ${name}.watchTrades`);
 
-                const markets = await exchange.fetchMarkets({ limit: 25, sort: 'volume' });
+                const markets = (await exchange.fetchMarkets({ limit: 25, sort: 'volume' })).data;
                 if (!markets || markets.length === 0) {
                     throw new Error(`${name}: No markets found to test watchTrades`);
                 }
@@ -36,11 +36,11 @@ describe('Compliance: watchTrades', () => {
                     // Strategy: Fetch many markets sorted by 24h volume to find the most active ones
                     console.info(`[Compliance] Finding high-volume markets for ${name}...`);
 
-                    const volumeMarkets = await exchange.fetchMarkets({
+                    const volumeMarkets = (await exchange.fetchMarkets({
                         limit: 5000,
                         sort: 'volume',
                         status: 'active'
-                    });
+                    })).data;
 
                     console.info(`[Compliance] ${name}: Found ${volumeMarkets.length} active markets sorted by volume.`);
 

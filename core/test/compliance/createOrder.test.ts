@@ -12,7 +12,7 @@ describe('Compliance: createOrder', () => {
 
                 // 1. Fetch real markets to get valid IDs
                 // We assume there's at least one active market on the platform
-                const markets = await exchange.fetchMarkets({ limit: 25 });
+                const markets = (await exchange.fetchMarkets({ limit: 25 })).data;
                 if (!markets || markets.length === 0) {
                     console.warn(`[Compliance] No markets found for ${name}, skipping createOrder test.`);
                     return;

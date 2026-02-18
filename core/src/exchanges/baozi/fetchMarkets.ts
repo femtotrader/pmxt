@@ -144,10 +144,16 @@ function applyFilters(markets: UnifiedMarket[], params?: MarketFetchParams): Uni
         result.sort((a, b) => (b.volume || 0) - (a.volume || 0));
     }
 
-    // Pagination
-    const offset = params?.offset || 0;
-    const limit = params?.limit || 10000;
-    result = result.slice(offset, offset + limit);
+    // Pagination: preserve historical behavior when pagination params are supplied,
+    // otherwise return the full filtered set for cursor snapshots in BaseExchange.
+    const hasLimit = params?.limit !== undefined;
+    const hasOffset = params?.offset !== undefined;
+    if (hasLimit || hasOffset) {
+        const offset = params?.offset || 0;
+        const limit = params?.limit || 10000;
+        const end = hasLimit ? offset + limit : undefined;
+        result = result.slice(offset, end);
+    }
 
     return result;
 }

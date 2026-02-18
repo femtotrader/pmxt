@@ -17,7 +17,7 @@ describe('Compliance: watchOrderBook', () => {
             try {
                 console.info(`[Compliance] Testing ${name}.watchOrderBook`);
 
-                const markets = await exchange.fetchMarkets({ limit: 20 });
+                const markets = (await exchange.fetchMarkets({ limit: 20 })).data;
                 if (!markets || markets.length === 0) {
                     throw new Error(`${name}: No markets found to test watchOrderBook`);
                 }

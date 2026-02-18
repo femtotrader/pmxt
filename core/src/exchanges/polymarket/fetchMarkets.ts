@@ -223,8 +223,15 @@ async function fetchMarketsDefault(params: MarketFetchParams | undefined, http: 
             unifiedMarkets.sort((a, b) => b.volume24h - a.volume24h);
         }
 
-        // Respect limit strictly after flattening
-        return unifiedMarkets.slice(0, limit);
+        const hasLimit = params?.limit !== undefined;
+        const hasOffset = params?.offset !== undefined;
+        if (!hasLimit && !hasOffset) {
+            return unifiedMarkets;
+        }
+
+        const start = params?.offset || 0;
+        const end = hasLimit ? start + (params?.limit || 0) : undefined;
+        return unifiedMarkets.slice(start, end);
 
     } catch (error: any) {
         throw polymarketErrorMapper.mapError(error);

@@ -59,7 +59,7 @@ paths:
                   description: Enable verbose logging for this request
       responses:
         '200':
-          description: List of unified markets
+          description: Paginated list of unified markets
           content:
             application/json:
               schema:
@@ -68,9 +68,7 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/UnifiedMarket'
+                        $ref: '#/components/schemas/PaginatedMarketResult'
 
   /api/{exchange}/fetchMarket:
     post:
@@ -975,6 +973,20 @@ components:
         down:
           $ref: '#/components/schemas/MarketOutcome'
 
+    PaginatedMarketResult:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnifiedMarket'
+        nextCursor:
+          type: string
+          description: Opaque cursor for fetching the next page
+        total:
+          type: integer
+          description: Total number of markets in this snapshot
+
     MarketOutcome:
       type: object
       properties:
@@ -1164,6 +1176,9 @@ components:
           default: 10000
         offset:
           type: integer
+        cursor:
+          type: string
+          description: Opaque cursor returned by a previous fetchMarkets call
         sort:
           type: string
           enum: [volume, liquidity, newest]

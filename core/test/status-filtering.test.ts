@@ -110,7 +110,7 @@ describe('Exchange Status Filtering Implementation', () => {
 
         it('should return empty array for status: "closed" without hitting network', async () => {
             const markets = await limitless.fetchMarkets({ status: 'closed' });
-            expect(markets).toEqual([]);
+            expect(markets.data).toEqual([]);
             // Ensure no axios calls were made (SDK uses axios internally or via HttpClient)
             expect(mockedAxios.get).not.toHaveBeenCalled();
         });

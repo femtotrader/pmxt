@@ -170,7 +170,7 @@ describe('fetchMarket (singular)', () => {
 
         expect(receivedParams).toBeDefined();
         expect(receivedParams!.marketId).toBe('test-id');
-        expect(receivedParams!.limit).toBe(5);
+        expect(receivedParams!.limit).toBeUndefined();
     });
 });
 

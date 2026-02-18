@@ -90,8 +90,10 @@ async function fetchMarketByIdOrSlug(slug: string, http: AxiosInstance, callMidp
 }
 
 async function fetchMarketsList(params: MarketFetchParams | undefined, http: AxiosInstance, callMidpoint?: (tokenId: string) => Promise<any>): Promise<UnifiedMarket[]> {
+    const hasLimit = params?.limit !== undefined;
     const limit = params?.limit || 20;
-    const page = params?.offset ? Math.floor(params.offset / limit) + 1 : 1;
+    const offset = params?.offset || 0;
+    const page = hasLimit ? (params?.offset ? Math.floor(params.offset / limit) + 1 : 1) : 1;
 
     const queryParams: Record<string, any> = {
         page,
@@ -121,20 +123,29 @@ async function fetchMarketsList(params: MarketFetchParams | undefined, http: Axi
         queryParams.event_id = (params as any).eventId;
     }
 
-    const response = await http.get(`${BASE_URL}${MARKETS_PATH}`, {
-        params: queryParams,
-    });
-
-    const markets = response.data?.markets || [];
     const allMarkets: UnifiedMarket[] = [];
+    let currentPage = page;
 
-    for (const market of markets) {
-        const mapped = mapMarketToUnified(market, market.event);
-        if (mapped) allMarkets.push(mapped);
+    while (true) {
+        queryParams.page = currentPage;
+        const response = await http.get(`${BASE_URL}${MARKETS_PATH}`, {
+            params: queryParams,
+        });
+
+        const markets = response.data?.markets || [];
+        for (const market of markets) {
+            const mapped = mapMarketToUnified(market, market.event);
+            if (mapped) allMarkets.push(mapped);
+        }
+
+        if (hasLimit) break;
+        if (markets.length < (queryParams.limit || 20)) break;
+        currentPage++;
     }
 
-    if (callMidpoint) await enrichMarketsWithPrices(allMarkets, callMidpoint);
-    return allMarkets;
+    const result = hasLimit ? allMarkets : allMarkets.slice(offset);
+    if (callMidpoint) await enrichMarketsWithPrices(result, callMidpoint);
+    return result;
 }
 
 async function searchAndExtractMarkets(
@@ -144,8 +155,10 @@ async function searchAndExtractMarkets(
     callMidpoint?: (tokenId: string) => Promise<any>,
     callSearch?: (params: any) => Promise<any>
 ): Promise<UnifiedMarket[]> {
+    const hasLimit = params?.limit !== undefined;
     const limit = params?.limit || 20;
-    const page = params?.offset ? Math.floor(params.offset / limit) + 1 : 1;
+    const offset = params?.offset || 0;
+    const page = hasLimit ? (params?.offset ? Math.floor(params.offset / limit) + 1 : 1) : 1;
 
     // Improve search for slugs: if the query looks like a slug (has dashes), 
     // try searching with the first few words as keywords.
@@ -203,24 +216,33 @@ async function searchAndExtractMarkets(
         }
     }
 
-    const searchData = callSearch
-        ? await callSearch(queryParams)
-        : (await http.get(`${BASE_URL}${SEARCH_PATH}`, { params: queryParams })).data;
-
-    const events = searchData?.events || [];
     const allMarkets: UnifiedMarket[] = [];
+    let currentPage = page;
 
-    for (const event of events) {
-        if (event.markets && Array.isArray(event.markets)) {
-            for (const market of event.markets) {
-                const mapped = mapMarketToUnified(market, event);
-                if (mapped) {
-                    // Inject a temporary field for slug matching
-                    (mapped as any)._eventSlug = event.slug;
-                    allMarkets.push(mapped);
+    while (true) {
+        queryParams.page = currentPage;
+
+        const searchData = callSearch
+            ? await callSearch(queryParams)
+            : (await http.get(`${BASE_URL}${SEARCH_PATH}`, { params: queryParams })).data;
+
+        const events = searchData?.events || [];
+        for (const event of events) {
+            if (event.markets && Array.isArray(event.markets)) {
+                for (const market of event.markets) {
+                    const mapped = mapMarketToUnified(market, event);
+                    if (mapped) {
+                        // Inject a temporary field for slug matching
+                        (mapped as any)._eventSlug = event.slug;
+                        allMarkets.push(mapped);
+                    }
                 }
             }
         }
+
+        if (hasLimit) break;
+        if (events.length === 0) break;
+        currentPage++;
     }
 
     // If slug lookup, try to find exact match
@@ -245,8 +267,9 @@ async function searchAndExtractMarkets(
         delete (m as any)._eventSlug;
     }
 
-    if (callMidpoint) await enrichMarketsWithPrices(allMarkets, callMidpoint);
-    return allMarkets;
+    const result = hasLimit ? allMarkets : allMarkets.slice(offset);
+    if (callMidpoint) await enrichMarketsWithPrices(result, callMidpoint);
+    return result;
 }
 
 function isMarketNotFoundError(error: any): boolean {

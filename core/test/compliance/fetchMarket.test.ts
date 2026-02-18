@@ -9,7 +9,7 @@ describe('Compliance: fetchMarket (singular)', () => {
         try {
             // Step 1: Get a known market via fetchMarkets
             console.info(`[Compliance] Testing ${name}.fetchMarket (slug lookup)`);
-            const markets = await exchange.fetchMarkets({ limit: 3 });
+            const markets = (await exchange.fetchMarkets({ limit: 3 })).data;
 
             if (!markets || markets.length === 0) {
                 console.info(`[Compliance] ${name}.fetchMarkets returned no results, skipping.`);
@@ -65,7 +65,7 @@ describe('Compliance: fetchMarkets with new ID params', () => {
             console.info(`[Compliance] Testing ${name}.fetchMarkets({ marketId })`);
 
             // Get a known market first
-            const markets = await exchange.fetchMarkets({ limit: 3 });
+            const markets = (await exchange.fetchMarkets({ limit: 3 })).data;
             if (!markets || markets.length === 0) {
                 console.info(`[Compliance] ${name} returned no markets, skipping.`);
                 return;
@@ -77,11 +77,11 @@ describe('Compliance: fetchMarkets with new ID params', () => {
             const result = await exchange.fetchMarkets({ marketId: knownId });
 
             expect(result).toBeDefined();
-            expect(Array.isArray(result)).toBe(true);
-            expect(result.length).toBeGreaterThan(0);
+            expect(Array.isArray(result.data)).toBe(true);
+            expect(result.data.length).toBeGreaterThan(0);
 
             // Verify the result contains the expected market
-            const found = result.some(m => m.marketId === knownId);
+            const found = result.data.some(m => m.marketId === knownId);
             expect(found).toBe(true);
 
         } catch (error: any) {
@@ -100,7 +100,7 @@ describe('Compliance: fetchMarkets with new ID params', () => {
             console.info(`[Compliance] Testing ${name}.fetchMarkets({ outcomeId })`);
 
             // Get a known market and its outcomeId
-            const markets = await exchange.fetchMarkets({ limit: 5 });
+            const markets = (await exchange.fetchMarkets({ limit: 5 })).data;
             if (!markets || markets.length === 0) {
                 console.info(`[Compliance] ${name} returned no markets, skipping.`);
                 return;
@@ -119,11 +119,11 @@ describe('Compliance: fetchMarkets with new ID params', () => {
             const result = await exchange.fetchMarkets({ outcomeId: knownOutcomeId });
 
             expect(result).toBeDefined();
-            expect(Array.isArray(result)).toBe(true);
-            expect(result.length).toBeGreaterThan(0);
+            expect(Array.isArray(result.data)).toBe(true);
+            expect(result.data.length).toBeGreaterThan(0);
 
             // Verify the result contains a market with the matching outcomeId
-            const found = result.some(m =>
+            const found = result.data.some(m =>
                 m.outcomes.some(o => o.outcomeId === knownOutcomeId)
             );
             expect(found).toBe(true);

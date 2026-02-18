@@ -1,4 +1,4 @@
-import { UnifiedMarket, UnifiedEvent, PriceCandle, CandleInterval, OrderBook, Trade, Order, Position, Balance, CreateOrderParams } from './types';
+import { UnifiedMarket, UnifiedEvent, PriceCandle, CandleInterval, OrderBook, Trade, Order, Position, Balance, CreateOrderParams, PaginatedResult } from './types';
 import { getExecutionPrice, getExecutionPriceDetailed, ExecutionPriceResult } from './utils/math';
 import { MarketNotFound, EventNotFound } from './errors';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
@@ -29,6 +29,7 @@ export interface ImplicitApiMethodInfo {
 export interface MarketFilterParams {
     limit?: number;
     offset?: number;
+    cursor?: string;
     sort?: 'volume' | 'liquidity' | 'newest';
     status?: 'active' | 'inactive' | 'closed' | 'all'; // Filter by market status (default: 'active', 'inactive' and 'closed' are interchangeable)
     searchIn?: 'title' | 'description' | 'both'; // Where to search (default: 'title')
@@ -168,6 +169,10 @@ export interface ExchangeCredentials {
     funderAddress?: string;  // The address funding the trades (defaults to signer address)
 }
 
+export interface PredictionMarketExchangeOptions {
+    snapshotTTL?: number;
+}
+
 // ----------------------------------------------------------------------------
 // Base Exchange Class
 // ----------------------------------------------------------------------------
@@ -183,6 +188,8 @@ export abstract class PredictionMarketExchange {
     public markets: Record<string, UnifiedMarket> = {};
     public marketsBySlug: Record<string, UnifiedMarket> = {};
     public loadedMarkets: boolean = false;
+    private snapshots: Map<string, { markets: UnifiedMarket[]; createdAt: number }> = new Map();
+    private snapshotTTL: number;
 
     // Implicit API (merged across multiple defineImplicitApi calls)
     protected apiDescriptor?: ApiDescriptor;
@@ -204,8 +211,9 @@ export abstract class PredictionMarketExchange {
         watchTrades: false,
     };
 
-    constructor(credentials?: ExchangeCredentials) {
+    constructor(credentials?: ExchangeCredentials, options?: PredictionMarketExchangeOptions) {
         this.credentials = credentials;
+        this.snapshotTTL = options?.snapshotTTL ?? 5 * 60 * 1000;
         this.http = axios.create();
 
         // Request Interceptor
@@ -257,7 +265,8 @@ export abstract class PredictionMarketExchange {
         }
 
         // Fetch all markets (implementation dependent, usually fetches active markets)
-        const markets = await this.fetchMarkets();
+        const paginatedMarkets = await this.fetchMarkets();
+        const markets = paginatedMarkets.data;
 
         // Reset caches
         this.markets = {};
@@ -304,8 +313,39 @@ export abstract class PredictionMarketExchange {
      * @example-python Get market by slug
      * markets = exchange.fetch_markets(slug='will-trump-win')
      */
-    async fetchMarkets(params?: MarketFetchParams): Promise<UnifiedMarket[]> {
-        return this.fetchMarketsImpl(params);
+    async fetchMarkets(params?: MarketFetchParams): Promise<PaginatedResult<UnifiedMarket>> {
+        this.cleanExpiredSnapshots();
+
+        if (params?.cursor) {
+            return this.fetchMarketsByCursor(params);
+        }
+
+        // Preserve old "get everything" behavior when no pagination inputs are provided.
+        if (params?.limit === undefined && params?.offset === undefined) {
+            const markets = await this.fetchMarketsImpl(params);
+            return {
+                data: markets,
+                total: markets.length,
+            };
+        }
+
+        const { limit, offset, cursor, ...baseParams } = params || {};
+        const pageSize = limit ?? 10000;
+        const startOffset = offset ?? 0;
+
+        // Fetch a stable snapshot with pagination params removed.
+        const markets = await this.fetchMarketsImpl(baseParams);
+        const snapshotId = this.createSnapshot(markets);
+        const nextOffset = startOffset + pageSize;
+        const nextCursor = nextOffset < markets.length
+            ? this.encodeCursor(snapshotId, nextOffset)
+            : undefined;
+
+        return {
+            data: markets.slice(startOffset, startOffset + pageSize),
+            nextCursor,
+            total: markets.length,
+        };
     }
 
     /**
@@ -366,12 +406,12 @@ export abstract class PredictionMarketExchange {
             }
         }
 
-        const markets = await this.fetchMarkets(params);
-        if (markets.length === 0) {
+        const paginatedMarkets = await this.fetchMarkets(params);
+        if (paginatedMarkets.data.length === 0) {
             const identifier = params?.marketId || params?.outcomeId || params?.slug || params?.eventId || params?.query || 'unknown';
             throw new MarketNotFound(identifier, this.name);
         }
-        return markets[0];
+        return paginatedMarkets.data[0];
     }
 
     /**
@@ -1191,6 +1231,59 @@ export abstract class PredictionMarketExchange {
      */
     protected mapImplicitApiError(error: any): any {
         throw error;
+    }
+
+    private createSnapshot(markets: UnifiedMarket[]): string {
+        const snapshotId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        this.snapshots.set(snapshotId, { markets, createdAt: Date.now() });
+        return snapshotId;
+    }
+
+    private encodeCursor(snapshotId: string, offset: number): string {
+        const payload = JSON.stringify({ s: snapshotId, o: offset });
+        return Buffer.from(payload, 'utf8').toString('base64');
+    }
+
+    private decodeCursor(cursor: string): { snapshotId: string; offset: number } {
+        try {
+            const decoded = Buffer.from(cursor, 'base64').toString('utf8');
+            const parsed = JSON.parse(decoded);
+            if (!parsed?.s || typeof parsed?.o !== 'number') {
+                throw new Error('Invalid cursor payload');
+            }
+            return { snapshotId: parsed.s, offset: parsed.o };
+        } catch {
+            throw new Error('Invalid cursor format');
+        }
+    }
+
+    private cleanExpiredSnapshots(): void {
+        const now = Date.now();
+        for (const [snapshotId, snapshot] of this.snapshots.entries()) {
+            if (now - snapshot.createdAt > this.snapshotTTL) {
+                this.snapshots.delete(snapshotId);
+            }
+        }
+    }
+
+    private async fetchMarketsByCursor(params: MarketFetchParams): Promise<PaginatedResult<UnifiedMarket>> {
+        const { snapshotId, offset } = this.decodeCursor(params.cursor!);
+        const snapshot = this.snapshots.get(snapshotId);
+        if (!snapshot) {
+            throw new Error('Cursor has expired. Please restart pagination from the first page.');
+        }
+
+        const pageSize = params.limit ?? 10000;
+        const nextOffset = offset + pageSize;
+        const nextCursor = nextOffset < snapshot.markets.length
+            ? this.encodeCursor(snapshotId, nextOffset)
+            : undefined;
+
+        return {
+            data: snapshot.markets.slice(offset, offset + pageSize),
+            nextCursor,
+            total: snapshot.markets.length,
+        };
     }
 
     /**

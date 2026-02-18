@@ -16,7 +16,10 @@ export async function fetchMarkets(params?: MarketFetchParams, headers?: Record<
             return await fetchMarketBySlug(params.slug, headers, http);
         }
 
+        const hasLimit = params?.limit !== undefined;
+        const hasOffset = params?.offset !== undefined;
         const limit = params?.limit || 100;
+        const offset = params?.offset || 0;
         const queryParams: any = {
             page: params?.page || 1,
             limit: Math.min(limit, MAX_PAGE_SIZE),
@@ -42,7 +45,36 @@ export async function fetchMarkets(params?: MarketFetchParams, headers?: Record<
             queryParams.order = 'desc';
         }
 
-        // If we need more than one page, paginate
+        // If no explicit limit is requested, fetch all pages for snapshot consistency.
+        if (!hasLimit) {
+            const allMarkets: UnifiedMarket[] = [];
+            let page = 1;
+
+            while (true) {
+                queryParams.page = page;
+                queryParams.limit = MAX_PAGE_SIZE;
+
+                const response = await http.get(`${BASE_URL}/markets`, {
+                    params: queryParams,
+                    headers,
+                });
+
+                const data = response.data;
+                const markets = data.data || data.markets || [];
+                for (const m of markets) {
+                    const um = mapMarketToUnified(m);
+                    if (um) allMarkets.push(um);
+                }
+
+                const pagination = data.pagination;
+                if (!pagination?.hasNext || markets.length === 0) break;
+                page++;
+            }
+
+            return hasOffset ? allMarkets.slice(offset) : allMarkets;
+        }
+
+        // If we need only one page, do a single request.
         if (limit <= MAX_PAGE_SIZE) {
             const response = await http.get(`${BASE_URL}/markets`, {
                 params: queryParams,

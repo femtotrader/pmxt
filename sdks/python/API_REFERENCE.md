@@ -67,15 +67,12 @@ def fetch_markets(params: Optional[MarketFetchParams] = None) -> List[UnifiedMar
 **Parameters:**
 
 - `params` (MarketFetchParams) - **Optional**: Optional parameters for filtering and search
-  - `query` (str) - **Optional**: Search query string to filter markets by title/description
-  - `slug` (str) - **Optional**: Fetch a specific market by its slug
-  - `limit` (int) - **Optional**: Maximum number of markets to return
-  - `offset` (int) - **Optional**: Number of markets to skip (for pagination)
-  - `page` (int) - **Optional**: Page number (for pagination)
-  - `status` (str) - **Optional**: Filter by market status (default: `active`)
-  - `sort` (str) - **Optional**: Sort order for results
-  - `search_in` (str) - **Optional**: Fields to search within
-  - `similarity_threshold` (float) - **Optional**: Minimum similarity score for fuzzy search results
+  - `params.query` - Search keyword to filter markets
+  - `params.slug` - Market slug/ticker for direct lookup
+  - `params.limit` - Maximum number of results
+  - `params.offset` - Pagination offset
+  - `params.sort` - Sort order ('volume' | 'liquidity' | 'newest')
+  - `params.search_in` - Where to search ('title' | 'description' | 'both')
 
 **Returns:** `List[UnifiedMarket]` - Array of unified markets
 
@@ -106,6 +103,10 @@ def fetch_events(params: Optional[EventFetchParams] = None) -> List[UnifiedEvent
 **Parameters:**
 
 - `params` (EventFetchParams) - **Optional**: Optional parameters for search and filtering
+  - `params.query` - Search keyword to filter events (required)
+  - `params.limit` - Maximum number of results
+  - `params.offset` - Pagination offset
+  - `params.search_in` - Where to search ('title' | 'description' | 'both')
 
 **Returns:** `List[UnifiedEvent]` - Array of unified events
 
@@ -791,6 +792,7 @@ down: MarketOutcome #
 @dataclass
 class MarketOutcome:
 outcome_id: str # Outcome ID for trading operations (CLOB Token ID for Polymarket, Market Ticker for Kalshi)
+market_id: str # The market this outcome belongs to (set automatically)
 label: str # 
 price: float # 
 price_change24h: float # 
@@ -984,6 +986,9 @@ status: str # Filter by market status (default: active)
 search_in: str # 
 query: str # 
 slug: str # 
+market_id: str # Direct lookup by market ID
+outcome_id: str # Reverse lookup -- find market containing this outcome
+event_id: str # Find markets belonging to an event
 page: int # 
 similarity_threshold: float # 
 ```
@@ -1001,6 +1006,8 @@ limit: int #
 offset: int # 
 status: str # Filter by event status (default: active)
 search_in: str # 
+event_id: str # Direct lookup by event ID
+slug: str # Lookup by event slug
 ```
 
 ---

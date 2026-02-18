@@ -59,6 +59,7 @@ function parseMethods(config) {
                 optional: p.optional || false,
                 description: p.description || p.name
             })),
+            subParams: data.subParams || null,
             returns: data.returns || { type: 'any', description: 'Result' },
             python: data.python || { examples: [] },
             typescript: data.typescript || { examples: [] },

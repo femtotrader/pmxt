@@ -74,6 +74,11 @@ def {{pythonName this.name}}({{pythonParams this.params}}) -> {{pythonType this.
 {{#each this.params}}
 - `{{pythonName this.name}}` ({{pythonType this.type}}){{#if this.optional}} - **Optional**{{/if}}: {{this.description}}
 {{/each}}
+{{#if this.subParams}}
+{{#each this.subParams}}
+  - `{{pythonName this.name}}` - {{this.description}}
+{{/each}}
+{{/if}}
 {{else}}
 - None
 {{/if}}

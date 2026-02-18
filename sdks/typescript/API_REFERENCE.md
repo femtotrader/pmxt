@@ -1,6 +1,7 @@
 # pmxtjs - API Reference
 
-A unified TypeScript SDK for interacting with multiple prediction market exchanges (Polymarket, Kalshi, Limitless) identically.
+A unified TypeScript SDK for interacting with multiple prediction market exchanges (Polymarket, Kalshi, Limitless)
+identically.
 
 ## Installation
 
@@ -16,7 +17,7 @@ import pmxt from 'pmxtjs';
 // Initialize exchanges (server starts automatically!)
 const poly = new pmxt.Polymarket();
 const kalshi = new pmxt.Kalshi();
-const limitless = new pmxt.Limitless();  // Requires API key for authenticated operations
+const limitless = new pmxt.Limitless(); // Requires API key for authenticated operations
 
 // Search for markets
 const markets = await poly.fetchMarkets({ query: "Trump" });
@@ -68,6 +69,12 @@ async fetchMarkets(params?: MarketFetchParams): Promise<UnifiedMarket[]>
   **Parameters:**
 
   - `params` (MarketFetchParams) - **Optional**: Optional parameters for filtering and search
+  - `params.query` - Search keyword to filter markets
+  - `params.slug` - Market slug/ticker for direct lookup
+  - `params.limit` - Maximum number of results
+  - `params.offset` - Pagination offset
+  - `params.sort` - Sort order ('volume' | 'liquidity' | 'newest')
+  - `params.searchIn` - Where to search ('title' | 'description' | 'both')
 
   **Returns:** `Promise<UnifiedMarket[]>` - Array of unified markets
 
@@ -98,6 +105,10 @@ async fetchEvents(params?: EventFetchParams): Promise<UnifiedEvent[]>
   **Parameters:**
 
   - `params` (EventFetchParams) - **Optional**: Optional parameters for search and filtering
+  - `params.query` - Search keyword to filter events (required)
+  - `params.limit` - Maximum number of results
+  - `params.offset` - Pagination offset
+  - `params.searchIn` - Where to search ('title' | 'description' | 'both')
 
   **Returns:** `Promise<UnifiedEvent[]>` - Array of unified events
 
@@ -795,6 +806,7 @@ positions.forEach(pos => {
     ```typescript
     interface MarketOutcome {
     outcomeId: string; // Outcome ID for trading operations (CLOB Token ID for Polymarket, Market Ticker for Kalshi)
+    marketId: string; // The market this outcome belongs to (set automatically)
     label: string; // 
     price: number; // 
     priceChange24h: number; // 
@@ -988,6 +1000,9 @@ positions.forEach(pos => {
     searchIn?: string; // 
     query?: string; // 
     slug?: string; // 
+    marketId?: string; // Direct lookup by market ID
+    outcomeId?: string; // Reverse lookup -- find market containing this outcome
+    eventId?: string; // Find markets belonging to an event
     page?: number; // 
     similarityThreshold?: number; // 
     }
@@ -1005,6 +1020,8 @@ positions.forEach(pos => {
     offset?: number; // 
     status?: string; // Filter by event status (default: active)
     searchIn?: string; // 
+    eventId?: string; // Direct lookup by event ID
+    slug?: string; // Lookup by event slug
     }
     ```
 

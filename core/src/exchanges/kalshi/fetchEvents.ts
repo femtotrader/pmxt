@@ -1,17 +1,15 @@
 import { EventFetchParams } from '../../BaseExchange';
 import { UnifiedEvent, UnifiedMarket } from '../../types';
-import axios, { AxiosInstance } from 'axios';
-import { KALSHI_API_URL, mapMarketToUnified } from './utils';
+import { mapMarketToUnified } from './utils';
 import { kalshiErrorMapper } from './errors';
 
-async function fetchEventByTicker(eventTicker: string, http: AxiosInstance): Promise<UnifiedEvent[]> {
-    const normalizedTicker = eventTicker.toUpperCase();
-    const url = `https://api.elections.kalshi.com/trade-api/v2/events/${normalizedTicker}`;
-    const response = await http.get(url, {
-        params: { with_nested_markets: true }
-    });
+type CallApi = (operationId: string, params?: Record<string, any>) => Promise<any>;
 
-    const event = response.data.event;
+async function fetchEventByTicker(eventTicker: string, callApi: CallApi): Promise<UnifiedEvent[]> {
+    const normalizedTicker = eventTicker.toUpperCase();
+    const data = await callApi('GetEvent', { event_ticker: normalizedTicker, with_nested_markets: true });
+
+    const event = data.event;
     if (!event) return [];
 
     const markets: UnifiedMarket[] = [];
@@ -38,16 +36,16 @@ async function fetchEventByTicker(eventTicker: string, http: AxiosInstance): Pro
     return [unifiedEvent];
 }
 
-export async function fetchEvents(params: EventFetchParams, http: AxiosInstance = axios): Promise<UnifiedEvent[]> {
+export async function fetchEvents(params: EventFetchParams, callApi: CallApi): Promise<UnifiedEvent[]> {
     try {
         // Handle eventId lookup (direct API call)
         if (params.eventId) {
-            return await fetchEventByTicker(params.eventId, http);
+            return await fetchEventByTicker(params.eventId, callApi);
         }
 
         // Handle slug lookup (slug IS the event ticker on Kalshi)
         if (params.slug) {
-            return await fetchEventByTicker(params.slug, http);
+            return await fetchEventByTicker(params.slug, callApi);
         }
 
         const status = params?.status || 'active';
@@ -70,13 +68,13 @@ export async function fetchEvents(params: EventFetchParams, http: AxiosInstance 
                 };
                 if (cursor) queryParams.cursor = cursor;
 
-                const response = await http.get(KALSHI_API_URL, { params: queryParams });
-                const events = response.data.events || [];
+                const data = await callApi('GetEvents', queryParams);
+                const events = data.events || [];
 
                 if (events.length === 0) break;
 
                 allEvents = allEvents.concat(events);
-                cursor = response.data.cursor;
+                cursor = data.cursor;
                 page++;
 
                 // If we have no search query and have fetched enough events, we can stop early

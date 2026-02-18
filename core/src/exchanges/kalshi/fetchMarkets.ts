@@ -1,10 +1,11 @@
-import axios, { AxiosInstance } from 'axios';
 import { MarketFetchParams } from '../../BaseExchange';
 import { UnifiedMarket } from '../../types';
-import { KALSHI_API_URL, KALSHI_SERIES_URL, mapMarketToUnified } from './utils';
+import { mapMarketToUnified } from './utils';
 import { kalshiErrorMapper } from './errors';
 
-async function fetchActiveEvents(http: AxiosInstance, targetMarketCount?: number, status: string = 'open'): Promise<any[]> {
+type CallApi = (operationId: string, params?: Record<string, any>) => Promise<any>;
+
+async function fetchActiveEvents(callApi: CallApi, targetMarketCount?: number, status: string = 'open'): Promise<any[]> {
     let allEvents: any[] = [];
     let totalMarketCount = 0;
     let cursor = null;
@@ -27,8 +28,8 @@ async function fetchActiveEvents(http: AxiosInstance, targetMarketCount?: number
             };
             if (cursor) queryParams.cursor = cursor;
 
-            const response = await http.get(KALSHI_API_URL, { params: queryParams });
-            const events = response.data.events || [];
+            const data = await callApi('GetEvents', queryParams);
+            const events = data.events || [];
 
             if (events.length === 0) break;
 
@@ -47,7 +48,7 @@ async function fetchActiveEvents(http: AxiosInstance, targetMarketCount?: number
                 }
             }
 
-            cursor = response.data.cursor;
+            cursor = data.cursor;
             page++;
 
             // Additional safety: if no target specified, limit to reasonable number of pages
@@ -64,11 +65,11 @@ async function fetchActiveEvents(http: AxiosInstance, targetMarketCount?: number
     return allEvents;
 }
 
-async function fetchSeriesMap(http: AxiosInstance): Promise<Map<string, string[]>> {
+async function fetchSeriesMap(callApi: CallApi): Promise<Map<string, string[]>> {
     try {
 
-        const response = await http.get(KALSHI_SERIES_URL);
-        const seriesList = response.data.series || [];
+        const data = await callApi('GetSeriesList');
+        const seriesList = data.series || [];
         const map = new Map<string, string[]>();
         for (const series of seriesList) {
             if (series.tags && series.tags.length > 0) {
@@ -95,58 +96,54 @@ export function resetCache(): void {
     lastCacheTime = 0;
 }
 
-export async function fetchMarkets(params?: MarketFetchParams, http: AxiosInstance = axios): Promise<UnifiedMarket[]> {
+export async function fetchMarkets(params: MarketFetchParams | undefined, callApi: CallApi): Promise<UnifiedMarket[]> {
     try {
         // Handle marketId lookup (Kalshi marketId is the ticker)
         if (params?.marketId) {
-            return await fetchMarketsBySlug(params.marketId, http);
+            return await fetchMarketsBySlug(params.marketId, callApi);
         }
 
         // Handle slug-based lookup (event ticker)
         if (params?.slug) {
-            return await fetchMarketsBySlug(params.slug, http);
+            return await fetchMarketsBySlug(params.slug, callApi);
         }
 
         // Handle outcomeId lookup (strip -NO suffix, use as ticker)
         if (params?.outcomeId) {
             const ticker = params.outcomeId.replace(/-NO$/, '');
-            return await fetchMarketsBySlug(ticker, http);
+            return await fetchMarketsBySlug(ticker, callApi);
         }
 
         // Handle eventId lookup (event ticker works the same way)
         if (params?.eventId) {
-            return await fetchMarketsBySlug(params.eventId, http);
+            return await fetchMarketsBySlug(params.eventId, callApi);
         }
 
         // Handle query-based search
         if (params?.query) {
-            return await searchMarkets(params.query, params, http);
+            return await searchMarkets(params.query, params, callApi);
         }
 
         // Default: fetch markets
-        return await fetchMarketsDefault(params, http);
+        return await fetchMarketsDefault(params, callApi);
     } catch (error: any) {
         throw kalshiErrorMapper.mapError(error);
     }
 }
 
-async function fetchMarketsBySlug(eventTicker: string, http: AxiosInstance): Promise<UnifiedMarket[]> {
+async function fetchMarketsBySlug(eventTicker: string, callApi: CallApi): Promise<UnifiedMarket[]> {
     // Kalshi API expects uppercase tickers, but URLs use lowercase
     const normalizedTicker = eventTicker.toUpperCase();
-    const url = `https://api.elections.kalshi.com/trade-api/v2/events/${normalizedTicker}`;
-    const response = await http.get(url, {
-        params: { with_nested_markets: true }
-    });
+    const data = await callApi('GetEvent', { event_ticker: normalizedTicker, with_nested_markets: true });
 
-    const event = response.data.event;
+    const event = data.event;
     if (!event) return [];
 
     // Enrichment: Fetch series tags if they exist
     if (event.series_ticker) {
         try {
-            const seriesUrl = `${KALSHI_SERIES_URL}/${event.series_ticker}`;
-            const seriesResponse = await http.get(seriesUrl);
-            const series = seriesResponse.data.series;
+            const seriesData = await callApi('GetSeries', { series_ticker: event.series_ticker });
+            const series = seriesData.series;
             if (series && series.tags && series.tags.length > 0) {
                 if (!event.tags || event.tags.length === 0) {
                     event.tags = series.tags;
@@ -170,10 +167,10 @@ async function fetchMarketsBySlug(eventTicker: string, http: AxiosInstance): Pro
     return unifiedMarkets;
 }
 
-async function searchMarkets(query: string, params: MarketFetchParams | undefined, http: AxiosInstance): Promise<UnifiedMarket[]> {
+async function searchMarkets(query: string, params: MarketFetchParams | undefined, callApi: CallApi): Promise<UnifiedMarket[]> {
     // We must fetch ALL markets to search them locally since we don't have server-side search
     const searchLimit = 250000;
-    const markets = await fetchMarketsDefault({ ...params, limit: searchLimit }, http);
+    const markets = await fetchMarketsDefault({ ...params, limit: searchLimit }, callApi);
     const lowerQuery = query.toLowerCase();
     const searchIn = params?.searchIn || 'title'; // Default to title-only search
 
@@ -190,7 +187,7 @@ async function searchMarkets(query: string, params: MarketFetchParams | undefine
     return filtered.slice(0, limit);
 }
 
-async function fetchMarketsDefault(params: MarketFetchParams | undefined, http: AxiosInstance): Promise<UnifiedMarket[]> {
+async function fetchMarketsDefault(params: MarketFetchParams | undefined, callApi: CallApi): Promise<UnifiedMarket[]> {
     const limit = params?.limit || 250000;
     const offset = params?.offset || 0;
     const now = Date.now();
@@ -221,8 +218,8 @@ async function fetchMarketsDefault(params: MarketFetchParams | undefined, http: 
             const fetchLimit = isSorted ? 1000 : limit;
 
             const [allEvents, fetchedSeriesMap] = await Promise.all([
-                fetchActiveEvents(http, fetchLimit, apiStatus),
-                fetchSeriesMap(http)
+                fetchActiveEvents(callApi, fetchLimit, apiStatus),
+                fetchSeriesMap(callApi)
             ]);
 
             events = allEvents;

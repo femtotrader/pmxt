@@ -133,11 +133,11 @@ export class LimitlessExchange extends PredictionMarketExchange {
     }
 
     async fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams): Promise<PriceCandle[]> {
-        return fetchOHLCV(id, params, this.http);
+        return fetchOHLCV(id, params, this.callApi.bind(this));
     }
 
     async fetchOrderBook(id: string): Promise<OrderBook> {
-        return fetchOrderBook(id, this.http);
+        return fetchOrderBook(id, this.callApi.bind(this));
     }
 
     async fetchTrades(id: string, params: TradesParams | HistoryFilterParams): Promise<Trade[]> {
@@ -362,7 +362,7 @@ export class LimitlessExchange extends PredictionMarketExchange {
                 ...this.wsConfig,
                 apiKey: this.auth?.getApiKey(),
             };
-            this.ws = new LimitlessWebSocket(wsConfig);
+            this.ws = new LimitlessWebSocket(this.callApi.bind(this), wsConfig);
         }
         return this.ws;
     }

@@ -33,13 +33,15 @@ export interface LimitlessWebSocketConfig extends Partial<WebSocketConfig> {
 export class LimitlessWebSocket {
     private client: WebSocketClient;
     private config: LimitlessWebSocketConfig;
+    private callApi: (operationId: string, params?: Record<string, any>) => Promise<any>;
     private orderbookCallbacks: Map<string, (orderbook: OrderBook) => void> = new Map();
     private priceCallbacks: Map<string, (data: any) => void> = new Map();
     private orderbookResolvers: Map<string, Array<{ resolve: (ob: OrderBook) => void, reject: (err: any) => void }>> = new Map();
     private orderbookBuffers: Map<string, OrderBook[]> = new Map();
     private lastOrderbookTimestamps: Map<string, number> = new Map();
 
-    constructor(config: LimitlessWebSocketConfig = {}) {
+    constructor(callApi: (operationId: string, params?: Record<string, any>) => Promise<any>, config: LimitlessWebSocketConfig = {}) {
+        this.callApi = callApi;
         this.config = config;
 
         // Initialize SDK WebSocket client
@@ -150,7 +152,7 @@ export class LimitlessWebSocket {
         if (!this.lastOrderbookTimestamps.has(marketSlug)) {
             this.lastOrderbookTimestamps.set(marketSlug, Date.now());
             try {
-                return await fetchOrderBook(marketSlug);
+                return await fetchOrderBook(marketSlug, this.callApi);
             } catch (err) {
                 console.warn(`[LimitlessWS] Failed to fetch initial snapshot:`, err);
             }
@@ -169,7 +171,7 @@ export class LimitlessWebSocket {
         if (timeSinceLastUpdate > SNAPSHOT_REFRESH_INTERVAL) {
             this.lastOrderbookTimestamps.set(marketSlug, Date.now());
             try {
-                return await fetchOrderBook(marketSlug);
+                return await fetchOrderBook(marketSlug, this.callApi);
             } catch (err) {
                 console.warn(`[LimitlessWS] Failed to fetch refresh snapshot:`, err);
             }
@@ -189,7 +191,7 @@ export class LimitlessWebSocket {
                     // Timeout: fetch REST snapshot as fallback
                     try {
                         this.lastOrderbookTimestamps.set(marketSlug, Date.now());
-                        const snapshot = await fetchOrderBook(marketSlug);
+                        const snapshot = await fetchOrderBook(marketSlug, this.callApi);
                         resolve(snapshot);
                     } catch (err) {
                         console.warn(`[LimitlessWS] Failed to fetch timeout fallback snapshot:`, err);

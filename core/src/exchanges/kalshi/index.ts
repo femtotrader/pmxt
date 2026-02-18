@@ -103,15 +103,15 @@ export class KalshiExchange extends PredictionMarketExchange {
     // ----------------------------------------------------------------------------
 
     protected async fetchMarketsImpl(params?: MarketFilterParams): Promise<UnifiedMarket[]> {
-        return fetchMarkets(params, this.http);
+        return fetchMarkets(params, this.callApi.bind(this));
     }
 
     protected async fetchEventsImpl(params: EventFetchParams): Promise<UnifiedEvent[]> {
-        return fetchEvents(params, this.http);
+        return fetchEvents(params, this.callApi.bind(this));
     }
 
     async fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams): Promise<PriceCandle[]> {
-        return fetchOHLCV(id, params, this.http);
+        return fetchOHLCV(id, params, this.callApi.bind(this));
     }
 
     async fetchOrderBook(id: string): Promise<OrderBook> {

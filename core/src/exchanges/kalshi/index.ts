@@ -17,7 +17,6 @@ export type { KalshiWebSocketConfig };
 export interface KalshiExchangeOptions {
     credentials?: ExchangeCredentials;
     websocket?: KalshiWebSocketConfig;
-    snapshotTTL?: number;
 }
 
 export class KalshiExchange extends PredictionMarketExchange {
@@ -44,19 +43,17 @@ export class KalshiExchange extends PredictionMarketExchange {
         // Support both old signature (credentials only) and new signature (options object)
         let credentials: ExchangeCredentials | undefined;
         let wsConfig: KalshiWebSocketConfig | undefined;
-        let snapshotTTL: number | undefined;
 
         if (options && 'credentials' in options) {
             // New signature: KalshiExchangeOptions
             credentials = options.credentials;
             wsConfig = options.websocket;
-            snapshotTTL = options.snapshotTTL;
         } else {
             // Old signature: ExchangeCredentials directly
             credentials = options as ExchangeCredentials | undefined;
         }
 
-        super({ credentials, snapshotTTL });
+        super(credentials);
         this.wsConfig = wsConfig;
 
         if (credentials?.apiKey && credentials?.privateKey) {

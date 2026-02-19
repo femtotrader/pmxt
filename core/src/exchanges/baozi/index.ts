@@ -57,7 +57,6 @@ import {
 export interface BaoziExchangeOptions {
     credentials?: ExchangeCredentials;
     rpcUrl?: string;
-    snapshotTTL?: number;
 }
 
 export class BaoziExchange extends PredictionMarketExchange {
@@ -84,17 +83,15 @@ export class BaoziExchange extends PredictionMarketExchange {
     constructor(options?: ExchangeCredentials | BaoziExchangeOptions) {
         let credentials: ExchangeCredentials | undefined;
         let rpcUrl: string | undefined;
-        let snapshotTTL: number | undefined;
 
         if (options && 'credentials' in options) {
             credentials = options.credentials;
             rpcUrl = (options as BaoziExchangeOptions).rpcUrl;
-            snapshotTTL = (options as BaoziExchangeOptions).snapshotTTL;
         } else {
             credentials = options as ExchangeCredentials | undefined;
         }
 
-        super({ credentials, snapshotTTL });
+        super(credentials);
 
         rpcUrl = rpcUrl
             || process.env.BAOZI_RPC_URL

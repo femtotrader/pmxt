@@ -40,7 +40,6 @@ export type { LimitlessWebSocketConfig };
 export interface LimitlessExchangeOptions {
     credentials?: ExchangeCredentials;
     websocket?: LimitlessWebSocketConfig;
-    snapshotTTL?: number;
 }
 
 export class LimitlessExchange extends PredictionMarketExchange {
@@ -68,13 +67,11 @@ export class LimitlessExchange extends PredictionMarketExchange {
         // Support both old signature (credentials only) and new signature (options object)
         let credentials: ExchangeCredentials | undefined;
         let wsConfig: LimitlessWebSocketConfig | undefined;
-        let snapshotTTL: number | undefined;
 
         if (options && 'credentials' in options) {
             // New signature: LimitlessExchangeOptions
             credentials = options.credentials;
             wsConfig = options.websocket;
-            snapshotTTL = options.snapshotTTL;
         } else if (options && 'privateKey' in options) {
             // Support direct privateKey for easier initialization
             credentials = options as ExchangeCredentials;
@@ -83,7 +80,7 @@ export class LimitlessExchange extends PredictionMarketExchange {
             credentials = options as ExchangeCredentials | undefined;
         }
 
-        super({ credentials, snapshotTTL });
+        super(credentials);
         this.wsConfig = wsConfig;
 
         // Initialize auth if API key or private key are provided

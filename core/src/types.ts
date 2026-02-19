@@ -56,12 +56,6 @@ export interface UnifiedMarket {
     down?: MarketOutcome;
 }
 
-export interface PaginatedResult<T> {
-    data: T[];
-    nextCursor?: string;
-    total: number;
-}
-
 export type CandleInterval = '1m' | '5m' | '15m' | '1h' | '6h' | '1d';
 
 export interface PriceCandle {

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.9.2] - 2026-02-19
+
+### Documentation
+
+- **Pagination Stability Guidance**: Clarified that repeated `fetchMarkets()` calls with different `offset` values do not guarantee stable ordering. Added guidance and examples on using `loadMarkets()` as the correct approach for stable iteration over the entire market catalog. (Closes #41)
+- **Automatic Statistics**: Updated specific total download badges and metadata.
+
 ## [2.9.1] - 2026-02-18
 
 ### Documentation

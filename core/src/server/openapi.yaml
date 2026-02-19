@@ -72,41 +72,6 @@ paths:
                         items:
                           $ref: '#/components/schemas/UnifiedMarket'
 
-  /api/{exchange}/fetchMarketsPaginated:
-    post:
-      summary: Fetch Markets (Paginated)
-      operationId: fetchMarketsPaginated
-      parameters:
-        - $ref: '#/components/parameters/ExchangeParam'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                args:
-                  type: array
-                  maxItems: 1
-                  items:
-                    $ref: '#/components/schemas/MarketFilterParams'
-                credentials:
-                  $ref: '#/components/schemas/ExchangeCredentials'
-                verbose:
-                  type: boolean
-                  description: Enable verbose logging for this request
-      responses:
-        '200':
-          description: Cursor-paginated list of unified markets
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/BaseResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/PaginatedMarketResult'
-
   /api/{exchange}/fetchMarket:
     post:
       summary: Fetch Single Market
@@ -1010,20 +975,6 @@ components:
         down:
           $ref: '#/components/schemas/MarketOutcome'
 
-    PaginatedMarketResult:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/UnifiedMarket'
-        nextCursor:
-          type: string
-          description: Opaque cursor for fetching the next page
-        total:
-          type: integer
-          description: Total number of markets in this snapshot
-
     MarketOutcome:
       type: object
       properties:
@@ -1213,9 +1164,6 @@ components:
           default: 10000
         offset:
           type: integer
-        cursor:
-          type: string
-          description: Opaque cursor returned by a previous fetchMarkets call
         sort:
           type: string
           enum: [volume, liquidity, newest]

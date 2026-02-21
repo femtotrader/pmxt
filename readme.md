@@ -97,6 +97,17 @@ pip install pmxt
 npm install pmxtjs
 ```
 
+## Migrating from Dome API
+
+If you're currently using **Dome API**, pmxt is a drop-in replacement with a unified interface for Polymarket and Kalshi.
+
+Check out [pmxt as a Dome API alternative](https://pmxt.dev/dome-api-alternative) for a detailed migration guide, API comparison, and automatic codemod tool (`dome-to-pmxt`) to help you transition your code.
+
+```bash
+# Automatically migrate your codebase
+npx dome-to-pmxt ./src
+```
+
 ## Quickstart
 
 Prediction markets are structured in a hierarchy to group related information.

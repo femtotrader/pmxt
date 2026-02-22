@@ -257,21 +257,43 @@ class ExecutionPriceResult:
 @dataclass
 class Trade:
     """A historical trade."""
-    
+
     id: str
     """Trade ID"""
-    
+
     timestamp: int
     """Unix timestamp (milliseconds)"""
-    
+
     price: float
     """Trade price (0.0 to 1.0)"""
-    
+
     amount: float
     """Trade amount (contracts)"""
-    
+
     side: Literal["buy", "sell", "unknown"]
     """Trade side"""
+
+
+@dataclass
+class UserTrade(Trade):
+    """A trade made by the authenticated user."""
+
+    order_id: Optional[str] = None
+    """The order that generated this fill"""
+
+
+@dataclass
+class PaginatedMarketsResult:
+    """Result of a paginated markets fetch."""
+
+    data: "List[UnifiedMarket]"
+    """Markets in this page"""
+
+    total: int
+    """Total number of markets in the snapshot"""
+
+    next_cursor: Optional[str] = None
+    """Opaque cursor to pass to the next call, or None if this is the last page"""
 
 
 @dataclass

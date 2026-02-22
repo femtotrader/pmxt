@@ -31,6 +31,8 @@ from .models import (
     OrderBook,
     OrderLevel,
     Trade,
+    UserTrade,
+    PaginatedMarketsResult,
     Order,
     Position,
     Balance,
@@ -145,6 +147,18 @@ def _convert_trade(raw: Dict[str, Any]) -> Trade:
     )
 
 
+def _convert_user_trade(raw: Dict[str, Any]) -> UserTrade:
+    """Convert raw API response to UserTrade."""
+    return UserTrade(
+        id=raw.get("id"),
+        timestamp=raw.get("timestamp"),
+        price=raw.get("price"),
+        amount=raw.get("amount"),
+        side=raw.get("side", "unknown"),
+        order_id=raw.get("orderId"),
+    )
+
+
 def _convert_order(raw: Dict[str, Any]) -> Order:
     """Convert raw API response to Order."""
     return Order(
@@ -229,6 +243,9 @@ class Exchange(ABC):
         self.private_key = private_key
         self.proxy_address = proxy_address
         self.signature_type = signature_type
+        self.markets: Dict[str, "UnifiedMarket"] = {}
+        self.markets_by_slug: Dict[str, "UnifiedMarket"] = {}
+        self._loaded_markets: bool = False
         
         # Initialize server manager
         self._server_manager = ServerManager(base_url)
@@ -346,6 +363,28 @@ class Exchange(ABC):
 
     # Low-Level API Access
 
+    def _call_method(self, method_name: str, params: Optional[Dict[str, Any]] = None) -> Any:
+        """Call any exchange method on the server by name."""
+        try:
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/{method_name}"
+            body: Dict[str, Any] = {"args": [params] if params is not None else []}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._api_client.default_headers)
+            response = self._api_client.call_api(
+                method="POST",
+                url=url,
+                body=body,
+                header_params=headers,
+            )
+            response.read()
+            data_json = json.loads(response.data)
+            return self._handle_response(data_json)
+        except ApiException as e:
+            raise Exception(f"Failed to call '{method_name}': {self._extract_api_error(e)}") from None
+
     def call_api(self, operation_id: str, params: Optional[Dict[str, Any]] = None) -> Any:
         """
         Call an exchange-specific REST endpoint by its operationId.
@@ -386,6 +425,42 @@ class Exchange(ABC):
             raise Exception(f"Failed to call API '{operation_id}': {self._extract_api_error(e)}") from None
 
     # Market Data Methods
+
+    def load_markets(self, reload: bool = False) -> Dict[str, UnifiedMarket]:
+        """
+        Load and cache all markets from the exchange into self.markets.
+        Subsequent calls return the cached result without hitting the API again.
+
+        Use this for stable pagination — fetch_markets() always hits the API so
+        repeated calls with different offsets may return inconsistent results if
+        the exchange reorders markets between requests. Call load_markets() once,
+        then paginate over list(exchange.markets.values()) locally.
+
+        Args:
+            reload: Force a fresh fetch even if markets are already loaded
+
+        Returns:
+            Dict[str, UnifiedMarket] - All markets indexed by marketId
+
+        Example:
+            exchange.load_markets()
+            all = list(exchange.markets.values())
+            page1 = all[:100]
+            page2 = all[100:200]
+        """
+        if self._loaded_markets and not reload:
+            return self.markets
+
+        markets = self.fetch_markets()
+
+        self.markets = {}
+        self.markets_by_slug = {}
+
+        for market in markets:
+            self.markets[market.market_id] = market
+
+        self._loaded_markets = True
+        return self.markets
 
     def fetch_markets(self, query: Optional[str] = None, **kwargs) -> List[UnifiedMarket]:
         """
@@ -1373,8 +1448,149 @@ class Exchange(ABC):
         except ApiException as e:
             raise Exception(f"Failed to fetch open orders: {self._extract_api_error(e)}") from None
     
+    def fetch_my_trades(
+        self,
+        outcome_id: Optional[str] = None,
+        market_id: Optional[str] = None,
+        since: Optional[Any] = None,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+    ) -> List[UserTrade]:
+        """
+        Get trades made by the authenticated user.
+
+        Args:
+            outcome_id: Filter to a specific outcome/ticker
+            market_id: Filter to a specific market
+            since: Only return trades after this datetime
+            limit: Maximum number of results
+            cursor: Pagination cursor from a previous call (Kalshi)
+
+        Returns:
+            List of user trades
+
+        Example:
+            trades = exchange.fetch_my_trades(limit=50)
+        """
+        params: Dict[str, Any] = {}
+        if outcome_id is not None:
+            params["outcomeId"] = outcome_id
+        if market_id is not None:
+            params["marketId"] = market_id
+        if since is not None:
+            params["since"] = since.isoformat() if hasattr(since, "isoformat") else since
+        if limit is not None:
+            params["limit"] = limit
+        if cursor is not None:
+            params["cursor"] = cursor
+        data = self._call_method("fetchMyTrades", params or None)
+        return [_convert_user_trade(t) for t in (data or [])]
+
+    def fetch_closed_orders(
+        self,
+        market_id: Optional[str] = None,
+        since: Optional[Any] = None,
+        until: Optional[Any] = None,
+        limit: Optional[int] = None,
+    ) -> List[Order]:
+        """
+        Get filled and cancelled orders.
+
+        Args:
+            market_id: Filter to a specific market
+            since: Only return orders after this datetime
+            until: Only return orders before this datetime
+            limit: Maximum number of results
+
+        Returns:
+            List of closed orders
+
+        Example:
+            orders = exchange.fetch_closed_orders(market_id="some-market")
+        """
+        params: Dict[str, Any] = {}
+        if market_id is not None:
+            params["marketId"] = market_id
+        if since is not None:
+            params["since"] = since.isoformat() if hasattr(since, "isoformat") else since
+        if until is not None:
+            params["until"] = until.isoformat() if hasattr(until, "isoformat") else until
+        if limit is not None:
+            params["limit"] = limit
+        data = self._call_method("fetchClosedOrders", params or None)
+        return [_convert_order(o) for o in (data or [])]
+
+    def fetch_all_orders(
+        self,
+        market_id: Optional[str] = None,
+        since: Optional[Any] = None,
+        until: Optional[Any] = None,
+        limit: Optional[int] = None,
+    ) -> List[Order]:
+        """
+        Get all orders (open + closed), sorted newest-first.
+
+        Args:
+            market_id: Filter to a specific market
+            since: Only return orders after this datetime
+            until: Only return orders before this datetime
+            limit: Maximum number of results
+
+        Returns:
+            List of orders
+
+        Example:
+            orders = exchange.fetch_all_orders()
+        """
+        params: Dict[str, Any] = {}
+        if market_id is not None:
+            params["marketId"] = market_id
+        if since is not None:
+            params["since"] = since.isoformat() if hasattr(since, "isoformat") else since
+        if until is not None:
+            params["until"] = until.isoformat() if hasattr(until, "isoformat") else until
+        if limit is not None:
+            params["limit"] = limit
+        data = self._call_method("fetchAllOrders", params or None)
+        return [_convert_order(o) for o in (data or [])]
+
+    def fetch_markets_paginated(
+        self,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+    ) -> PaginatedMarketsResult:
+        """
+        Fetch markets with cursor-based pagination.
+
+        Unlike fetch_markets(), this takes a stable snapshot on the first call
+        and returns a cursor you can use to fetch the next page without drift.
+
+        Args:
+            limit: Page size
+            cursor: Opaque cursor returned by the previous call
+
+        Returns:
+            PaginatedMarketsResult with data, total, and next_cursor
+
+        Example:
+            page = exchange.fetch_markets_paginated(limit=100)
+            while page.next_cursor:
+                page = exchange.fetch_markets_paginated(limit=100, cursor=page.next_cursor)
+        """
+        params: Dict[str, Any] = {}
+        if limit is not None:
+            params["limit"] = limit
+        if cursor is not None:
+            params["cursor"] = cursor
+        raw = self._call_method("fetchMarketsPaginated", params or None)
+        return PaginatedMarketsResult(
+            data=[_convert_market(m) for m in raw.get("data", [])],
+            total=raw.get("total", 0),
+            next_cursor=raw.get("nextCursor"),
+        )
+
     # Account Methods
-    
+
     def fetch_positions(self) -> List[Position]:
         """
         Get current positions across all markets.

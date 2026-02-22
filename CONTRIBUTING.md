@@ -62,6 +62,20 @@ This project uses a **Sidecar Server Architecture**: the core logic is in TypeSc
 
 Exchange integrations use an **Implicit API pattern**: each exchange has an `api.ts` file (generated from the exchange's OpenAPI spec) that auto-generates callable methods. Unified exchange methods call these via `callApi('OperationId', params)`. See [Architecture Overview](./ARCHITECTURE.md) for a full explanation before touching exchange code.
 
+### Adding Methods to the Exchange Interface
+
+When adding a public method to `BaseExchange.ts`:
+
+1. Add the method signature and JSDoc comment
+2. Regenerate the OpenAPI spec:
+   ```bash
+   npm run generate:openapi --workspace=pmxt-core
+   ```
+3. Commit both the method and the regenerated `openapi.yaml`
+4. A GitHub Actions workflow will verify the spec is in sync on your PR
+
+The OpenAPI spec is auto-generated from `BaseExchange.ts` via TypeScript AST parsing, so no manual spec editing is needed.
+
 ### Quick Start: Single Command Dev Mode
 From the root directory, run:
 

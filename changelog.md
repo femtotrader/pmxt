@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.13.1] - 2026-02-22
+
+### Fixed
+
+- **TypeScript SDK Build**: Resolved critical compilation errors introduced by OpenAPI spec auto-generation (v2.13.0).
+  - Added missing `title` fields to inline request schemas in `openapi.yaml` (cancelOrder, fetchOrder endpoints) so the OpenAPI generator creates proper named types.
+  - Fixed incorrect type references in `client.ts` `fetchOrder` method (was using `CancelOrderRequest` instead of `FetchOrderRequest`).
+  - Enhanced `fix-generated.js` post-processing script to properly handle union type discriminators and TypeScript type narrowing issues in generated code.
+  - Fixed type narrowing failures in `FilterEventsRequestArgsInner` and `FilterMarketsRequestArgsInner` by adding explicit type casts in `.every()` and `.map()` calls.
+
 ## [2.13.0] - 2026-02-22
 
 ### Added

@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.14.0] - 2026-02-23
+
+### Added
+
+- **Kalshi Demo Support**: Introduced full support for the Kalshi Demo (simulated) environment across both TypeScript and Python SDKs.
+  - **TypeScript**: New `KalshiDemoExchange` class for direct access to the demo environment.
+  - **Python**: Updated `Kalshi` class with a `demo=True` parameter for easy environment switching.
+  - **Unified Configuration**: Centralized API and WebSocket URL management to ensure consistency between production and demo environments.
+- **Dome API Migration**: Added a dedicated migration guide and landing page for users transitioning from the shut-down Dome API.
+- **Kalshi Setup Documentation**: Included a comprehensive setup guide in the core documentation for Kalshi integration.
+
+### Fixed
+
+- **Kalshi Demo Connectivity**: Corrected internal API and WebSocket endpoints for the Kalshi Demo environment to ensure reliable connectivity.
+- **Core Stability**: Resolved merge conflicts and performed general code cleanup in the sidecar server.
+
+### Documentation
+
+- **Project Metadata**: Updated download statistics and project badges.
+
 ## [2.13.2] - 2026-02-22
 
 ### Fixed

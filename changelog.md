@@ -2,12 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.17.3] - 2026-02-24
+
+### Fixed
+
+- **Fatal Circular JSON Crash (`fetchEvents`)**: Fixed a `TypeError: Converting circular structure to JSON` that fatally crashed the sidecar server on every `fetchEvents` call across all exchanges. The v2.17.2 patch injected `market.event = event` inside the core exchange functions, creating an `event → markets[0] → event` reference cycle. Since Express serializes sidecar responses via `JSON.stringify`, this caused an unrecoverable crash propagated to all SDK clients. The `market.event` back-references are now hydrated exclusively client-side inside `convertEvent` in the TypeScript SDK, keeping all sidecar REST payloads strictly acyclic.
+
 ## [2.17.2] - 2026-02-24
 
 ### Fixed
 
-- **Bi-directional Navigation (`market.event`)**: Fixed a hydration issue where `market.event` was `undefined`. Reconstructed the `UnifiedMarket` list by assigning `market.event = event` during the `convertEvent` hydration step, and correctly injected the reverse-reference in all the core exchanges.
-- **Global User-Agent Header**: Added a default generic `User-Agent` header (`pmxt (https://github.com/pmxt-dev/pmxt)`) to the `BaseExchange` axios configuration. This ensures consistent identification across all exchanges and resolves the **Polymarket Discovery 401 Error** that occurred when calling `fetchEvents()` without parameters effectively bypassing WAF/CDN restrictions.
+- **Bi-directional Navigation (`market.event`)**: Added `market.event` back-reference hydration to the TypeScript SDK's `convertEvent` function, enabling navigation from any market to its parent event. Note: this release accidentally also injected the circular reference server-side, causing a fatal JSON serialization crash fixed in v2.17.3.
+- **Global User-Agent Header**: Added a default generic `User-Agent` header (`pmxt (https://github.com/pmxt-dev/pmxt)`) to the `BaseExchange` axios configuration. This ensures consistent identification across all exchanges and resolves the **Polymarket Discovery 401 Error** that occurred when calling `fetchEvents()` without parameters, effectively bypassing WAF/CDN restrictions.
 
 ## [2.17.1] - 2026-02-24
 

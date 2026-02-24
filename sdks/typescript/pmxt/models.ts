@@ -150,6 +150,49 @@ export interface ExecutionPriceResult {
 }
 
 /**
+ * A trade made by the authenticated user.
+ */
+export interface UserTrade {
+    /** Trade ID */
+    id: string;
+
+    /** Trade price (0.0 to 1.0) */
+    price: number;
+
+    /** Trade amount (contracts) */
+    amount: number;
+
+    /** Trade side */
+    side: "buy" | "sell" | "unknown";
+
+    /** Unix timestamp (milliseconds) */
+    timestamp: number;
+
+    /** Order that created this trade */
+    orderId?: string;
+
+    /** Outcome ID */
+    outcomeId?: string;
+
+    /** Market ID */
+    marketId?: string;
+}
+
+/**
+ * Result of a paginated market fetch.
+ */
+export interface PaginatedMarketsResult {
+    /** The markets for this page */
+    data: UnifiedMarket[];
+
+    /** Total number of markets (if available) */
+    total?: number;
+
+    /** Cursor for the next page (pass to fetchMarketsPaginated) */
+    nextCursor?: string;
+}
+
+/**
  * A historical trade.
  */
 export interface Trade {

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.15.0] - 2026-02-24
+
+### Added
+
+- **TypeScript SDK: Automated Client Method Generation**: Introduced `sdks/typescript/scripts/generate-client-methods.js`, a script that introspects `BaseExchange.ts` via the TypeScript AST and auto-generates typed client method stubs in `client.ts`. This ensures the TypeScript SDK stays in sync with core method additions without manual updates.
+- **TypeScript SDK: SDK Surface Area Tests**: Added `sdks/typescript/tests/surface.test.ts` with 175 tests (25 public methods × 7 exchange classes). These tests verify that every method defined in `BaseExchange` is correctly exposed on all exchange clients (Polymarket, Kalshi, KalshiDemo, Limitless, Myriad, Probable, Baozi). No server required — prototype checks only.
+
+### Fixed
+
+- **TypeScript SDK: Integration Test Reliability**: Refactored `sdks/typescript/tests/integration.test.ts` to use a shared `beforeAll` per describe block (avoiding redundant API calls per test), pass `{ limit: 5 }` to both Polymarket and Kalshi `fetchMarkets` to prevent full-catalog fetches, and set a 120s `beforeAll` timeout to handle Polymarket Gamma API response variance (which can exceed 30s under load). All 6 integration tests now pass reliably.
+
 ## [2.14.1] - 2026-02-23
 
 ### Fixed

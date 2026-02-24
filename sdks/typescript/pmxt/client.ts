@@ -8,16 +8,9 @@
 import {
     DefaultApi,
     Configuration,
-    FetchMarketsRequest,
     FetchOHLCVRequest,
-    FetchOrderBookRequest,
     FetchTradesRequest,
     CreateOrderRequest,
-    CancelOrderRequest,
-    FetchOpenOrdersRequest,
-    FetchPositionsRequest,
-    FetchBalanceRequest,
-    FetchOrderRequest,
     ExchangeCredentials,
 } from "../generated/src/index.js";
 
@@ -29,12 +22,14 @@ import {
     OrderBook,
     OrderLevel,
     Trade,
+    UserTrade,
     Order,
     Position,
     Balance,
     SearchIn,
     UnifiedEvent,
     ExecutionPriceResult,
+    PaginatedMarketsResult,
     MarketFilterCriteria,
     MarketFilterFunction,
     EventFilterCriteria,
@@ -160,6 +155,19 @@ function convertBalance(raw: any): Balance {
         total: raw.total,
         available: raw.available,
         locked: raw.locked,
+    };
+}
+
+function convertUserTrade(raw: any): UserTrade {
+    return {
+        id: raw.id,
+        price: raw.price,
+        amount: raw.amount,
+        side: raw.side || "unknown",
+        timestamp: raw.timestamp,
+        orderId: raw.orderId,
+        outcomeId: raw.outcomeId,
+        marketId: raw.marketId,
     };
 }
 
@@ -340,146 +348,365 @@ export abstract class Exchange {
         }
     }
 
-    // Market Data Methods
+    // BEGIN GENERATED METHODS
 
-    /**
-     * Get active markets from the exchange.
-     *
-     * @param params - Optional filter parameters
-     * @returns List of unified markets
-     *
-     * @example
-     * ```typescript
-     * const markets = await exchange.fetchMarkets({ limit: 20, sort: "volume" });
-     * ```
-     */
+    async loadMarkets(reload: boolean = false): Promise<Record<string, UnifiedMarket>> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            args.push(reload);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/loadMarkets`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            const result: Record<string, UnifiedMarket> = {};
+            for (const [key, value] of Object.entries(data as any)) {
+                result[key] = convertMarket(value);
+            }
+            return result;
+        } catch (error) {
+            throw new Error(`Failed to loadMarkets: ${error}`);
+        }
+    }
+
     async fetchMarkets(params?: any): Promise<UnifiedMarket[]> {
         await this.initPromise;
         try {
             const args: any[] = [];
-            if (params) {
-                args.push(params);
-            }
-
-            const requestBody: FetchMarketsRequest = {
-                args,
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.fetchMarkets({
-                exchange: this.exchangeName as any,
-                fetchMarketsRequest: requestBody,
+            if (params !== undefined) args.push(params);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchMarkets`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
             });
-
-            const data = this.handleResponse(response);
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
             return data.map(convertMarket);
         } catch (error) {
-            throw new Error(`Failed to fetch markets: ${error}`);
+            throw new Error(`Failed to fetchMarkets: ${error}`);
         }
     }
 
-    /**
-     * Fetch a single market by lookup parameters.
-     * Returns the first matching market or throws if not found.
-     *
-     * @param params - Lookup parameters (marketId, outcomeId, slug, eventId, query)
-     * @returns A single unified market
-     * @throws Error if no market matches
-     *
-     * @example
-     * ```typescript
-     * const market = await exchange.fetchMarket({ marketId: '663583' });
-     * const market = await exchange.fetchMarket({ outcomeId: '10991849...' });
-     * const market = await exchange.fetchMarket({ slug: 'will-trump-win' });
-     * ```
-     */
+    async fetchMarketsPaginated(params?: any): Promise<PaginatedMarketsResult> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            if (params !== undefined) args.push(params);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchMarketsPaginated`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return {
+                data: (data.data || []).map(convertMarket),
+                total: data.total,
+                nextCursor: data.nextCursor,
+            };
+        } catch (error) {
+            throw new Error(`Failed to fetchMarketsPaginated: ${error}`);
+        }
+    }
+
+    async fetchEvents(params?: any): Promise<UnifiedEvent[]> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            if (params !== undefined) args.push(params);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchEvents`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return data.map(convertEvent);
+        } catch (error) {
+            throw new Error(`Failed to fetchEvents: ${error}`);
+        }
+    }
+
     async fetchMarket(params?: any): Promise<UnifiedMarket> {
         await this.initPromise;
         try {
             const args: any[] = [];
-            if (params) {
-                args.push(params);
-            }
-
-            const requestBody: any = {
-                args,
-                credentials: this.getCredentials()
-            };
-
-            const url = `${this.config.basePath}/api/${this.exchangeName}/fetchMarket`;
-
-            const response = await fetch(url, {
+            if (params !== undefined) args.push(params);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchMarket`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...this.config.headers
-                },
-                body: JSON.stringify(requestBody)
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
             });
-
             if (!response.ok) {
                 const error = await response.json().catch(() => ({}));
                 throw new Error(error.error?.message || response.statusText);
             }
-
             const json = await response.json();
             const data = this.handleResponse(json);
             return convertMarket(data);
         } catch (error) {
-            throw new Error(`Failed to fetch market: ${error}`);
+            throw new Error(`Failed to fetchMarket: ${error}`);
         }
     }
 
-    /**
-     * Fetch a single event by lookup parameters.
-     * Returns the first matching event or throws if not found.
-     *
-     * @param params - Lookup parameters (eventId, slug, query)
-     * @returns A single unified event
-     * @throws Error if no event matches
-     *
-     * @example
-     * ```typescript
-     * const event = await exchange.fetchEvent({ eventId: 'TRUMP25DEC' });
-     * const event = await exchange.fetchEvent({ slug: 'us-election' });
-     * ```
-     */
     async fetchEvent(params?: any): Promise<UnifiedEvent> {
         await this.initPromise;
         try {
             const args: any[] = [];
-            if (params) {
-                args.push(params);
-            }
-
-            const requestBody: any = {
-                args,
-                credentials: this.getCredentials()
-            };
-
-            const url = `${this.config.basePath}/api/${this.exchangeName}/fetchEvent`;
-
-            const response = await fetch(url, {
+            if (params !== undefined) args.push(params);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchEvent`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...this.config.headers
-                },
-                body: JSON.stringify(requestBody)
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
             });
-
             if (!response.ok) {
                 const error = await response.json().catch(() => ({}));
                 throw new Error(error.error?.message || response.statusText);
             }
-
             const json = await response.json();
             const data = this.handleResponse(json);
             return convertEvent(data);
         } catch (error) {
-            throw new Error(`Failed to fetch event: ${error}`);
+            throw new Error(`Failed to fetchEvent: ${error}`);
         }
     }
+
+    async fetchOrderBook(id: string): Promise<OrderBook> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            args.push(id);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchOrderBook`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return convertOrderBook(data);
+        } catch (error) {
+            throw new Error(`Failed to fetchOrderBook: ${error}`);
+        }
+    }
+
+    async cancelOrder(orderId: string): Promise<Order> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            args.push(orderId);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/cancelOrder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return convertOrder(data);
+        } catch (error) {
+            throw new Error(`Failed to cancelOrder: ${error}`);
+        }
+    }
+
+    async fetchOrder(orderId: string): Promise<Order> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            args.push(orderId);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchOrder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return convertOrder(data);
+        } catch (error) {
+            throw new Error(`Failed to fetchOrder: ${error}`);
+        }
+    }
+
+    async fetchOpenOrders(marketId?: string): Promise<Order[]> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            if (marketId !== undefined) args.push(marketId);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchOpenOrders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return data.map(convertOrder);
+        } catch (error) {
+            throw new Error(`Failed to fetchOpenOrders: ${error}`);
+        }
+    }
+
+    async fetchMyTrades(params?: any): Promise<UserTrade[]> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            if (params !== undefined) args.push(params);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchMyTrades`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return data.map(convertUserTrade);
+        } catch (error) {
+            throw new Error(`Failed to fetchMyTrades: ${error}`);
+        }
+    }
+
+    async fetchClosedOrders(params?: any): Promise<Order[]> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            if (params !== undefined) args.push(params);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchClosedOrders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return data.map(convertOrder);
+        } catch (error) {
+            throw new Error(`Failed to fetchClosedOrders: ${error}`);
+        }
+    }
+
+    async fetchAllOrders(params?: any): Promise<Order[]> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            if (params !== undefined) args.push(params);
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchAllOrders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return data.map(convertOrder);
+        } catch (error) {
+            throw new Error(`Failed to fetchAllOrders: ${error}`);
+        }
+    }
+
+    async fetchPositions(): Promise<Position[]> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchPositions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return data.map(convertPosition);
+        } catch (error) {
+            throw new Error(`Failed to fetchPositions: ${error}`);
+        }
+    }
+
+    async fetchBalance(): Promise<Balance[]> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/fetchBalance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return data.map(convertBalance);
+        } catch (error) {
+            throw new Error(`Failed to fetchBalance: ${error}`);
+        }
+    }
+
+    async close(): Promise<void> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/close`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.config.headers },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            this.handleResponse(json);
+        } catch (error) {
+            throw new Error(`Failed to close: ${error}`);
+        }
+    }
+
+    // END GENERATED METHODS
 
     /**
      * Get historical price candles.
@@ -533,43 +760,10 @@ export abstract class Exchange {
     }
 
     /**
-     * Get current order book for an outcome.
-     * 
-     * @param outcomeId - Outcome ID
-     * @returns Current order book
-     * 
-     * @example
-     * ```typescript
-     * const orderBook = await exchange.fetchOrderBook(outcomeId);
-     * console.log(`Best bid: ${orderBook.bids[0].price}`);
-     * console.log(`Best ask: ${orderBook.asks[0].price}`);
-     * ```
-     */
-    async fetchOrderBook(outcomeId: string): Promise<OrderBook> {
-        await this.initPromise;
-        try {
-            const requestBody: FetchOrderBookRequest = {
-                args: [outcomeId],
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.fetchOrderBook({
-                exchange: this.exchangeName as any,
-                fetchOrderBookRequest: requestBody,
-            });
-
-            const data = this.handleResponse(response);
-            return convertOrderBook(data);
-        } catch (error) {
-            throw new Error(`Failed to fetch order book: ${error}`);
-        }
-    }
-
-    /**
      * Get trade history for an outcome.
-     * 
+     *
      * Note: Polymarket requires API key.
-     * 
+     *
      * @param outcomeId - Outcome ID
      * @param params - History filter parameters
      * @returns List of trades
@@ -774,141 +968,6 @@ export abstract class Exchange {
             return convertOrder(data);
         } catch (error) {
             throw new Error(`Failed to create order: ${error}`);
-        }
-    }
-
-    /**
-     * Cancel an open order.
-     * 
-     * @param orderId - Order ID to cancel
-     * @returns Cancelled order
-     */
-    async cancelOrder(orderId: string): Promise<Order> {
-        await this.initPromise;
-        try {
-            const requestBody: CancelOrderRequest = {
-                args: [orderId],
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.cancelOrder({
-                exchange: this.exchangeName as any,
-                cancelOrderRequest: requestBody,
-            });
-
-            const data = this.handleResponse(response);
-            return convertOrder(data);
-        } catch (error) {
-            throw new Error(`Failed to cancel order: ${error}`);
-        }
-    }
-
-    /**
-     * Get details of a specific order.
-     * 
-     * @param orderId - Order ID
-     * @returns Order details
-     */
-    async fetchOrder(orderId: string): Promise<Order> {
-        await this.initPromise;
-        try {
-            const requestBody: FetchOrderRequest = {
-                args: [orderId],
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.fetchOrder({
-                exchange: this.exchangeName as any,
-                fetchOrderRequest: requestBody,
-            });
-
-            const data = this.handleResponse(response);
-            return convertOrder(data);
-        } catch (error) {
-            throw new Error(`Failed to fetch order: ${error}`);
-        }
-    }
-
-    /**
-     * Get all open orders, optionally filtered by market.
-     * 
-     * @param marketId - Optional market ID to filter by
-     * @returns List of open orders
-     */
-    async fetchOpenOrders(marketId?: string): Promise<Order[]> {
-        await this.initPromise;
-        try {
-            const args: any[] = [];
-            if (marketId) {
-                args.push(marketId);
-            }
-
-            const requestBody: FetchOpenOrdersRequest = {
-                args,
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.fetchOpenOrders({
-                exchange: this.exchangeName as any,
-                fetchOpenOrdersRequest: requestBody,
-            });
-
-            const data = this.handleResponse(response);
-            return data.map(convertOrder);
-        } catch (error) {
-            throw new Error(`Failed to fetch open orders: ${error}`);
-        }
-    }
-
-    // Account Methods
-
-    /**
-     * Get current positions across all markets.
-     * 
-     * @returns List of positions
-     */
-    async fetchPositions(): Promise<Position[]> {
-        await this.initPromise;
-        try {
-            const requestBody: FetchPositionsRequest = {
-                args: [],
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.fetchPositions({
-                exchange: this.exchangeName as any,
-                fetchPositionsRequest: requestBody,
-            });
-
-            const data = this.handleResponse(response);
-            return data.map(convertPosition);
-        } catch (error) {
-            throw new Error(`Failed to fetch positions: ${error}`);
-        }
-    }
-
-    /**
-     * Get account balance.
-     * 
-     * @returns List of balances (by currency)
-     */
-    async fetchBalance(): Promise<Balance[]> {
-        await this.initPromise;
-        try {
-            const requestBody: FetchBalanceRequest = {
-                args: [],
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.fetchBalance({
-                exchange: this.exchangeName as any,
-                fetchBalanceRequest: requestBody,
-            });
-
-            const data = this.handleResponse(response);
-            return data.map(convertBalance);
-        } catch (error) {
-            throw new Error(`Failed to fetch balance: ${error}`);
         }
     }
 
@@ -1344,5 +1403,101 @@ export class Kalshi extends Exchange {
 export class Limitless extends Exchange {
     constructor(options: ExchangeOptions = {}) {
         super("limitless", options);
+    }
+}
+
+/**
+ * Kalshi Demo exchange client (paper trading / sandbox environment).
+ *
+ * Uses Kalshi's demo environment — same API as Kalshi but against test accounts.
+ * Credentials are separate from production Kalshi credentials.
+ *
+ * @example
+ * ```typescript
+ * const kalshiDemo = new KalshiDemo({
+ *   apiKey: process.env.KALSHI_DEMO_API_KEY,
+ *   privateKey: process.env.KALSHI_DEMO_PRIVATE_KEY
+ * });
+ * const balance = await kalshiDemo.fetchBalance();
+ * ```
+ */
+export class KalshiDemo extends Exchange {
+    constructor(options: ExchangeOptions = {}) {
+        super("kalshi-demo", options);
+    }
+}
+
+/**
+ * Myriad exchange client.
+ *
+ * AMM-based prediction market exchange. Requires an API key for trading.
+ * The `privateKey` field is used as the wallet address.
+ *
+ * @example
+ * ```typescript
+ * // Public data (no auth)
+ * const myriad = new Myriad();
+ * const markets = await myriad.fetchMarkets();
+ *
+ * // Trading (requires auth)
+ * const myriad = new Myriad({
+ *   apiKey: process.env.MYRIAD_API_KEY,
+ *   privateKey: process.env.MYRIAD_WALLET_ADDRESS
+ * });
+ * ```
+ */
+export class Myriad extends Exchange {
+    constructor(options: ExchangeOptions = {}) {
+        super("myriad", options);
+    }
+}
+
+/**
+ * Probable exchange client.
+ *
+ * BSC-based CLOB exchange. Requires all four credential fields for trading.
+ *
+ * @example
+ * ```typescript
+ * // Public data (no auth)
+ * const probable = new Probable();
+ * const markets = await probable.fetchMarkets();
+ *
+ * // Trading (requires auth)
+ * const probable = new Probable({
+ *   privateKey: process.env.PROBABLE_PRIVATE_KEY,
+ *   apiKey: process.env.PROBABLE_API_KEY,
+ *   apiSecret: process.env.PROBABLE_API_SECRET,
+ *   passphrase: process.env.PROBABLE_PASSPHRASE
+ * });
+ * ```
+ */
+export class Probable extends Exchange {
+    constructor(options: ExchangeOptions = {}) {
+        super("probable", options);
+    }
+}
+
+/**
+ * Baozi exchange client.
+ *
+ * Solana-based on-chain pari-mutuel betting exchange.
+ * Requires a Solana private key for trading.
+ *
+ * @example
+ * ```typescript
+ * // Public data (no auth)
+ * const baozi = new Baozi();
+ * const markets = await baozi.fetchMarkets();
+ *
+ * // Trading (requires auth)
+ * const baozi = new Baozi({
+ *   privateKey: process.env.BAOZI_PRIVATE_KEY
+ * });
+ * ```
+ */
+export class Baozi extends Exchange {
+    constructor(options: ExchangeOptions = {}) {
+        super("baozi", options);
     }
 }

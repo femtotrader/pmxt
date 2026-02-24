@@ -14,14 +14,14 @@ import { Polymarket, Kalshi } from '../index';
 
 describe('Polymarket Integration', () => {
     let client: Polymarket;
+    let markets: any[];
 
-    beforeAll(() => {
+    beforeAll(async () => {
         client = new Polymarket();
-    });
+        markets = await client.fetchMarkets({ query: 'election', limit: 5 });
+    }, 120000);
 
-    test('fetchMarkets returns valid structure', async () => {
-        const markets = await client.fetchMarkets();
-
+    test('fetchMarkets returns valid structure', () => {
         expect(Array.isArray(markets)).toBe(true);
         expect(markets.length).toBeGreaterThan(0);
 
@@ -37,8 +37,7 @@ describe('Polymarket Integration', () => {
         expect(market.outcomes.length).toBeGreaterThan(0);
     });
 
-    test('market outcomes have required fields', async () => {
-        const markets = await client.fetchMarkets();
+    test('market outcomes have required fields', () => {
         const outcome = markets[0].outcomes[0];
 
         expect(outcome).toHaveProperty('label');
@@ -49,16 +48,14 @@ describe('Polymarket Integration', () => {
         expect(outcome.price).toBeLessThanOrEqual(1);
     });
 
-    test('volume fields are numeric', async () => {
-        const markets = await client.fetchMarkets();
+    test('volume fields are numeric', () => {
         const market = markets[0];
 
         expect(typeof market.volume24h).toBe('number');
         expect(market.volume24h).toBeGreaterThanOrEqual(0);
     });
 
-    test('resolution date is properly typed', async () => {
-        const markets = await client.fetchMarkets();
+    test('resolution date is properly typed', () => {
         const market = markets[0];
 
         if (market.resolutionDate) {
@@ -69,14 +66,14 @@ describe('Polymarket Integration', () => {
 
 describe('Kalshi Integration', () => {
     let client: Kalshi;
+    let markets: any[];
 
-    beforeAll(() => {
+    beforeAll(async () => {
         client = new Kalshi();
-    });
+        markets = await client.fetchMarkets({ limit: 5 });
+    }, 120000);
 
-    test('fetchMarkets returns valid structure', async () => {
-        const markets = await client.fetchMarkets();
-
+    test('fetchMarkets returns valid structure', () => {
         expect(Array.isArray(markets)).toBe(true);
         expect(markets.length).toBeGreaterThan(0);
 
@@ -86,8 +83,7 @@ describe('Kalshi Integration', () => {
         expect(market).toHaveProperty('outcomes');
     });
 
-    test('market outcomes are properly structured', async () => {
-        const markets = await client.fetchMarkets();
+    test('market outcomes are properly structured', () => {
         const market = markets[0];
 
         expect(Array.isArray(market.outcomes)).toBe(true);

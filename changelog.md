@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.17.6] - 2026-02-24
+
+### Fixed
+
+- **Duplicate `eventId` in `UnifiedMarket` causes build failure**: The v2.17.5 fix added `eventId?: string` to `core/src/types.ts` but the field already existed at line 34, resulting in `TS2300: Duplicate identifier 'eventId'` and a broken build. The duplicate declaration is removed.
+
 ## [2.17.5] - 2026-02-24
 
 ### Fixed

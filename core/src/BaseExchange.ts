@@ -268,7 +268,11 @@ export abstract class PredictionMarketExchange {
     constructor(credentials?: ExchangeCredentials, options?: ExchangeOptions) {
         this.credentials = credentials;
         this._snapshotTTL = options?.snapshotTTL ?? 0;
-        this.http = axios.create();
+        this.http = axios.create({
+            headers: {
+                'User-Agent': `pmxt (https://github.com/pmxt-dev/pmxt)`
+            }
+        });
         this._throttler = new Throttler({
             refillRate: 1 / this._rateLimit,
             capacity: 1,

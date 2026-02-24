@@ -21,17 +21,21 @@ export async function fetchEvents(
             searchIn: params.searchIn,
         });
 
-        return markets.map(m => ({
-            id: m.marketId,
-            title: m.title,
-            description: m.description,
-            slug: m.marketId,
-            markets: [m],
-            url: m.url,
-            image: m.image,
-            category: m.category,
-            tags: m.tags,
-        }));
+        return markets.map(m => {
+            const unifiedEvent = {
+                id: m.marketId,
+                title: m.title,
+                description: m.description,
+                slug: m.marketId,
+                markets: [m],
+                url: m.url,
+                image: m.image,
+                category: m.category,
+                tags: m.tags,
+            };
+            m.event = unifiedEvent;
+            return unifiedEvent;
+        });
     } catch (error: any) {
         throw baoziErrorMapper.mapError(error);
     }

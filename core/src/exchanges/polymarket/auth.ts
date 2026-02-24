@@ -113,7 +113,9 @@ export class PolymarketAuth {
         try {
             // Polymarket Data API / Profiles endpoint
             // Path-based: https://data-api.polymarket.com/profiles/0x...
-            const response = await axios.get(`https://data-api.polymarket.com/profiles/${address}`);
+            const response = await axios.get(`https://data-api.polymarket.com/profiles/${address}`, {
+                headers: { 'User-Agent': 'pmxt (https://github.com/pmxt-dev/pmxt)' }
+            });
             const profile = response.data;
             // console.log(`[PolymarketAuth] Profile for ${address}:`, JSON.stringify(profile));
 

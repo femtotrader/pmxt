@@ -42,6 +42,11 @@ async function fetchEventByTicker(
     category: event.category,
     tags: event.tags || [],
   };
+
+  for (const market of markets) {
+    market.event = unifiedEvent;
+  }
+
   return [unifiedEvent];
 }
 
@@ -55,7 +60,7 @@ function rawEventToUnified(event: any): UnifiedEvent {
       }
     }
   }
-  return {
+  const unifiedEvent: UnifiedEvent = {
     id: event.event_ticker,
     title: event.title,
     description: event.mututals_description || "",
@@ -66,6 +71,12 @@ function rawEventToUnified(event: any): UnifiedEvent {
     category: event.category,
     tags: event.tags || [],
   };
+
+  for (const market of markets) {
+    market.event = unifiedEvent;
+  }
+
+  return unifiedEvent;
 }
 
 async function fetchAllWithStatus(

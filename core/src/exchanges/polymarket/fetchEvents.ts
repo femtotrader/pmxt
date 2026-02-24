@@ -14,7 +14,7 @@ function mapRawEventToUnified(event: any): UnifiedEvent {
             }
         }
     }
-    return {
+    const unifiedEvent: UnifiedEvent = {
         id: event.id || event.slug,
         title: event.title,
         description: event.description || '',
@@ -25,6 +25,12 @@ function mapRawEventToUnified(event: any): UnifiedEvent {
         category: event.category || event.tags?.[0]?.label,
         tags: event.tags?.map((t: any) => t.label) || []
     };
+
+    for (const market of markets) {
+        market.event = unifiedEvent;
+    }
+
+    return unifiedEvent;
 }
 
 export async function fetchEvents(params: EventFetchParams, http: AxiosInstance = axios): Promise<UnifiedEvent[]> {

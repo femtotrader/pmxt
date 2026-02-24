@@ -174,7 +174,7 @@ function convertUserTrade(raw: any): UserTrade {
 function convertEvent(raw: any): UnifiedEvent {
     const markets = MarketList.from((raw.markets || []).map(convertMarket)) as MarketList;
 
-    return {
+    const event: UnifiedEvent = {
         id: raw.id,
         title: raw.title,
         description: raw.description,
@@ -185,6 +185,13 @@ function convertEvent(raw: any): UnifiedEvent {
         category: raw.category,
         tags: raw.tags,
     };
+
+    // Add bi-directional navigation
+    for (const market of markets) {
+        market.event = event;
+    }
+
+    return event;
 }
 
 /**

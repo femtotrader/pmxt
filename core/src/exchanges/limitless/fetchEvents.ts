@@ -2,9 +2,9 @@ import { EventFetchParams } from '../../BaseExchange';
 import { UnifiedEvent, UnifiedMarket } from '../../types';
 import { LIMITLESS_API_URL, mapMarketToUnified } from './utils';
 import { limitlessErrorMapper } from './errors';
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 
-async function fetchEventBySlug(slug: string): Promise<UnifiedEvent | null> {
+async function fetchEventBySlug(slug: string, http: AxiosInstance = axios): Promise<UnifiedEvent | null> {
     const { HttpClient, MarketFetcher } = await import('@limitless-exchange/sdk');
     const httpClient = new HttpClient({ baseURL: LIMITLESS_API_URL });
     const marketFetcher = new MarketFetcher(httpClient);
@@ -22,7 +22,7 @@ async function fetchEventBySlug(slug: string): Promise<UnifiedEvent | null> {
         if (unifiedMarket) marketsList = [unifiedMarket];
     }
 
-    return {
+    const unifiedEvent = {
         id: market.slug,
         title: market.title || (market as any).question,
         description: market.description || '',
@@ -33,6 +33,12 @@ async function fetchEventBySlug(slug: string): Promise<UnifiedEvent | null> {
         category: market.categories?.[0],
         tags: market.tags || []
     } as UnifiedEvent;
+
+    for (const m of marketsList) {
+        m.event = unifiedEvent;
+    }
+
+    return unifiedEvent;
 }
 
 function rawMarketToEvent(market: any): UnifiedEvent {
@@ -47,7 +53,7 @@ function rawMarketToEvent(market: any): UnifiedEvent {
         if (unifiedMarket) marketsList = [unifiedMarket];
     }
 
-    return {
+    const unifiedEvent = {
         id: market.slug,
         title: market.title || market.question,
         description: market.description || '',
@@ -58,14 +64,24 @@ function rawMarketToEvent(market: any): UnifiedEvent {
         category: market.categories?.[0],
         tags: market.tags || []
     } as UnifiedEvent;
+
+    for (const m of marketsList) {
+        m.event = unifiedEvent;
+    }
+
+    return unifiedEvent;
 }
 
-export async function fetchEvents(params: EventFetchParams, callApi: (operationId: string, params?: Record<string, any>) => Promise<any>): Promise<UnifiedEvent[]> {
+export async function fetchEvents(
+    params: EventFetchParams,
+    callApi: (operationId: string, params?: Record<string, any>) => Promise<any>,
+    http: AxiosInstance = axios
+): Promise<UnifiedEvent[]> {
     try {
         // Handle eventId/slug lookup (same thing for Limitless)
         if (params.eventId || params.slug) {
             const slug = params.eventId || params.slug!;
-            const event = await fetchEventBySlug(slug);
+            const event = await fetchEventBySlug(slug, http);
             return event ? [event] : [];
         }
 
@@ -76,7 +92,7 @@ export async function fetchEvents(params: EventFetchParams, callApi: (operationI
 
         // Default: fetch active group markets from /markets/active
         // On Limitless, "events" = group markets (tradeType === 'group')
-        return await fetchEventsDefault(params);
+        return await fetchEventsDefault(params, http);
 
     } catch (error: any) {
         throw limitlessErrorMapper.mapError(error);
@@ -106,7 +122,7 @@ async function searchEvents(
     return markets.map(rawMarketToEvent);
 }
 
-async function fetchEventsDefault(params: EventFetchParams): Promise<UnifiedEvent[]> {
+async function fetchEventsDefault(params: EventFetchParams, http: AxiosInstance = axios): Promise<UnifiedEvent[]> {
     // Limitless has no dedicated /events endpoint.
     // Group markets (tradeType === 'group') are the semantic equivalent of events.
     // We use GET /markets/active and filter for groups only.
@@ -117,7 +133,7 @@ async function fetchEventsDefault(params: EventFetchParams): Promise<UnifiedEven
     const allGroups: UnifiedEvent[] = [];
 
     while (allGroups.length < limit && page <= MAX_PAGES) {
-        const response = await axios.get(`${LIMITLESS_API_URL}/markets/active`, {
+        const response = await http.get(`${LIMITLESS_API_URL}/markets/active`, {
             params: {
                 page,
                 limit: pageSize,

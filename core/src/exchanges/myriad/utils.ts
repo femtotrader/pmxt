@@ -91,7 +91,7 @@ export function mapQuestionToEvent(question: any): UnifiedEvent | null {
         if (um) markets.push(um);
     }
 
-    return {
+    const unifiedEvent = {
         id: String(question.id),
         title: question.title || '',
         description: '',
@@ -99,4 +99,10 @@ export function mapQuestionToEvent(question: any): UnifiedEvent | null {
         markets,
         url: `https://myriad.markets`,
     };
+
+    for (const m of markets) {
+        m.event = unifiedEvent;
+    }
+
+    return unifiedEvent;
 }

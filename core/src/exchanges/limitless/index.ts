@@ -136,7 +136,7 @@ export class LimitlessExchange extends PredictionMarketExchange {
     }
 
     protected async fetchEventsImpl(params: EventFetchParams): Promise<UnifiedEvent[]> {
-        return fetchEvents(params, this.callApi.bind(this));
+        return fetchEvents(params, this.callApi.bind(this), this.http);
     }
 
     async fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams): Promise<PriceCandle[]> {

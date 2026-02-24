@@ -175,7 +175,7 @@ export class PolymarketExchange extends PredictionMarketExchange {
                         if (unified) markets.push(unified);
                     }
                 }
-                return {
+                const unifiedEvent = {
                     id: event.id || event.slug,
                     title: event.title,
                     description: event.description || '',
@@ -186,6 +186,10 @@ export class PolymarketExchange extends PredictionMarketExchange {
                     category: event.category || event.tags?.[0]?.label,
                     tags: event.tags?.map((t: any) => t.label) || [],
                 } as UnifiedEvent;
+                for (const market of markets) {
+                    market.event = unifiedEvent;
+                }
+                return unifiedEvent;
             });
         }
         return fetchEvents(params, this.http);

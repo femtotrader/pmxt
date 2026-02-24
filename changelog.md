@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.17.2] - 2026-02-24
+
+### Fixed
+
+- **Bi-directional Navigation (`market.event`)**: Fixed a hydration issue where `market.event` was `undefined`. Reconstructed the `UnifiedMarket` list by assigning `market.event = event` during the `convertEvent` hydration step, and correctly injected the reverse-reference in all the core exchanges.
+- **Global User-Agent Header**: Added a default generic `User-Agent` header (`pmxt (https://github.com/pmxt-dev/pmxt)`) to the `BaseExchange` axios configuration. This ensures consistent identification across all exchanges and resolves the **Polymarket Discovery 401 Error** that occurred when calling `fetchEvents()` without parameters effectively bypassing WAF/CDN restrictions.
+
 ## [2.17.1] - 2026-02-24
 
 ### Fixed

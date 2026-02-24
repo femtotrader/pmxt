@@ -58,7 +58,7 @@ export function mapEventToUnified(event: any): UnifiedEvent | null {
         }
     }
 
-    return {
+    const unifiedEvent: UnifiedEvent = {
         id: String(event.id),
         title: event.title || '',
         description: event.description || '',
@@ -69,6 +69,12 @@ export function mapEventToUnified(event: any): UnifiedEvent | null {
         category: event.category || undefined,
         tags: event.tags || [],
     };
+
+    for (const market of markets) {
+        market.event = unifiedEvent;
+    }
+
+    return unifiedEvent;
 }
 
 export async function enrichMarketsWithPrices(markets: UnifiedMarket[], callMidpoint: (tokenId: string) => Promise<any>): Promise<void> {

@@ -74,6 +74,9 @@ export interface UnifiedMarket {
     /** Market tags */
     tags?: string[];
 
+    /** Parent event reference */
+    event?: UnifiedEvent;
+
     /** Convenience access to the Yes outcome for binary markets. */
     yes?: MarketOutcome;
 

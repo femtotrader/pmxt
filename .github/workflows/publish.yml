@@ -67,6 +67,9 @@ jobs:
       - name: Build Core
         run: npm run build --workspace=pmxt-core
 
+      - name: Bundle Sidecar Server
+        run: npm run bundle:server --workspace=pmxt-core
+
       - name: Start PMXT Server
         run: |
           npm run server --workspace=pmxt-core &

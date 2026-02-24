@@ -1,6 +1,6 @@
 {
   "name": "pmxtjs",
-  "version": "2.0.3",
+  "version": "2.17.1",
   "description": "Unified prediction market data API - The ccxt for prediction markets",
   "author": "PMXT Contributors",
   "repository": {
@@ -43,7 +43,7 @@
     "unified"
   ],
   "dependencies": {
-    "pmxt-core": "file:../../core"
+    "pmxt-core": "2.17.1"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

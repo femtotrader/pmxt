@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.17.1] - 2026-02-24
+
+### Fixed
+
+- **Sidecar Bundle Drift**: The features shipped in 2.17.0 (parameterless `fetchEvents()`, Kalshi client-side sorting) were correctly implemented in TypeScript source but **never reached users** because the publish pipeline was missing the `bundle:server` step for the npm job. The distributed `pmxt-core` package contained a stale pre-compiled sidecar (`bundled.js`) from a previous release that still enforced the old guard `fetchEvents() requires a query, eventId, or slug parameter`. This patch rebuilds and ships the correct bundle.
+- **CI/CD: Publish Workflow**: Added `npm run bundle:server` to the `publish-npm` job in `publish.yml`, immediately after the `Build Core` step. Without this, source-level changes to the sidecar server are silently ignored in all npm-distributed packages.
+- **CI/CD: Test Workflow**: Applied the same fix to `test-publish.yml` so dry-run publishes and test runs also exercise the correct sidecar, preventing this class of drift from going undetected in future PRs.
+
 ## [2.17.0] - 2026-02-24
 
 ### Improved

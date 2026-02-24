@@ -31,6 +31,9 @@ jobs:
 
       - name: Build All Workspaces
         run: npm run build --workspaces
+
+      - name: Bundle Sidecar Server
+        run: npm run bundle:server --workspace=pmxt-core
         
       - name: Start PMXT Server
         run: |
@@ -76,6 +79,8 @@ jobs:
           node scripts/update-versions.js 0.5.0
           npm run generate:sdk:all --workspace=pmxt-core
           npm run build --workspace=pmxt-core
+          npm run bundle:server --workspace=pmxt-core
+          python sdks/python/bundle_server.py
           npm run server --workspace=pmxt-core &
           # Wait for server
           timeout 30 bash -c 'until curl -s http://localhost:3847/health > /dev/null; do sleep 1; done'

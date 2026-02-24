@@ -70,10 +70,6 @@ export function mapEventToUnified(event: any): UnifiedEvent | null {
         tags: event.tags || [],
     };
 
-    for (const market of markets) {
-        market.event = unifiedEvent;
-    }
-
     return unifiedEvent;
 }
 

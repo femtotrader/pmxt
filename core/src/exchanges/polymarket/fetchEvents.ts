@@ -26,10 +26,6 @@ function mapRawEventToUnified(event: any): UnifiedEvent {
         tags: event.tags?.map((t: any) => t.label) || []
     };
 
-    for (const market of markets) {
-        market.event = unifiedEvent;
-    }
-
     return unifiedEvent;
 }
 

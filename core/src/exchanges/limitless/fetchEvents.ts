@@ -34,10 +34,6 @@ async function fetchEventBySlug(slug: string, http: AxiosInstance = axios): Prom
         tags: market.tags || []
     } as UnifiedEvent;
 
-    for (const m of marketsList) {
-        m.event = unifiedEvent;
-    }
-
     return unifiedEvent;
 }
 
@@ -64,10 +60,6 @@ function rawMarketToEvent(market: any): UnifiedEvent {
         category: market.categories?.[0],
         tags: market.tags || []
     } as UnifiedEvent;
-
-    for (const m of marketsList) {
-        m.event = unifiedEvent;
-    }
 
     return unifiedEvent;
 }

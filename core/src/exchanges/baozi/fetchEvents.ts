@@ -33,7 +33,6 @@ export async function fetchEvents(
                 category: m.category,
                 tags: m.tags,
             };
-            m.event = unifiedEvent;
             return unifiedEvent;
         });
     } catch (error: any) {

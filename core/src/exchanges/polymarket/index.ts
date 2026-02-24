@@ -186,9 +186,6 @@ export class PolymarketExchange extends PredictionMarketExchange {
                     category: event.category || event.tags?.[0]?.label,
                     tags: event.tags?.map((t: any) => t.label) || [],
                 } as UnifiedEvent;
-                for (const market of markets) {
-                    market.event = unifiedEvent;
-                }
                 return unifiedEvent;
             });
         }

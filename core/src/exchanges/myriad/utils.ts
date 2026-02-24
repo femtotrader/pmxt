@@ -100,9 +100,5 @@ export function mapQuestionToEvent(question: any): UnifiedEvent | null {
         url: `https://myriad.markets`,
     };
 
-    for (const m of markets) {
-        m.event = unifiedEvent;
-    }
-
     return unifiedEvent;
 }

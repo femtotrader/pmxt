@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.17.8] - 2026-02-25
+
+### Fixed
+
+- **Python SDK `fetch_ohlcv` deserialization error**: Calling `fetch_ohlcv()` raised `ValueError: Multiple matches found when deserializing... with oneOf schemas: HistoryFilterParams, OHLCVParams` because the OpenAPI spec emitted `oneOf: [OHLCVParams, HistoryFilterParams]` for the `params` argument. Since both schemas are structurally identical in JSON (same four fields, differing only in `resolution` being optional vs. required), pydantic matched both branches and raised an exception. Fixed by removing the deprecated `HistoryFilterParams` union from `fetchOHLCV` in `BaseExchange.ts` and all exchange implementations, then regenerating the OpenAPI spec. The spec now emits only `OHLCVParams` for this parameter. `fetchTrades` is unaffected as its `HistoryFilterParams | TradesParams` union has no structural ambiguity.
+
 ## [2.17.7] - 2026-02-25
 
 ### Fixed

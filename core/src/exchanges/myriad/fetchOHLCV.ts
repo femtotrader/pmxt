@@ -1,4 +1,4 @@
-import { OHLCVParams, HistoryFilterParams } from '../../BaseExchange';
+import { OHLCVParams } from '../../BaseExchange';
 import { PriceCandle, CandleInterval } from '../../types';
 import { myriadErrorMapper } from './errors';
 
@@ -26,7 +26,7 @@ function selectTimeframe(interval: CandleInterval): string {
 
 export async function fetchOHLCV(
     id: string,
-    params: OHLCVParams | HistoryFilterParams,
+    params: OHLCVParams,
     callApi: (operationId: string, params?: Record<string, any>) => Promise<any>
 ): Promise<PriceCandle[]> {
     if (!params.resolution) {

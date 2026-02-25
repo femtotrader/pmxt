@@ -189,7 +189,7 @@ export class ProbableExchange extends PredictionMarketExchange {
         };
     }
 
-    async fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams): Promise<PriceCandle[]> {
+    async fetchOHLCV(id: string, params: OHLCVParams): Promise<PriceCandle[]> {
         if (!params.resolution) {
             throw new Error('fetchOHLCV requires a resolution parameter.');
         }

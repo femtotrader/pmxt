@@ -1,4 +1,4 @@
-import { HistoryFilterParams, OHLCVParams } from '../../BaseExchange';
+import { OHLCVParams } from '../../BaseExchange';
 import { PriceCandle } from '../../types';
 import { mapIntervalToFidelity } from './utils';
 import { validateIdFormat, validateOutcomeId } from '../../utils/validation';
@@ -8,7 +8,7 @@ import { polymarketErrorMapper } from './errors';
  * Fetch historical price data (OHLCV candles) for a specific token.
  * @param id - The CLOB token ID (e.g., outcome token ID)
  */
-export async function fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams, callApi: (operationId: string, params?: Record<string, any>) => Promise<any>): Promise<PriceCandle[]> {
+export async function fetchOHLCV(id: string, params: OHLCVParams, callApi: (operationId: string, params?: Record<string, any>) => Promise<any>): Promise<PriceCandle[]> {
     validateIdFormat(id, 'OHLCV');
     validateOutcomeId(id, 'OHLCV');
 

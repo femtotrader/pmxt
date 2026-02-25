@@ -203,7 +203,7 @@ export class PolymarketExchange extends PredictionMarketExchange {
         return fetchEvents(params, this.http);
     }
 
-    async fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams): Promise<PriceCandle[]> {
+    async fetchOHLCV(id: string, params: OHLCVParams): Promise<PriceCandle[]> {
         return fetchOHLCV(id, params, this.callApi.bind(this));
     }
 

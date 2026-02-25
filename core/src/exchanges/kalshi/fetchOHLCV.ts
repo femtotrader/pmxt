@@ -1,4 +1,4 @@
-import { HistoryFilterParams, OHLCVParams } from "../../BaseExchange";
+import { OHLCVParams } from "../../BaseExchange";
 import { PriceCandle } from "../../types";
 import { mapIntervalToKalshi } from "./utils";
 import { validateIdFormat } from "../../utils/validation";
@@ -6,7 +6,7 @@ import { kalshiErrorMapper } from "./errors";
 
 export async function fetchOHLCV(
   id: string,
-  params: OHLCVParams | HistoryFilterParams,
+  params: OHLCVParams,
   callApi: (operationId: string, params?: Record<string, any>) => Promise<any>,
 ): Promise<PriceCandle[]> {
   validateIdFormat(id, "OHLCV");

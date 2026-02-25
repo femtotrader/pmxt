@@ -607,7 +607,7 @@ export abstract class PredictionMarketExchange {
      * @notes Polymarket: outcomeId is the CLOB Token ID. Kalshi: outcomeId is the Market Ticker.
      * @notes Resolution options: '1m' | '5m' | '15m' | '1h' | '6h' | '1d'
      */
-    async fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams): Promise<PriceCandle[]> {
+    async fetchOHLCV(id: string, params: OHLCVParams): Promise<PriceCandle[]> {
         throw new Error("Method fetchOHLCV not implemented.");
     }
 

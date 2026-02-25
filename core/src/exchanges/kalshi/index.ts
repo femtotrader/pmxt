@@ -158,7 +158,7 @@ export class KalshiExchange extends PredictionMarketExchange {
 
   async fetchOHLCV(
     id: string,
-    params: OHLCVParams | HistoryFilterParams,
+    params: OHLCVParams,
   ): Promise<PriceCandle[]> {
     return fetchOHLCV(id, params, this.callApi.bind(this));
   }

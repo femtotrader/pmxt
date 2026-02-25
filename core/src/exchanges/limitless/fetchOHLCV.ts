@@ -1,4 +1,4 @@
-import { HistoryFilterParams, OHLCVParams } from '../../BaseExchange';
+import { OHLCVParams } from '../../BaseExchange';
 import { PriceCandle } from '../../types';
 import { mapIntervalToFidelity } from './utils';
 import { validateIdFormat } from '../../utils/validation';
@@ -8,7 +8,7 @@ import { limitlessErrorMapper } from './errors';
  * Fetch historical price data (candles) for a specific market.
  * @param id - The market slug
  */
-export async function fetchOHLCV(id: string, params: OHLCVParams | HistoryFilterParams, callApi: (operationId: string, params?: Record<string, any>) => Promise<any>): Promise<PriceCandle[]> {
+export async function fetchOHLCV(id: string, params: OHLCVParams, callApi: (operationId: string, params?: Record<string, any>) => Promise<any>): Promise<PriceCandle[]> {
     validateIdFormat(id, 'OHLCV');
 
     // Validate resolution is provided

@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.17.7] - 2026-02-25
+
+### Fixed
+
+- **Python SDK Missing Exchange Classes**: `pmxt.Probable`, `pmxt.Baozi`, and `pmxt.Myriad` raised `AttributeError` on import because the Python SDK's exchange subclasses were maintained manually and had drifted from the TypeScript core. All three classes are now available.
+
+### Infrastructure
+
+- **Auto-generated Python SDK exchange classes**: `sdks/python/pmxt/_exchanges.py` is now generated from `core/src/server/app.ts` (the single source of truth for registered exchanges) via `core/scripts/generate-python-exchanges.js`. The generator also keeps `__init__.py` imports and `__all__` in sync. A CI guard (`python-exchanges-check.yml`) fails any PR where the generated file diverges from the committed one.
+- **Auto-generated `COMPLIANCE.md`**: The feature support matrix is now generated from exchange implementations via `core/scripts/generate-compliance.js`, replacing the previously manual document. A CI guard (`compliance-check.yml`) keeps it in sync with `core/src/exchanges/*/index.ts`.
+- **TypeScript SDK client methods CI guard**: Added `typescript-client-check.yml` to fail PRs where `BaseExchange.ts` changes without regenerating the corresponding methods in the TypeScript SDK `client.ts`.
+- All three generators are wired into `generate:sdk:all` and run automatically on every publish.
+
 ## [2.17.6] - 2026-02-24
 
 ### Fixed

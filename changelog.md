@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.17.9] - 2026-02-25
+
+### Fixed
+
+- **TypeScript SDK: Server startup race condition causes 401 Unauthorized**: After a version mismatch was detected, the `ServerManager` would kill the old server and delete the lock file, then call `waitForServer()`. Because the lock file was gone, `getRunningPort()` fell back to the default port 3847. If any other process (e.g. an unrelated local server) was already responding on that port, `waitForServer()` would return immediately with no lock file present, causing `getAccessToken()` to return `undefined` and all subsequent API requests to be sent without an auth token. Fixed by rewriting `waitForServer()` to read the lock file directly on each poll iteration and only return when a lock file is present *and* the server at that file's port passes a health check. This prevents falsely matching an unrelated server on the default port.
+
 ## [2.17.8] - 2026-02-25
 
 ### Fixed

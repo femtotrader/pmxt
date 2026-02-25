@@ -98,11 +98,22 @@ export class ServerManager {
 
     /**
      * Wait for the server to be ready.
+     * Requires a lock file to be present to avoid falsely matching an unrelated
+     * server that may already be running on the default port.
      */
     private async waitForServer(): Promise<void> {
         for (let i = 0; i < this.maxRetries; i++) {
-            if (await this.isServerRunning()) {
-                return;
+            const info = this.getServerInfo();
+            if (info) {
+                try {
+                    const response = await fetch(`http://localhost:${info.port}/health`);
+                    if (response.ok) {
+                        const data = await response.json() as any;
+                        if (data.status === "ok") return;
+                    }
+                } catch {
+                    // Not ready yet
+                }
             }
             await new Promise((resolve) => setTimeout(resolve, this.retryDelayMs));
         }

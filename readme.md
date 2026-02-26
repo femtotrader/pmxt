@@ -16,7 +16,7 @@ NOTE: pmxt is an open-source infrastructure tool. It has no native token, coin, 
 <img src="https://img.shields.io/github/watchers/pmxt-dev/pmxt?style=social" alt="GitHub watchers">
 </td>
 <td>
-<a href="https://github.com/qoery-com/pmxt"><img src="https://img.shields.io/badge/downloads-49.9k-blue" alt="Total Downloads"></a>
+<a href="https://github.com/qoery-com/pmxt"><img src="https://img.shields.io/badge/downloads-51.3k-blue" alt="Total Downloads"></a>
 </td>
 </tr>
 <tr>

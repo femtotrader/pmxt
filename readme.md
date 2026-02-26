@@ -2,7 +2,6 @@
 
 **The [ccxt](https://github.com/ccxt/ccxt) for prediction markets.** A unified API for accessing prediction market data across multiple exchanges.
 
-NOTE: pmxt is an open-source infrastructure tool. It has no native token, coin, or investment vehicle.
 
 <img width="3840" height="2160" alt="plot" src="https://github.com/user-attachments/assets/ed77d244-c95f-4fe0-a7a7-89af713c053f" />
 

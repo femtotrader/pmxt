@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.18.1] - 2026-02-28
+
+### Fixed
+
+- **Kalshi `UnifiedEvent.description` always empty**: Kalshi's `mututals_description` field is always `null` in their API responses, so `UnifiedEvent.description` was an empty string for every event. The Kalshi adapter now derives a description from the markets' `rules_primary` text by extracting the longest common prefix and suffix across all child markets and substituting the variable region with `{x}`. For example, a 34-market event produces `"If {x} announces a presidential campaign to contest the presidential nomination of the Democratic party for the 2028 U.S. presidential election, then the market resolves to Yes."` Single-market events return the `rules_primary` text as-is. Events where no meaningful template can be extracted (shared fixed text < 20 chars, or all markets identical) fall back to the first market's `rules_primary`.
+
 ## [2.18.0] - 2026-02-27
 
   ### Fixed

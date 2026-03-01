@@ -1,4 +1,3 @@
-import { describe, test, expect } from "vitest";
 import { fromKalshiCents, invertKalshiCents, invertKalshiUnified } from "./price";
 
 describe("fromKalshiCents", () => {

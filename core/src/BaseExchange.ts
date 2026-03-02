@@ -10,13 +10,13 @@ import {
     Position,
     Balance,
     CreateOrderParams,
-    WebsocketWatchOption,
-    AddressActivity
+    WatchedAddressOption,
+    WatchedAddressActivity
 } from './types';
 import { getExecutionPrice, getExecutionPriceDetailed, ExecutionPriceResult } from './utils/math';
 import { MarketNotFound, EventNotFound } from './errors';
 import { Throttler } from './utils/throttler';
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 // ----------------------------------------------------------------------------
 // Implicit API Types (OpenAPI-driven method generation)
@@ -1265,7 +1265,7 @@ export abstract class PredictionMarketExchange {
      *
      * @param address - Public wallet address to watch
      * @param types - Subset of activity to watch (default: all types)
-     * @returns Promise that resolves with the latest AddressActivity snapshot
+     * @returns Promise that resolves with the latest WatchedAddressActivity snapshot
      *
      * @example-ts Stream wallet activity
      * while (true) {
@@ -1278,7 +1278,7 @@ export abstract class PredictionMarketExchange {
      *     activity = exchange.watch_address('0xabc...', ['trades', 'positions'])
      *     print(activity.trades, activity.positions)
      */
-    async watchAddress(address: string, types?: WebsocketWatchOption[]): Promise<AddressActivity> {
+    async watchAddress(address: string, types?: WatchedAddressOption[]): Promise<WatchedAddressActivity> {
         throw new Error(`watchAddress() is not supported by ${this.name}`);
     }
 

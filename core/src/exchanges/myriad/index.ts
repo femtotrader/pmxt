@@ -25,6 +25,8 @@ export class MyriadExchange extends PredictionMarketExchange {
         fetchOpenOrders: 'emulated' as const,
         fetchPositions: true as const,
         fetchBalance: 'emulated' as const,
+        watchAddress: false as const,
+        unwatchAddress: false as const,
         watchOrderBook: 'emulated' as const,
         watchTrades: 'emulated' as const,
         fetchMyTrades: true as const,
@@ -298,7 +300,7 @@ export class MyriadExchange extends PredictionMarketExchange {
         return this.ws.watchOrderBook(id);
     }
 
-    async watchTrades(id: string, _since?: number, _limit?: number): Promise<Trade[]> {
+    async watchTrades(id: string, address?: string, _since?: number, _limit?: number): Promise<Trade[]> {
         this.ensureAuth();
         if (!this.ws) {
             this.ws = new MyriadWebSocket(this.callApi.bind(this));

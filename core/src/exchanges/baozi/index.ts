@@ -72,6 +72,8 @@ export class BaoziExchange extends PredictionMarketExchange {
         fetchOpenOrders: 'emulated' as const,
         fetchPositions: true as const,
         fetchBalance: true as const,
+        watchAddress: false as const,
+        unwatchAddress: false as const,
         watchOrderBook: true as const,
         watchTrades: false as const,
         fetchMyTrades: false as const,

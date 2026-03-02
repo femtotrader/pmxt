@@ -94,6 +94,27 @@ export interface UserTrade extends Trade {
     orderId?: string;
 }
 
+export type WatchedAddressOption = 'trades' | 'positions' | 'balances';
+
+export interface WatchedAddressActivity {
+    /** The wallet address being watched */
+    address: string;
+    /** Recent trades for this address
+     * (if the above WatchedAddressOption 'trades' option was requested)
+     */
+    trades?: Trade[];
+    /** Current open positions for this address
+     * (if the above WatchedAddressOption 'positions' option was requested)
+     */
+    positions?: Position[];
+    /** Current balances for this address
+     * (if the above WatchedAddressOption 'balances' option was requested)
+     */
+    balances?: Balance[];
+    /** Unix timestamp (ms) of this snapshot */
+    timestamp: number;
+}
+
 // ----------------------------------------------------------------------------
 // Trading Data Models
 // ----------------------------------------------------------------------------

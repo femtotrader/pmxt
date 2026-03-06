@@ -2,6 +2,69 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.19.6] - 2026-03-06
+
+### Added
+
+- **TypeScript SDK Auto-Generation**: Upgraded `sdks/typescript/scripts/generate-client-methods.js` to derive return types and patterns directly from the `BaseExchange.ts` AST, mirroring the Python generator. The manual `METHOD_RETURN_CONFIG` has been eliminated, permanently removing the risk of documentation and signature drift.
+
+### Fixed
+
+- **CI/CD: SDK Drift Guards**: Removed the `paths` filter from `python-client-check.yml` and `typescript-client-check.yml`. These drift guards now run on *every* pull request. Previously, manual edits to `client.py` or `client.ts` would bypass the check if the PR didn't also touch `BaseExchange.ts` or the generator scripts.
+
+## [2.19.5] - 2026-03-06
+
+### Fixed
+
+- **SDK: Resilient Authentication (Python & TypeScript)**: Eliminated "Unauthorized: Invalid or missing access token" errors caused by sidecar server restarts. Both the Python and TypeScript SDKs now read the access token fresh from the `~/.pmxt/server.lock` file on every request via a new `getAuthHeaders` helper. This ensures that if the server rebooted and rotated tokens, existing `Exchange` instances (like `Polymarket`) automatically pick up the new valid token on their next call, removing the need for developers to manually re-instantiate clients.
+- **SDK: Generator Persistence (Python & TypeScript)**: Updated both `sdks/python/scripts/generate-client-methods.js` and `sdks/typescript/scripts/generate-client-methods.js` to emit the live header retrieval pattern, ensuring authentication resilience is maintained in all future auto-generated methods.
+
+## [2.19.4] - 2026-03-06
+
+### Added
+
+- **Python SDK Auto-Generation**: Added a reflection script (`sdks/python/scripts/generate-client-methods.js`) to automatically generate Python SDK client methods directly from the TypeScript `BaseExchange.ts` AST. This completely eliminates API structure drift between the TypeScript core and the Python client, ensuring new methods and parameter changes immediately reflect in Python. Added a CI guard (`python-client-check.yml`) to enforce synchronization on all Pull Requests.
+
+### Fixed
+
+- **Compliance Tests: Resilient Exchange Availability Checks**: Compliance tests no longer fail when an exchange's API is temporarily unavailable (e.g., Myriad returning a Heroku 503 error page). Previously, any `ExchangeNotAvailable` or `NetworkError` exception would propagate as a test failure, making CI fragile against external service outages. A new `isSkippableError(error)` helper in `core/test/compliance/shared.ts` returns `true` for these error types (plus the existing "not implemented" and "not supported" string checks), and all 18 compliance test files now call it uniformly instead of ad-hoc string comparisons. Tests now log a skip message and return instead of failing.
+
+- **`generate-openapi.test.ts` Spec Leak**: The OpenAPI auto-generation test temporarily injects a `testDummyMethod` into `BaseExchange.ts` and regenerates the spec to verify the generator works. However, `afterAll` only restored `BaseExchange.ts` — not `openapi.yaml` — leaving the `testDummyMethod` endpoint permanently in the committed spec and silently dropping the `close` endpoint's description. `afterAll` now also restores `openapi.yaml` to its pre-test state.
+
+## [2.19.3] - 2026-03-04
+
+### Fixed
+
+- **TypeScript build failure due to missing `buildOrder` and `submitOrder` in exchange `has` objects**: When the new build-only order methods were added to the `ExchangeHas` interface, several exchange implementations were not updated to include these properties. Added `buildOrder: false` and `submitOrder: false` to BaoziExchange, LimitlessExchange, MyriadExchange, and ProbableExchange to match the interface requirements.
+
+## [2.19.1] - 2026-03-04
+
+### Fixed
+
+- **OpenAPI Schema for `BuiltOrder`**: The `buildOrder` and `submitOrder` endpoints referenced the `BuiltOrder` type in the OpenAPI spec but the schema definition was missing from the components section, causing SDK code generation to fail. The `BuiltOrder` schema is now properly defined in the OpenAPI generator.
+
+## [2.19.0] - 2026-03-04
+
+### Added
+
+- **Build-Only Order Mode**: Introduced `buildOrder()` and `submitOrder()` methods enabling a two-step order workflow. This allows integrators (e.g., Smart Order Routers) to build exchange-native order payloads, inspect or forward them through middleware, then submit them later without reconstructing parameters.
+  - **New Type**: `BuiltOrder` interface containing the exchange name, original params, and exchange-native payload (with optional `signedOrder` for CLOB exchanges and reserved `tx` field for future on-chain exchanges).
+  - **New Methods**: `buildOrder(params)` constructs the order without submitting; `submitOrder(built)` submits a pre-built order.
+  - **Capability Flags**: Both methods exposed in `exchange.has` (e.g., `exchange.has.buildOrder`, `exchange.has.submitOrder`).
+  - **Polymarket Support**: `buildOrder` uses the CLOB client's `createOrder()` method to sign the order; `submitOrder` uses `postOrder()` to submit the signed payload. Refactored `createOrder` to delegate to both for backwards compatibility.
+  - **Kalshi Support**: `buildOrder` constructs the request body without making an HTTP call; `submitOrder` POSTs the pre-built body to the CreateOrder endpoint. Refactored `createOrder` to maintain compatibility.
+  - **Limitless**: Not yet supported (`buildOrder: false`), as the SDK lacks a distinct build-without-submit pattern.
+
+### Changed
+
+- **OpenAPI Auto-generation**: Updated the OpenAPI generator to recognize the new `BuiltOrder` type and auto-generate corresponding REST endpoints for `buildOrder` and `submitOrder`.
+
+## [2.18.1] - 2026-02-28
+
+### Fixed
+
+- **Kalshi `UnifiedEvent.description` always empty**: Kalshi's `mututals_description` field is always `null` in their API responses, so `UnifiedEvent.description` was an empty string for every event. The Kalshi adapter now derives a description from the markets' `rules_primary` text by extracting the longest common prefix and suffix across all child markets and substituting the variable region with `{x}`. For example, a 34-market event produces `"If {x} announces a presidential campaign to contest the presidential nomination of the Democratic party for the 2028 U.S. presidential election, then the market resolves to Yes."` Single-market events return the `rules_primary` text as-is. Events where no meaningful template can be extracted (shared fixed text < 20 chars, or all markets identical) fall back to the first market's `rules_primary`.
+
 ## [2.18.0] - 2026-02-27
 
   ### Fixed

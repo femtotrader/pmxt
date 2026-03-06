@@ -1,4 +1,4 @@
-import { exchangeClasses, validateTrade, hasAuth, initExchange } from './shared';
+import { exchangeClasses, validateTrade, hasAuth, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: fetchTrades', () => {
     exchangeClasses.forEach(({ name, cls }) => {
@@ -49,8 +49,8 @@ describe('Compliance: fetchTrades', () => {
                 }
 
             } catch (error: any) {
-                if (error.message.toLowerCase().includes('not implemented')) {
-                    console.info(`[Compliance] ${name}.fetchTrades not implemented.`);
+                if (isSkippableError(error)) {
+                    console.info(`[Compliance] ${name}.fetchTrades skipped: ${error.message}`);
                     return;
                 }
                 throw error;

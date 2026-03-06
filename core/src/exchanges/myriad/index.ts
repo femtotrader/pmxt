@@ -32,6 +32,8 @@ export class MyriadExchange extends PredictionMarketExchange {
         fetchMyTrades: true as const,
         fetchClosedOrders: false as const,
         fetchAllOrders: false as const,
+        buildOrder: false as const,
+        submitOrder: false as const,
     };
 
     private auth?: MyriadAuth;

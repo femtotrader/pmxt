@@ -1,4 +1,4 @@
-import { exchangeClasses, validateOrder, hasAuth, initExchange } from './shared';
+import { exchangeClasses, validateOrder, hasAuth, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: fetchOrder', () => {
     exchangeClasses.forEach(({ name, cls }) => {
@@ -48,8 +48,8 @@ describe('Compliance: fetchOrder', () => {
                 const msg = error.message.toLowerCase();
                 const status = error.status || error.response?.status;
 
-                // General "Not Supported" / "Not Implemented" Check
-                if (msg.includes('not supported') || msg.includes('not implemented') || msg.includes('use fetchopenorders')) {
+                // General "Not Supported" / "Not Implemented" / exchange unavailable check
+                if (isSkippableError(error) || msg.includes('use fetchopenorders')) {
                     console.info(`[Compliance] ${name}.fetchOrder skipped: ${error.message}`);
                     return;
                 }

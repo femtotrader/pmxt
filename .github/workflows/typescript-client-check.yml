@@ -2,10 +2,6 @@ name: Verify TypeScript Client Methods
 
 on:
   pull_request:
-    paths:
-      - 'core/src/BaseExchange.ts'
-      - 'sdks/typescript/scripts/generate-client-methods.js'
-      - '.github/workflows/typescript-client-check.yml'
 
 jobs:
   verify:

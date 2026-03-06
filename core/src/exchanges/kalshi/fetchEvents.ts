@@ -34,7 +34,7 @@ async function fetchEventByTicker(
   const unifiedEvent: UnifiedEvent = {
     id: event.event_ticker,
     title: event.title,
-    description: event.mututals_description || "",
+    description: event.mututals_description || deriveEventDescription(event.markets || []),
     slug: event.event_ticker,
     markets: markets,
     volume24h: markets.reduce((sum, m) => sum + m.volume24h, 0),
@@ -46,6 +46,41 @@ async function fetchEventByTicker(
   };
 
   return [unifiedEvent];
+}
+
+const PLACEHOLDERS = ["{x}", "{y}", "{z}"];
+
+function deriveEventDescription(markets: any[]): string {
+  const texts = markets
+    .map((m) => m.rules_primary as string)
+    .filter((t) => typeof t === "string" && t.length > 0);
+
+  if (texts.length === 0) return "";
+  if (texts.length === 1) return texts[0];
+
+  // Find longest common prefix
+  let prefix = texts[0];
+  for (const t of texts) {
+    while (!t.startsWith(prefix)) prefix = prefix.slice(0, -1);
+    if (!prefix) break;
+  }
+
+  // Find longest common suffix (on the part after the prefix)
+  const suffixCandidates = texts.map((t) => t.slice(prefix.length));
+  let suffix = suffixCandidates[0];
+  for (const t of suffixCandidates) {
+    while (!t.endsWith(suffix)) suffix = suffix.slice(1);
+    if (!suffix) break;
+  }
+
+  // Require a meaningful template (at least 20 chars of fixed text)
+  if (prefix.length + suffix.length < 20) return texts[0];
+
+  // Verify all variable regions are distinct (i.e. something actually varies)
+  const variables = texts.map((t) => t.slice(prefix.length, suffix.length ? t.length - suffix.length : undefined));
+  if (new Set(variables).size === 1) return texts[0];
+
+  return prefix + PLACEHOLDERS[0] + suffix;
 }
 
 function rawEventToUnified(event: any): UnifiedEvent {
@@ -61,7 +96,7 @@ function rawEventToUnified(event: any): UnifiedEvent {
   const unifiedEvent: UnifiedEvent = {
     id: event.event_ticker,
     title: event.title,
-    description: event.mututals_description || "",
+    description: event.mututals_description || deriveEventDescription(event.markets || []),
     slug: event.event_ticker,
     markets: markets,
     volume24h: markets.reduce((sum, m) => sum + m.volume24h, 0),

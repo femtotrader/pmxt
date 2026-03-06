@@ -1,4 +1,4 @@
-import { exchangeClasses, hasAuth, initExchange } from './shared';
+import { exchangeClasses, hasAuth, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: fetchBalance', () => {
     exchangeClasses.forEach(({ name, cls }) => {
@@ -33,8 +33,8 @@ describe('Compliance: fetchBalance', () => {
 
             } catch (error: any) {
                 const msg = error.message.toLowerCase();
-                if (msg.includes('not implemented') || msg.includes('not supported')) {
-                    console.info(`[Compliance] ${name}.fetchBalance not implemented.`);
+                if (isSkippableError(error)) {
+                    console.info(`[Compliance] ${name}.fetchBalance skipped: ${error.message}`);
                     return;
                 }
                 if (msg.includes('requires a wallet') || msg.includes('wallet address')) {

@@ -1,4 +1,4 @@
-import { exchangeClasses, initExchange } from './shared';
+import { exchangeClasses, initExchange, isSkippableError } from './shared';
 import { OrderBook } from '../../src/types';
 
 describe('Compliance: getExecutionPrice', () => {
@@ -74,8 +74,8 @@ describe('Compliance: getExecutionPrice', () => {
             }
 
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
-                console.info(`[Compliance] ${name}.getExecutionPrice not implemented.`);
+            if (isSkippableError(error)) {
+                console.info(`[Compliance] ${name}.getExecutionPrice skipped: ${error.message}`);
                 return;
             }
             throw error;

@@ -61,11 +61,11 @@ def _convert_outcome(raw: Dict[str, Any]) -> MarketOutcome:
 def _convert_market(raw: Dict[str, Any]) -> UnifiedMarket:
     """Convert raw API response to UnifiedMarket."""
     outcomes = [_convert_outcome(o) for o in raw.get("outcomes", [])]
-    
+
     # Handle resolution date (could be str or datetime)
     res_date_raw = raw.get("resolutionDate")
     res_date = None
-    
+
     if res_date_raw:
         if isinstance(res_date_raw, str):
             try:
@@ -129,7 +129,7 @@ def _convert_order_book(raw: Dict[str, Any]) -> OrderBook:
     """Convert raw API response to OrderBook."""
     bids = [OrderLevel(price=b.get("price"), size=b.get("size")) for b in raw.get("bids", [])]
     asks = [OrderLevel(price=a.get("price"), size=a.get("size")) for a in raw.get("asks", [])]
-    
+
     return OrderBook(
         bids=bids,
         asks=asks,
@@ -225,11 +225,11 @@ def _convert_subscription_snapshot(raw: Dict[str, Any]) -> SubscribedAddressSnap
 class Exchange(ABC):
     """
     Base class for prediction market exchanges.
-    
+
     This provides a unified interface for interacting with different
     prediction market platforms (Polymarket, Kalshi, etc.).
     """
-    
+
     def __init__(
         self,
         exchange_name: str,
@@ -242,7 +242,7 @@ class Exchange(ABC):
     ):
         """
         Initialize an exchange client.
-        
+
         Args:
             exchange_name: Name of the exchange ("polymarket" or "kalshi")
             api_key: API key for authentication (optional)
@@ -258,50 +258,33 @@ class Exchange(ABC):
         self.markets: Dict[str, "UnifiedMarket"] = {}
         self.markets_by_slug: Dict[str, "UnifiedMarket"] = {}
         self._loaded_markets: bool = False
-        
+
         # Initialize server manager
         self._server_manager = ServerManager(base_url)
-        
+
         # Ensure server is running (unless disabled)
         if auto_start_server:
             try:
                 self._server_manager.ensure_server_running()
-                
+
                 # Get the actual port the server is running on
                 # (may differ from default if default port was busy)
                 actual_port = self._server_manager.get_running_port()
                 base_url = f"http://localhost:{actual_port}"
-                
+
             except Exception as e:
                 raise Exception(
                     f"Failed to start PMXT server: {e}\n\n"
                     f"Please ensure 'pmxtjs' is installed: npm install -g pmxtjs\n"
                     f"Or start the server manually: pmxt-server"
                 )
-        
+
         # Configure the API client with the actual base URL
         config = Configuration(host=base_url)
         self._api_client = ApiClient(configuration=config)
 
-        # Add access token from lock file (with retry for timing issues)
-        server_info = None
-        for attempt in range(5):
-            server_info = self._server_manager.get_server_info()
-            if server_info and 'accessToken' in server_info:
-                break
-            if attempt < 4:
-                import time
-                time.sleep(0.1)
-
-        if server_info and 'accessToken' in server_info:
-            self._api_client.default_headers['x-pmxt-access-token'] = server_info['accessToken']
-
         self._api = DefaultApi(api_client=self._api_client)
-    
-    def close(self):
-        """No-op for now, kept for API compatibility with TS."""
-        pass
-    
+
     def _handle_response(self, response: Dict[str, Any]) -> Any:
         """Handle API response and extract data."""
         if not response.get("success"):
@@ -310,7 +293,7 @@ class Exchange(ABC):
                 raise Exception(error)
             raise Exception(error.get("message", "Unknown error"))
         return response.get("data")
-    
+
     def _extract_api_error(self, e: Exception) -> str:
         """Extract clean error message from ApiException body if possible."""
         if isinstance(e, ApiException) and hasattr(e, "body") and e.body:
@@ -326,11 +309,24 @@ class Exchange(ABC):
                 pass
         return str(e)
 
+    def _get_auth_headers(self) -> Dict[str, str]:
+        """Build request headers with a fresh access token read from the lock file.
+
+        The token is re-read on every call so that if the sidecar server restarts
+        (and writes a new token) existing client objects automatically recover on
+        the next request — no re-instantiation required.
+        """
+        headers: Dict[str, str] = dict(self._api_client.default_headers)
+        server_info = self._server_manager.get_server_info()
+        if server_info and 'accessToken' in server_info:
+            headers['x-pmxt-access-token'] = server_info['accessToken']
+        return headers
+
     def _get_credentials_dict(self) -> Optional[Dict[str, Any]]:
         """Build credentials dictionary for API requests."""
         if not self.api_key and not self.private_key:
             return None
-        
+
         creds = {}
         if self.api_key:
             creds["apiKey"] = self.api_key
@@ -360,7 +356,7 @@ class Exchange(ABC):
             try:
                 url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/has"
                 headers = {"Accept": "application/json"}
-                headers.update(self._api_client.default_headers)
+                headers.update(self._get_auth_headers())
                 response = self._api_client.call_api(
                     method="GET",
                     url=url,
@@ -384,7 +380,7 @@ class Exchange(ABC):
             if creds:
                 body["credentials"] = creds
             headers = {"Content-Type": "application/json", "Accept": "application/json"}
-            headers.update(self._api_client.default_headers)
+            headers.update(self._get_auth_headers())
             response = self._api_client.call_api(
                 method="POST",
                 url=url,
@@ -422,7 +418,7 @@ class Exchange(ABC):
                 body["credentials"] = creds
 
             headers = {"Content-Type": "application/json", "Accept": "application/json"}
-            headers.update(self._api_client.default_headers)
+            headers.update(self._get_auth_headers())
 
             response = self._api_client.call_api(
                 method="POST",
@@ -474,247 +470,304 @@ class Exchange(ABC):
         self._loaded_markets = True
         return self.markets
 
-    def fetch_markets(self, query: Optional[str] = None, **kwargs) -> List[UnifiedMarket]:
-        """
-        Get active markets from the exchange.
+    # BEGIN GENERATED METHODS
 
-        Args:
-            query: Optional search keyword
-            **kwargs: Additional parameters (limit, offset, sort, search_in)
-
-        Returns:
-            List of unified markets
-
-        Example:
-            >>> markets = exchange.fetch_markets("Trump", limit=20, sort="volume")
-        """
+    def fetch_markets(self, params: Optional[dict] = None, **kwargs) -> List[UnifiedMarket]:
         try:
-            body_dict = {"args": []}
-
-            # Prepare arguments
-            search_params = {}
-            if query:
-                search_params["query"] = query
-
-            # Add any extra keyword arguments
-            for key, value in kwargs.items():
-                search_params[key] = value
-
-            if search_params:
-                body_dict["args"] = [search_params]
-            
-            # Add credentials if available
+            args = []
+            if kwargs:
+                params = {**(params or {}), **kwargs}
+            if params is not None:
+                args.append(params)
+            body: dict = {"args": args}
             creds = self._get_credentials_dict()
             if creds:
-                body_dict["credentials"] = creds
-            
-            request_body = internal_models.FetchMarketsRequest.from_dict(body_dict)
-            
-            response = self._api.fetch_markets(
-                exchange=self.exchange_name,
-                fetch_markets_request=request_body,
-            )
-            
-            data = self._handle_response(response.to_dict())
-            return [_convert_market(m) for m in data]
-        except ApiException as e:
-            raise Exception(f"Failed to fetch markets: {self._extract_api_error(e)}") from None
-
-    def fetch_events(self, query: Optional[str] = None, **kwargs) -> List[UnifiedEvent]:
-        """
-        Fetch events with optional keyword search.
-        Events group related markets together.
-
-        Args:
-            query: Optional search keyword
-            **kwargs: Additional parameters (limit, offset, search_in)
-
-        Returns:
-            List of unified events
-
-        Example:
-            >>> events = exchange.fetch_events("Election", limit=10)
-        """
-        try:
-            body_dict = {"args": []}
-
-            # Prepare arguments
-            search_params = {}
-            if query:
-                search_params["query"] = query
-
-            # Add any extra keyword arguments
-            for key, value in kwargs.items():
-                search_params[key] = value
-
-            if search_params:
-                body_dict["args"] = [search_params]
-            
-            # Add credentials if available
-            creds = self._get_credentials_dict()
-            if creds:
-                body_dict["credentials"] = creds
-            
-            request_body = internal_models.FetchEventsRequest.from_dict(body_dict)
-            
-            response = self._api.fetch_events(
-                exchange=self.exchange_name,
-                fetch_events_request=request_body,
-            )
-            
-            data = self._handle_response(response.to_dict())
-            return [_convert_event(e) for e in data]
-        except ApiException as e:
-            raise Exception(f"Failed to fetch events: {self._extract_api_error(e)}") from None
-
-    def fetch_market(
-        self,
-        market_id: Optional[str] = None,
-        outcome_id: Optional[str] = None,
-        event_id: Optional[str] = None,
-        slug: Optional[str] = None,
-        query: Optional[str] = None,
-        **kwargs
-    ) -> UnifiedMarket:
-        """
-        Fetch a single market by lookup parameters.
-        Returns the first matching market or raises an exception if not found.
-
-        Args:
-            market_id: Direct lookup by market ID
-            outcome_id: Reverse lookup by outcome ID
-            event_id: Find market belonging to an event
-            slug: Lookup by slug/ticker
-            query: Search keyword
-            **kwargs: Additional parameters (limit, status, etc.)
-
-        Returns:
-            A single unified market
-
-        Raises:
-            Exception: If no market matches the parameters
-
-        Example:
-            >>> market = exchange.fetch_market(market_id='663583')
-            >>> market = exchange.fetch_market(slug='will-trump-win')
-        """
-        try:
-            search_params = {}
-            if market_id:
-                search_params["marketId"] = market_id
-            if outcome_id:
-                search_params["outcomeId"] = outcome_id
-            if event_id:
-                search_params["eventId"] = event_id
-            if slug:
-                search_params["slug"] = slug
-            if query:
-                search_params["query"] = query
-
-            # Convert snake_case kwargs to camelCase
-            key_map = {
-                "search_in": "searchIn",
-                "similarity_threshold": "similarityThreshold",
-            }
-            for key, value in kwargs.items():
-                camel_key = key_map.get(key, key)
-                search_params[camel_key] = value
-
-            body_dict = {"args": [search_params] if search_params else []}
-
-            creds = self._get_credentials_dict()
-            if creds:
-                body_dict["credentials"] = creds
-
-            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchMarket"
-
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchMarkets"
             headers = {"Content-Type": "application/json", "Accept": "application/json"}
-            headers.update(self._api_client.default_headers)
-
-            response = self._api_client.call_api(
-                method="POST",
-                url=url,
-                body=body_dict,
-                header_params=headers
-            )
-
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
             response.read()
-            data_json = json.loads(response.data)
+            data = self._handle_response(json.loads(response.data))
+            return [_convert_market(e) for e in data]
+        except Exception as e:
+            raise Exception(f"Failed to fetch_markets: {self._extract_api_error(e)}") from None
 
-            data = self._handle_response(data_json)
+    def fetch_markets_paginated(self, params: Optional[dict] = None, **kwargs) -> PaginatedMarketsResult:
+        try:
+            args = []
+            if kwargs:
+                params = {**(params or {}), **kwargs}
+            if params is not None:
+                args.append(params)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchMarketsPaginated"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return PaginatedMarketsResult(
+                data=[_convert_market(m) for m in data.get("data", [])],
+                total=data.get("total", 0),
+                next_cursor=data.get("nextCursor"),
+            )
+        except Exception as e:
+            raise Exception(f"Failed to fetch_markets_paginated: {self._extract_api_error(e)}") from None
+
+    def fetch_events(self, params: Optional[dict] = None, **kwargs) -> List[UnifiedEvent]:
+        try:
+            args = []
+            if kwargs:
+                params = {**(params or {}), **kwargs}
+            if params is not None:
+                args.append(params)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchEvents"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return [_convert_event(e) for e in data]
+        except Exception as e:
+            raise Exception(f"Failed to fetch_events: {self._extract_api_error(e)}") from None
+
+    def fetch_market(self, params: Optional[dict] = None, **kwargs) -> UnifiedMarket:
+        try:
+            args = []
+            if kwargs:
+                params = {**(params or {}), **kwargs}
+            if params is not None:
+                args.append(params)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchMarket"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return _convert_market(data)
         except Exception as e:
-            raise Exception(f"Failed to fetch market: {self._extract_api_error(e)}") from None
+            raise Exception(f"Failed to fetch_market: {self._extract_api_error(e)}") from None
 
-    def fetch_event(
-        self,
-        event_id: Optional[str] = None,
-        slug: Optional[str] = None,
-        query: Optional[str] = None,
-        **kwargs
-    ) -> UnifiedEvent:
-        """
-        Fetch a single event by lookup parameters.
-        Returns the first matching event or raises an exception if not found.
-
-        Args:
-            event_id: Direct lookup by event ID
-            slug: Lookup by event slug
-            query: Search keyword
-            **kwargs: Additional parameters (limit, status, etc.)
-
-        Returns:
-            A single unified event
-
-        Raises:
-            Exception: If no event matches the parameters
-
-        Example:
-            >>> event = exchange.fetch_event(event_id='TRUMP25DEC')
-            >>> event = exchange.fetch_event(slug='us-election')
-        """
+    def fetch_event(self, params: Optional[dict] = None, **kwargs) -> UnifiedEvent:
         try:
-            search_params = {}
-            if event_id:
-                search_params["eventId"] = event_id
-            if slug:
-                search_params["slug"] = slug
-            if query:
-                search_params["query"] = query
-
-            # Convert snake_case kwargs to camelCase
-            key_map = {
-                "search_in": "searchIn",
-            }
-            for key, value in kwargs.items():
-                camel_key = key_map.get(key, key)
-                search_params[camel_key] = value
-
-            body_dict = {"args": [search_params] if search_params else []}
-
+            args = []
+            if kwargs:
+                params = {**(params or {}), **kwargs}
+            if params is not None:
+                args.append(params)
+            body: dict = {"args": args}
             creds = self._get_credentials_dict()
             if creds:
-                body_dict["credentials"] = creds
-
+                body["credentials"] = creds
             url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchEvent"
-
             headers = {"Content-Type": "application/json", "Accept": "application/json"}
-            headers.update(self._api_client.default_headers)
-
-            response = self._api_client.call_api(
-                method="POST",
-                url=url,
-                body=body_dict,
-                header_params=headers
-            )
-
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
             response.read()
-            data_json = json.loads(response.data)
-
-            data = self._handle_response(data_json)
+            data = self._handle_response(json.loads(response.data))
             return _convert_event(data)
         except Exception as e:
-            raise Exception(f"Failed to fetch event: {self._extract_api_error(e)}") from None
+            raise Exception(f"Failed to fetch_event: {self._extract_api_error(e)}") from None
+
+    def fetch_order_book(self, id: str) -> OrderBook:
+        try:
+            args = []
+            args.append(id)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchOrderBook"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return _convert_order_book(data)
+        except Exception as e:
+            raise Exception(f"Failed to fetch_order_book: {self._extract_api_error(e)}") from None
+
+    def cancel_order(self, order_id: str) -> Order:
+        try:
+            args = []
+            args.append(order_id)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/cancelOrder"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return _convert_order(data)
+        except Exception as e:
+            raise Exception(f"Failed to cancel_order: {self._extract_api_error(e)}") from None
+
+    def fetch_order(self, order_id: str) -> Order:
+        try:
+            args = []
+            args.append(order_id)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchOrder"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return _convert_order(data)
+        except Exception as e:
+            raise Exception(f"Failed to fetch_order: {self._extract_api_error(e)}") from None
+
+    def fetch_open_orders(self, market_id: Optional[str] = None) -> List[Order]:
+        try:
+            args = []
+            if market_id is not None:
+                args.append(market_id)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchOpenOrders"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return [_convert_order(e) for e in data]
+        except Exception as e:
+            raise Exception(f"Failed to fetch_open_orders: {self._extract_api_error(e)}") from None
+
+    def fetch_my_trades(self, params: Optional[dict] = None, **kwargs) -> List[UserTrade]:
+        try:
+            args = []
+            if kwargs:
+                params = {**(params or {}), **kwargs}
+            if params is not None:
+                args.append(params)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchMyTrades"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return [_convert_user_trade(e) for e in data]
+        except Exception as e:
+            raise Exception(f"Failed to fetch_my_trades: {self._extract_api_error(e)}") from None
+
+    def fetch_closed_orders(self, params: Optional[dict] = None, **kwargs) -> List[Order]:
+        try:
+            args = []
+            if kwargs:
+                params = {**(params or {}), **kwargs}
+            if params is not None:
+                args.append(params)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchClosedOrders"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return [_convert_order(e) for e in data]
+        except Exception as e:
+            raise Exception(f"Failed to fetch_closed_orders: {self._extract_api_error(e)}") from None
+
+    def fetch_all_orders(self, params: Optional[dict] = None, **kwargs) -> List[Order]:
+        try:
+            args = []
+            if kwargs:
+                params = {**(params or {}), **kwargs}
+            if params is not None:
+                args.append(params)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchAllOrders"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return [_convert_order(e) for e in data]
+        except Exception as e:
+            raise Exception(f"Failed to fetch_all_orders: {self._extract_api_error(e)}") from None
+
+    def fetch_positions(self) -> List[Position]:
+        try:
+            args = []
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchPositions"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return [_convert_position(e) for e in data]
+        except Exception as e:
+            raise Exception(f"Failed to fetch_positions: {self._extract_api_error(e)}") from None
+
+    def fetch_balance(self) -> List[Balance]:
+        try:
+            args = []
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchBalance"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return [_convert_balance(e) for e in data]
+        except Exception as e:
+            raise Exception(f"Failed to fetch_balance: {self._extract_api_error(e)}") from None
+
+    def close(self) -> None:
+        try:
+            args = []
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/close"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            self._handle_response(json.loads(response.data))
+        except Exception as e:
+            raise Exception(f"Failed to close: {self._extract_api_error(e)}") from None
+
+    # END GENERATED METHODS
 
     # ----------------------------------------------------------------------------
     # Filtering Methods
@@ -731,10 +784,10 @@ class Exchange(ABC):
         Args:
             markets: List of markets to filter
             criteria: Filter criteria object, string (simple text search), or predicate function
-            
+
         Returns:
             Filtered list of markets
-            
+
         Example:
             >>> api.filter_markets(markets, "Trump")
             >>> api.filter_markets(markets, {"volume_24h": {"min": 1000}})
@@ -752,14 +805,14 @@ class Exchange(ABC):
         # Handle criteria object
         params: MarketFilterCriteria = criteria # type: ignore
         results = []
-        
+
         for market in markets:
             # Text search
             if "text" in params:
                 lower_query = params["text"].lower()
                 search_in = params.get("search_in", ["title"])
                 match = False
-                
+
                 if "title" in search_in and market.title and lower_query in market.title.lower():
                     match = True
                 elif "description" in search_in and market.description and lower_query in market.description.lower():
@@ -770,7 +823,7 @@ class Exchange(ABC):
                     match = True
                 elif "outcomes" in search_in and market.outcomes and any(lower_query in o.label.lower() for o in market.outcomes):
                     match = True
-                
+
                 if not match:
                     continue
 
@@ -808,7 +861,7 @@ class Exchange(ABC):
                 val = market.liquidity
                 if "min" in f and val < f["min"]: continue
                 if "max" in f and val > f["max"]: continue
-            
+
             # Open Interest
             if "open_interest" in params:
                 f = params["open_interest"]
@@ -820,10 +873,10 @@ class Exchange(ABC):
             if "resolution_date" in params:
                 f = params["resolution_date"]
                 val = market.resolution_date
-                
+
                 if not val:
                      continue
-                
+
                 # Ensure val is timezone-aware if the filter dates are, or naive if filter dates are.
                 # Assuming standard library comparison works (or both are TZ aware/naive).
                 if "before" in f and val >= f["before"]: continue
@@ -850,7 +903,7 @@ class Exchange(ABC):
                     if "max" in f and outcome.price_change_24h > f["max"]: continue
 
             results.append(market)
-            
+
         return results
 
     def filter_events(
@@ -864,7 +917,7 @@ class Exchange(ABC):
         Args:
             events: List of events to filter
             criteria: Filter criteria object, string, or function
-            
+
         Returns:
             Filtered list of events
         """
@@ -887,7 +940,7 @@ class Exchange(ABC):
                 lower_query = params["text"].lower()
                 search_in = params.get("search_in", ["title"])
                 match = False
-                
+
                 if "title" in search_in and event.title and lower_query in event.title.lower():
                     match = True
                 elif "description" in search_in and event.description and lower_query in event.description.lower():
@@ -896,7 +949,7 @@ class Exchange(ABC):
                     match = True
                 elif "tags" in search_in and event.tags and any(lower_query in t.lower() for t in event.tags):
                     match = True
-                
+
                 if not match:
                     continue
 
@@ -929,7 +982,7 @@ class Exchange(ABC):
                 if "max" in f and total_vol > f["max"]: continue
 
             results.append(event)
-            
+
         return results
 
     def fetch_ohlcv(
@@ -983,49 +1036,20 @@ class Exchange(ABC):
             for key, value in kwargs.items():
                 if key not in params_dict:
                     params_dict[key] = value
-            
+
             request_body_dict = {"args": [outcome_id, params_dict]}
             request_body = internal_models.FetchOHLCVRequest.from_dict(request_body_dict)
-            
+
             response = self._api.fetch_ohlcv(
                 exchange=self.exchange_name,
                 fetch_ohlcv_request=request_body,
             )
-            
+
             data = self._handle_response(response.to_dict())
             return [_convert_candle(c) for c in data]
         except ApiException as e:
             raise Exception(f"Failed to fetch OHLCV: {self._extract_api_error(e)}") from None
-    
-    def fetch_order_book(self, outcome_id: str) -> OrderBook:
-        """
-        Get current order book for an outcome.
-        
-        Args:
-            outcome_id: Outcome ID
-            
-        Returns:
-            Current order book
-            
-        Example:
-            >>> order_book = exchange.fetch_order_book(outcome_id)
-            >>> print(f"Best bid: {order_book.bids[0].price}")
-            >>> print(f"Best ask: {order_book.asks[0].price}")
-        """
-        try:
-            body_dict = {"args": [outcome_id]}
-            request_body = internal_models.FetchOrderBookRequest.from_dict(body_dict)
-            
-            response = self._api.fetch_order_book(
-                exchange=self.exchange_name,
-                fetch_order_book_request=request_body,
-            )
-            
-            data = self._handle_response(response.to_dict())
-            return _convert_order_book(data)
-        except ApiException as e:
-            raise Exception(f"Failed to fetch order book: {self._extract_api_error(e)}") from None
-    
+
     def fetch_trades(
         self,
         outcome_id: str,
@@ -1061,36 +1085,36 @@ class Exchange(ABC):
             for key, value in kwargs.items():
                 if key not in params_dict:
                     params_dict[key] = value
-            
+
             request_body_dict = {"args": [outcome_id, params_dict]}
             request_body = internal_models.FetchTradesRequest.from_dict(request_body_dict)
-            
+
             response = self._api.fetch_trades(
                 exchange=self.exchange_name,
                 fetch_trades_request=request_body,
             )
-            
+
             data = self._handle_response(response.to_dict())
             return [_convert_trade(t) for t in data]
         except ApiException as e:
             raise Exception(f"Failed to fetch trades: {self._extract_api_error(e)}") from None
-    
+
     # WebSocket Streaming Methods
-    
+
     def watch_order_book(self, outcome_id: str, limit: Optional[int] = None) -> OrderBook:
         """
         Watch real-time order book updates via WebSocket.
-        
+
         Returns a promise that resolves with the next order book update.
         Call repeatedly in a loop to stream updates (CCXT Pro pattern).
-        
+
         Args:
             outcome_id: Outcome ID to watch
             limit: Optional depth limit for order book
-            
+
         Returns:
             Next order book update
-            
+
         Example:
             >>> # Stream order book updates
             >>> while True:
@@ -1102,21 +1126,21 @@ class Exchange(ABC):
             args = [outcome_id]
             if limit is not None:
                 args.append(limit)
-            
+
             body_dict = {"args": args}
-            
+
             # Add credentials if available
             creds = self._get_credentials_dict()
             if creds:
                 body_dict["credentials"] = creds
-            
+
             request_body = internal_models.WatchOrderBookRequest.from_dict(body_dict)
-            
+
             response = self._api.watch_order_book(
                 exchange=self.exchange_name,
                 watch_order_book_request=request_body,
             )
-            
+
             data = self._handle_response(response.to_dict())
             return _convert_order_book(data)
         except ApiException as e:
@@ -1266,29 +1290,29 @@ class Exchange(ABC):
     def watch_prices(self, market_address: str, callback: Optional[Any] = None) -> Any:
         """
         Watch real-time AMM price updates via WebSocket.
-        
+
         Args:
             market_address: Market contract address
             callback: Optional callback for price updates (if supported by implementation)
-            
+
         Returns:
             Next price update
         """
         try:
             body_dict = {"args": [market_address]}
-            
+
             # Add credentials if available
             creds = self._get_credentials_dict()
             if creds:
                 body_dict["credentials"] = creds
-            
+
             request_body = internal_models.WatchPricesRequest.from_dict(body_dict)
-            
+
             response = self._api.watch_prices(
                 exchange=self.exchange_name,
                 watch_prices_request=request_body,
             )
-            
+
             return self._handle_response(response.to_dict())
         except ApiException as e:
             raise Exception(f"Failed to watch prices: {self._extract_api_error(e)}") from None
@@ -1297,28 +1321,28 @@ class Exchange(ABC):
         """
         Watch real-time user position updates via WebSocket.
         Requires API key authentication.
-        
+
         Args:
             callback: Optional callback for position updates
-            
+
         Returns:
             Next position update
         """
         try:
             body_dict = {}
-            
+
             # Add credentials (required)
             creds = self._get_credentials_dict()
             if creds:
                 body_dict["credentials"] = creds
-            
+
             request_body = internal_models.WatchUserPositionsRequest.from_dict(body_dict)
-            
+
             response = self._api.watch_user_positions(
                 exchange=self.exchange_name,
                 watch_user_positions_request=request_body,
             )
-            
+
             data = self._handle_response(response.to_dict())
             return [_convert_position(p) for p in data]
         except ApiException as e:
@@ -1328,34 +1352,34 @@ class Exchange(ABC):
         """
         Watch real-time user transaction updates via WebSocket.
         Requires API key authentication.
-        
+
         Args:
             callback: Optional callback for transaction updates
-            
+
         Returns:
             Next transaction update
         """
         try:
             body_dict = {}
-            
+
             # Add credentials (required)
             creds = self._get_credentials_dict()
             if creds:
                 body_dict["credentials"] = creds
-            
+
             request_body = internal_models.WatchUserPositionsRequest.from_dict(body_dict)
-            
+
             response = self._api.watch_user_transactions(
                 exchange=self.exchange_name,
                 watch_user_positions_request=request_body,
             )
-            
+
             return self._handle_response(response.to_dict())
         except ApiException as e:
             raise Exception(f"Failed to watch user transactions: {self._extract_api_error(e)}") from None
-    
+
     # Trading Methods (require authentication)
-    
+
     def create_order(
         self,
         market_id: Optional[str] = None,
@@ -1436,326 +1460,23 @@ class Exchange(ABC):
                 params_dict["fee"] = fee
 
             request_body_dict = {"args": [params_dict]}
-            
+
             # Add credentials if available
             creds = self._get_credentials_dict()
             if creds:
                 request_body_dict["credentials"] = creds
-            
+
             request_body = internal_models.CreateOrderRequest.from_dict(request_body_dict)
-            
+
             response = self._api.create_order(
                 exchange=self.exchange_name,
                 create_order_request=request_body,
             )
-            
+
             data = self._handle_response(response.to_dict())
             return _convert_order(data)
         except ApiException as e:
             raise Exception(f"Failed to create order: {self._extract_api_error(e)}") from None
-    
-    def cancel_order(self, order_id: str) -> Order:
-        """
-        Cancel an open order.
-        
-        Args:
-            order_id: Order ID to cancel
-            
-        Returns:
-            Cancelled order
-        """
-        try:
-            body_dict = {"args": [order_id]}
-            
-            # Add credentials if available
-            creds = self._get_credentials_dict()
-            if creds:
-                body_dict["credentials"] = creds
-            
-            request_body = internal_models.CancelOrderRequest.from_dict(body_dict)
-            
-            response = self._api.cancel_order(
-                exchange=self.exchange_name,
-                cancel_order_request=request_body,
-            )
-            
-            data = self._handle_response(response.to_dict())
-            return _convert_order(data)
-        except ApiException as e:
-            raise Exception(f"Failed to cancel order: {self._extract_api_error(e)}") from None
-    
-    def fetch_order(self, order_id: str) -> Order:
-        """
-        Get details of a specific order.
-        
-        Args:
-            order_id: Order ID
-            
-        Returns:
-            Order details
-        """
-        try:
-            body_dict = {"args": [order_id]}
-            
-            # Add credentials if available
-            creds = self._get_credentials_dict()
-            if creds:
-                body_dict["credentials"] = creds
-            
-            request_body = internal_models.FetchOrderRequest.from_dict(body_dict)
-            
-            response = self._api.fetch_order(
-                exchange=self.exchange_name,
-                fetch_order_request=request_body,
-            )
-            
-            data = self._handle_response(response.to_dict())
-            return _convert_order(data)
-        except ApiException as e:
-            raise Exception(f"Failed to fetch order: {self._extract_api_error(e)}") from None
-    
-    def fetch_open_orders(self, market_id: Optional[str] = None) -> List[Order]:
-        """
-        Get all open orders, optionally filtered by market.
-        
-        Args:
-            market_id: Optional market ID to filter by
-            
-        Returns:
-            List of open orders
-        """
-        try:
-            args = []
-            if market_id:
-                args.append(market_id)
-            
-            body_dict = {"args": args}
-            
-            # Add credentials if available
-            creds = self._get_credentials_dict()
-            if creds:
-                body_dict["credentials"] = creds
-            
-            request_body = internal_models.FetchOpenOrdersRequest.from_dict(body_dict)
-            
-            response = self._api.fetch_open_orders(
-                exchange=self.exchange_name,
-                fetch_open_orders_request=request_body,
-            )
-            
-            data = self._handle_response(response.to_dict())
-            return [_convert_order(o) for o in data]
-        except ApiException as e:
-            raise Exception(f"Failed to fetch open orders: {self._extract_api_error(e)}") from None
-    
-    def fetch_my_trades(
-        self,
-        outcome_id: Optional[str] = None,
-        market_id: Optional[str] = None,
-        since: Optional[Any] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-    ) -> List[UserTrade]:
-        """
-        Get trades made by the authenticated user.
-
-        Args:
-            outcome_id: Filter to a specific outcome/ticker
-            market_id: Filter to a specific market
-            since: Only return trades after this datetime
-            limit: Maximum number of results
-            cursor: Pagination cursor from a previous call (Kalshi)
-
-        Returns:
-            List of user trades
-
-        Example:
-            trades = exchange.fetch_my_trades(limit=50)
-        """
-        params: Dict[str, Any] = {}
-        if outcome_id is not None:
-            params["outcomeId"] = outcome_id
-        if market_id is not None:
-            params["marketId"] = market_id
-        if since is not None:
-            params["since"] = since.isoformat() if hasattr(since, "isoformat") else since
-        if limit is not None:
-            params["limit"] = limit
-        if cursor is not None:
-            params["cursor"] = cursor
-        data = self._call_method("fetchMyTrades", params or None)
-        return [_convert_user_trade(t) for t in (data or [])]
-
-    def fetch_closed_orders(
-        self,
-        market_id: Optional[str] = None,
-        since: Optional[Any] = None,
-        until: Optional[Any] = None,
-        limit: Optional[int] = None,
-    ) -> List[Order]:
-        """
-        Get filled and cancelled orders.
-
-        Args:
-            market_id: Filter to a specific market
-            since: Only return orders after this datetime
-            until: Only return orders before this datetime
-            limit: Maximum number of results
-
-        Returns:
-            List of closed orders
-
-        Example:
-            orders = exchange.fetch_closed_orders(market_id="some-market")
-        """
-        params: Dict[str, Any] = {}
-        if market_id is not None:
-            params["marketId"] = market_id
-        if since is not None:
-            params["since"] = since.isoformat() if hasattr(since, "isoformat") else since
-        if until is not None:
-            params["until"] = until.isoformat() if hasattr(until, "isoformat") else until
-        if limit is not None:
-            params["limit"] = limit
-        data = self._call_method("fetchClosedOrders", params or None)
-        return [_convert_order(o) for o in (data or [])]
-
-    def fetch_all_orders(
-        self,
-        market_id: Optional[str] = None,
-        since: Optional[Any] = None,
-        until: Optional[Any] = None,
-        limit: Optional[int] = None,
-    ) -> List[Order]:
-        """
-        Get all orders (open + closed), sorted newest-first.
-
-        Args:
-            market_id: Filter to a specific market
-            since: Only return orders after this datetime
-            until: Only return orders before this datetime
-            limit: Maximum number of results
-
-        Returns:
-            List of orders
-
-        Example:
-            orders = exchange.fetch_all_orders()
-        """
-        params: Dict[str, Any] = {}
-        if market_id is not None:
-            params["marketId"] = market_id
-        if since is not None:
-            params["since"] = since.isoformat() if hasattr(since, "isoformat") else since
-        if until is not None:
-            params["until"] = until.isoformat() if hasattr(until, "isoformat") else until
-        if limit is not None:
-            params["limit"] = limit
-        data = self._call_method("fetchAllOrders", params or None)
-        return [_convert_order(o) for o in (data or [])]
-
-    def fetch_markets_paginated(
-        self,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-    ) -> PaginatedMarketsResult:
-        """
-        Fetch markets with cursor-based pagination.
-
-        Unlike fetch_markets(), this takes a stable snapshot on the first call
-        and returns a cursor you can use to fetch the next page without drift.
-
-        Args:
-            limit: Page size
-            cursor: Opaque cursor returned by the previous call
-
-        Returns:
-            PaginatedMarketsResult with data, total, and next_cursor
-
-        Example:
-            page = exchange.fetch_markets_paginated(limit=100)
-            while page.next_cursor:
-                page = exchange.fetch_markets_paginated(limit=100, cursor=page.next_cursor)
-        """
-        params: Dict[str, Any] = {}
-        if limit is not None:
-            params["limit"] = limit
-        if cursor is not None:
-            params["cursor"] = cursor
-        raw = self._call_method("fetchMarketsPaginated", params or None)
-        return PaginatedMarketsResult(
-            data=[_convert_market(m) for m in raw.get("data", [])],
-            total=raw.get("total", 0),
-            next_cursor=raw.get("nextCursor"),
-        )
-
-    # Account Methods
-
-    def fetch_positions(self, address: Optional[str] = None) -> List[Position]:
-        """
-        Get current positions across all markets.
-
-        Args:
-            address: Public wallet address
-        
-        Returns:
-            List of positions
-        """
-        try:
-            args = [address] if address is not None else []
-
-            body_dict = {"args": args}
-            
-            # Add credentials if available
-            creds = self._get_credentials_dict()
-            if creds:
-                body_dict["credentials"] = creds
-            
-            request_body = internal_models.FetchPositionsRequest.from_dict(body_dict)
-            
-            response = self._api.fetch_positions(
-                exchange=self.exchange_name,
-                fetch_positions_request=request_body,
-            )
-            
-            data = self._handle_response(response.to_dict())
-            return [_convert_position(p) for p in data]
-        except ApiException as e:
-            raise Exception(f"Failed to fetch positions: {self._extract_api_error(e)}") from None
-    
-    def fetch_balance(self, address: Optional[str] = None) -> List[Balance]:
-        """
-        Get account balance.
-
-        Args:
-            address: Public wallet address
-        
-        Returns:
-            List of balances (by currency)
-        """
-        try:
-            args = [address] if address is not None else []
-
-            body_dict = {"args": args}
-            
-            # Add credentials if available
-            creds = self._get_credentials_dict()
-            if creds:
-                body_dict["credentials"] = creds
-            
-            # Note: Generator name for this request might be reused from FetchPositionsRequest
-            # if the schemas are identical (empty args array)
-            request_body = internal_models.FetchPositionsRequest.from_dict(body_dict)
-            
-            response = self._api.fetch_balance(
-                exchange=self.exchange_name,
-                fetch_positions_request=request_body,
-            )
-            
-            data = self._handle_response(response.to_dict())
-            return [_convert_balance(b) for b in data]
-        except ApiException as e:
-            raise Exception(f"Failed to fetch balance: {self._extract_api_error(e)}") from None
 
     def get_execution_price(
         self,
@@ -1765,12 +1486,12 @@ class Exchange(ABC):
     ) -> float:
         """
         Calculate the average execution price for a given amount.
-        
+
         Args:
             order_book: The current order book
             side: "buy" or "sell"
             amount: The amount to execute
-            
+
         Returns:
             The volume-weighted average price, or 0 if insufficient liquidity
         """
@@ -1785,12 +1506,12 @@ class Exchange(ABC):
     ) -> ExecutionPriceResult:
         """
         Calculate detailed execution price information.
-        
+
         Args:
             order_book: The current order book
             side: "buy" or "sell"
             amount: The amount to execute
-            
+
         Returns:
             Detailed execution result
         """
@@ -1803,28 +1524,27 @@ class Exchange(ABC):
             body = {
                 "args": [ob_dict, side, amount]
             }
-            
+
             creds = self._get_credentials_dict()
             if creds:
                 body["credentials"] = creds
-                
+
             url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/getExecutionPriceDetailed"
-            
+
             headers = {"Content-Type": "application/json", "Accept": "application/json"}
-            headers.update(self._api_client.default_headers)
-            
+            headers.update(self._get_auth_headers())
+
             response = self._api_client.call_api(
                 method="POST",
                 url=url,
                 body=body,
                 header_params=headers
             )
-            
+
             response.read()
             data_json = json.loads(response.data)
-            
+
             data = self._handle_response(data_json)
             return _convert_execution_result(data)
         except Exception as e:
             raise Exception(f"Failed to get execution price: {self._extract_api_error(e)}") from None
-

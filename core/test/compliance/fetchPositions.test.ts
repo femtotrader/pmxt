@@ -1,4 +1,4 @@
-import { exchangeClasses, validatePosition, hasAuth, initExchange } from './shared';
+import { exchangeClasses, validatePosition, hasAuth, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: fetchPositions', () => {
     exchangeClasses.forEach(({ name, cls }) => {
@@ -26,8 +26,8 @@ describe('Compliance: fetchPositions', () => {
 
             } catch (error: any) {
                 const msg = error.message.toLowerCase();
-                if (msg.includes('not implemented') || msg.includes('not supported')) {
-                    console.info(`[Compliance] ${name}.fetchPositions not implemented.`);
+                if (isSkippableError(error)) {
+                    console.info(`[Compliance] ${name}.fetchPositions skipped: ${error.message}`);
                     return;
                 }
                 if (msg.includes('requires a wallet') || msg.includes('wallet address')) {

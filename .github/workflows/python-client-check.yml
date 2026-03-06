@@ -1,0 +1,31 @@
+name: Verify Python Client Methods
+
+on:
+  pull_request:
+
+jobs:
+  verify:
+    name: Verify client.py methods are up-to-date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --workspace=pmxt-core
+
+      - name: Regenerate client methods
+        run: node sdks/python/scripts/generate-client-methods.js
+
+      - name: Check if client.py changed
+        run: |
+          if git diff --exit-code sdks/python/pmxt/client.py; then
+            echo "client.py methods are up-to-date"
+          else
+            echo "client.py methods are out of sync with BaseExchange.ts"
+            echo "Run: node sdks/python/scripts/generate-client-methods.js"
+            exit 1
+          fi

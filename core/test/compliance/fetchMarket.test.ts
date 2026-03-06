@@ -1,4 +1,4 @@
-import { exchangeClasses, validateUnifiedMarket, initExchange } from './shared';
+import { exchangeClasses, validateUnifiedMarket, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: fetchMarket (singular)', () => {
     // First, fetch markets normally to get known IDs, then test fetchMarket lookups
@@ -29,8 +29,8 @@ describe('Compliance: fetchMarket (singular)', () => {
             validateUnifiedMarket(market, name, 'fetch-market-by-id');
 
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
-                console.info(`[Compliance] ${name}.fetchMarket not implemented.`);
+            if (isSkippableError(error)) {
+                console.info(`[Compliance] ${name}.fetchMarket skipped: ${error.message}`);
                 return;
             }
             throw error;
@@ -45,8 +45,8 @@ describe('Compliance: fetchMarket (singular)', () => {
             await exchange.fetchMarket({ marketId: 'NONEXISTENT_MARKET_ID_99999' });
             // If we get here, the exchange returned something - some exchanges may do fuzzy matching.
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
-                console.info(`[Compliance] ${name}.fetchMarket not implemented.`);
+            if (isSkippableError(error)) {
+                console.info(`[Compliance] ${name}.fetchMarket skipped: ${error.message}`);
                 return;
             }
             // Should throw some kind of error (MarketNotFound, validation error, etc.)
@@ -85,8 +85,8 @@ describe('Compliance: fetchMarkets with new ID params', () => {
             expect(found).toBe(true);
 
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
-                console.info(`[Compliance] ${name}.fetchMarkets not implemented.`);
+            if (isSkippableError(error)) {
+                console.info(`[Compliance] ${name}.fetchMarkets skipped: ${error.message}`);
                 return;
             }
             throw error;
@@ -129,8 +129,8 @@ describe('Compliance: fetchMarkets with new ID params', () => {
             expect(found).toBe(true);
 
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
-                console.info(`[Compliance] ${name}.fetchMarkets not implemented.`);
+            if (isSkippableError(error)) {
+                console.info(`[Compliance] ${name}.fetchMarkets skipped: ${error.message}`);
                 return;
             }
             throw error;

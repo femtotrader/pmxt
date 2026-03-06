@@ -1,4 +1,4 @@
-import { exchangeClasses, validatePriceCandle, initExchange } from './shared';
+import { exchangeClasses, validatePriceCandle, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: fetchOHLCV', () => {
     test.each(exchangeClasses)('$name should comply with fetchOHLCV standards', async ({ name, cls }) => {
@@ -88,8 +88,8 @@ describe('Compliance: fetchOHLCV', () => {
             }
 
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
-                console.info(`[Compliance] ${name}.fetchOHLCV not implemented.`);
+            if (isSkippableError(error)) {
+                console.info(`[Compliance] ${name}.fetchOHLCV skipped: ${error.message}`);
                 return;
             }
             throw error;

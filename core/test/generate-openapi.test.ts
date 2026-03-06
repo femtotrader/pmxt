@@ -7,13 +7,16 @@ describe('OpenAPI Generator', () => {
   const baseExchangePath = path.join(__dirname, '../src/BaseExchange.ts');
   const specPath = path.join(__dirname, '../src/server/openapi.yaml');
   let originalContent: string;
+  let originalSpec: string;
 
   beforeAll(() => {
     originalContent = fs.readFileSync(baseExchangePath, 'utf-8');
+    originalSpec = fs.readFileSync(specPath, 'utf-8');
   });
 
   afterAll(() => {
     fs.writeFileSync(baseExchangePath, originalContent, 'utf-8');
+    fs.writeFileSync(specPath, originalSpec, 'utf-8');
   });
 
   it('auto-generates new methods from BaseExchange.ts', () => {

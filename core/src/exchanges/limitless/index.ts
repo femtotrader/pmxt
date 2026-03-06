@@ -67,6 +67,8 @@ export class LimitlessExchange extends PredictionMarketExchange {
         fetchMyTrades: true as const,
         fetchClosedOrders: true as const,
         fetchAllOrders: true as const,
+        buildOrder: false as const,
+        submitOrder: false as const,
     };
 
     private auth?: LimitlessAuth;

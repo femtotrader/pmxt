@@ -612,6 +612,127 @@ describe("KalshiExchange", () => {
       });
     });
 
+    describe("buildOrder", () => {
+      it("should return correct raw body for a buy limit order without making HTTP call", async () => {
+        const params: CreateOrderParams = {
+          marketId: "TEST-MARKET",
+          outcomeId: "yes",
+          side: "buy",
+          type: "limit",
+          amount: 10,
+          price: 0.55,
+        };
+
+        const built = await exchange.buildOrder(params);
+
+        expect(mockAxiosInstance.request).not.toHaveBeenCalled();
+        expect(built.exchange).toBe("Kalshi");
+        expect(built.params).toBe(params);
+        expect(built.raw).toEqual(
+          expect.objectContaining({
+            ticker: "TEST-MARKET",
+            side: "yes",
+            action: "buy",
+            count: 10,
+            type: "limit",
+            yes_price: 55,
+          }),
+        );
+      });
+
+      it("should return correct raw body for a sell limit order", async () => {
+        const params: CreateOrderParams = {
+          marketId: "TEST-MARKET",
+          outcomeId: "no",
+          side: "sell",
+          type: "limit",
+          amount: 5,
+          price: 0.45,
+        };
+
+        const built = await exchange.buildOrder(params);
+
+        expect(mockAxiosInstance.request).not.toHaveBeenCalled();
+        expect(built.exchange).toBe("Kalshi");
+        expect(built.raw).toEqual(
+          expect.objectContaining({
+            ticker: "TEST-MARKET",
+            side: "no",
+            action: "sell",
+            count: 5,
+            type: "limit",
+            no_price: 45,
+          }),
+        );
+      });
+
+      it("should mirror input params in built.params", async () => {
+        const params: CreateOrderParams = {
+          marketId: "SOME-MARKET",
+          outcomeId: "yes",
+          side: "buy",
+          type: "market",
+          amount: 3,
+        };
+
+        const built = await exchange.buildOrder(params);
+        expect(built.params).toBe(params);
+      });
+    });
+
+    describe("submitOrder", () => {
+      it("should POST built.raw to CreateOrder and return mapped order", async () => {
+        const params: CreateOrderParams = {
+          marketId: "TEST-MARKET",
+          outcomeId: "yes",
+          side: "buy",
+          type: "limit",
+          amount: 10,
+          price: 0.55,
+        };
+
+        const built = await exchange.buildOrder(params);
+
+        const mockResponse = {
+          data: {
+            order: {
+              order_id: "order-789",
+              ticker: "TEST-MARKET",
+              side: "yes",
+              type: "limit",
+              yes_price: 55,
+              count: 10,
+              remaining_count: 10,
+              status: "resting",
+              created_time: "2026-01-13T12:00:00Z",
+            },
+          },
+        };
+        (mockAxiosInstance.request as jest.Mock).mockResolvedValue(mockResponse);
+
+        const order = await exchange.submitOrder(built);
+
+        expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+          expect.objectContaining({
+            method: "POST",
+            url: "https://api.elections.kalshi.com/trade-api/v2/portfolio/orders",
+            data: expect.objectContaining({
+              ticker: "TEST-MARKET",
+              side: "yes",
+              action: "buy",
+              count: 10,
+              type: "limit",
+              yes_price: 55,
+            }),
+          }),
+        );
+
+        expect(order.id).toBe("order-789");
+        expect(order.status).toBe("open");
+        expect(order.price).toBe(0.55);
+      });
+    });
+
     describe("Order Status Mapping", () => {
       beforeEach(() => {
         exchange = new KalshiExchange(mockCredentials);

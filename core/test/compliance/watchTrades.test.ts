@@ -1,4 +1,4 @@
-import { exchangeClasses, validateTrade, hasAuth, initExchange } from './shared';
+import { exchangeClasses, validateTrade, hasAuth, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: watchTrades', () => {
     exchangeClasses.forEach(({ name, cls }) => {
@@ -164,7 +164,7 @@ describe('Compliance: watchTrades', () => {
 
             } catch (error: any) {
                 const msg = error.message.toLowerCase();
-                if (msg.includes('not supported') || msg.includes('not implemented') || msg.includes('unavailable') || msg.includes('authentication') || msg.includes('credentials') || msg.includes('api key')) {
+                if (isSkippableError(error) || msg.includes('unavailable') || msg.includes('authentication') || msg.includes('credentials') || msg.includes('api key')) {
                     console.info(`[Compliance] ${name}.watchTrades skipped/unsupported: ${error.message}`);
                     return;
                 }

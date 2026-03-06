@@ -1,4 +1,4 @@
-import { exchangeClasses, validateOrder, hasAuth, initExchange } from './shared';
+import { exchangeClasses, validateOrder, hasAuth, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: createOrder', () => {
     exchangeClasses.forEach(({ name, cls }) => {
@@ -70,9 +70,9 @@ describe('Compliance: createOrder', () => {
                     return;
                 }
 
-                // Handle "Not Implemented" gracefully
-                if (msg.includes('not implemented')) {
-                    console.info(`[Compliance] ${name}.createOrder not implemented.`);
+                // Handle "Not Implemented" / exchange unavailable gracefully
+                if (isSkippableError(error)) {
+                    console.info(`[Compliance] ${name}.createOrder skipped: ${error.message}`);
                     return;
                 }
 

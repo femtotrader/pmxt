@@ -1,4 +1,4 @@
-import { exchangeClasses, validateOrder, hasAuth, initExchange } from './shared';
+import { exchangeClasses, validateOrder, hasAuth, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: fetchAllOrders', () => {
     exchangeClasses.forEach(({ name, cls }) => {
@@ -19,9 +19,8 @@ describe('Compliance: fetchAllOrders', () => {
                 }
 
             } catch (error: any) {
-                const msg = error.message?.toLowerCase() ?? '';
-                if (msg.includes('not implemented')) {
-                    console.info(`[Compliance] ${name}.fetchAllOrders not implemented.`);
+                if (isSkippableError(error)) {
+                    console.info(`[Compliance] ${name}.fetchAllOrders skipped: ${error.message}`);
                     return;
                 }
                 throw error;

@@ -1,4 +1,4 @@
-import { exchangeClasses, validateUnifiedEvent, initExchange } from './shared';
+import { exchangeClasses, validateUnifiedEvent, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: fetchEvents with new ID params', () => {
     test.each(exchangeClasses)('$name should support eventId param in fetchEvents', async ({ name, cls }) => {
@@ -27,7 +27,7 @@ describe('Compliance: fetchEvents with new ID params', () => {
             validateUnifiedEvent(result[0], name);
 
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
+            if (isSkippableError(error)) {
                 console.info(`[Compliance] ${name}.fetchEvents not implemented.`);
                 return;
             }
@@ -64,7 +64,7 @@ describe('Compliance: fetchEvents with new ID params', () => {
             validateUnifiedEvent(result[0], name);
 
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
+            if (isSkippableError(error)) {
                 console.info(`[Compliance] ${name}.fetchEvents not implemented.`);
                 return;
             }
@@ -98,7 +98,7 @@ describe('Compliance: fetchEvent (singular)', () => {
             validateUnifiedEvent(event, name);
 
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
+            if (isSkippableError(error)) {
                 console.info(`[Compliance] ${name}.fetchEvent not implemented.`);
                 return;
             }
@@ -114,7 +114,7 @@ describe('Compliance: fetchEvent (singular)', () => {
             await exchange.fetchEvent({ eventId: 'NONEXISTENT_EVENT_ID_99999' });
             // If we get here, the exchange returned something - some exchanges may do fuzzy matching.
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
+            if (isSkippableError(error)) {
                 console.info(`[Compliance] ${name}.fetchEvent not implemented.`);
                 return;
             }

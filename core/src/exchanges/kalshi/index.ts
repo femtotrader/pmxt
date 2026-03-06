@@ -20,6 +20,7 @@ import {
   Order,
   Position,
   CreateOrderParams,
+  BuiltOrder,
 } from "../../types";
 import { fetchMarkets } from "./fetchMarkets";
 import { fetchEvents } from "./fetchEvents";
@@ -66,6 +67,8 @@ export class KalshiExchange extends PredictionMarketExchange {
     fetchMyTrades: true as const,
     fetchClosedOrders: true as const,
     fetchAllOrders: true as const,
+    buildOrder: true as const,
+    submitOrder: true as const,
   };
 
   private auth?: KalshiAuth;
@@ -249,9 +252,9 @@ export class KalshiExchange extends PredictionMarketExchange {
   // Trading Methods
   // ----------------------------------------------------------------------------
 
-  async createOrder(params: CreateOrderParams): Promise<Order> {
+  async buildOrder(params: CreateOrderParams): Promise<BuiltOrder> {
     const isYesSide = params.side === "buy";
-    const kalshiOrder: Record<string, any> = {
+    const body: Record<string, any> = {
       ticker: params.marketId,
       client_order_id: `pmxt-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       side: isYesSide ? "yes" : "no",
@@ -263,16 +266,27 @@ export class KalshiExchange extends PredictionMarketExchange {
     if (params.price) {
       const priceInCents = Math.round(params.price * 100);
       if (isYesSide) {
-        kalshiOrder.yes_price = priceInCents;
+        body.yes_price = priceInCents;
       } else {
-        kalshiOrder.no_price = priceInCents;
+        body.no_price = priceInCents;
       }
     }
 
-    const data = await this.callApi("CreateOrder", kalshiOrder);
-    const order = data.order;
+    return {
+      exchange: this.name,
+      params,
+      raw: body,
+    };
+  }
 
-    return this.mapKalshiOrder(order);
+  async submitOrder(built: BuiltOrder): Promise<Order> {
+    const data = await this.callApi("CreateOrder", built.raw as Record<string, any>);
+    return this.mapKalshiOrder(data.order);
+  }
+
+  async createOrder(params: CreateOrderParams): Promise<Order> {
+    const built = await this.buildOrder(params);
+    return this.submitOrder(built);
   }
 
   async cancelOrder(orderId: string): Promise<Order> {

@@ -1,4 +1,4 @@
-import { exchangeClasses, validateOrderBook, hasAuth, initExchange } from './shared';
+import { exchangeClasses, validateOrderBook, hasAuth, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: watchOrderBook', () => {
     exchangeClasses.forEach(({ name, cls }) => {
@@ -45,7 +45,7 @@ describe('Compliance: watchOrderBook', () => {
                         } catch (error: any) {
                             if (timeoutId!) clearTimeout(timeoutId);
                             const msg = error.message.toLowerCase();
-                            if (msg.includes('not supported') || msg.includes('not implemented') || msg.includes('unavailable') || msg.includes('authentication') || msg.includes('credentials') || msg.includes('api key')) {
+                            if (isSkippableError(error) || msg.includes('unavailable') || msg.includes('authentication') || msg.includes('credentials') || msg.includes('api key')) {
                                 throw error;
                             }
                             console.warn(`[Compliance] ${name}: Failed to watch orderbook for outcome ${outcome.outcomeId}: ${error.message}`);
@@ -65,7 +65,7 @@ describe('Compliance: watchOrderBook', () => {
 
             } catch (error: any) {
                 const msg = error.message.toLowerCase();
-                if (msg.includes('not supported') || msg.includes('not implemented') || msg.includes('unavailable') || msg.includes('authentication') || msg.includes('credentials') || msg.includes('api key')) {
+                if (isSkippableError(error) || msg.includes('unavailable') || msg.includes('authentication') || msg.includes('credentials') || msg.includes('api key')) {
                     console.info(`[Compliance] ${name}.watchOrderBook skipped/unsupported: ${error.message}`);
                     return;
                 }

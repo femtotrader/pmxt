@@ -397,6 +397,69 @@ order = exchange.create_order(
 
 
 ---
+### `build_order`
+
+Build an order payload without submitting it to the exchange.
+
+
+**Signature:**
+
+```python
+def build_order(params: CreateOrderParams) -> BuiltOrder:
+```
+
+**Parameters:**
+
+- `params` ([CreateOrderParams](#createorderparams)): Order parameters (same as createOrder)
+
+**Returns:** [BuiltOrder](#builtorder) - A BuiltOrder containing the exchange-native payload
+
+**Example:**
+
+```python
+# Build then submit a Polymarket order
+built = exchange.build_order(
+    market_id=market.market_id,
+    outcome_id=market.yes.outcome_id,
+    side='buy',
+    type='limit',
+    amount=10,
+    price=0.55
+)
+print(built.signed_order)
+order = exchange.submit_order(built)
+```
+
+
+---
+### `submit_order`
+
+Submit a pre-built order returned by buildOrder().
+
+
+**Signature:**
+
+```python
+def submit_order(built: BuiltOrder) -> Order:
+```
+
+**Parameters:**
+
+- `built` ([BuiltOrder](#builtorder)): A BuiltOrder from buildOrder()
+
+**Returns:** [Order](#order) - The submitted order
+
+**Example:**
+
+```python
+# Submit a pre-built order
+built = exchange.build_order(params)
+order = exchange.submit_order(built)
+print(f"Order {order.id}: {order.status}")
+```
+
+
+---
 ### `cancel_order`
 
 Cancel an existing open order.
@@ -1285,6 +1348,21 @@ class PaginatedMarketsResult:
 data: List[UnifiedMarket] # 
 total: int # 
 next_cursor: str # 
+```
+
+---
+### `BuiltOrder`
+
+An order built but not yet submitted, ready for inspection or middleware forwarding
+
+```python
+@dataclass
+class BuiltOrder:
+exchange: str # The exchange name this order was built for
+params: CreateOrderParams # 
+signed_order: object # For CLOB exchanges (Polymarket): the EIP-712 signed order ready to POST
+tx: object # For on-chain AMM exchanges: the EVM transaction payload (reserved for future use)
+raw: Any # The raw, exchange-native payload. Always present.
 ```
 
 ---

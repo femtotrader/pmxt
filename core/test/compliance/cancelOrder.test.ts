@@ -1,4 +1,4 @@
-import { exchangeClasses, hasAuth, initExchange } from './shared';
+import { exchangeClasses, hasAuth, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: cancelOrder', () => {
     exchangeClasses.forEach(({ name, cls }) => {
@@ -62,9 +62,9 @@ describe('Compliance: cancelOrder', () => {
                     return;
                 }
 
-                // Not implemented check
-                if (msg.includes('not implemented')) {
-                    console.info(`[Compliance] ${name}.cancelOrder not implemented.`);
+                // Not implemented / exchange unavailable check
+                if (isSkippableError(error)) {
+                    console.info(`[Compliance] ${name}.cancelOrder skipped: ${error.message}`);
                     return;
                 }
 

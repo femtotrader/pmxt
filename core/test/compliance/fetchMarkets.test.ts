@@ -1,4 +1,4 @@
-import { exchangeClasses, validateUnifiedMarket, initExchange } from './shared';
+import { exchangeClasses, validateUnifiedMarket, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: fetchMarkets', () => {
     test.each(exchangeClasses)('$name should comply with fetchMarkets standards', async ({ name, cls }) => {
@@ -18,8 +18,8 @@ describe('Compliance: fetchMarkets', () => {
                 validateUnifiedMarket(market, name, 'fetch-markets');
             }
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
-                console.info(`[Compliance] ${name}.fetchMarkets not implemented.`);
+            if (isSkippableError(error)) {
+                console.info(`[Compliance] ${name}.fetchMarkets skipped: ${error.message}`);
                 return;
             }
             throw error;

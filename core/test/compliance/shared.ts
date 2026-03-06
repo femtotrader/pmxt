@@ -1,4 +1,5 @@
 import * as pmxt from "../../src";
+import { ExchangeNotAvailable, NetworkError } from "../../src/errors";
 import {
   UnifiedEvent,
   UnifiedMarket,
@@ -401,6 +402,16 @@ export function hasAuth(exchangeName: string): boolean {
     return !!baoziPk && baoziPk.length > 10;
   }
   return false;
+}
+
+/**
+ * Returns true for errors that should cause a compliance test to skip rather than fail.
+ * Covers: not-implemented methods, and exchange service unavailability (503/network).
+ */
+export function isSkippableError(error: any): boolean {
+    if (error instanceof ExchangeNotAvailable || error instanceof NetworkError) return true;
+    const msg = error?.message?.toLowerCase() ?? '';
+    return msg.includes('not implemented') || msg.includes('not supported');
 }
 
 export function initExchange(name: string, cls: any) {

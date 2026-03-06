@@ -406,6 +406,69 @@ const order = await exchange.createOrder({
 
 
 ---
+### `buildOrder`
+
+Build an order payload without submitting it to the exchange.
+
+
+**Signature:**
+
+```typescript
+async buildOrder(params: CreateOrderParams): Promise<BuiltOrder>
+```
+
+**Parameters:**
+
+- `params` ([CreateOrderParams](#createorderparams)): Order parameters (same as createOrder)
+
+**Returns:** Promise<[BuiltOrder](#builtorder)> - A BuiltOrder containing the exchange-native payload
+
+**Example:**
+
+```typescript
+// Build then inspect a Polymarket order
+const built = await exchange.buildOrder({
+  marketId: market.marketId,
+  outcomeId: market.yes.outcomeId,
+  side: 'buy',
+  type: 'limit',
+  amount: 10,
+  price: 0.55
+});
+console.log(built.signedOrder); // EIP-712 signed order struct
+const order = await exchange.submitOrder(built);
+```
+
+
+---
+### `submitOrder`
+
+Submit a pre-built order returned by buildOrder().
+
+
+**Signature:**
+
+```typescript
+async submitOrder(built: BuiltOrder): Promise<Order>
+```
+
+**Parameters:**
+
+- `built` ([BuiltOrder](#builtorder)): A BuiltOrder from buildOrder()
+
+**Returns:** Promise<[Order](#order)> - The submitted order
+
+**Example:**
+
+```typescript
+// Submit a pre-built order
+const built = await exchange.buildOrder(params);
+const order = await exchange.submitOrder(built);
+console.log(`Order ${order.id}: ${order.status}`);
+```
+
+
+---
 ### `cancelOrder`
 
 Cancel an existing open order.
@@ -1305,6 +1368,21 @@ interface PaginatedMarketsResult {
 data: UnifiedMarket[]; // 
 total: number; // 
 nextCursor: string; // 
+}
+```
+
+---
+### `BuiltOrder`
+
+An order built but not yet submitted, ready for inspection or middleware forwarding
+
+```typescript
+interface BuiltOrder {
+exchange: string; // The exchange name this order was built for
+params: CreateOrderParams; // 
+signedOrder: object; // For CLOB exchanges (Polymarket): the EIP-712 signed order ready to POST
+tx: object; // For on-chain AMM exchanges: the EVM transaction payload (reserved for future use)
+raw: any; // The raw, exchange-native payload. Always present.
 }
 ```
 

@@ -1,4 +1,4 @@
-import { exchangeClasses, validateUserTrade, hasAuth, initExchange } from './shared';
+import { exchangeClasses, validateUserTrade, hasAuth, initExchange, isSkippableError } from './shared';
 import { AuthenticationError } from '../../src/errors';
 
 describe('Compliance: fetchMyTrades', () => {
@@ -21,8 +21,8 @@ describe('Compliance: fetchMyTrades', () => {
 
             } catch (error: any) {
                 const msg = error.message?.toLowerCase() ?? '';
-                if (msg.includes('not implemented')) {
-                    console.info(`[Compliance] ${name}.fetchMyTrades not implemented.`);
+                if (isSkippableError(error)) {
+                    console.info(`[Compliance] ${name}.fetchMyTrades skipped: ${error.message}`);
                     return;
                 }
                 if (error instanceof AuthenticationError || msg.includes('authentication') || msg.includes('wallet address')) {

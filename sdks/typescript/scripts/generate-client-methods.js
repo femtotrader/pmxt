@@ -7,6 +7,11 @@
  * as a fetch call to the sidecar and injected between the generation markers in
  * client.ts. This ensures the TypeScript SDK surface stays in sync with the core.
  *
+ * Return type config (returnTs, pattern, converter) is derived entirely from the
+ * TypeScript return type — no manual METHOD_RETURN_CONFIG required. When a new method
+ * is added to BaseExchange.ts with a known return type, it appears in client.ts
+ * automatically on the next generation run.
+ *
  * Run: node sdks/typescript/scripts/generate-client-methods.js
  */
 
@@ -24,41 +29,41 @@ const MARKER_END = '    // END GENERATED METHODS';
 const SKIP_GENERATE = new Set([
     'callApi',
     'defineImplicitApi',
-    'fetchOHLCV',             // date object preprocessing
-    'fetchTrades',            // resolution parameter handling
-    'watchOrderBook',         // streaming
-    'watchTrades',            // streaming
-    'createOrder',            // outcome shorthand logic
-    'getExecutionPrice',      // delegates to getExecutionPriceDetailed
+    'fetchOHLCV',                // date object preprocessing
+    'fetchTrades',               // resolution parameter handling
+    'watchOrderBook',            // streaming
+    'watchTrades',               // streaming
+    'createOrder',               // outcome shorthand logic
+    'buildOrder',                // complex args format, returns BuiltOrder
+    'getExecutionPrice',         // delegates to getExecutionPriceDetailed
     'getExecutionPriceDetailed', // complex args format
-    'filterMarkets',          // pure local computation, no sidecar
-    'filterEvents',           // pure local computation, no sidecar
+    'filterMarkets',             // pure local computation, no sidecar
+    'filterEvents',              // pure local computation, no sidecar
 ]);
 
-// Return type config for each generated method.
-// returnTs: TypeScript return type for the Promise
-// pattern:  how to handle response.data
-// converter: converter function name (for array/single/record patterns)
-const METHOD_RETURN_CONFIG = {
-    loadMarkets:           { returnTs: 'Record<string, UnifiedMarket>', pattern: 'record',          converter: 'convertMarket' },
-    fetchMarkets:          { returnTs: 'UnifiedMarket[]',              pattern: 'array',           converter: 'convertMarket' },
-    fetchMarketsPaginated: { returnTs: 'PaginatedMarketsResult',       pattern: 'paginatedMarkets'                             },
-    fetchEvents:           { returnTs: 'UnifiedEvent[]',               pattern: 'array',           converter: 'convertEvent'  },
-    fetchMarket:           { returnTs: 'UnifiedMarket',                pattern: 'single',          converter: 'convertMarket' },
-    fetchEvent:            { returnTs: 'UnifiedEvent',                 pattern: 'single',          converter: 'convertEvent'  },
-    fetchOrderBook:        { returnTs: 'OrderBook',                    pattern: 'single',          converter: 'convertOrderBook' },
-    cancelOrder:           { returnTs: 'Order',                        pattern: 'single',          converter: 'convertOrder'  },
-    fetchOrder:            { returnTs: 'Order',                        pattern: 'single',          converter: 'convertOrder'  },
-    fetchOpenOrders:       { returnTs: 'Order[]',                      pattern: 'array',           converter: 'convertOrder'  },
-    fetchMyTrades:         { returnTs: 'UserTrade[]',                  pattern: 'array',           converter: 'convertUserTrade' },
-    fetchClosedOrders:     { returnTs: 'Order[]',                      pattern: 'array',           converter: 'convertOrder'  },
-    fetchAllOrders:        { returnTs: 'Order[]',                      pattern: 'array',           converter: 'convertOrder'  },
-    fetchPositions:        { returnTs: 'Position[]',                   pattern: 'array',           converter: 'convertPosition' },
-    fetchBalance:          { returnTs: 'Balance[]',                    pattern: 'array',           converter: 'convertBalance' },
-    close:                 { returnTs: 'void',                         pattern: 'void'                                        },
+// ---------------------------------------------------------------------------
+// TypeScript type name -> SDK type info
+//
+// Maps a TS model/interface name to the converter function used in client.ts.
+// The returnTs string is produced directly from the AST — no manual annotation.
+//
+// Special patterns (paginated, record, void) are detected from the type name itself.
+// ---------------------------------------------------------------------------
+const TYPE_MAP = {
+    UnifiedMarket: { converter: 'convertMarket' },
+    UnifiedEvent: { converter: 'convertEvent' },
+    Order: { converter: 'convertOrder' },
+    UserTrade: { converter: 'convertUserTrade' },
+    Position: { converter: 'convertPosition' },
+    Balance: { converter: 'convertBalance' },
+    Trade: { converter: 'convertTrade' },
+    OrderBook: { converter: 'convertOrderBook' },
+    PriceCandle: { converter: 'convertCandle' },
+    // Pagination wrapper — gets its own response handler
+    PaginatedMarketsResult: { converter: null, pattern: 'paginatedMarkets' },
 };
 
-// SDK types that can be used in generated signatures without import issues
+// SDK types that can appear in generated signatures without extra imports
 const SDK_PARAM_TYPES = new Set([
     'UnifiedMarket', 'UnifiedEvent', 'OrderBook', 'Order', 'Trade',
     'UserTrade', 'Position', 'Balance', 'PriceCandle', 'PaginatedMarketsResult',
@@ -68,22 +73,145 @@ const SDK_PARAM_TYPES = new Set([
 // TypeScript AST helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Recursively walk a TypeScript type node and return a descriptor:
+ *   { returnTs, isArray, converter, pattern }
+ *
+ * Transparently unwraps Promise<T>, Array<T>, and T[].
+ */
+function resolveReturnType(node, sf) {
+    if (!node) return { returnTs: 'any', isArray: false, converter: null, pattern: 'raw' };
+
+    switch (node.kind) {
+        case ts.SyntaxKind.VoidKeyword:
+            return { returnTs: 'void', isArray: false, converter: null, pattern: 'void' };
+
+        case ts.SyntaxKind.StringKeyword:
+            return { returnTs: 'string', isArray: false, converter: null, pattern: 'raw' };
+
+        case ts.SyntaxKind.NumberKeyword:
+            return { returnTs: 'number', isArray: false, converter: null, pattern: 'raw' };
+
+        case ts.SyntaxKind.BooleanKeyword:
+            return { returnTs: 'boolean', isArray: false, converter: null, pattern: 'raw' };
+
+        case ts.SyntaxKind.ArrayType: {
+            // T[]
+            const inner = resolveReturnType(node.elementType, sf);
+            return { ...inner, returnTs: `${inner.returnTs}[]`, isArray: true };
+        }
+
+        case ts.SyntaxKind.TypeReference: {
+            const name = node.typeName.kind === ts.SyntaxKind.Identifier
+                ? node.typeName.text
+                : node.typeName.right.text;
+
+            // Unwrap Promise<T>
+            if (name === 'Promise' && node.typeArguments && node.typeArguments.length > 0) {
+                return resolveReturnType(node.typeArguments[0], sf);
+            }
+
+            // Array<T>
+            if (name === 'Array' && node.typeArguments && node.typeArguments.length > 0) {
+                const inner = resolveReturnType(node.typeArguments[0], sf);
+                return { ...inner, returnTs: `${inner.returnTs}[]`, isArray: true };
+            }
+
+            // Record<K, V>
+            if (name === 'Record' && node.typeArguments && node.typeArguments.length === 2) {
+                const k = resolveReturnType(node.typeArguments[0], sf).returnTs;
+                const v = resolveReturnType(node.typeArguments[1], sf);
+                return {
+                    returnTs: `Record<${k}, ${v.returnTs}>`,
+                    isArray: false,
+                    converter: v.converter,
+                    pattern: 'record',
+                };
+            }
+
+            // Known model type
+            if (TYPE_MAP[name]) {
+                const info = TYPE_MAP[name];
+                return {
+                    returnTs: name,
+                    isArray: false,
+                    converter: info.converter,
+                    pattern: info.pattern || 'single',
+                };
+            }
+
+            // Scalar aliases
+            if (name === 'string') return { returnTs: 'string', isArray: false, converter: null, pattern: 'raw' };
+            if (name === 'number') return { returnTs: 'number', isArray: false, converter: null, pattern: 'raw' };
+            if (name === 'boolean') return { returnTs: 'boolean', isArray: false, converter: null, pattern: 'raw' };
+
+            return { returnTs: 'any', isArray: false, converter: null, pattern: 'raw' };
+        }
+
+        case ts.SyntaxKind.UnionType: {
+            const nonNull = node.types.filter(t =>
+                t.kind !== ts.SyntaxKind.UndefinedKeyword &&
+                t.kind !== ts.SyntaxKind.NullKeyword
+            );
+            if (nonNull.length === 1) return resolveReturnType(nonNull[0], sf);
+            return { returnTs: 'any', isArray: false, converter: null, pattern: 'raw' };
+        }
+
+        default:
+            return { returnTs: 'any', isArray: false, converter: null, pattern: 'raw' };
+    }
+}
+
+/**
+ * Given a method's return type node, compute the full { returnTs, pattern, converter }
+ * config needed by generateMethod. This is the single source of truth.
+ */
+function inferReturnConfig(returnTypeNode, methodName, sf) {
+    const resolved = resolveReturnType(returnTypeNode, sf);
+
+    if (resolved.pattern === 'paginatedMarkets') {
+        return { returnTs: 'PaginatedMarketsResult', pattern: 'paginatedMarkets', converter: null };
+    }
+
+    if (resolved.pattern === 'void') {
+        return { returnTs: 'void', pattern: 'void', converter: null };
+    }
+
+    if (resolved.pattern === 'record') {
+        return { returnTs: resolved.returnTs, pattern: 'record', converter: resolved.converter };
+    }
+
+    if (resolved.isArray) {
+        if (!resolved.converter) {
+            console.warn(`  WARNING: '${methodName}' returns an array of unknown type ('${resolved.returnTs}'). Using raw pattern.`);
+            return { returnTs: resolved.returnTs, pattern: 'raw', converter: null };
+        }
+        return { returnTs: resolved.returnTs, pattern: 'array', converter: resolved.converter };
+    }
+
+    if (resolved.pattern === 'single' && resolved.converter) {
+        return { returnTs: resolved.returnTs, pattern: 'single', converter: resolved.converter };
+    }
+
+    // Scalar or genuinely unknown
+    return { returnTs: resolved.returnTs, pattern: 'raw', converter: null };
+}
+
+/** typeNodeToTS for *parameter* types only (pattern inference not needed). */
 function typeNodeToTS(node, sf) {
     if (!node) return 'any';
     switch (node.kind) {
-        case ts.SyntaxKind.StringKeyword:    return 'string';
-        case ts.SyntaxKind.NumberKeyword:    return 'number';
-        case ts.SyntaxKind.BooleanKeyword:   return 'boolean';
-        case ts.SyntaxKind.VoidKeyword:      return 'void';
-        case ts.SyntaxKind.AnyKeyword:       return 'any';
+        case ts.SyntaxKind.StringKeyword: return 'string';
+        case ts.SyntaxKind.NumberKeyword: return 'number';
+        case ts.SyntaxKind.BooleanKeyword: return 'boolean';
+        case ts.SyntaxKind.VoidKeyword: return 'void';
+        case ts.SyntaxKind.AnyKeyword: return 'any';
         case ts.SyntaxKind.UndefinedKeyword: return 'undefined';
         case ts.SyntaxKind.TypeReference: {
             const name = node.typeName.kind === ts.SyntaxKind.Identifier
                 ? node.typeName.text
                 : node.typeName.right.text;
-            if (name === 'Promise' && node.typeArguments) {
-                return typeNodeToTS(node.typeArguments[0], sf);
-            }
+            if (name === 'Promise' && node.typeArguments) return typeNodeToTS(node.typeArguments[0], sf);
             if (name === 'Record' && node.typeArguments) {
                 const k = typeNodeToTS(node.typeArguments[0], sf);
                 const v = typeNodeToTS(node.typeArguments[1], sf);
@@ -97,7 +225,6 @@ function typeNodeToTS(node, sf) {
                 t.kind !== ts.SyntaxKind.NullKeyword
             );
             if (nonNull.length === 1) return typeNodeToTS(nonNull[0], sf);
-            // Multi-member union — just use any for generated params
             return 'any';
         }
         case ts.SyntaxKind.LiteralType: {
@@ -133,10 +260,14 @@ function extractMethods(sourceFile) {
                 : null;
             if (!name) continue;
             if (SKIP_GENERATE.has(name)) continue;
-            if (!METHOD_RETURN_CONFIG[name]) {
-                console.warn(`  WARNING: no return config for public method '${name}', skipping`);
+
+            // Gate: only include methods whose return type we can fully resolve
+            const config = inferReturnConfig(member.type, name, sourceFile);
+            if (config.pattern === 'raw' && config.returnTs === 'any') {
+                console.warn(`  WARNING: '${name}' has an unrecognised return type — skipping. Add it to TYPE_MAP if needed.`);
                 continue;
             }
+
             methods.push(member);
         }
     }
@@ -186,7 +317,7 @@ function buildArgsLines(params, sf) {
 
 function buildReturnLines(config) {
     const { pattern, converter } = config;
-    const i = '            '; // 12 spaces (3 levels of indent inside try block)
+    const i = '            '; // 12 spaces
     switch (pattern) {
         case 'array':
             return `${i}const data = this.handleResponse(json);\n${i}return data.map(${converter});`;
@@ -230,7 +361,7 @@ function generateMethod(name, params, config, sf) {
         `            ${argsCode}`,
         `            const response = await fetch(\`\${this.config.basePath}/api/\${this.exchangeName}/${name}\`, {`,
         `                method: 'POST',`,
-        `                headers: { 'Content-Type': 'application/json', ...this.config.headers },`,
+        `                headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },`,
         `                body: JSON.stringify({ args, credentials: this.getCredentials() }),`,
         `            });`,
         `            if (!response.ok) {`,
@@ -258,7 +389,7 @@ function main() {
 
     const generated = methods.map(m => {
         const name = m.name.text;
-        const config = METHOD_RETURN_CONFIG[name];
+        const config = inferReturnConfig(m.type, name, sf);
         return generateMethod(name, m.parameters, config, sf);
     }).join('\n\n');
 
@@ -280,7 +411,8 @@ function main() {
 
     console.log(`Generated ${methods.length} methods in client.ts:`);
     for (const m of methods) {
-        console.log(`  + ${m.name.text}`);
+        const config = inferReturnConfig(m.type, m.name.text, sf);
+        console.log(`  + ${m.name.text} -> Promise<${config.returnTs}> [${config.pattern}]`);
     }
 }
 

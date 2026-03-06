@@ -1,4 +1,4 @@
-import { exchangeClasses, validateOrderBook, initExchange } from './shared';
+import { exchangeClasses, validateOrderBook, initExchange, isSkippableError } from './shared';
 
 describe('Compliance: fetchOrderBook', () => {
     test.each(exchangeClasses)('$name should comply with fetchOrderBook standards', async ({ name, cls }) => {
@@ -67,8 +67,8 @@ describe('Compliance: fetchOrderBook', () => {
             validateOrderBook(orderbook, name, testedOutcomeId);
 
         } catch (error: any) {
-            if (error.message.toLowerCase().includes('not implemented')) {
-                console.info(`[Compliance] ${name}.fetchOrderBook not implemented.`);
+            if (isSkippableError(error)) {
+                console.info(`[Compliance] ${name}.fetchOrderBook skipped: ${error.message}`);
                 return;
             }
             throw error;

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.20.2] - 2026-03-14
+
+### Fixed
+
+- **Probable Events API**: Handle raw array response instead of expected `{ events: [] }` wrapper.
+- **Test Import**: Remove vitest import from client-args test (project uses Jest).
+
+### Changed
+
+- **3-Layer Architecture**: Introduced fetcher/normalizer/SDK layer separation across all exchanges (Myriad, Polymarket, Kalshi, Limitless, Baozi, Probable).
+- **Stale File Cleanup**: Removed superseded `fetchX.ts` files from all exchanges, rewired websocket modules to use the new fetcher layer.
+
 ## [2.20.1] - 2026-03-14
 
 ### Fixed

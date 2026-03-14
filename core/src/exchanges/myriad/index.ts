@@ -1,9 +1,5 @@
 import { PredictionMarketExchange, MarketFilterParams, HistoryFilterParams, OHLCVParams, TradesParams, ExchangeCredentials, EventFetchParams, MyTradesParams } from '../../BaseExchange';
 import { UnifiedMarket, UnifiedEvent, PriceCandle, OrderBook, Trade, UserTrade, Balance, Order, Position, CreateOrderParams } from '../../types';
-import { fetchMarkets } from './fetchMarkets';
-import { fetchEvents } from './fetchEvents';
-import { fetchOHLCV } from './fetchOHLCV';
-import { fetchOrderBook } from './fetchOrderBook';
 import { MyriadAuth } from './auth';
 import { MyriadWebSocket } from './websocket';
 import { myriadErrorMapper } from './errors';
@@ -11,7 +7,9 @@ import { AuthenticationError } from '../../errors';
 import { BASE_URL } from './utils';
 import { parseOpenApiSpec } from '../../utils/openapi';
 import { myriadApiSpec } from './api';
-import { resolveMyriadPrice } from './price';
+import { MyriadFetcher } from './fetcher';
+import { MyriadNormalizer } from './normalizer';
+import { FetcherContext } from '../interfaces';
 
 export class MyriadExchange extends PredictionMarketExchange {
     override readonly has = {
@@ -39,6 +37,8 @@ export class MyriadExchange extends PredictionMarketExchange {
 
     private auth?: MyriadAuth;
     private ws?: MyriadWebSocket;
+    private readonly fetcher: MyriadFetcher;
+    private readonly normalizer: MyriadNormalizer;
 
     constructor(credentials?: ExchangeCredentials) {
         super(credentials);
@@ -49,6 +49,15 @@ export class MyriadExchange extends PredictionMarketExchange {
 
         const descriptor = parseOpenApiSpec(myriadApiSpec, BASE_URL);
         this.defineImplicitApi(descriptor);
+
+        const ctx: FetcherContext = {
+            http: this.http,
+            callApi: this.callApi.bind(this),
+            getHeaders: () => this.getHeaders(),
+        };
+
+        this.fetcher = new MyriadFetcher(ctx);
+        this.normalizer = new MyriadNormalizer();
     }
 
     get name(): string {
@@ -81,23 +90,37 @@ export class MyriadExchange extends PredictionMarketExchange {
     }
 
     // ------------------------------------------------------------------------
-    // Market Data
+    // Market Data  (fetcher -> normalizer)
     // ------------------------------------------------------------------------
 
     protected async fetchMarketsImpl(params?: MarketFilterParams): Promise<UnifiedMarket[]> {
-        return fetchMarkets(params, this.getHeaders(), this.http);
+        const rawMarkets = await this.fetcher.fetchRawMarkets(params);
+        return rawMarkets
+            .map((raw) => this.normalizer.normalizeMarket(raw))
+            .filter((m): m is UnifiedMarket => m !== null);
     }
 
     protected async fetchEventsImpl(params: EventFetchParams): Promise<UnifiedEvent[]> {
-        return fetchEvents(params, this.getHeaders(), this.http);
+        const rawQuestions = await this.fetcher.fetchRawEvents(params);
+        return rawQuestions
+            .map((raw) => this.normalizer.normalizeEvent(raw))
+            .filter((e): e is UnifiedEvent => e !== null);
     }
 
     async fetchOHLCV(id: string, params: OHLCVParams): Promise<PriceCandle[]> {
-        return fetchOHLCV(id, params, this.callApi.bind(this));
+        if (!params.resolution) {
+            throw new Error('fetchOHLCV requires a resolution parameter.');
+        }
+        const parts = id.split(':');
+        const outcomeId = parts.length >= 3 ? parts[2] : undefined;
+
+        const rawMarket = await this.fetcher.fetchRawOHLCV(id, params);
+        return this.normalizer.normalizeOHLCV(rawMarket, params, outcomeId);
     }
 
     async fetchOrderBook(id: string): Promise<OrderBook> {
-        return fetchOrderBook(id, this.callApi.bind(this));
+        const rawMarket = await this.fetcher.fetchRawOrderBook(id);
+        return this.normalizer.normalizeOrderBook(rawMarket, id);
     }
 
     async fetchTrades(id: string, params: TradesParams | HistoryFilterParams): Promise<Trade[]> {
@@ -108,47 +131,8 @@ export class MyriadExchange extends PredictionMarketExchange {
             );
         }
 
-        const parts = id.split(':');
-        if (parts.length < 2) {
-            throw new Error(`Invalid Myriad ID format: "${id}". Expected "{networkId}:{marketId}" or "{networkId}:{marketId}:{outcomeId}".`);
-        }
-
-        const [networkId, marketId] = parts;
-        const outcomeId = parts.length >= 3 ? parts[2] : undefined;
-
-        const ensureDate = (d: any): Date => {
-            if (typeof d === 'string') {
-                if (!d.endsWith('Z') && !d.match(/[+-]\d{2}:\d{2}$/)) return new Date(d + 'Z');
-                return new Date(d);
-            }
-            return d;
-        };
-
-        const queryParams: Record<string, any> = {
-            id: marketId,
-            network_id: Number(networkId),
-            page: 1,
-            limit: params.limit || 100,
-        };
-
-        if (params.start) queryParams.since = Math.floor(ensureDate(params.start).getTime() / 1000);
-        if (params.end) queryParams.until = Math.floor(ensureDate(params.end).getTime() / 1000);
-
-        const data = await this.callApi('getMarketsEvents', queryParams);
-        const events = data.data || data.events || [];
-
-        const tradeEvents = events.filter((e: any) => e.action === 'buy' || e.action === 'sell');
-        const filtered = outcomeId
-            ? tradeEvents.filter((e: any) => String(e.outcomeId) === outcomeId)
-            : tradeEvents;
-
-        return filtered.map((t: any, index: number) => ({
-            id: `${t.blockNumber || t.timestamp}-${index}`,
-            timestamp: (t.timestamp || 0) * 1000,
-            price: resolveMyriadPrice(t),
-            amount: Number(t.shares || 0),
-            side: t.action === 'buy' ? 'buy' as const : 'sell' as const,
-        }));
+        const rawTrades = await this.fetcher.fetchRawTrades(id, params);
+        return rawTrades.map((raw, i) => this.normalizer.normalizeTrade(raw, i));
     }
 
     async fetchMyTrades(params?: MyTradesParams): Promise<UserTrade[]> {
@@ -159,40 +143,22 @@ export class MyriadExchange extends PredictionMarketExchange {
                 'Myriad'
             );
         }
-        const queryParams: Record<string, any> = { address: walletAddress };
-        if (params?.marketId) {
-            const parts = params.marketId.split(':');
-            if (parts.length >= 2) queryParams.market_id = parts[1];
-        }
-        if (params?.since) queryParams.since = Math.floor(params.since.getTime() / 1000);
-        if (params?.until) queryParams.until = Math.floor(params.until.getTime() / 1000);
-        if (params?.limit) queryParams.limit = params.limit;
 
-        const data = await this.callApi('getUsersEvents', queryParams);
-        const events = data.data || data.events || [];
-        const tradeEvents = events.filter((e: any) => e.action === 'buy' || e.action === 'sell');
-        return tradeEvents.map((t: any, i: number) => ({
-            id: `${t.blockNumber || t.timestamp}-${i}`,
-            timestamp: (t.timestamp || 0) * 1000,
-            price: resolveMyriadPrice(t),
-            amount: Number(t.shares || 0),
-            side: t.action === 'buy' ? 'buy' as const : 'sell' as const,
-        }));
+        const rawTrades = await this.fetcher.fetchRawMyTrades(params || {}, walletAddress);
+        return rawTrades.map((raw, i) => this.normalizer.normalizeUserTrade(raw, i));
     }
 
     // ------------------------------------------------------------------------
-    // Trading
+    // Trading  (fetcher -> normalizer)
     // ------------------------------------------------------------------------
 
     async createOrder(params: CreateOrderParams): Promise<Order> {
-        // Parse composite marketId: {networkId}:{marketId}
         const parts = params.marketId.split(':');
         if (parts.length < 2) {
             throw new Error(`Invalid marketId format: "${params.marketId}". Expected "{networkId}:{marketId}".`);
         }
         const [networkId, marketId] = parts;
 
-        // Parse outcomeId: {networkId}:{marketId}:{outcomeId}
         const outcomeParts = params.outcomeId.split(':');
         const outcomeId = outcomeParts.length >= 3 ? Number(outcomeParts[2]) : Number(outcomeParts[0]);
 
@@ -252,18 +218,8 @@ export class MyriadExchange extends PredictionMarketExchange {
             );
         }
 
-        const data = await this.callApi('getUsersPortfolio', { address: walletAddress, limit: 100 });
-        const items = data.data || data.items || [];
-
-        return items.map((pos: any) => ({
-            marketId: `${pos.networkId}:${pos.marketId}`,
-            outcomeId: `${pos.networkId}:${pos.marketId}:${pos.outcomeId}`,
-            outcomeLabel: pos.outcomeTitle || `Outcome ${pos.outcomeId}`,
-            size: Number(pos.shares || 0),
-            entryPrice: Number(pos.price || 0),
-            currentPrice: resolveMyriadPrice(pos),
-            unrealizedPnL: Number(pos.profit || 0),
-        }));
+        const rawItems = await this.fetcher.fetchRawPositions(walletAddress);
+        return rawItems.map((raw) => this.normalizer.normalizePosition(raw));
     }
 
     async fetchBalance(): Promise<Balance[]> {
@@ -275,20 +231,8 @@ export class MyriadExchange extends PredictionMarketExchange {
             );
         }
 
-        const data = await this.callApi('getUsersPortfolio', { address: walletAddress, limit: 100 });
-        const items = data.data || data.items || [];
-
-        let totalValue = 0;
-        for (const pos of items) {
-            totalValue += Number(pos.value || 0);
-        }
-
-        return [{
-            currency: 'USDC',
-            total: totalValue,
-            available: 0,
-            locked: totalValue,
-        }];
+        const rawItems = await this.fetcher.fetchRawBalance(walletAddress);
+        return this.normalizer.normalizeBalance(rawItems);
     }
 
     // ------------------------------------------------------------------------

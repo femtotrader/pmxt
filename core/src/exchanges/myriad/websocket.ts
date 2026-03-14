@@ -1,5 +1,4 @@
 import { OrderBook, Trade } from '../../types';
-import { fetchOrderBook } from './fetchOrderBook';
 
 // Myriad API v2 does not expose a WebSocket endpoint.
 // We implement a poll-based fallback that resolves promises
@@ -7,8 +6,11 @@ import { fetchOrderBook } from './fetchOrderBook';
 
 const DEFAULT_POLL_INTERVAL = 5000; // 5 seconds
 
+export type FetchOrderBookFn = (id: string) => Promise<OrderBook>;
+
 export class MyriadWebSocket {
     private callApi: (operationId: string, params?: Record<string, any>) => Promise<any>;
+    private fetchOrderBook: FetchOrderBookFn;
     private pollInterval: number;
     private orderBookTimers: Map<string, ReturnType<typeof setInterval>> = new Map();
     private tradeTimers: Map<string, ReturnType<typeof setInterval>> = new Map();
@@ -17,8 +19,13 @@ export class MyriadWebSocket {
     private lastTradeTimestamp: Map<string, number> = new Map();
     private closed = false;
 
-    constructor(callApi: (operationId: string, params?: Record<string, any>) => Promise<any>, pollInterval?: number) {
+    constructor(
+        callApi: (operationId: string, params?: Record<string, any>) => Promise<any>,
+        fetchOrderBook: FetchOrderBookFn,
+        pollInterval?: number,
+    ) {
         this.callApi = callApi;
+        this.fetchOrderBook = fetchOrderBook;
         this.pollInterval = pollInterval || DEFAULT_POLL_INTERVAL;
     }
 
@@ -71,7 +78,7 @@ export class MyriadWebSocket {
     private startOrderBookPolling(id: string): void {
         const poll = async () => {
             try {
-                const book = await fetchOrderBook(id, this.callApi);
+                const book = await this.fetchOrderBook(id);
                 const resolvers = this.orderBookResolvers.get(id) || [];
                 this.orderBookResolvers.set(id, []);
                 for (const resolve of resolvers) {

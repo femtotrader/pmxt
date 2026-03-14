@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.20.0] - 2026-03-14
+
+### Added
+
+- **Address Watcher & Subscriber System**: Introduced `watchAddress()` and `unwatchAddress()` methods on `BaseExchange`, along with a new subscriber infrastructure (`core/src/subscriber/`) for monitoring on-chain address activity. Supports optional address parameter for flexible subscription management.
+- **GoldSky Integration**: Added GoldSky GraphQL subscription implementation (`core/src/subscriber/external/goldsky.ts`) for real-time on-chain event streaming. Integrated into the Limitless exchange for live data feeds.
+- **Whale Tracker Examples**: Added Python and TypeScript example scripts (`core/examples/social/`) demonstrating how to track large-position holders using the SDK.
+- **SDK: `buildOrder` / `submitOrder` Support**: Both the Python and TypeScript SDKs now expose `buildOrder()` and `submitOrder()` methods, along with the `BuiltOrder` type, enabling the two-step order workflow introduced in v2.19.0.
+- **Trade `outcomeId` Field**: Added `outcomeId` (asset ID) to the `Trade` type for clearer asset-level trade identification.
+
+### Fixed
+
+- **Kalshi Orderbook**: Switched from the removed legacy `orderbook` field to `orderbook_fp`, fixing broken orderbook fetches on the Kalshi exchange.
+- **Limitless `baseUrl` Parameter**: Fixed incorrect base URL handling in the Limitless exchange configuration.
+- **Exchange Imports**: Fixed missing or incorrect `index.ts` imports across exchange modules.
+- **Test Infrastructure**: Replaced vitest imports with Jest globals in price tests to match the project's test runner.
+- **Whale Tracker Examples & SDK Bugs**: Fixed issues in example scripts and resolved minor SDK client bugs.
+- **TypeScript SDK Merge Conflicts**: Resolved merge conflicts in the TypeScript SDK client.
+
+### Changed
+
+- **Polymarket WebSocket**: Enriched the Polymarket websocket implementation with improved event handling and user position tracking.
+- **Limitless WebSocket & GoldSky Integration**: Refactored the Limitless exchange to integrate GoldSky watcher and subscriber, with improved websocket configuration.
+- **Exchange Interfaces**: Refactored `BaseExchange` interfaces, updated type names, and standardized exchange interface implementations across Polymarket, Limitless, Myriad, and others.
+- **Price Helpers**: Centralized exchange price helpers and standardized argument building across exchanges.
+- **Watcher Dispatch Optimization**: Updated the watcher to dispatch events only when there is an actual change, reducing unnecessary notifications.
+- **OpenAPI & API Reference**: Auto-regenerated `openapi.yaml` and `API_REFERENCE.md` to reflect all new endpoints and types.
+- **SDK Models & Documentation**: Updated Python and TypeScript SDK models, API reference docs, and added client example code.
+
 ## [2.19.6] - 2026-03-06
 
 ### Added

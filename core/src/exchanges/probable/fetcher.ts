@@ -421,7 +421,9 @@ export class ProbableFetcher implements IExchangeFetcher<ProbableRawMarket, Prob
         queryParams.ascending = false;
 
         const response = await this.ctx.http.get(`${BASE_URL}${EVENTS_PATH}`, { params: queryParams });
-        return response.data?.events || [];
+        const data = response.data;
+        // API returns either a raw array or { events: [...] }
+        return Array.isArray(data) ? data : (data?.events || []);
     }
 
     private async fetchRawEventsViaSearch(params: EventFetchParams): Promise<ProbableRawEvent[]> {

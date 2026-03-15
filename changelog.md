@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.21.0] - 2026-03-15
+
+### Added
+
+- **Typed Error Classes (Python SDK)**: 14 error classes (`BadRequest`, `AuthenticationError`, `RateLimitExceeded`, `NotFoundError`, etc.) mirroring `core/src/errors.ts`. Server error responses are automatically parsed into typed exceptions via `from_server_error()`. All catch blocks in the client now raise specific `PmxtError` subclasses instead of generic `Exception`.
+- **Typed Error Classes (TypeScript SDK)**: Matching error hierarchy with `fromServerError()` factory. `handleResponse()` and all HTTP error paths now throw typed `PmxtError` subclasses. All error classes exported from the package.
+
+### Fixed
+
+- **Credential Logging (Security)**: Removed plaintext logging of API credentials in Polymarket auth flow.
+- **Hardcoded Price Fallbacks**: Replaced `0.5` fallback prices with `0` in Kalshi, Baozi, and Myriad normalizers. Missing price data now correctly indicates "no price" instead of silently fabricating a 50-cent midpoint.
+
 ## [2.20.3] - 2026-03-15
 
 ### Fixed

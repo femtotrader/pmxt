@@ -19,6 +19,22 @@ Example:
 from .client import Exchange
 from ._exchanges import Polymarket, Limitless, Kalshi, KalshiDemo, Probable, Baozi, Myriad
 from .server_manager import ServerManager
+from .errors import (
+    PmxtError,
+    BadRequest,
+    AuthenticationError,
+    PermissionDenied,
+    NotFoundError,
+    OrderNotFound,
+    MarketNotFound,
+    EventNotFound,
+    RateLimitExceeded,
+    InvalidOrder,
+    InsufficientFunds,
+    ValidationError,
+    NetworkError,
+    ExchangeNotAvailable,
+)
 from .models import (
     UnifiedMarket,
     UnifiedEvent,
@@ -67,6 +83,21 @@ __all__ = [
     "ServerManager",
     "stop_server",
     "restart_server",
+    # Errors
+    "PmxtError",
+    "BadRequest",
+    "AuthenticationError",
+    "PermissionDenied",
+    "NotFoundError",
+    "OrderNotFound",
+    "MarketNotFound",
+    "EventNotFound",
+    "RateLimitExceeded",
+    "InvalidOrder",
+    "InsufficientFunds",
+    "ValidationError",
+    "NetworkError",
+    "ExchangeNotAvailable",
     # Data Models
     "UnifiedMarket",
     "UnifiedEvent",

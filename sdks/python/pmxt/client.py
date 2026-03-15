@@ -44,6 +44,7 @@ from .models import (
     EventFilterFunction,
     SubscribedAddressSnapshot,
 )
+from .errors import PmxtError, from_server_error
 from .server_manager import ServerManager
 
 
@@ -304,9 +305,7 @@ class Exchange(ABC):
         """Handle API response and extract data."""
         if not response.get("success"):
             error = response.get("error", {})
-            if isinstance(error, str):
-                raise Exception(error)
-            raise Exception(error.get("message", "Unknown error"))
+            raise from_server_error(error)
         return response.get("data")
 
     def _extract_api_error(self, e: Exception) -> str:
@@ -323,6 +322,17 @@ class Exchange(ABC):
             except:
                 pass
         return str(e)
+
+    def _parse_api_exception(self, e: ApiException) -> PmxtError:
+        """Parse an ApiException into a typed PmxtError."""
+        try:
+            body = json.loads(e.body) if e.body else {}
+            error_data = body.get("error", {})
+            if isinstance(error_data, dict):
+                return from_server_error(error_data)
+            return PmxtError(str(error_data) if error_data else str(e))
+        except (json.JSONDecodeError, AttributeError):
+            return PmxtError(self._extract_api_error(e))
 
     def _get_auth_headers(self) -> Dict[str, str]:
         """Build request headers with a fresh access token read from the lock file.
@@ -406,7 +416,7 @@ class Exchange(ABC):
             data_json = json.loads(response.data)
             return self._handle_response(data_json)
         except ApiException as e:
-            raise Exception(f"Failed to call '{method_name}': {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def call_api(self, operation_id: str, params: Optional[Dict[str, Any]] = None) -> Any:
         """
@@ -445,7 +455,7 @@ class Exchange(ABC):
             data_json = json.loads(response.data)
             return self._handle_response(data_json)
         except ApiException as e:
-            raise Exception(f"Failed to call API '{operation_id}': {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     # Market Data Methods
 
@@ -506,7 +516,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return [_convert_market(e) for e in data]
         except Exception as e:
-            raise Exception(f"Failed to fetch_markets: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_markets_paginated(self, params: Optional[dict] = None, **kwargs) -> PaginatedMarketsResult:
         try:
@@ -531,7 +541,7 @@ class Exchange(ABC):
                 next_cursor=data.get("nextCursor"),
             )
         except Exception as e:
-            raise Exception(f"Failed to fetch_markets_paginated: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_events(self, params: Optional[dict] = None, **kwargs) -> List[UnifiedEvent]:
         try:
@@ -552,7 +562,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return [_convert_event(e) for e in data]
         except Exception as e:
-            raise Exception(f"Failed to fetch_events: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_market(self, params: Optional[dict] = None, **kwargs) -> UnifiedMarket:
         try:
@@ -573,7 +583,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return _convert_market(data)
         except Exception as e:
-            raise Exception(f"Failed to fetch_market: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_event(self, params: Optional[dict] = None, **kwargs) -> UnifiedEvent:
         try:
@@ -594,7 +604,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return _convert_event(data)
         except Exception as e:
-            raise Exception(f"Failed to fetch_event: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_order_book(self, id: str) -> OrderBook:
         try:
@@ -612,7 +622,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return _convert_order_book(data)
         except Exception as e:
-            raise Exception(f"Failed to fetch_order_book: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def cancel_order(self, order_id: str) -> Order:
         try:
@@ -630,7 +640,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return _convert_order(data)
         except Exception as e:
-            raise Exception(f"Failed to cancel_order: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_order(self, order_id: str) -> Order:
         try:
@@ -648,7 +658,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return _convert_order(data)
         except Exception as e:
-            raise Exception(f"Failed to fetch_order: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_open_orders(self, market_id: Optional[str] = None) -> List[Order]:
         try:
@@ -667,7 +677,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return [_convert_order(e) for e in data]
         except Exception as e:
-            raise Exception(f"Failed to fetch_open_orders: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_my_trades(self, params: Optional[dict] = None, **kwargs) -> List[UserTrade]:
         try:
@@ -688,7 +698,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return [_convert_user_trade(e) for e in data]
         except Exception as e:
-            raise Exception(f"Failed to fetch_my_trades: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_closed_orders(self, params: Optional[dict] = None, **kwargs) -> List[Order]:
         try:
@@ -709,7 +719,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return [_convert_order(e) for e in data]
         except Exception as e:
-            raise Exception(f"Failed to fetch_closed_orders: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_all_orders(self, params: Optional[dict] = None, **kwargs) -> List[Order]:
         try:
@@ -730,7 +740,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return [_convert_order(e) for e in data]
         except Exception as e:
-            raise Exception(f"Failed to fetch_all_orders: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_positions(self) -> List[Position]:
         try:
@@ -747,7 +757,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return [_convert_position(e) for e in data]
         except Exception as e:
-            raise Exception(f"Failed to fetch_positions: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_balance(self) -> List[Balance]:
         try:
@@ -764,7 +774,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return [_convert_balance(e) for e in data]
         except Exception as e:
-            raise Exception(f"Failed to fetch_balance: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def close(self) -> None:
         try:
@@ -780,7 +790,7 @@ class Exchange(ABC):
             response.read()
             self._handle_response(json.loads(response.data))
         except Exception as e:
-            raise Exception(f"Failed to close: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     # END GENERATED METHODS
 
@@ -1063,7 +1073,7 @@ class Exchange(ABC):
             data = self._handle_response(response.to_dict())
             return [_convert_candle(c) for c in data]
         except ApiException as e:
-            raise Exception(f"Failed to fetch OHLCV: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def fetch_trades(
         self,
@@ -1112,7 +1122,7 @@ class Exchange(ABC):
             data = self._handle_response(response.to_dict())
             return [_convert_trade(t) for t in data]
         except ApiException as e:
-            raise Exception(f"Failed to fetch trades: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     # WebSocket Streaming Methods
 
@@ -1159,7 +1169,7 @@ class Exchange(ABC):
             data = self._handle_response(response.to_dict())
             return _convert_order_book(data)
         except ApiException as e:
-            raise Exception(f"Failed to watch order book: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def watch_trades(
         self,
@@ -1216,7 +1226,7 @@ class Exchange(ABC):
             data = self._handle_response(response.to_dict())
             return [_convert_trade(t) for t in data]
         except ApiException as e:
-            raise Exception(f"Failed to watch trades: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def watch_address(
         self,
@@ -1267,7 +1277,7 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return _convert_subscription_snapshot(data)
         except ApiException as e:
-            raise Exception(f"Failed to watch address: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def unwatch_address(
         self,
@@ -1301,7 +1311,7 @@ class Exchange(ABC):
             response.read()
             return self._handle_response(json.loads(response.data))
         except ApiException as e:
-            raise Exception(f"Failed to unwatch address: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def watch_prices(self, market_address: str, callback: Optional[Any] = None) -> Any:
         """
@@ -1331,7 +1341,7 @@ class Exchange(ABC):
 
             return self._handle_response(response.to_dict())
         except ApiException as e:
-            raise Exception(f"Failed to watch prices: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def watch_user_positions(self, callback: Optional[Any] = None) -> List[Position]:
         """
@@ -1362,7 +1372,7 @@ class Exchange(ABC):
             data = self._handle_response(response.to_dict())
             return [_convert_position(p) for p in data]
         except ApiException as e:
-            raise Exception(f"Failed to watch user positions: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def watch_user_transactions(self, callback: Optional[Any] = None) -> Any:
         """
@@ -1392,7 +1402,7 @@ class Exchange(ABC):
 
             return self._handle_response(response.to_dict())
         except ApiException as e:
-            raise Exception(f"Failed to watch user transactions: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     # Trading Methods (require authentication)
 
@@ -1492,7 +1502,7 @@ class Exchange(ABC):
             data = self._handle_response(response.to_dict())
             return _convert_order(data)
         except ApiException as e:
-            raise Exception(f"Failed to create order: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def build_order(
         self,
@@ -1596,7 +1606,7 @@ class Exchange(ABC):
             data = self._handle_response(response.to_dict())
             return _convert_built_order(data)
         except ApiException as e:
-            raise Exception(f"Failed to build order: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def submit_order(self, built: BuiltOrder) -> Order:
         """
@@ -1646,7 +1656,7 @@ class Exchange(ABC):
             data = self._handle_response(response.to_dict())
             return _convert_order(data)
         except ApiException as e:
-            raise Exception(f"Failed to submit order: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None
 
     def get_execution_price(
         self,
@@ -1717,4 +1727,4 @@ class Exchange(ABC):
             data = self._handle_response(data_json)
             return _convert_execution_result(data)
         except Exception as e:
-            raise Exception(f"Failed to get execution price: {self._extract_api_error(e)}") from None
+            raise self._parse_api_exception(e) from None

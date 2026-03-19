@@ -1,4 +1,5 @@
-# pmxt [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=The%20ccxt%20for%20prediction%20markets.&url=https://github.com/pmxt-dev/pmxt&hashtags=predictionmarkets,trading)
+# pmxt [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=The%20ccxt%20for%20prediction%20markets.&url=https://github.com/pmxt-dev/pmxt&hashtags=predictionmarkets,trading)  [![DOI](https://zenodo.org/badge/1130657894.svg)](https://doi.org/10.5281/zenodo.19111315)
+
 
 **The [ccxt](https://github.com/ccxt/ccxt) for prediction markets.** A unified API for accessing prediction market data across multiple exchanges.
 

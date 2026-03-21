@@ -50,6 +50,8 @@
 <img src="https://metaculus.com/favicon.ico" alt="Metaculus" width="40" height="40">
 &nbsp;&nbsp;&nbsp;&nbsp;
 <img src="https://predictit.org/favicon.ico" alt="PredictIt" width="40" height="40">
+&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="https://app.opinion.trade/assets/apple-splash-2048-2732.jpg" alt="Opinion" width="40" height="40">
 </p>
 <p align="center">
 
@@ -78,6 +80,8 @@ Different prediction market platforms have different APIs, data formats, and con
   &nbsp;&nbsp;&nbsp;&nbsp;
   <!-- # The baozi website seems to just show 50:50 odds for everything. Something must be fundamentally broken on their end. -->
   <a href="https://myriad.markets" style="color: inherit; text-decoration: none;"><img src="https://myriad.markets/favicon.ico" alt="Myriad" width="24" height="24"> <b>Myriad</b></a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://opinion.trade" style="color: inherit; text-decoration: none;"><img src="https://app.opinion.trade/assets/apple-splash-2048-2732.jpg" alt="Opinion" width="24" height="24"> <b>Opinion</b></a>
 </p>
 
 [Feature Support & Compliance](core/COMPLIANCE.md).

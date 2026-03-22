@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.22.0] - 2026-03-22
+
+### Added
+
+- **Opinion Exchange Integration**: Full support for Opinion prediction market -- markets, events, OHLCV, order book, positions, orders, execution price, and WebSocket streaming. Includes `fetchMyTrades`, `fetchClosedOrders`, `fetchAllOrders`, and `cancelOrder`. Does not yet support `fetchTrades` or `fetchBalance`.
+
 ## [2.21.2] - 2026-03-20
 
 ### Fixed

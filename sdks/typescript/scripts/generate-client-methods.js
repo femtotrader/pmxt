@@ -33,6 +33,7 @@ const SKIP_GENERATE = new Set([
     'fetchTrades',               // resolution parameter handling
     'watchOrderBook',            // streaming
     'watchTrades',               // streaming
+    'watchAddress',              // streaming
     'createOrder',               // outcome shorthand logic
     'buildOrder',                // complex args format, returns BuiltOrder
     'getExecutionPrice',         // delegates to getExecutionPriceDetailed

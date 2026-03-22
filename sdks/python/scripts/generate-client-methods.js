@@ -34,6 +34,7 @@ const SKIP_GENERATE = new Set([
     'fetchTrades',               // special parameter handling
     'watchOrderBook',            // streaming
     'watchTrades',               // streaming
+    'watchAddress',              // streaming
     'createOrder',               // outcome shorthand logic
     'buildOrder',                // complex args format
     'submitOrder',               // complex args format

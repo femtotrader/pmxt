@@ -224,11 +224,9 @@ describe('Exchange error and edge-case handling', () => {
             await expect(limitless.fetchOrder('some-id')).rejects.toThrow(/not supported/i);
         });
 
-        test('fetchOrderBook returns empty bids/asks on API error', async () => {
+        test('fetchOrderBook throws on API error', async () => {
             (mockedAxios as any).request.mockRejectedValue(new Error('server error'));
-            const ob = await limitless.fetchOrderBook('some-market-slug');
-            expect(ob.bids).toEqual([]);
-            expect(ob.asks).toEqual([]);
+            await expect(limitless.fetchOrderBook('some-market-slug')).rejects.toThrow();
         });
     });
 

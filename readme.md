@@ -41,21 +41,6 @@
 </div>
 
 <p align="center">
-<img src="https://polymarket.com/favicon.ico" alt="Polymarket" width="40" height="40">
-&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="https://kalshi.com/favicon.ico" alt="Kalshi" width="40" height="40">
-&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="https://manifold.markets/logo.svg" alt="Manifold Markets" width="40" height="40">
-&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="https://metaculus.com/favicon.ico" alt="Metaculus" width="40" height="40">
-&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="https://predictit.org/favicon.ico" alt="PredictIt" width="40" height="40">
-&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="https://app.opinion.trade/assets/apple-splash-2048-2732.jpg" alt="Opinion" width="40" height="40">
-</p>
-<p align="center">
-
-<p align="center">
   <a href="https://discord.gg/Pyn252Pg95">
     <img src="https://img.shields.io/discord/1461393765196501015?label=Discord&logo=discord&logoColor=white&style=for-the-badge&color=5865F2" alt="Discord">
   </a>
@@ -75,8 +60,6 @@ Different prediction market platforms have different APIs, data formats, and con
   <a href="https://limitless.exchange" style="color: inherit; text-decoration: none;"><img src="https://limitless.exchange/assets/images/logo.svg" alt="Limitless" width="24" height="24"> <b>Limitless</b></a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="https://probable.markets" style="color: inherit; text-decoration: none;"><img src="https://developer.probable.markets/logo.svg" alt="Probable" width="100"></a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://baozi.bet" style="color: inherit; text-decoration: none;"><img src="https://baozi.bet/favicon.ico" alt="Baozi" width="24" height="24"> <b>Baozi</b></a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <!-- # The baozi website seems to just show 50:50 odds for everything. Something must be fundamentally broken on their end. -->
   <a href="https://myriad.markets" style="color: inherit; text-decoration: none;"><img src="https://myriad.markets/favicon.ico" alt="Myriad" width="24" height="24"> <b>Myriad</b></a>

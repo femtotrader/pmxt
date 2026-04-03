@@ -84,6 +84,7 @@ function build(name, block) {
         name,
         creds: {
             apiKey:        /credentials\?\.apiKey/.test(block),
+            apiToken:      /credentials\?\.apiToken/.test(block),
             apiSecret:     /credentials\?\.apiSecret/.test(block),
             passphrase:    /credentials\?\.passphrase/.test(block),
             privateKey:    /credentials\?\.privateKey/.test(block),
@@ -109,6 +110,10 @@ function generateClass(exchange) {
     if (creds.apiKey) {
         constructorParams.push('api_key: Optional[str] = None');
         superArgs.push('api_key=api_key');
+    }
+    if (creds.apiToken) {
+        constructorParams.push('api_token: Optional[str] = None');
+        superArgs.push('api_token=api_token');
     }
     if (creds.apiSecret) {
         constructorParams.push('api_secret: Optional[str] = None');
@@ -142,6 +147,7 @@ function generateClass(exchange) {
 
     const docLines = [];
     if (creds.apiKey)        docLines.push('            api_key: API key for authentication (optional)');
+    if (creds.apiToken)      docLines.push('            api_token: API token for authentication (optional; required for Metaculus API access)');
     if (creds.apiSecret)     docLines.push('            api_secret: API secret for authentication (optional)');
     if (creds.passphrase)    docLines.push('            passphrase: Passphrase for authentication (optional)');
     if (creds.privateKey) {

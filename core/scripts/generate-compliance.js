@@ -23,7 +23,7 @@ const METHOD_CATEGORIES = [
 ];
 
 // Exchange display order (skip kalshi-demo since it inherits Kalshi fully)
-const EXCHANGE_ORDER = ['polymarket', 'kalshi', 'limitless', 'probable', 'baozi', 'myriad', 'opinion'];
+const EXCHANGE_ORDER = ['polymarket', 'kalshi', 'limitless', 'probable', 'baozi', 'myriad', 'opinion', 'metaculus'];
 
 function toDisplayName(slug) {
     return slug.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
@@ -187,6 +187,8 @@ LIMITLESS_PRIVATE_KEY=0x...
 # Myriad
 MYRIAD_API_KEY=...
 MYRIAD_WALLET_ADDRESS=0x...
+# Metaculus (required for API access — unauthenticated requests return 403)
+METACULUS_API_TOKEN=...
 \`\`\`
 `;
 

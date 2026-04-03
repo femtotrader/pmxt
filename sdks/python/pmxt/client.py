@@ -258,6 +258,7 @@ class Exchange(ABC):
         exchange_name: str,
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
+        api_token: Optional[str] = None,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
         proxy_address: Optional[str] = None,
@@ -270,12 +271,14 @@ class Exchange(ABC):
             exchange_name: Name of the exchange ("polymarket" or "kalshi")
             api_key: API key for authentication (optional)
             private_key: Private key for authentication (optional)
+            api_token: Metaculus-style bearer token (optional)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
         """
         self.exchange_name = exchange_name.lower()
         self.api_key = api_key
         self.private_key = private_key
+        self.api_token = api_token
         self.proxy_address = proxy_address
         self.signature_type = signature_type
         self.markets: Dict[str, "UnifiedMarket"] = {}
@@ -356,7 +359,7 @@ class Exchange(ABC):
 
     def _get_credentials_dict(self) -> Optional[Dict[str, Any]]:
         """Build credentials dictionary for API requests."""
-        if not self.api_key and not self.private_key:
+        if not self.api_key and not self.private_key and not self.api_token:
             return None
 
         creds = {}
@@ -364,6 +367,8 @@ class Exchange(ABC):
             creds["apiKey"] = self.api_key
         if self.private_key:
             creds["privateKey"] = self.private_key
+        if self.api_token:
+            creds["apiToken"] = self.api_token
         if self.proxy_address:
             creds["funderAddress"] = self.proxy_address
         if self.signature_type is not None:

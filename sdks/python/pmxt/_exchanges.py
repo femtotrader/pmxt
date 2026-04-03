@@ -280,3 +280,28 @@ class Opinion(Exchange):
             base_url=base_url,
             auto_start_server=auto_start_server,
         )
+
+
+class Metaculus(Exchange):
+    """Metaculus exchange client."""
+
+    def __init__(
+        self,
+        api_token: Optional[str] = None,
+        base_url: str = "http://localhost:3847",
+        auto_start_server: bool = True,
+    ):
+        """
+        Initialize Metaculus client.
+
+        Args:
+            api_token: API token for authentication (optional; required for Metaculus API access)
+            base_url: Base URL of the PMXT sidecar server
+            auto_start_server: Automatically start server if not running (default: True)
+        """
+        super().__init__(
+            exchange_name="metaculus",
+            api_token=api_token,
+            base_url=base_url,
+            auto_start_server=auto_start_server,
+        )

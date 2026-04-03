@@ -52,10 +52,14 @@ export class ProbableAuth {
             passphrase: this.credentials.passphrase!,
         };
 
+        // @prob/clob may resolve a different viem copy than this package; types then
+        // disagree on WalletClient. Runtime shape is identical.
+        const walletForClob = wallet as any;
+
         if (chainId === 56) {
             this.clobClient = createClobClient({
                 chainId: 56,
-                wallet,
+                wallet: walletForClob,
                 credential,
             });
         } else {
@@ -63,7 +67,7 @@ export class ProbableAuth {
             this.clobClient = createClobClient({
                 chainId,
                 baseUrl,
-                wallet,
+                wallet: walletForClob,
                 credential,
             });
         }

@@ -200,6 +200,8 @@ export interface ExchangeCredentials {
     apiKey?: string;
     apiSecret?: string;
     passphrase?: string;
+    /** Metaculus: `Authorization: Token <apiToken>` for higher rate limits */
+    apiToken?: string;
 
     // Blockchain-based authentication (Polymarket)
     privateKey?: string;  // Required for Polymarket L1 auth

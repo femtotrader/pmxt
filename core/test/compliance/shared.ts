@@ -462,5 +462,10 @@ export function initExchange(name: string, cls: any) {
         walletAddress: process.env.OPINION_WALLET_ADDRESS?.trim(),
     });
   }
+  if (name === "MetaculusExchange") {
+    return new cls({
+      apiToken: process.env.METACULUS_API_TOKEN?.trim(),
+    });
+  }
   return new cls();
 }

@@ -12,6 +12,11 @@ import { BASE_URL } from "./utils";
 import { fetchMarkets } from "./fetchMarkets";
 import { fetchEvents } from "./fetchEvents";
 
+/**
+ * Read-only Metaculus integration (community forecasts, no CLOB).
+ * The live API returns 403 for unauthenticated requests; pass `{ apiToken }`
+ * from your Metaculus account (header `Authorization: Token …`).
+ */
 export class MetaculusExchange extends PredictionMarketExchange {
     override readonly has = {
         fetchMarkets: true as const,
@@ -26,11 +31,15 @@ export class MetaculusExchange extends PredictionMarketExchange {
         fetchOpenOrders: false as const,
         fetchPositions: false as const,
         fetchBalance: false as const,
+        watchAddress: false as const,
+        unwatchAddress: false as const,
         watchOrderBook: false as const,
         watchTrades: false as const,
         fetchMyTrades: false as const,
         fetchClosedOrders: false as const,
         fetchAllOrders: false as const,
+        buildOrder: false as const,
+        submitOrder: false as const,
     };
 
     private readonly apiToken?: string;

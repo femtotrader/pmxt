@@ -8,6 +8,7 @@ import { ProbableExchange } from "../exchanges/probable";
 import { BaoziExchange } from "../exchanges/baozi";
 import { MyriadExchange } from "../exchanges/myriad";
 import { OpinionExchange } from "../exchanges/opinion";
+import { MetaculusExchange } from "../exchanges/metaculus";
 import { ExchangeCredentials } from "../BaseExchange";
 import { BaseError } from "../errors";
 
@@ -21,6 +22,7 @@ const defaultExchanges: Record<string, any> = {
   baozi: null,
   myriad: null,
   opinion: null,
+  metaculus: null,
 };
 
 export async function startServer(port: number, accessToken: string) {
@@ -64,7 +66,12 @@ export async function startServer(port: number, accessToken: string) {
         // If credentials are provided, create a new instance for this request
         // Otherwise, use the singleton instance
         let exchange: any;
-        if (credentials && (credentials.privateKey || credentials.apiKey)) {
+        if (
+          credentials &&
+          (credentials.privateKey ||
+            credentials.apiKey ||
+            credentials.apiToken)
+        ) {
           exchange = createExchange(exchangeName, credentials);
         } else {
           if (!defaultExchanges[exchangeName]) {
@@ -215,6 +222,11 @@ function createExchange(name: string, credentials?: ExchangeCredentials) {
         privateKey:
           credentials?.privateKey || process.env.OPINION_PRIVATE_KEY,
         funderAddress: credentials?.funderAddress,
+      });
+    case "metaculus":
+      return new MetaculusExchange({
+        apiToken:
+          credentials?.apiToken || process.env.METACULUS_API_TOKEN,
       });
     default:
       throw new Error(`Unknown exchange: ${name}`);

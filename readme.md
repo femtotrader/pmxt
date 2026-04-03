@@ -65,6 +65,8 @@ Different prediction market platforms have different APIs, data formats, and con
   <a href="https://myriad.markets" style="color: inherit; text-decoration: none;"><img src="https://myriad.markets/favicon.ico" alt="Myriad" width="24" height="24"> <b>Myriad</b></a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="https://opinion.trade" style="color: inherit; text-decoration: none;"><img src="https://app.opinion.trade/assets/apple-splash-2048-2732.jpg" alt="Opinion" width="24" height="24"> <b>Opinion</b></a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://www.metaculus.com" style="color: inherit; text-decoration: none;"><img src="https://www.metaculus.com/favicon.ico" alt="Metaculus" width="24" height="24"> <b>Metaculus</b></a>
 </p>
 
 [Feature Support & Compliance](core/COMPLIANCE.md).

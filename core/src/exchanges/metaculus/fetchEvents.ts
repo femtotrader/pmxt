@@ -72,7 +72,12 @@ function postToEvent(post: any): UnifiedEvent | null {
         volume: 0,
         url: `https://www.metaculus.com/questions/${id}/`,
         image: post.projects?.default_project?.header_image ?? undefined,
-        category: (post?.projects?.category?.[0]?.name) ?? undefined,
+        category:
+            post?.projects?.category?.[0] != null
+                ? typeof post.projects.category[0] === "string"
+                    ? post.projects.category[0]
+                    : post.projects.category[0]?.name
+                : undefined,
         tags: market.tags ?? [],
     };
 }

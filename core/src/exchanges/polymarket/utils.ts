@@ -74,12 +74,23 @@ export function mapMarketToUnified(event: any, market: any, options: { useQuesti
         });
     }
 
+    // Map venue-native lifecycle flags onto a single status string. Polymarket
+    // surfaces three independent booleans (active / closed / archived); we
+    // collapse them with archived > closed > active precedence so consumers
+    // get one canonical value while still being able to read the raw flags
+    // out of the original payload if they need them.
+    let status: string | undefined;
+    if (market.archived === true) status = 'archived';
+    else if (market.closed === true) status = 'closed';
+    else if (market.active === true) status = 'active';
+
     const um = {
         id: market.id,
         marketId: market.id,
         eventId: event.id || event.slug,
         title: market.question ? `${event.title} - ${market.question}` : event.title,
         description: market.description || event.description,
+        slug: typeof market.slug === 'string' && market.slug.length > 0 ? market.slug : undefined,
         outcomes: outcomes,
         resolutionDate: market.endDate ? new Date(market.endDate) : (market.end_date_iso ? new Date(market.end_date_iso) : new Date()),
         volume24h: Number(market.volume24hr || market.volume_24h || 0),
@@ -89,7 +100,10 @@ export function mapMarketToUnified(event: any, market: any, options: { useQuesti
         url: `https://polymarket.com/event/${event.slug}`,
         image: market.image || event.image || `https://polymarket.com/api/og?slug=${event.slug}`,
         category: event.category || event.tags?.[0]?.label,
-        tags: event.tags?.map((t: any) => t.label) || []
+        tags: event.tags?.map((t: any) => t.label) || [],
+        tickSize: market.orderPriceMinTickSize != null ? Number(market.orderPriceMinTickSize) : undefined,
+        status,
+        contractAddress: typeof market.conditionId === 'string' && market.conditionId.length > 0 ? market.conditionId : undefined,
     } as UnifiedMarket;
 
     addBinaryOutcomes(um);

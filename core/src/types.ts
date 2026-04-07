@@ -52,6 +52,11 @@ export interface UnifiedMarket {
     tags?: string[];
     tickSize?: number; // Minimum price increment (e.g., 0.01, 0.001)
 
+    /** Venue-native lifecycle status (e.g. 'active', 'closed', 'archived'). */
+    status?: string;
+    /** On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.). */
+    contractAddress?: string;
+
     // Convenience getters for binary markets
     yes?: MarketOutcome;
     no?: MarketOutcome;

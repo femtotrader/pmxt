@@ -407,6 +407,7 @@ const SCHEMAS = {
       marketId: { type: 'string', description: 'The unique identifier for this market' },
       title: { type: 'string' },
       description: { type: 'string' },
+      slug: { type: 'string' },
       outcomes: { type: 'array', items: { $ref: '#/components/schemas/MarketOutcome' } },
       eventId: { type: 'string', description: 'Link to parent event' },
       resolutionDate: { type: 'string', format: 'date-time' },
@@ -418,6 +419,16 @@ const SCHEMAS = {
       image: { type: 'string' },
       category: { type: 'string' },
       tags: { type: 'array', items: { type: 'string' } },
+      tickSize: { type: 'number', description: 'Minimum price increment (e.g., 0.01, 0.001)' },
+      status: {
+        type: 'string',
+        description: "Venue-native lifecycle status (e.g. 'active', 'closed', 'archived').",
+      },
+      contractAddress: {
+        type: 'string',
+        description:
+          'On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.).',
+      },
       yes: { $ref: '#/components/schemas/MarketOutcome' },
       no: { $ref: '#/components/schemas/MarketOutcome' },
       up: { $ref: '#/components/schemas/MarketOutcome' },
@@ -456,6 +467,11 @@ const SCHEMAS = {
       description: { type: 'string' },
       slug: { type: 'string' },
       markets: { type: 'array', items: { $ref: '#/components/schemas/UnifiedMarket' } },
+      volume24h: { type: 'number' },
+      volume: {
+        type: 'number',
+        description: 'Total / Lifetime volume (sum across markets; undefined if no market provides it)',
+      },
       url: { type: 'string' },
       image: { type: 'string' },
       category: { type: 'string' },
@@ -660,6 +676,11 @@ const SCHEMAS = {
       amount: { type: 'number' },
       price: { type: 'number' },
       fee: { type: 'number' },
+      tickSize: { type: 'number', description: 'Optional override for Limitless/Polymarket' },
+      negRisk: {
+        type: 'boolean',
+        description: 'Optional override to skip neg-risk lookup (Polymarket)',
+      },
     },
   },
   BuiltOrder: {

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.25.1] - 2026-04-07
+
+### Fixed
+
+- **Polymarket: dropped market fields**: `mapMarketToUnified` now populates `slug` (from Gamma `slug`), `tickSize` (from `orderPriceMinTickSize`), `status` (from `archived` > `closed` > `active` precedence), and `contractAddress` (from `conditionId`). These were silently dropped during normalization and surfaced as `undefined` to consumers.
+- **OpenAPI spec drift**: `core/scripts/generate-openapi.js` was missing several `UnifiedEvent` and `UnifiedMarket` fields that already existed in `types.ts` (`UnifiedEvent.volume`, `UnifiedEvent.volume24h`, `UnifiedMarket.slug`, `UnifiedMarket.tickSize`) plus `CreateOrderParams.tickSize` / `CreateOrderParams.negRisk`. The generated `openapi.yaml` and downstream typed SDKs (e.g. `pmxtjs`) stripped these fields at the client boundary, producing NULL columns in catalog ingest pipelines. Generator now declares the full set so they round-trip end-to-end.
+- **`UnifiedMarket` type**: Added `status` and `contractAddress` to the type declaration so the new Polymarket fields are visible to TypeScript consumers.
+
 ## [2.25.0] - 2026-04-06
 
 ### Added

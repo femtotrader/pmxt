@@ -1186,6 +1186,8 @@ components:
           type: string
         description:
           type: string
+        slug:
+          type: string
         outcomes:
           type: array
           items:
@@ -1214,6 +1216,15 @@ components:
           type: array
           items:
             type: string
+        tickSize:
+          type: number
+          description: 'Minimum price increment (e.g., 0.01, 0.001)'
+        status:
+          type: string
+          description: 'Venue-native lifecycle status (e.g. ''active'', ''closed'', ''archived'').'
+        contractAddress:
+          type: string
+          description: 'On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.).'
         'yes':
           $ref: '#/components/schemas/MarketOutcome'
         'no':
@@ -1257,6 +1268,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UnifiedMarket'
+        volume24h:
+          type: number
+        volume:
+          type: number
+          description: Total / Lifetime volume (sum across markets; undefined if no market provides it)
         url:
           type: string
         image:
@@ -1595,6 +1611,12 @@ components:
           type: number
         fee:
           type: number
+        tickSize:
+          type: number
+          description: Optional override for Limitless/Polymarket
+        negRisk:
+          type: boolean
+          description: Optional override to skip neg-risk lookup (Polymarket)
     BuiltOrder:
       type: object
       description: 'An order built but not yet submitted, ready for inspection or middleware forwarding'

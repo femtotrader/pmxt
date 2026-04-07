@@ -18,11 +18,16 @@ export function mapMarketToUnified(
     price = fromKalshiCents(market.yes_ask);
   }
 
-  // Extract candidate name
-  let candidateName: string | null = null;
-  if (market.subtitle || market.yes_sub_title) {
-    candidateName = market.subtitle || market.yes_sub_title;
-  }
+  // Extract candidate name. Prefer explicit outcome subtitle and ignore
+  // structural labels such as ":: Democratic".
+  const cleanLabel = (value: unknown): string | null => {
+    if (typeof value !== "string") return null;
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.startsWith("::")) return null;
+    return trimmed;
+  };
+  const candidateName: string | null =
+    cleanLabel(market.yes_sub_title) ?? cleanLabel(market.subtitle);
 
   // Calculate 24h change
   let priceChange = 0;

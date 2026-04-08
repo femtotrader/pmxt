@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.26.1] - 2026-04-08
+
+### Changed
+
+- **`pmxt.stop_server()` / `pmxt.restart_server()` now emit `DeprecationWarning` (Python SDK)**: The flat aliases still work and still call the underlying `ServerManager`, but they now warn that `pmxt.server.stop()` / `pmxt.server.restart()` is the standard. This reverses the "no deprecation, no warnings" stance from 2.26.0 — the namespaced `pmxt.server.*` API is the single canonical surface for sidecar lifecycle management, and the flat helpers are kept only for backwards compatibility.
+
 ## [2.26.0] - 2026-04-08
 
 ### Fixed

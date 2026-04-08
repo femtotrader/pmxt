@@ -97,16 +97,26 @@ class _ServerNamespace:
 server = _ServerNamespace(_default_manager)
 
 
-# Flat aliases for the namespaced server commands. Kept as permanent,
-# fully-supported shorthand — ``pmxt.server.stop()`` and ``pmxt.stop_server()``
-# are equivalent and both are first-class API.
+# Deprecated flat aliases. Prefer ``pmxt.server.stop()`` / ``pmxt.server.restart()``.
 def stop_server():
-    """Stop the background PMXT sidecar server."""
+    """Deprecated: use ``pmxt.server.stop()`` instead."""
+    import warnings
+    warnings.warn(
+        "pmxt.stop_server() is deprecated; use pmxt.server.stop() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     _default_manager.stop()
 
 
 def restart_server():
-    """Restart the background PMXT sidecar server."""
+    """Deprecated: use ``pmxt.server.restart()`` instead."""
+    import warnings
+    warnings.warn(
+        "pmxt.restart_server() is deprecated; use pmxt.server.restart() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     _default_manager.restart()
 
 __version__ = "2.17.1"

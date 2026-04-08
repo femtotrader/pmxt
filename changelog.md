@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.26.0] - 2026-04-08
+
+### Fixed
+
+- **`ServerManager.ensureServerRunning()` race condition (TypeScript and Python SDKs)**: Creating multiple `Exchange` instances in parallel (e.g. `const p = new Polymarket(); const k = new Kalshi(); const l = new Limitless();`) caused every request to return `401 Unauthorized`. Each `Exchange` constructed its own `ServerManager` and each one called `ensureServerRunning()` concurrently. Every call saw "no server running", every call spawned its own sidecar via `pmxt-ensure-server`, and the lock file ended up pointing at whichever spawn wrote last — but each `Exchange` had already captured its own `basePath` at construction time, so most requests hit a sidecar whose access token did NOT match the token later read from the lock file.
+
+  Fix is process-wide coalescing inside `ServerManager`:
+  - **TypeScript**: `ensureServerRunning()` now uses a static `Promise | null` cache. Concurrent callers await the same in-flight promise; the cache is cleared on settle so later calls can re-check the sidecar state.
+  - **Python**: `ensure_server_running()` now holds a class-level `threading.Lock` for the entire check-and-spawn critical section. The "is the server already running?" check is re-evaluated inside the lock so threads that lose the race observe the sidecar that the winning thread just started.
+
+### Added
+
+- **`pmxt.server` namespace for sidecar lifecycle management** (TypeScript and Python SDKs): A single, discoverable namespace for managing the background sidecar. All six commands are available identically in both SDKs:
+  - `pmxt.server.status()` — Structured snapshot: `{ running, pid, port, version, uptimeSeconds, lockFile }`. Returns a fresh object on every call (no shared mutable state).
+  - `pmxt.server.health()` — Returns `true` if the sidecar responds to `/health`, `false` otherwise. Fast, no side effects.
+  - `pmxt.server.start()` — Idempotently starts the sidecar. No-op if one is already running.
+  - `pmxt.server.stop()` — Stops the sidecar and removes the lock file.
+  - `pmxt.server.restart()` — Stop + start.
+  - `pmxt.server.logs(n = 50)` — Returns the last `n` lines from `~/.pmxt/server.log`, or an empty list if the launcher never wrote a log file.
+
+  Motivation: sidecar lifecycle is a real surface users hit regularly — stale lock files, zombie sidecars from crashed parents, version mismatches, and race conditions when multiple `Exchange` instances boot in parallel. Previously users had to reach into `ServerManager` directly or shell out to `ps` / `lsof` to diagnose. `pmxt.server.*` makes the lifecycle observable and controllable from a single entry point. Example:
+
+  ```typescript
+  import pmxt from 'pmxtjs';
+  const s = await pmxt.server.status();
+  if (!s.running) await pmxt.server.start();
+  console.log(await pmxt.server.logs(20));
+  ```
+
+- **Sidecar writes stdout/stderr to `~/.pmxt/server.log`**: `pmxt-ensure-server` now redirects the spawned sidecar's stdio to a log file in the `~/.pmxt/` directory so `pmxt.server.logs()` has something to read. Previously stdio was dropped (`stdio: 'ignore'`) and any crash during boot left no trace.
+
+Fully backwards compatible: the existing flat helpers `pmxt.stopServer()` / `pmxt.restartServer()` (TypeScript) and `pmxt.stop_server()` / `pmxt.restart_server()` (Python) remain first-class, fully-supported aliases for `pmxt.server.stop()` / `pmxt.server.restart()`. No deprecation, no warnings — both spellings work and will keep working.
+
 ## [2.25.3] - 2026-04-08
 
 ### Added

@@ -33,6 +33,9 @@ export * from "./pmxt/errors.js";
 
 const defaultManager = new ServerManager();
 
+// Flat aliases for the namespaced server commands. Kept as permanent,
+// fully-supported shorthand — `pmxt.server.stop()` and `pmxt.stopServer()`
+// are equivalent and both are first-class API.
 async function stopServer(): Promise<void> {
     await defaultManager.stop();
 }
@@ -40,6 +43,26 @@ async function stopServer(): Promise<void> {
 async function restartServer(): Promise<void> {
     await defaultManager.restart();
 }
+
+/**
+ * Namespaced server management API.
+ *
+ * Available commands:
+ *  - status()  Structured snapshot of the sidecar (running, pid, port, version, uptime)
+ *  - health()  True if the server responds to /health, false otherwise
+ *  - start()   Idempotently start the sidecar (no-op if already running)
+ *  - stop()    Stop the sidecar and clean up the lock file
+ *  - restart() Stop and start the sidecar
+ *  - logs(n)   Return the last n log lines from the sidecar log file
+ */
+export const server = {
+    status: () => defaultManager.status(),
+    health: () => defaultManager.health(),
+    start: () => defaultManager.start(),
+    stop: () => defaultManager.stop(),
+    restart: () => defaultManager.restart(),
+    logs: (n: number = 50) => defaultManager.logs(n),
+} as const;
 
 const pmxt = {
     Exchange,
@@ -55,6 +78,7 @@ const pmxt = {
     Smarkets,
     PolymarketUS,
     ServerManager,
+    server,
     stopServer,
     restartServer,
     ...models,

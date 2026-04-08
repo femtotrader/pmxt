@@ -31,6 +31,29 @@ export class ServerManager {
     private lockPath: string;
     private static readonly DEFAULT_PORT = 3847;
 
+    // Process-wide coalescing of concurrent ensureServerRunning() calls.
+    //
+    // Each `Exchange` instance constructs its own ServerManager and each one
+    // kicks off ensureServerRunning() from its constructor. Without
+    // coalescing, N Exchange instances created in parallel all see "no
+    // server running", all spawn their own sidecar via pmxt-ensure-server,
+    // and the lock file ends up pointing at whichever spawn wrote last. Each
+    // Exchange instance has already captured its own basePath at
+    // construction time, so most of them end up talking to a sidecar whose
+    // access token does NOT match the token they later read from the lock
+    // file — every request returns 401 Unauthorized.
+    //
+    // The fix is process-wide: when a ensureServerRunning call is in
+    // flight, all subsequent callers await the same promise. After the
+    // in-flight call settles (success OR failure) the cache is cleared so
+    // later callers can re-check the sidecar state (e.g. if it was killed
+    // by the user between ticks).
+    //
+    // This is static on purpose — all ServerManager instances in the
+    // process share the same sidecar and the same lock file, so they must
+    // share the same in-flight promise.
+    private static ensurePromise: Promise<void> | null = null;
+
     constructor(options: ServerManagerOptions = {}) {
         this.baseUrl = options.baseUrl || `http://localhost:${ServerManager.DEFAULT_PORT}`;
         this.maxRetries = options.maxRetries || 30;
@@ -124,8 +147,22 @@ export class ServerManager {
 
     /**
      * Ensure the server is running, starting it if necessary.
+     *
+     * Concurrent calls across all ServerManager instances in the process
+     * are coalesced onto a single in-flight promise. See the comment on
+     * `ServerManager.ensurePromise` for why this matters.
      */
     async ensureServerRunning(): Promise<void> {
+        if (ServerManager.ensurePromise) {
+            return ServerManager.ensurePromise;
+        }
+        ServerManager.ensurePromise = this.doEnsureServerRunning().finally(() => {
+            ServerManager.ensurePromise = null;
+        });
+        return ServerManager.ensurePromise;
+    }
+
+    private async doEnsureServerRunning(): Promise<void> {
         // Check for force restart
         if (process.env.PMXT_ALWAYS_RESTART === '1') {
             await this.killOldServer();
@@ -233,6 +270,78 @@ export class ServerManager {
     async restart(): Promise<void> {
         await this.stop();
         await this.ensureServerRunning();
+    }
+
+    /**
+     * Start the server if it is not already running.
+     *
+     * Idempotent: if the server is already running and healthy this returns
+     * immediately without restarting.
+     */
+    async start(): Promise<void> {
+        await this.ensureServerRunning();
+    }
+
+    /**
+     * Get a structured snapshot of the sidecar server state.
+     *
+     * Returns a fresh object on every call (no shared mutable state).
+     */
+    async status(): Promise<{
+        running: boolean;
+        pid: number | null;
+        port: number | null;
+        version: string | null;
+        uptimeSeconds: number | null;
+        lockFile: string;
+    }> {
+        const info = this.getServerInfo();
+        const running = await this.isServerRunning();
+
+        let uptimeSeconds: number | null = null;
+        if (info && typeof info.timestamp === "number") {
+            const nowSeconds = Date.now() / 1000;
+            const tsSeconds = info.timestamp > 1e12 ? info.timestamp / 1000 : info.timestamp;
+            const delta = nowSeconds - tsSeconds;
+            if (delta >= 0) uptimeSeconds = delta;
+        }
+
+        return {
+            running,
+            pid: info?.pid ?? null,
+            port: info?.port ?? null,
+            version: info?.version ?? null,
+            uptimeSeconds,
+            lockFile: this.lockPath,
+        };
+    }
+
+    /**
+     * Check whether the server's /health endpoint is currently responsive.
+     */
+    async health(): Promise<boolean> {
+        return this.isServerRunning();
+    }
+
+    /**
+     * Return the last `n` lines from the sidecar server log file.
+     *
+     * The launcher writes server stdout/stderr to ~/.pmxt/server.log.
+     * Returns an empty array if no log file is present.
+     */
+    logs(n: number = 50): string[] {
+        if (n <= 0) return [];
+        const logPath = join(dirname(this.lockPath), "server.log");
+        try {
+            if (!existsSync(logPath)) return [];
+            const content = readFileSync(logPath, "utf-8");
+            const lines = content.split(/\r?\n/);
+            // split on a trailing newline produces an empty final element; drop it
+            if (lines.length > 0 && lines[lines.length - 1] === "") lines.pop();
+            return lines.length > n ? lines.slice(lines.length - n) : lines;
+        } catch {
+            return [];
+        }
     }
 
     private async killOldServer(): Promise<void> {

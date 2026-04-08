@@ -30,25 +30,76 @@ console.log(markets[0].title);
 
 ## Server Management
 
-The SDK provides global functions to manage the background sidecar server. This is useful for clearing state or
-resolving "port busy" errors.
-
-### `stopServer`
-
-Stop the background PMXT sidecar server and clean up lock files.
+The SDK exposes a `pmxt.server` namespace for managing the background sidecar server. Use these commands for clearing state, resolving "port busy" errors, inspecting health, or tailing logs.
 
 ```typescript
 import pmxt from 'pmxtjs';
-await pmxt.stopServer();
+
+await pmxt.server.status();    // snapshot: { running, pid, port, version, uptimeSeconds, lockFile }
+await pmxt.server.health();    // boolean - true if /health responds ok
+await pmxt.server.start();     // idempotent - no-op if already running
+await pmxt.server.stop();      // stop the sidecar and clean up the lock file
+await pmxt.server.restart();   // stop and start the sidecar
+pmxt.server.logs(50);          // last N log lines from ~/.pmxt/server.log (default 50)
 ```
 
-### `restartServer`
+### `pmxt.server.status`
 
-Restart the background PMXT sidecar server. Equivalent to calling `stopServer()` followed by a fresh start.
+Returns a fresh object describing the sidecar state. Useful for diagnosing "is it running?" before issuing API calls.
 
 ```typescript
 import pmxt from 'pmxtjs';
-await pmxt.restartServer();
+const info = await pmxt.server.status();
+console.log(info.running, info.pid, info.port, info.uptimeSeconds);
+```
+
+### `pmxt.server.health`
+
+Returns `true` if the sidecar's `/health` endpoint responds with status `ok`, otherwise `false`. Lighter than `status()` when you only need a boolean liveness check.
+
+```typescript
+import pmxt from 'pmxtjs';
+if (!(await pmxt.server.health())) {
+  await pmxt.server.restart();
+}
+```
+
+### `pmxt.server.start`
+
+Idempotently start the sidecar. Returns immediately if a healthy server is already running. Use this when you want to fail fast on startup rather than letting the first API call lazily boot the server.
+
+```typescript
+import pmxt from 'pmxtjs';
+await pmxt.server.start();
+```
+
+### `pmxt.server.stop`
+
+Stop the running sidecar and clean up its lock file.
+
+```typescript
+import pmxt from 'pmxtjs';
+await pmxt.server.stop();
+```
+
+### `pmxt.server.restart`
+
+Stop the sidecar (if running) and start a fresh one. Equivalent to `stop()` followed by `start()`.
+
+```typescript
+import pmxt from 'pmxtjs';
+await pmxt.server.restart();
+```
+
+### `pmxt.server.logs`
+
+Return the last `n` lines (default `50`) from the sidecar log file at `~/.pmxt/server.log`. Returns an empty array if no log file exists yet. Invaluable when the server is misbehaving and you need to see what it actually printed.
+
+```typescript
+import pmxt from 'pmxtjs';
+for (const line of pmxt.server.logs(100)) {
+  console.log(line);
+}
 ```
 
 ---
@@ -1164,6 +1215,7 @@ interface UnifiedMarket {
 marketId: string; // The unique identifier for this market
 title: string; // 
 description: string; // 
+slug: string; // 
 outcomes: MarketOutcome[]; // 
 eventId: string; // Link to parent event
 resolutionDate: string; // 
@@ -1175,6 +1227,9 @@ url: string; //
 image: string; // 
 category: string; // 
 tags: string[]; // 
+tickSize: number; // Minimum price increment (e.g., 0.01, 0.001)
+status: string; // Venue-native lifecycle status (e.g. 'active', 'closed', 'archived').
+contractAddress: string; // On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.).
 yes: MarketOutcome; // 
 no: MarketOutcome; // 
 up: MarketOutcome; // 
@@ -1210,6 +1265,8 @@ title: string; //
 description: string; // 
 slug: string; // 
 markets: UnifiedMarket[]; // 
+volume24h: number; // 
+volume: number; // Total / Lifetime volume (sum across markets; undefined if no market provides it)
 url: string; // 
 image: string; // 
 category: string; // 
@@ -1511,6 +1568,8 @@ type: string; //
 amount: number; // 
 price?: number; // 
 fee?: number; // 
+tickSize?: number; // Optional override for Limitless/Polymarket
+negRisk?: boolean; // Optional override to skip neg-risk lookup (Polymarket)
 }
 ```
 

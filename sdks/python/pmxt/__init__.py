@@ -53,19 +53,60 @@ from .models import (
 )
 
 
-# Global server management functions
+# Global server management
 _default_manager = ServerManager()
 
+
+class _ServerNamespace:
+    """
+    Namespaced server management API: ``pmxt.server.<command>()``.
+
+    Available commands:
+        status()  - Structured snapshot of the sidecar (running, pid, port, version, uptime)
+        health()  - True if the server responds to /health, False otherwise
+        start()   - Idempotently start the sidecar (no-op if already running)
+        stop()    - Stop the sidecar and clean up the lock file
+        restart() - Stop and start the sidecar
+        logs(n)   - Return the last n log lines from the sidecar log file
+    """
+
+    __slots__ = ("_manager",)
+
+    def __init__(self, manager: ServerManager):
+        self._manager = manager
+
+    def status(self):
+        return self._manager.status()
+
+    def health(self) -> bool:
+        return self._manager.health()
+
+    def start(self) -> None:
+        self._manager.start()
+
+    def stop(self) -> None:
+        self._manager.stop()
+
+    def restart(self) -> None:
+        self._manager.restart()
+
+    def logs(self, n: int = 50):
+        return self._manager.logs(n)
+
+
+server = _ServerNamespace(_default_manager)
+
+
+# Flat aliases for the namespaced server commands. Kept as permanent,
+# fully-supported shorthand — ``pmxt.server.stop()`` and ``pmxt.stop_server()``
+# are equivalent and both are first-class API.
 def stop_server():
-    """
-    Stop the background PMXT sidecar server.
-    """
+    """Stop the background PMXT sidecar server."""
     _default_manager.stop()
 
+
 def restart_server():
-    """
-    Restart the background PMXT sidecar server.
-    """
+    """Restart the background PMXT sidecar server."""
     _default_manager.restart()
 
 __version__ = "2.17.1"
@@ -85,6 +126,7 @@ __all__ = [
     "Exchange",
     # Server Management
     "ServerManager",
+    "server",
     "stop_server",
     "restart_server",
     # Errors

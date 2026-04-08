@@ -18,6 +18,7 @@ import json
 import time
 import subprocess
 import shutil
+import threading
 from pathlib import Path
 from typing import Optional, Dict, Any
 import urllib.request
@@ -35,7 +36,23 @@ class ServerManager:
     DEFAULT_PORT = 3847
     HEALTH_CHECK_TIMEOUT = 10  # seconds
     HEALTH_CHECK_INTERVAL = 0.1  # seconds
-    
+
+    # Process-wide coalescing of concurrent ensure_server_running() calls.
+    #
+    # Each Exchange instance constructs its own ServerManager and each one
+    # may call ensure_server_running() from a different thread. Without a
+    # shared lock, N concurrent threads all see "no server running", all
+    # spawn their own sidecar via pmxt-ensure-server, and the lock file
+    # ends up pointing at whichever spawn wrote last. Each Exchange has
+    # already captured its own base URL, so most requests end up hitting a
+    # sidecar whose access token does NOT match the token read from the
+    # lock file, and every request returns 401 Unauthorized.
+    #
+    # This lock is class-level on purpose — all ServerManager instances in
+    # the process share the same sidecar and the same lock file, so they
+    # must share the same critical section.
+    _ensure_lock = threading.Lock()
+
     def __init__(self, base_url: str = "http://localhost:3847"):
         """
         Initialize the server manager.
@@ -59,33 +76,42 @@ class ServerManager:
     def ensure_server_running(self) -> None:
         """
         Ensure the PMXT server is running.
-        
+
         This is the main entry point that SDKs should call.
         It implements the universal pattern:
         1. Check if server is alive
         2. If not, start it via launcher
         3. Wait for health check
-        
+
+        Concurrent calls across all ServerManager instances in the process
+        are serialized through a class-level lock so that only one spawn
+        attempt happens at a time. See the comment on
+        ``ServerManager._ensure_lock`` for why this matters.
+
         Raises:
             Exception: If server fails to start or become healthy
         """
-        # Step 1: Check if force restart is requested (DEV MODE)
-        if os.getenv('PMXT_ALWAYS_RESTART') == '1':
-            self._kill_old_server()
-
-        # Step 2: Check if server is already running and matches version
-        if self.is_server_alive():
-            if self._is_version_mismatch():
-                # print("PMXT: Version mismatch detected. Restarting server...")
+        with ServerManager._ensure_lock:
+            # Step 1: Check if force restart is requested (DEV MODE)
+            if os.getenv('PMXT_ALWAYS_RESTART') == '1':
                 self._kill_old_server()
-            else:
-                return
-        
-        # Step 3: Start server via launcher
-        self._start_server_via_launcher()
-        
-        # Step 4: Wait for health check
-        self._wait_for_health()
+
+            # Step 2: Check if server is already running and matches version.
+            # This re-check INSIDE the lock is critical: the thread that won
+            # the race will have spawned the sidecar and written the lock
+            # file by the time later threads acquire the lock, so they must
+            # observe "already running" and return without spawning again.
+            if self.is_server_alive():
+                if self._is_version_mismatch():
+                    self._kill_old_server()
+                else:
+                    return
+
+            # Step 3: Start server via launcher
+            self._start_server_via_launcher()
+
+            # Step 4: Wait for health check
+            self._wait_for_health()
 
     def _is_version_mismatch(self) -> bool:
         """Check if running server version matches expected version."""
@@ -132,7 +158,7 @@ class ServerManager:
     def stop(self) -> None:
         """
         Stop the currently running server.
-        
+
         This reads the lock file to find the process ID and sends a SIGTERM.
         """
         self._kill_old_server()
@@ -140,11 +166,92 @@ class ServerManager:
     def restart(self) -> None:
         """
         Restart the server.
-        
+
         Stops the current server if running, and starts a fresh one.
         """
         self.stop()
         self.ensure_server_running()
+
+    def start(self) -> None:
+        """
+        Start the server if it is not already running.
+
+        This is idempotent: if the server is already running and healthy,
+        this method returns immediately without restarting.
+        """
+        self.ensure_server_running()
+
+    def status(self) -> Dict[str, Any]:
+        """
+        Get a structured snapshot of the sidecar server state.
+
+        Returns a new dict on every call (no shared mutable state). Fields:
+            running:        True if the server is alive and responding to /health
+            pid:            Process ID from the lock file (None if not running)
+            port:           Port the server is listening on (None if not running)
+            version:        Server version reported in the lock file (None if absent)
+            uptime_seconds: Seconds since the lock file was created (None if absent)
+            lock_file:      Absolute path to the lock file
+        """
+        info = self.get_server_info() or {}
+        running = self.is_server_alive()
+
+        timestamp = info.get('timestamp')
+        uptime: Optional[float] = None
+        if isinstance(timestamp, (int, float)):
+            # Lock file timestamps may be epoch seconds or epoch milliseconds.
+            now_seconds = time.time()
+            ts_seconds = timestamp / 1000.0 if timestamp > 1e12 else float(timestamp)
+            delta = now_seconds - ts_seconds
+            if delta >= 0:
+                uptime = delta
+
+        return {
+            'running': running,
+            'pid': info.get('pid'),
+            'port': info.get('port'),
+            'version': info.get('version'),
+            'uptime_seconds': uptime,
+            'lock_file': str(self.lock_path),
+        }
+
+    def health(self) -> bool:
+        """
+        Check whether the server's /health endpoint is currently responsive.
+
+        Returns:
+            True if the server responds with status "ok", False otherwise.
+        """
+        port = self.get_running_port()
+        return self._check_health(port, timeout=2)
+
+    def logs(self, n: int = 50) -> list:
+        """
+        Return the last `n` lines from the sidecar server log file.
+
+        The launcher writes server stdout/stderr to ~/.pmxt/server.log.
+        If the log file does not exist (older launcher, never started, or
+        log was cleared), returns an empty list.
+
+        Args:
+            n: Maximum number of trailing lines to return (default 50).
+
+        Returns:
+            A new list of log line strings (newlines stripped). Returns an
+            empty list if no log file is present.
+        """
+        if n <= 0:
+            return []
+        log_path = self.lock_path.parent / 'server.log'
+        if not log_path.exists():
+            return []
+        try:
+            with log_path.open('r', encoding='utf-8', errors='replace') as f:
+                lines = f.readlines()
+        except OSError:
+            return []
+        tail = lines[-n:] if len(lines) > n else list(lines)
+        return [line.rstrip('\n') for line in tail]
 
     def _kill_old_server(self) -> None:
         """Kill the currently running server (Internal)."""

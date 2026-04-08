@@ -29,24 +29,74 @@ print(markets[0].title)
 
 ## Server Management
 
-The SDK provides global functions to manage the background sidecar server. This is useful for clearing state, resolving "port busy" errors, or ensuring a clean slate in interactive environments like Jupyter.
-
-### `stop_server`
-
-Stop the background PMXT sidecar server and clean up lock files.
+The SDK exposes a `pmxt.server` namespace for managing the background sidecar server. Use these commands for clearing state, resolving "port busy" errors, inspecting server health, or tailing logs from interactive environments like Jupyter.
 
 ```python
 import pmxt
-pmxt.stop_server()
+
+pmxt.server.status()    # snapshot dict: running, pid, port, version, uptime_seconds, lock_file
+pmxt.server.health()    # bool - True if /health responds ok
+pmxt.server.start()     # idempotent - no-op if already running
+pmxt.server.stop()      # stop the sidecar and clean up the lock file
+pmxt.server.restart()   # stop and start the sidecar
+pmxt.server.logs(50)    # last N log lines from ~/.pmxt/server.log (default 50)
 ```
 
-### `restart_server`
+### `pmxt.server.status`
 
-Restart the background PMXT sidecar server. Equivalent to calling `stop_server()` followed by a fresh start.
+Returns a fresh dict describing the sidecar state. Useful for diagnosing "is it running?" before issuing API calls.
 
 ```python
 import pmxt
-pmxt.restart_server()
+info = pmxt.server.status()
+print(info["running"], info["pid"], info["port"], info["uptime_seconds"])
+```
+
+### `pmxt.server.health`
+
+Returns `True` if the sidecar's `/health` endpoint responds with status `ok`, otherwise `False`. Lighter than `status()` when you only need a boolean liveness check.
+
+```python
+import pmxt
+if not pmxt.server.health():
+    pmxt.server.restart()
+```
+
+### `pmxt.server.start`
+
+Idempotently start the sidecar. Returns immediately if a healthy server is already running. Use this when you want to fail fast on startup rather than letting the first API call lazily boot the server.
+
+```python
+import pmxt
+pmxt.server.start()
+```
+
+### `pmxt.server.stop`
+
+Stop the running sidecar and clean up its lock file.
+
+```python
+import pmxt
+pmxt.server.stop()
+```
+
+### `pmxt.server.restart`
+
+Stop the sidecar (if running) and start a fresh one. Equivalent to `stop()` followed by `start()`.
+
+```python
+import pmxt
+pmxt.server.restart()
+```
+
+### `pmxt.server.logs`
+
+Return the last `n` lines (default `50`) from the sidecar log file at `~/.pmxt/server.log`. Returns an empty list if no log file exists yet. Invaluable when the server is misbehaving and you need to see what it actually printed.
+
+```python
+import pmxt
+for line in pmxt.server.logs(100):
+    print(line)
 ```
 
 ---
@@ -1144,6 +1194,7 @@ class UnifiedMarket:
 market_id: str # The unique identifier for this market
 title: str # 
 description: str # 
+slug: str # 
 outcomes: List[MarketOutcome] # 
 event_id: str # Link to parent event
 resolution_date: str # 
@@ -1155,6 +1206,9 @@ url: str #
 image: str # 
 category: str # 
 tags: List[string] # 
+tick_size: float # Minimum price increment (e.g., 0.01, 0.001)
+status: str # Venue-native lifecycle status (e.g. 'active', 'closed', 'archived').
+contract_address: str # On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.).
 yes: MarketOutcome # 
 no: MarketOutcome # 
 up: MarketOutcome # 
@@ -1190,6 +1244,8 @@ title: str #
 description: str # 
 slug: str # 
 markets: List[UnifiedMarket] # 
+volume24h: float # 
+volume: float # Total / Lifetime volume (sum across markets; undefined if no market provides it)
 url: str # 
 image: str # 
 category: str # 
@@ -1491,6 +1547,8 @@ type: str #
 amount: float # 
 price: float # 
 fee: float # 
+tick_size: float # Optional override for Limitless/Polymarket
+neg_risk: bool # Optional override to skip neg-risk lookup (Polymarket)
 ```
 
 ---

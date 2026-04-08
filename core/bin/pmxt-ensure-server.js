@@ -113,10 +113,23 @@ async function startServer() {
         serverCmd = localBinServer;
     }
 
+    // Open a log file for the sidecar so SDK consumers can call
+    // `pmxt.server.logs()` and see real output. Falls back to 'ignore' if the
+    // file cannot be opened (e.g. read-only home directory).
+    const logFile = path.join(os.homedir(), '.pmxt', 'server.log');
+    let stdio = 'ignore';
+    try {
+        fs.mkdirSync(path.dirname(logFile), { recursive: true });
+        const fd = fs.openSync(logFile, 'a');
+        stdio = ['ignore', fd, fd];
+    } catch (err) {
+        // Keep stdio: 'ignore' on failure - logging is best-effort.
+    }
+
     // Spawn server as detached process
     const serverProcess = spawn(serverCmd, args, {
         detached: true,
-        stdio: 'ignore',
+        stdio,
         env: process.env
     });
 

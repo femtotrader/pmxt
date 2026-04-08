@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.25.3] - 2026-04-08
+
+### Added
+
+- **TypeScript SDK: `Opinion`, `Metaculus`, `Smarkets`, `PolymarketUS` exchange classes**: These adapters already existed in `core/src/exchanges/` and were reachable via the sidecar HTTP API, but the hand-maintained TypeScript SDK client at `sdks/typescript/pmxt/client.ts` (and the package entry point at `sdks/typescript/index.ts`) never exposed them. Anyone using `pmxtjs` would see `pmxt.Opinion === undefined` even though the core adapter had been merged. All four are now exported and work via the standard `new pmxt.Opinion({}).fetchEvents()` consumer path.
+- **Python SDK: `Smarkets`, `PolymarketUS` exchange classes**: Same drift in `sdks/python/pmxt/_exchanges.py` and `sdks/python/pmxt/__init__.py`. Both are now exported.
+- **`openapi.yaml` `source_exchange` enum**: Added `kalshi-demo` and `polymarket_us`, which were missing even though the sidecar routes accepted them. The generated openapi-fetch TypeScript SDK would have rejected requests targeting these exchanges at the type layer.
+
+### Fixed
+
+- **Hand-maintained allowlists across five layers were silently drifting**: Every layer that exchanges have to cross to reach a consumer had its own allowlist — `generate-openapi.js`, `sdks/typescript/pmxt/client.ts`, `sdks/typescript/index.ts`, `sdks/python/pmxt/_exchanges.py`, `sdks/python/pmxt/__init__.py`. Adding a new exchange to `core/src/exchanges/` required manual edits at up to five places and nothing blocked a PR that forgot them. The immediate symptom was that four exchanges (opinion, metaculus, smarkets, polymarket_us) shipped into core but never reached `pmxtjs`.
+
+### CI
+
+- **New `core/scripts/check-exchange-drift.js` and `.github/workflows/exchange-drift-check.yml`**: Walks `core/src/exchanges/*/index.ts` to discover every concrete `PredictionMarketExchange` subclass, then asserts that each one is exposed by the openapi enum, both TypeScript SDK files, and both Python SDK files. Exits non-zero with a per-layer table of missing entries. Runs on every PR that touches any of the covered files. This makes it structurally impossible to merge a new exchange without wiring it through every layer.
+
 ## [2.25.2] - 2026-04-07
 
 ### Fixed

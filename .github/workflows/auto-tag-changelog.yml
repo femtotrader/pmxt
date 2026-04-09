@@ -24,6 +24,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # Use a PAT so the tag push is attributed to a real user
+          # rather than the default GITHUB_TOKEN. GitHub Actions
+          # deliberately does NOT fire downstream workflows (like
+          # publish.yml) on pushes made with the default token — that
+          # would otherwise create trivial infinite-loop footguns. A
+          # PAT bypasses that restriction and lets publish.yml run on
+          # the tag we push below.
+          token: ${{ secrets.RELEASE_PAT }}
 
       - name: Extract newest version from changelog
         id: extract

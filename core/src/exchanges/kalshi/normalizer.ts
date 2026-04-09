@@ -35,10 +35,7 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
             price = fromKalshiCents(market.yes_ask);
         }
 
-        let candidateName: string | null = null;
-        if (market.subtitle || market.yes_sub_title) {
-            candidateName = (market.subtitle || market.yes_sub_title) as string;
-        }
+        const candidateName = this.deriveOutcomeLabel(market);
 
         let priceChange = 0;
         if (market.previous_price_dollars !== undefined && market.last_price_dollars !== undefined) {
@@ -287,25 +284,63 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
         if (texts.length === 0) return '';
         if (texts.length === 1) return texts[0];
 
-        let prefix = texts[0];
-        for (const t of texts) {
-            while (!t.startsWith(prefix)) prefix = prefix.slice(0, -1);
-            if (!prefix) break;
+        const templates = new Map<string, number>();
+        for (const market of markets) {
+            const rawRule = typeof market?.rules_primary === 'string' ? market.rules_primary : '';
+            if (!rawRule) continue;
+
+            const candidate = this.deriveOutcomeLabel(market);
+            const templated = this.templateRule(rawRule, candidate);
+            templates.set(templated, (templates.get(templated) ?? 0) + 1);
         }
 
-        const suffixCandidates = texts.map((t) => t.slice(prefix.length));
-        let suffix = suffixCandidates[0];
-        for (const t of suffixCandidates) {
-            while (!t.endsWith(suffix)) suffix = suffix.slice(1);
-            if (!suffix) break;
+        // Only consider templates that actually contain the {x} placeholder so
+        // that a rule we failed to template (e.g. candidate name missing) can
+        // never win the vote and leak a specific name into the event description.
+        if (templates.size > 0) {
+            let bestTemplate: string | null = null;
+            let bestCount = 0;
+            for (const [template, count] of templates.entries()) {
+                if (!template.includes('{x}')) continue;
+                if (count > bestCount) {
+                    bestTemplate = template;
+                    bestCount = count;
+                }
+            }
+            if (bestTemplate) return bestTemplate;
         }
 
-        if (prefix.length + suffix.length < 20) return texts[0];
+        return texts[0];
+    }
 
-        const variables = texts.map((t) => t.slice(prefix.length, suffix.length ? t.length - suffix.length : undefined));
-        if (new Set(variables).size === 1) return texts[0];
+    private deriveOutcomeLabel(market: KalshiRawMarket): string | null {
+        const yesSubtitle = this.cleanLabel(market.yes_sub_title);
+        if (yesSubtitle) return yesSubtitle;
 
-        return prefix + '{x}' + suffix;
+        const subtitle = this.cleanLabel(market.subtitle);
+        if (subtitle) return subtitle;
+
+        return null;
+    }
+
+    private cleanLabel(value: unknown): string | null {
+        if (typeof value !== 'string') return null;
+        const trimmed = value.trim();
+        if (!trimmed) return null;
+        // Some Kalshi markets use structural subtitles like ":: Democratic".
+        if (trimmed.startsWith('::')) return null;
+        return trimmed;
+    }
+
+    private templateRule(rule: string, candidateName: string | null): string {
+        if (!candidateName) return rule;
+        const escaped = candidateName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Unicode-aware word boundaries so non-ASCII candidate names (Jose,
+        // Muller, O'Brien, etc.) still template correctly. JavaScript's \b is
+        // ASCII-only and would silently fail on such names.
+        const matcher = new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, 'gu');
+        const replaced = rule.replace(matcher, '{x}');
+        return replaced === rule ? rule : replaced;
     }
 }
 

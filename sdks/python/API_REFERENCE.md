@@ -105,7 +105,7 @@ for line in pmxt.server.logs(100):
 
 ### `implicit_api`
 
-How long (ms) a market snapshot created by `fetchMarketsPaginated` remains valid
+HTTP verb for the endpoint (e.g. GET, POST). */
 
 
 **Signature:**
@@ -123,7 +123,7 @@ def implicit_api() -> List[ImplicitApiMethodInfo]:
 **Example:**
 
 ```python
-# No example available
+exchange.implicit_api()
 ```
 
 
@@ -148,11 +148,7 @@ def load_markets(reload: bool) -> Dictstr, [UnifiedMarket]:
 **Example:**
 
 ```python
-# Stable pagination
-exchange.load_markets()
-all = list(exchange.markets.values())
-page1 = all[:100]
-page2 = all[100:200]
+exchange.load_markets(reload=True)
 ```
 
 
@@ -183,12 +179,7 @@ def fetch_markets(params: Optional[MarketFetchParams] = None) -> List[UnifiedMar
 **Example:**
 
 ```python
-# Fetch markets
-markets = exchange.fetch_markets(query='Trump', limit=10000)
-print(markets[0].title)
-
-# Get market by slug
-markets = exchange.fetch_markets(slug='will-trump-win')
+exchange.fetch_markets(query="Trump", slug="will-trump-win", limit=10)
 ```
 
 **Notes:**
@@ -219,7 +210,7 @@ def fetch_markets_paginated(params: Optional[{ limit?: number; cursor?: string }
 **Example:**
 
 ```python
-# No example available
+exchange.fetch_markets_paginated(limit=10, cursor="...")
 ```
 
 
@@ -248,10 +239,7 @@ def fetch_events(params: Optional[EventFetchParams] = None) -> List[UnifiedEvent
 **Example:**
 
 ```python
-# Search events
-events = exchange.fetch_events(query='Fed Chair')
-fed_event = events[0]
-print(fed_event.title, len(fed_event.markets), 'markets')
+exchange.fetch_events(query="Trump", limit=10, offset=0)
 ```
 
 **Notes:**
@@ -278,8 +266,7 @@ def fetch_market(params: Optional[MarketFetchParams] = None) -> UnifiedMarket:
 **Example:**
 
 ```python
-# Fetch by market ID
-market = exchange.fetch_market(market_id='663583')
+exchange.fetch_market()
 ```
 
 
@@ -304,8 +291,7 @@ def fetch_event(params: Optional[EventFetchParams] = None) -> UnifiedEvent:
 **Example:**
 
 ```python
-# Fetch by event ID
-event = exchange.fetch_event(event_id='TRUMP25DEC')
+exchange.fetch_event()
 ```
 
 
@@ -331,11 +317,7 @@ def fetch_ohlcv(id: str, params: OHLCVParams) -> List[PriceCandle]:
 **Example:**
 
 ```python
-# Fetch hourly candles
-markets = exchange.fetch_markets(query='Trump')
-outcome_id = markets[0].yes.outcome_id
-candles = exchange.fetch_ohlcv(outcome_id, resolution='1h', limit=100)
-print(f"Latest close: {candles[-1].close}")
+exchange.fetch_ohlcv(id="12345", params="...")
 ```
 
 **Notes:**
@@ -364,11 +346,7 @@ def fetch_order_book(id: str) -> OrderBook:
 **Example:**
 
 ```python
-# Fetch order book
-book = exchange.fetch_order_book(outcome.outcome_id)
-print(f"Best bid: {book.bids[0].price}")
-print(f"Best ask: {book.asks[0].price}")
-print(f"Spread: {(book.asks[0].price - book.bids[0].price) * 100:.2f}%")
+exchange.fetch_order_book(id="12345")
 ```
 
 
@@ -394,10 +372,7 @@ def fetch_trades(id: str, params: TradesParams | HistoryFilterParams) -> List[Tr
 **Example:**
 
 ```python
-# Fetch recent trades
-trades = exchange.fetch_trades(outcome.outcome_id, limit=100)
-for trade in trades:
-    print(f"{trade.side} {trade.amount} @ {trade.price}")
+exchange.fetch_trades(id="12345", params="...")
 ```
 
 **Notes:**
@@ -424,25 +399,7 @@ def create_order(params: CreateOrderParams) -> Order:
 **Example:**
 
 ```python
-# Place a limit order
-order = exchange.create_order(
-    market_id=market.market_id,
-    outcome_id=market.yes.outcome_id,
-    side='buy',
-    type='limit',
-    amount=10,
-    price=0.55
-)
-print(f"Order {order.id}: {order.status}")
-
-# Place a market order
-order = exchange.create_order(
-    market_id=market.market_id,
-    outcome_id=market.yes.outcome_id,
-    side='buy',
-    type='market',
-    amount=5
-)
+exchange.create_order()
 ```
 
 
@@ -467,17 +424,7 @@ def build_order(params: CreateOrderParams) -> BuiltOrder:
 **Example:**
 
 ```python
-# Build then submit a Polymarket order
-built = exchange.build_order(
-    market_id=market.market_id,
-    outcome_id=market.yes.outcome_id,
-    side='buy',
-    type='limit',
-    amount=10,
-    price=0.55
-)
-print(built.signed_order)
-order = exchange.submit_order(built)
+exchange.build_order()
 ```
 
 
@@ -502,10 +449,7 @@ def submit_order(built: BuiltOrder) -> Order:
 **Example:**
 
 ```python
-# Submit a pre-built order
-built = exchange.build_order(params)
-order = exchange.submit_order(built)
-print(f"Order {order.id}: {order.status}")
+exchange.submit_order(built="...")
 ```
 
 
@@ -530,9 +474,7 @@ def cancel_order(order_id: str) -> Order:
 **Example:**
 
 ```python
-# Cancel an order
-cancelled = exchange.cancel_order('order-123')
-print(cancelled.status)  # 'cancelled'
+exchange.cancel_order(order_id="ord-001")
 ```
 
 
@@ -557,9 +499,7 @@ def fetch_order(order_id: str) -> Order:
 **Example:**
 
 ```python
-# Fetch order status
-order = exchange.fetch_order('order-456')
-print(f"Filled: {order.filled}/{order.amount}")
+exchange.fetch_order(order_id="ord-001")
 ```
 
 
@@ -584,13 +524,7 @@ def fetch_open_orders(market_id: Optional[str] = None) -> List[Order]:
 **Example:**
 
 ```python
-# Fetch all open orders
-orders = exchange.fetch_open_orders()
-for order in orders:
-    print(f"{order.side} {order.amount} @ {order.price}")
-
-# Fetch orders for a specific market
-orders = exchange.fetch_open_orders('FED-25JAN')
+exchange.fetch_open_orders(market_id="12345")
 ```
 
 
@@ -615,11 +549,7 @@ def fetch_positions(address: Optional[str] = None) -> List[Position]:
 **Example:**
 
 ```python
-# Fetch positions
-positions = exchange.fetch_positions()
-for pos in positions:
-    print(f"{pos.outcome_label}: {pos.size} @ ${pos.entry_price}")
-    print(f"Unrealized P&L: ${pos.unrealized_pnl:.2f}")
+exchange.fetch_positions(address="0xabc...")
 ```
 
 
@@ -644,9 +574,7 @@ def fetch_balance(address: Optional[str] = None) -> List[Balance]:
 **Example:**
 
 ```python
-# Fetch balance
-balances = exchange.fetch_balance()
-print(f"Available: ${balances[0].available}")
+exchange.fetch_balance(address="0xabc...")
 ```
 
 
@@ -673,10 +601,7 @@ def get_execution_price(order_book: OrderBook, side: 'buy' | 'sell', amount: flo
 **Example:**
 
 ```python
-# Get execution price
-book = exchange.fetch_order_book(outcome.outcome_id)
-price = exchange.get_execution_price(book, 'buy', 100)
-print(f"Avg price for 100 contracts: {price}")
+exchange.get_execution_price(order_book="...", side="buy", amount=50)
 ```
 
 
@@ -703,12 +628,7 @@ def get_execution_price_detailed(order_book: OrderBook, side: 'buy' | 'sell', am
 **Example:**
 
 ```python
-# Get detailed execution price
-book = exchange.fetch_order_book(outcome.outcome_id)
-result = exchange.get_execution_price_detailed(book, 'buy', 100)
-print(f"Price: {result.price}")
-print(f"Filled: {result.filled_amount}/100")
-print(f"Fully filled: {result.fully_filled}")
+exchange.get_execution_price_detailed(order_book="...", side="buy", amount=50)
 ```
 
 
@@ -734,20 +654,7 @@ def filter_markets(markets: List[UnifiedMarket], criteria: string | MarketFilter
 **Example:**
 
 ```python
-# Simple text search
-filtered = exchange.filter_markets(markets, 'Trump')
-
-# Advanced criteria
-undervalued = exchange.filter_markets(markets, {
-    'text': 'Election',
-    'volume_24h': {'min': 10000},
-    'price': {'outcome': 'yes', 'max': 0.4}
-})
-
-# Custom predicate
-volatile = exchange.filter_markets(markets,
-    lambda m: m.yes and m.yes.price_change_24h < -0.1
-)
+exchange.filter_markets(markets="...", criteria="...")
 ```
 
 
@@ -773,11 +680,7 @@ def filter_events(events: List[UnifiedEvent], criteria: string | EventFilterCrit
 **Example:**
 
 ```python
-# Filter by category
-filtered = exchange.filter_events(events, {
-    'category': 'Politics',
-    'market_count': {'min': 5}
-})
+exchange.filter_events(events="...", criteria="...")
 ```
 
 
@@ -803,10 +706,7 @@ def watch_order_book(id: str, limit: Optional[float] = None) -> OrderBook:
 **Example:**
 
 ```python
-# Stream order book
-while True:
-    book = exchange.watch_order_book(outcome.outcome_id)
-    print(f"Bid: {book.bids[0].price} Ask: {book.asks[0].price}")
+exchange.watch_order_book(id="12345", limit=10)
 ```
 
 
@@ -834,11 +734,7 @@ def watch_trades(id: str, address: Optional[str] = None, since: Optional[float] 
 **Example:**
 
 ```python
-# Stream trades
-while True:
-    trades = exchange.watch_trades(outcome.outcome_id)
-    for trade in trades:
-        print(f"{trade.side} {trade.amount} @ {trade.price}")
+exchange.watch_trades(id="12345", address="0xabc...", since="...")
 ```
 
 
@@ -864,10 +760,7 @@ def watch_address(address: str, types: Optional[List[SubscriptionOption]] = None
 **Example:**
 
 ```python
-# Stream wallet activity
-while True:
-    activity = exchange.watch_address('0xabc...', ['trades', 'positions'])
-    print(activity.trades, activity.positions)
+exchange.watch_address(address="0xabc...", types="...")
 ```
 
 
@@ -892,8 +785,7 @@ def unwatch_address(address: str) -> void:
 **Example:**
 
 ```python
-# Stop watching
-exchange.unwatch_address('0xabc...')
+exchange.unwatch_address(address="0xabc...")
 ```
 
 
@@ -918,7 +810,6 @@ def close() -> void:
 **Example:**
 
 ```python
-# Close connections
 exchange.close()
 ```
 
@@ -947,8 +838,7 @@ def watch_prices(market_address: str, callback: (data: any)) -> void:
 **Example:**
 
 ```python
-# Watch prices
-exchange.watch_prices(market_address, callback=lambda data: print('Price update:', data))
+exchange.watch_prices(market_address="...", callback="...")
 ```
 
 
@@ -975,8 +865,7 @@ def watch_user_positions(callback: (data: any)) -> void:
 **Example:**
 
 ```python
-# Watch positions
-exchange.watch_user_positions(callback=lambda data: print('Position update:', data))
+exchange.watch_user_positions(callback="...")
 ```
 
 
@@ -1003,8 +892,7 @@ def watch_user_transactions(callback: (data: any)) -> void:
 **Example:**
 
 ```python
-# Watch transactions
-exchange.watch_user_transactions(callback=lambda data: print('Transaction:', data))
+exchange.watch_user_transactions(callback="...")
 ```
 
 
@@ -1031,7 +919,7 @@ def init_auth() -> void:
 **Example:**
 
 ```python
-# No example available
+exchange.init_auth()
 ```
 
 
@@ -1058,11 +946,7 @@ def pre_warm_market(outcome_id: str) -> void:
 **Example:**
 
 ```python
-# Pre-warm before placing orders
-markets = exchange.fetch_markets(query='Trump')
-outcome_id = markets[0].outcomes[0].outcome_id
-exchange.pre_warm_market(outcome_id)
-# Subsequent create_order calls are faster
+exchange.pre_warm_market(outcome_id="abc123")
 ```
 
 
@@ -1089,11 +973,7 @@ def get_event_byid(id: str) -> UnifiedEvent | null:
 **Example:**
 
 ```python
-# Get event by ID
-event = exchange.get_event_by_id('42')
-if event:
-    print(event.title)
-    print(len(event.markets), 'markets')
+exchange.get_event_byid(id="12345")
 ```
 
 
@@ -1120,10 +1000,7 @@ def get_event_byslug(slug: str) -> UnifiedEvent | null:
 **Example:**
 
 ```python
-# Get event by slug
-event = exchange.get_event_by_slug('trump-2024-election')
-if event:
-    print(event.title)
+exchange.get_event_byslug(slug="will-trump-win")
 ```
 
 
@@ -1192,27 +1069,27 @@ for pos in positions:
 @dataclass
 class UnifiedMarket:
 market_id: str # The unique identifier for this market
-title: str # 
-description: str # 
-slug: str # 
-outcomes: List[MarketOutcome] # 
 event_id: str # Link to parent event
-resolution_date: str # 
-volume24h: float # 
-volume: float # 
-liquidity: float # 
-open_interest: float # 
-url: str # 
-image: str # 
-category: str # 
-tags: List[string] # 
+title: str # The market title (e.g., "Will BTC close above $100k on Dec 31?").
+description: str # Long-form market description or resolution criteria.
+slug: str # URL-friendly slug for the market.
+outcomes: List[MarketOutcome] # The possible outcomes for this market.
+resolution_date: str # When the market is scheduled to resolve.
+volume24h: float # Trading volume over the past 24 hours (USD).
+volume: float # Total / Lifetime volume
+liquidity: float # Current market liquidity (USD).
+open_interest: float # Total value of outstanding contracts (USD).
+url: str # Canonical URL to view the market on the venue.
+image: str # Optional image URL for the market.
+category: str # Optional category label (e.g., "Politics", "Crypto").
+tags: List[string] # Optional list of tags associated with the market.
 tick_size: float # Minimum price increment (e.g., 0.01, 0.001)
 status: str # Venue-native lifecycle status (e.g. 'active', 'closed', 'archived').
 contract_address: str # On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.).
-yes: MarketOutcome # 
-no: MarketOutcome # 
-up: MarketOutcome # 
-down: MarketOutcome # 
+yes: Any # Convenience accessor for the YES outcome on a binary market.
+no: Any # Convenience accessor for the NO outcome on a binary market.
+up: Any # Convenience accessor for the UP outcome on a binary market.
+down: Any # Convenience accessor for the DOWN outcome on a binary market.
 ```
 
 ---
@@ -1224,32 +1101,32 @@ down: MarketOutcome #
 @dataclass
 class MarketOutcome:
 outcome_id: str # Outcome ID for trading operations (CLOB Token ID for Polymarket, Market Ticker for Kalshi)
-market_id: str # The market this outcome belongs to (set automatically)
-label: str # 
-price: float # 
-price_change24h: float # 
+market_id: str # The market this outcome belongs to (set automatically when outcomes are built)
+label: str # Human-readable outcome label (e.g., "Yes", "No", candidate name).
+price: float # Probability between 0.0 and 1.0.
+price_change24h: float # Change in price over the past 24 hours, as an absolute probability delta.
 metadata: object # Exchange-specific metadata (e.g., clobTokenId for Polymarket)
 ```
 
 ---
 ### `UnifiedEvent`
 
-A grouped collection of related markets (e.g., "Who will be Fed Chair?" contains multiple candidate markets)
+A grouped collection of related markets (e.g., "Who will be Fed Chair?" contains multiple candidate markets).
 
 ```python
 @dataclass
 class UnifiedEvent:
-id: str # 
-title: str # 
-description: str # 
-slug: str # 
-markets: List[UnifiedMarket] # 
-volume24h: float # 
+id: str # The unique identifier for this event.
+title: str # The event title (e.g., "Who will be Fed Chair?").
+description: str # Long-form event description.
+slug: str # URL-friendly slug for the event.
+markets: List[UnifiedMarket] # Markets grouped under this event.
+volume24h: float # Trading volume over the past 24 hours (USD).
 volume: float # Total / Lifetime volume (sum across markets; undefined if no market provides it)
-url: str # 
-image: str # 
-category: str # 
-tags: List[string] # 
+url: str # Canonical URL to view the event on the venue.
+image: str # Optional image URL for the event.
+category: str # Optional category label (e.g., "Politics", "Sports").
+tags: List[string] # Optional list of tags associated with the event.
 ```
 
 ---
@@ -1260,12 +1137,12 @@ tags: List[string] #
 ```python
 @dataclass
 class PriceCandle:
-timestamp: int # 
-open: float # 
-high: float # 
-low: float # 
-close: float # 
-volume: float # 
+timestamp: float # Unix timestamp in milliseconds marking the start of the candle.
+open: float # Opening price for the interval (probability between 0.0 and 1.0).
+high: float # Highest price during the interval (probability between 0.0 and 1.0).
+low: float # Lowest price during the interval (probability between 0.0 and 1.0).
+close: float # Closing price for the interval (probability between 0.0 and 1.0).
+volume: float # Trading volume during the interval.
 ```
 
 ---
@@ -1276,9 +1153,9 @@ volume: float #
 ```python
 @dataclass
 class OrderBook:
-bids: List[OrderLevel] # 
-asks: List[OrderLevel] # 
-timestamp: int # 
+bids: List[OrderLevel] # Order book bid levels, sorted by price descending.
+asks: List[OrderLevel] # Order book ask levels, sorted by price ascending.
+timestamp: float # Unix timestamp in milliseconds when the snapshot was taken.
 ```
 
 ---
@@ -1289,8 +1166,8 @@ timestamp: int #
 ```python
 @dataclass
 class OrderLevel:
-price: float # 
-size: float # 
+price: float # 0.0 to 1.0 (probability)
+size: float # contracts/shares
 ```
 
 ---
@@ -1301,11 +1178,12 @@ size: float #
 ```python
 @dataclass
 class Trade:
-id: str # 
-price: float # 
-amount: float # 
-side: str # 
-timestamp: int # 
+id: str # The unique identifier for this trade.
+timestamp: float # Unix timestamp in milliseconds when the trade executed.
+price: float # Probability between 0.0 and 1.0.
+amount: float # Size of the trade in contracts/shares.
+side: str # Trade side from the taker's perspective.
+outcome_id: str # The outcome this trade is for (if known).
 ```
 
 ---
@@ -1316,14 +1194,13 @@ timestamp: int #
 ```python
 @dataclass
 class UserTrade:
-id: str # 
-price: float # 
-amount: float # 
-side: str # 
-timestamp: int # 
-order_id: str # 
-outcome_id: str # 
-market_id: str # 
+id: str # The unique identifier for this trade.
+timestamp: float # Unix timestamp in milliseconds when the trade executed.
+price: float # Probability between 0.0 and 1.0.
+amount: float # Size of the trade in contracts/shares.
+side: str # Trade side from the taker's perspective.
+outcome_id: str # The outcome this trade is for (if known).
+order_id: str # The order that produced this trade, if known.
 ```
 
 ---
@@ -1334,18 +1211,18 @@ market_id: str #
 ```python
 @dataclass
 class Order:
-id: str # 
-market_id: str # 
-outcome_id: str # 
-side: str # 
-type: str # 
-price: float # 
-amount: float # 
-status: str # 
-filled: float # 
-remaining: float # 
-timestamp: int # 
-fee: float # 
+id: str # The exchange-assigned order identifier.
+market_id: str # The market this order was placed on.
+outcome_id: str # The outcome this order was placed on.
+side: str # Order side: buy or sell.
+type: str # Order type: market (execute immediately) or limit (resting at a price).
+price: float # For limit orders
+amount: float # Size in contracts/shares
+status: str # Lifecycle status of the order.
+filled: float # Amount filled
+remaining: float # Amount remaining
+timestamp: float # Unix timestamp in milliseconds when the order was created.
+fee: float # Fee paid for this order, if known.
 ```
 
 ---
@@ -1356,14 +1233,14 @@ fee: float #
 ```python
 @dataclass
 class Position:
-market_id: str # 
-outcome_id: str # 
-outcome_label: str # 
-size: float # 
-entry_price: float # 
-current_price: float # 
-unrealized_pnl: float # 
-realized_pnl: float # 
+market_id: str # The market this position is held in.
+outcome_id: str # The outcome this position is held in.
+outcome_label: str # Human-readable label for the outcome held.
+size: float # Positive for long, negative for short
+entry_price: float # Average entry price for the position (probability between 0.0 and 1.0).
+current_price: float # Current mark price for the position (probability between 0.0 and 1.0).
+unrealized_pnl: float # Unrealized profit or loss at the current price (USD).
+realized_pnl: float # Realized profit or loss booked so far (USD).
 ```
 
 ---
@@ -1374,10 +1251,10 @@ realized_pnl: float #
 ```python
 @dataclass
 class Balance:
-currency: str # 
-total: float # 
-available: float # 
-locked: float # 
+currency: str # e.g., 'USDC'
+total: float # Total balance including funds locked in open orders.
+available: float # Balance available to trade (excludes locked funds).
+locked: float # In open orders
 ```
 
 ---
@@ -1396,45 +1273,46 @@ fully_filled: bool #
 ---
 ### `PaginatedMarketsResult`
 
-
+Shape returned by fetchMarketsPaginated
 
 ```python
 @dataclass
 class PaginatedMarketsResult:
-data: List[UnifiedMarket] # 
-total: int # 
-next_cursor: str # 
+data: List[UnifiedMarket] # The page of unified markets
+total: float # Total number of markets in the snapshot
+next_cursor: str # Cursor to pass to the next call, or undefined if this is the last page
 ```
 
 ---
 ### `BuiltOrder`
 
-An order built but not yet submitted, ready for inspection or middleware forwarding
+
 
 ```python
 @dataclass
 class BuiltOrder:
-exchange: str # The exchange name this order was built for
-params: CreateOrderParams # 
-signed_order: object # For CLOB exchanges (Polymarket): the EIP-712 signed order ready to POST
-tx: object # For on-chain AMM exchanges: the EVM transaction payload (reserved for future use)
+exchange: str # The exchange name this order was built for.
+params: Any # The original params used to build this order.
+signed_order: object # For CLOB exchanges (Polymarket): the EIP-712 signed order ready to POST to the exchange's order endpoint.
+tx: object # For on-chain AMM exchanges: the EVM transaction payload. Reserved for future exchanges; no current exchange populates this.
 raw: Any # The raw, exchange-native payload. Always present.
 ```
 
 ---
 ### `ExchangeCredentials`
 
-Optional authentication credentials for exchange operations
+Optional authentication credentials for exchange operations.
 
 ```python
 @dataclass
 class ExchangeCredentials:
-api_key: str # API key for the exchange
-private_key: str # Private key for signing transactions
-api_secret: str # API secret (if required by exchange)
-passphrase: str # Passphrase (if required by exchange)
-funder_address: str # The address funding the trades (Proxy address)
-signature_type: Any # Signature type (0=EOA, 1=Poly Proxy, 2=Gnosis Safe, or names like 'gnosis_safe')
+api_key: str # 
+api_secret: str # Standard API secret for HMAC-authenticated exchanges
+passphrase: str # Standard API passphrase for HMAC-authenticated exchanges
+api_token: str # Metaculus: `Authorization: Token <apiToken>` for higher rate limits
+private_key: str # Required for Polymarket L1 auth
+signature_type: Any # 0 = EOA, 1 = Poly Proxy, 2 = Gnosis Safe (Can also use 'eoa', 'polyproxy', 'gnosis_safe')
+funder_address: str # The address funding the trades (defaults to signer address)
 ```
 
 ---
@@ -1459,18 +1337,18 @@ credentials: ExchangeCredentials #
 ```python
 @dataclass
 class MarketFilterParams:
-limit: int # 
-offset: int # 
-sort: str # 
-status: str # Filter by market status (default: active)
-search_in: str # 
-query: str # 
-slug: str # 
+limit: float # Maximum number of results to return
+offset: float # Pagination offset — number of results to skip
+sort: str # Sort order for results
+status: str # Filter by market status (default: 'active', 'inactive' and 'closed' are interchangeable)
+search_in: str # Where to search (default: 'title')
+query: str # For keyword search
+slug: str # For slug/ticker lookup
 market_id: str # Direct lookup by market ID
 outcome_id: str # Reverse lookup -- find market containing this outcome
 event_id: str # Find markets belonging to an event
-page: int # 
-similarity_threshold: float # 
+page: float # For pagination (used by Limitless)
+similarity_threshold: float # For semantic search (used by Limitless)
 ```
 
 ---
@@ -1481,12 +1359,12 @@ similarity_threshold: float #
 ```python
 @dataclass
 class EventFetchParams:
-query: str # 
-sort: str # 
-limit: int # 
-offset: int # 
-status: str # Filter by event status (default: active)
-search_in: str # 
+query: str # For keyword search
+limit: float # Maximum number of results to return
+offset: float # Pagination offset — number of results to skip
+sort: str # Sort order for results
+status: str # Filter by event status (default: 'active', 'inactive' and 'closed' are interchangeable)
+search_in: str # Where to search (default: 'title')
 event_id: str # Direct lookup by event ID
 slug: str # Lookup by event slug
 ```
@@ -1499,10 +1377,10 @@ Deprecated - use OHLCVParams or TradesParams instead. Resolution is optional for
 ```python
 @dataclass
 class HistoryFilterParams:
-resolution: str # 
-start: str # 
-end: str # 
-limit: int # 
+resolution: str # Optional for backward compatibility
+start: str # Start of the time range
+end: str # End of the time range
+limit: float # Maximum number of results to return
 ```
 
 ---
@@ -1513,10 +1391,10 @@ limit: int #
 ```python
 @dataclass
 class OHLCVParams:
-resolution: str # Candle interval for aggregation
-start: str # 
-end: str # 
-limit: int # 
+resolution: str # Required for candle aggregation
+start: str # Start of the time range
+end: str # End of the time range
+limit: float # Maximum number of results to return
 ```
 
 ---
@@ -1527,9 +1405,9 @@ Parameters for fetching trade history. No resolution parameter - trades are disc
 ```python
 @dataclass
 class TradesParams:
-start: str # 
-end: str # 
-limit: int # 
+start: str # Start of the time range
+end: str # End of the time range
+limit: float # Maximum number of results to return
 ```
 
 ---
@@ -1540,13 +1418,13 @@ limit: int #
 ```python
 @dataclass
 class CreateOrderParams:
-market_id: str # 
-outcome_id: str # 
-side: str # 
-type: str # 
-amount: float # 
-price: float # 
-fee: float # 
+market_id: str # The market to trade on.
+outcome_id: str # The outcome to trade.
+side: str # Order side: buy or sell.
+type: str # Order type: market (execute immediately) or limit (resting at a price).
+amount: float # Size of the order in contracts/shares.
+price: float # Required for limit orders
+fee: float # Optional fee rate (e.g., 1000 for 0.1%)
 tick_size: float # Optional override for Limitless/Polymarket
 neg_risk: bool # Optional override to skip neg-risk lookup (Polymarket)
 ```
@@ -1559,12 +1437,12 @@ neg_risk: bool # Optional override to skip neg-risk lookup (Polymarket)
 ```python
 @dataclass
 class MyTradesParams:
-outcome_id: str # Filter to specific outcome/ticker
-market_id: str # Filter to specific market
-since: str # 
-until: str # 
-limit: int # 
-cursor: str # For Kalshi cursor pagination
+outcome_id: str # filter to specific outcome/ticker
+market_id: str # filter to specific market
+since: str # Only return records after this date
+until: str # Only return records before this date
+limit: float # Maximum number of results to return
+cursor: str # for Kalshi cursor pagination
 ```
 
 ---
@@ -1575,11 +1453,11 @@ cursor: str # For Kalshi cursor pagination
 ```python
 @dataclass
 class OrderHistoryParams:
-market_id: str # Required for Limitless (slug)
-since: str # 
-until: str # 
-limit: int # 
-cursor: str # 
+market_id: str # required for Limitless (slug)
+since: str # Only return records after this date
+until: str # Only return records before this date
+limit: float # Maximum number of results to return
+cursor: str # Opaque pagination cursor from a previous response
 ```
 
 ---

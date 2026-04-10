@@ -405,14 +405,6 @@ export class LimitlessExchange extends PredictionMarketExchange {
      *
      * @param marketAddress - Market contract address
      * @param callback - Callback for price updates
-     *
-     * @example-ts Watch prices
-     * await exchange.watchPrices(marketAddress, (data) => {
-     *   console.log('Price update:', data);
-     * });
-     *
-     * @example-python Watch prices
-     * exchange.watch_prices(market_address, callback=lambda data: print('Price update:', data))
      */
     async watchPrices(marketAddress: string, callback: (data: any) => void): Promise<void> {
         const ws = this.ensureWs();
@@ -424,14 +416,6 @@ export class LimitlessExchange extends PredictionMarketExchange {
      * Requires API key authentication.
      *
      * @param callback - Callback for position updates
-     *
-     * @example-ts Watch positions
-     * await exchange.watchUserPositions((data) => {
-     *   console.log('Position update:', data);
-     * });
-     *
-     * @example-python Watch positions
-     * exchange.watch_user_positions(callback=lambda data: print('Position update:', data))
      */
     async watchUserPositions(callback: (data: any) => void): Promise<void> {
         this.ensureAuth();
@@ -444,14 +428,6 @@ export class LimitlessExchange extends PredictionMarketExchange {
      * Requires API key authentication.
      *
      * @param callback - Callback for transaction updates
-     *
-     * @example-ts Watch transactions
-     * await exchange.watchUserTransactions((data) => {
-     *   console.log('Transaction:', data);
-     * });
-     *
-     * @example-python Watch transactions
-     * exchange.watch_user_transactions(callback=lambda data: print('Transaction:', data))
      */
     async watchUserTransactions(callback: (data: any) => void): Promise<void> {
         this.ensureAuth();
@@ -473,12 +449,6 @@ export class LimitlessExchange extends PredictionMarketExchange {
      *
      * @param address - Any public Base-chain wallet address
      * @param types   - Activity types to watch (default: all)
-     *
-     * @example-ts
-     * while (true) {
-     *   const activity = await exchange.watchAddress('0xabc...', ['positions', 'balances']);
-     *   console.log(activity.positions, activity.balances);
-     * }
      */
     async watchAddress(
         address: string,

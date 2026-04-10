@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.27.7] - 2026-04-10
+
+### Changed
+
+- **Auto-generated SDK code samples replace hand-written `@example-ts`/`@example-python` JSDoc tags**: Removed all 78 hand-written example blocks from `BaseExchange.ts` and exchange files (`limitless`, `polymarket`, `probable`). These caused documentation drift — examples fell out of sync with the actual SDK API surface whenever method signatures changed. `extract-jsdoc.js` no longer parses or emits example tags. `generate-api-docs.js` now auto-generates idiomatic Python and TypeScript examples from method names and parameter signatures, using a shared `EXAMPLE_VALUES` lookup table for sensible defaults (with language-aware boolean formatting: `True`/`true`). The Handlebars templates are unchanged — they consume the same `{{this.example}}` slot, now populated by the auto-generator instead of hand-written JSDoc.
+
+- **`generate-openapi.js` emits `x-sdk-constructors` vendor extension**: Parses `createExchange()` in `app.ts` (the same source of truth used by `generate-python-exchanges.js`) to extract per-exchange credential requirements, then embeds the result in the OpenAPI spec as `x-sdk-constructors`. Each entry maps an exchange wire key to its class name and constructor params (with Python snake_case names, TypeScript camelCase names, types, descriptions, and defaults). Adding a new exchange to `app.ts` automatically flows through to the spec — no manual metadata file to maintain. Consumed downstream by `hosted-pmxt/scripts/sync-docs.js` to generate per-exchange Mintlify code samples.
+
 ## [2.27.6] - 2026-04-09
 
 ### Fixed

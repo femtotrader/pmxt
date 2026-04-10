@@ -93,8 +93,6 @@ function parseMethods(config) {
             })),
             subParams: data.subParams || null,
             returns: data.returns || { type: 'any', description: 'Result' },
-            python: data.python || { examples: [] },
-            typescript: data.typescript || { examples: [] },
             notes: data.notes || null,
             exchangeOnly: data.exchangeOnly || null
         });
@@ -220,16 +218,120 @@ function parseExchangeEndpoints() {
     return groups;
 }
 
-// --- Format Examples ---
+// --- Auto-generate Examples ---
 
-function formatExamples(examples, commentPrefix) {
-    if (!examples || examples.length === 0) {
-        return `${commentPrefix} No example available`;
+// Map param names to sensible example values
+const EXAMPLE_VALUES = {
+    query: '"Trump"',
+    id: '"12345"',
+    marketId: '"12345"',
+    eventId: '"67890"',
+    outcomeId: '"abc123"',
+    orderId: '"ord-001"',
+    slug: '"will-trump-win"',
+    limit: '10',
+    offset: '0',
+    side: '"buy"',
+    size: '100',
+    price: '0.65',
+    amount: '50',
+    reload: { py: 'True', ts: 'true' },
+    resolution: '"1h"',
+    address: '"0xabc..."',
+    symbol: '"BTC-YES"',
+    sort: '"volume"',
+    status: '"active"',
+    page: '1',
+};
+
+function getExampleValue(paramName, lang) {
+    const val = EXAMPLE_VALUES[paramName];
+    if (val !== undefined) {
+        // Handle language-specific values (e.g. booleans)
+        if (typeof val === 'object' && val.py && val.ts) {
+            return lang === 'py' ? val.py : val.ts;
+        }
+        return val;
     }
-    return examples.map(ex => {
-        const title = ex.title ? `${commentPrefix} ${ex.title}\n` : '';
-        return `${title}${ex.code}`;
-    }).join('\n\n');
+    // Fallback: string-like params get a placeholder, others get a generic value
+    if (paramName.toLowerCase().includes('id')) return '"12345"';
+    if (paramName.toLowerCase().includes('name')) return '"example"';
+    return '"..."';
+}
+
+function generatePythonExample(method) {
+    const pyName = toSnakeCase(method.name);
+    const params = method.params || [];
+
+    if (params.length === 0) {
+        return 'exchange.' + pyName + '()';
+    }
+
+    // Single non-object param (e.g. reload: boolean)
+    const required = params.filter(function(p) { return !p.optional; });
+    const optional = params.filter(function(p) { return p.optional; });
+
+    // If there is a single "params" object, show keyword args from subParams
+    if (params.length === 1 && params[0].name === 'params') {
+        var subParams = method.subParams || [];
+        if (subParams.length > 0) {
+            var args = subParams.slice(0, 3).map(function(sp) {
+                var name = sp.name.replace('params.', '');
+                return toSnakeCase(name) + '=' + getExampleValue(name, 'py');
+            });
+            return 'exchange.' + pyName + '(' + args.join(', ') + ')';
+        }
+        return 'exchange.' + pyName + '()';
+    }
+
+    var argParts = [];
+    required.forEach(function(p) {
+        argParts.push(toSnakeCase(p.name) + '=' + getExampleValue(p.name, 'py'));
+    });
+    optional.slice(0, 2).forEach(function(p) {
+        argParts.push(toSnakeCase(p.name) + '=' + getExampleValue(p.name, 'py'));
+    });
+
+    return 'exchange.' + pyName + '(' + argParts.join(', ') + ')';
+}
+
+function generateTsExample(method) {
+    var params = method.params || [];
+
+    if (params.length === 0) {
+        return 'await exchange.' + method.name + '()';
+    }
+
+    var required = params.filter(function(p) { return !p.optional; });
+    var optional = params.filter(function(p) { return p.optional; });
+
+    // If there is a single "params" object, show object literal with subParams
+    if (params.length === 1 && params[0].name === 'params') {
+        var subParams = method.subParams || [];
+        if (subParams.length > 0) {
+            var fields = subParams.slice(0, 3).map(function(sp) {
+                var name = sp.name.replace('params.', '');
+                return name + ': ' + getExampleValue(name, 'ts');
+            });
+            return 'await exchange.' + method.name + '({ ' + fields.join(', ') + ' })';
+        }
+        return 'await exchange.' + method.name + '()';
+    }
+
+    // Multiple params: first required as positional, then optional as object
+    var argParts = [];
+    required.forEach(function(p) {
+        argParts.push(getExampleValue(p.name, 'ts'));
+    });
+
+    if (optional.length > 0) {
+        var optFields = optional.slice(0, 2).map(function(p) {
+            return p.name + ': ' + getExampleValue(p.name, 'ts');
+        });
+        argParts.push('{ ' + optFields.join(', ') + ' }');
+    }
+
+    return 'await exchange.' + method.name + '(' + argParts.join(', ') + ')';
 }
 
 // --- Main Execution ---
@@ -339,7 +441,7 @@ const pythonTemplate = Handlebars.compile(
 
 const pythonMethods = methods.map(m => ({
     ...m,
-    example: formatExamples(m.python.examples, '#'),
+    example: generatePythonExample(m),
     exchangeNote: m.exchangeOnly ? `> **Note**: This method is only available on **${m.exchangeOnly}** exchange.\n` : ''
 }));
 
@@ -362,7 +464,7 @@ const tsTemplate = Handlebars.compile(
 
 const tsMethods = methods.map(m => ({
     ...m,
-    example: formatExamples(m.typescript.examples, '//'),
+    example: generateTsExample(m),
     exchangeNote: m.exchangeOnly ? `> **Note**: This method is only available on **${m.exchangeOnly}** exchange.\n` : ''
 }));
 

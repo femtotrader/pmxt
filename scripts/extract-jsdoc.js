@@ -45,8 +45,6 @@ function parseJSDoc(jsdocBody) {
         description: '',
         params: [],
         returns: null,
-        examplesTs: [],
-        examplesPython: [],
         notes: [],
         isInternal: false,
         isDocIgnore: false,
@@ -68,10 +66,6 @@ function parseJSDoc(jsdocBody) {
             result.params.push(currentTag.data);
         } else if (currentTag.type === 'returns') {
             result.returns = { description: currentTag.data.description };
-        } else if (currentTag.type === 'example-ts') {
-            result.examplesTs.push({ title: currentTag.data.title, code: body });
-        } else if (currentTag.type === 'example-python') {
-            result.examplesPython.push({ title: currentTag.data.title, code: body });
         } else if (currentTag.type === 'notes') {
             result.notes.push(body || currentTag.data.text);
         }
@@ -112,30 +106,6 @@ function parseJSDoc(jsdocBody) {
                 type: 'returns',
                 data: { description: returnsMatch[1].trim() }
             };
-            continue;
-        }
-
-        // Check for @example-ts
-        const exTsMatch = line.match(/^@example-ts\s*(.*)/);
-        if (exTsMatch) {
-            flushTag();
-            currentTag = {
-                type: 'example-ts',
-                data: { title: exTsMatch[1].trim() || 'Example' }
-            };
-            currentBody = [];
-            continue;
-        }
-
-        // Check for @example-python
-        const exPyMatch = line.match(/^@example-python\s*(.*)/);
-        if (exPyMatch) {
-            flushTag();
-            currentTag = {
-                type: 'example-python',
-                data: { title: exPyMatch[1].trim() || 'Example' }
-            };
-            currentBody = [];
             continue;
         }
 
@@ -321,12 +291,6 @@ function extractMethods(filePath, exchangeOnly) {
             returns: {
                 type: sig.returnType,
                 description: jsdoc.returns ? jsdoc.returns.description : 'Result'
-            },
-            python: {
-                examples: jsdoc.examplesPython
-            },
-            typescript: {
-                examples: jsdoc.examplesTs
             },
             notes: jsdoc.notes.length > 0 ? jsdoc.notes : undefined,
             exchangeOnly: exchangeOnly || undefined,

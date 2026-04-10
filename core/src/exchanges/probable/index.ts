@@ -165,19 +165,6 @@ export class ProbableExchange extends PredictionMarketExchange {
      *
      * @param id - The numeric event ID
      * @returns The UnifiedEvent, or null if not found
-     *
-     * @example-ts Get event by ID
-     * const event = await exchange.getEventById('42');
-     * if (event) {
-     *   console.log(event.title);
-     *   console.log(event.markets.length, 'markets');
-     * }
-     *
-     * @example-python Get event by ID
-     * event = exchange.get_event_by_id('42')
-     * if event:
-     *     print(event.title)
-     *     print(len(event.markets), 'markets')
      */
     async getEventById(id: string): Promise<UnifiedEvent | null> {
         const raw = await this.fetcher.fetchRawEventById(id);
@@ -197,17 +184,6 @@ export class ProbableExchange extends PredictionMarketExchange {
      *
      * @param slug - The event's URL slug (e.g. `"trump-2024-election"`)
      * @returns The UnifiedEvent, or null if not found
-     *
-     * @example-ts Get event by slug
-     * const event = await exchange.getEventBySlug('trump-2024-election');
-     * if (event) {
-     *   console.log(event.title);
-     * }
-     *
-     * @example-python Get event by slug
-     * event = exchange.get_event_by_slug('trump-2024-election')
-     * if event:
-     *     print(event.title)
      */
     async getEventBySlug(slug: string): Promise<UnifiedEvent | null> {
         const raw = await this.fetcher.fetchRawEventBySlug(slug);

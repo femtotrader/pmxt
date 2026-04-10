@@ -2296,3 +2296,198 @@ components:
         funderAddress:
           type: string
           description: The address funding the trades (defaults to signer address)
+x-sdk-constructors:
+  polymarket:
+    className: Polymarket
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: api_key
+        tsName: apiKey
+        type: string
+        description: API key for authentication
+      - name: api_secret
+        tsName: apiSecret
+        type: string
+        description: API secret for authentication
+      - name: passphrase
+        tsName: passphrase
+        type: string
+        description: Passphrase for authentication
+      - name: private_key
+        tsName: privateKey
+        type: string
+        description: Private key for authentication
+      - name: proxy_address
+        tsName: proxyAddress
+        type: string
+        description: Proxy/smart wallet address
+      - name: signature_type
+        tsName: signatureType
+        type: string
+        description: Signature type
+        default: gnosis-safe
+  limitless:
+    className: Limitless
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: api_key
+        tsName: apiKey
+        type: string
+        description: API key for authentication
+      - name: api_secret
+        tsName: apiSecret
+        type: string
+        description: API secret for authentication
+      - name: passphrase
+        tsName: passphrase
+        type: string
+        description: Passphrase for authentication
+      - name: private_key
+        tsName: privateKey
+        type: string
+        description: Private key for authentication
+  kalshi:
+    className: Kalshi
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: api_key
+        tsName: apiKey
+        type: string
+        description: API key for authentication
+      - name: private_key
+        tsName: privateKey
+        type: string
+        description: Private key for authentication
+  kalshi-demo:
+    className: KalshiDemo
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: api_key
+        tsName: apiKey
+        type: string
+        description: API key for authentication
+      - name: private_key
+        tsName: privateKey
+        type: string
+        description: Private key for authentication
+  probable:
+    className: Probable
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: api_key
+        tsName: apiKey
+        type: string
+        description: API key for authentication
+      - name: api_secret
+        tsName: apiSecret
+        type: string
+        description: API secret for authentication
+      - name: passphrase
+        tsName: passphrase
+        type: string
+        description: Passphrase for authentication
+      - name: private_key
+        tsName: privateKey
+        type: string
+        description: Private key for authentication
+  baozi:
+    className: Baozi
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: private_key
+        tsName: privateKey
+        type: string
+        description: Private key for authentication
+  myriad:
+    className: Myriad
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: api_key
+        tsName: apiKey
+        type: string
+        description: API key for authentication
+      - name: wallet_address
+        tsName: walletAddress
+        type: string
+        description: Wallet address (required for positions and balance)
+  opinion:
+    className: Opinion
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: api_key
+        tsName: apiKey
+        type: string
+        description: API key for authentication
+      - name: private_key
+        tsName: privateKey
+        type: string
+        description: Private key for authentication
+      - name: proxy_address
+        tsName: proxyAddress
+        type: string
+        description: Proxy/smart wallet address
+  metaculus:
+    className: Metaculus
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: api_token
+        tsName: apiToken
+        type: string
+        description: API token for authentication
+  smarkets:
+    className: Smarkets
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: api_key
+        tsName: apiKey
+        type: string
+        description: API key for authentication
+      - name: private_key
+        tsName: privateKey
+        type: string
+        description: Private key for authentication
+  polymarket_us:
+    className: PolymarketUs
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: api_key
+        tsName: apiKey
+        type: string
+        description: API key for authentication
+      - name: private_key
+        tsName: privateKey
+        type: string
+        description: Private key for authentication

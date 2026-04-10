@@ -12,6 +12,7 @@ const path = require('path');
 const yaml = require('js-yaml');
 
 const BASE_EXCHANGE_PATH = path.join(__dirname, '../src/BaseExchange.ts');
+const APP_TS_PATH = path.join(__dirname, '../src/server/app.ts');
 const OPENAPI_OUT_PATH = path.join(__dirname, '../src/server/openapi.yaml');
 // Sidecar metadata consumed by the runtime server (app.ts) so the GET
 // handler knows which methods are safe to expose as GET and how to
@@ -961,6 +962,159 @@ function buildMethodVerbs(methodSpecs) {
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// Exchange constructor metadata (x-sdk-constructors)
+//
+// Parses createExchange() in app.ts to discover which exchanges exist and
+// which credentials each one requires — the same logic used by
+// generate-python-exchanges.js. The result is attached to the OpenAPI spec
+// as the `x-sdk-constructors` vendor extension so downstream consumers
+// (e.g. Mintlify docs sync) can auto-generate per-exchange SDK samples.
+// ---------------------------------------------------------------------------
+
+// Overrides that cannot be derived from app.ts alone.
+const EXCHANGE_OVERRIDES = {
+    polymarket: {
+        defaults: { signature_type: 'gnosis-safe' },
+    },
+    myriad: {
+        paramAliases: { private_key: 'wallet_address' },
+        paramDocs: {
+            wallet_address: 'Wallet address (required for positions and balance)',
+        },
+    },
+};
+
+function toClassName(name) {
+    return name
+        .split(/[-_]/)
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join('');
+}
+
+function parseExchanges(content) {
+    const startIdx = content.indexOf('function createExchange(');
+    if (startIdx === -1) throw new Error('createExchange not found in app.ts');
+
+    const tail = content.slice(startIdx);
+    let depth = 0;
+    let bodyEnd = 0;
+    for (let i = tail.indexOf('{'); i < tail.length; i++) {
+        if (tail[i] === '{') depth++;
+        else if (tail[i] === '}') {
+            depth--;
+            if (depth === 0) { bodyEnd = i + 1; break; }
+        }
+    }
+    const funcBody = tail.slice(0, bodyEnd);
+
+    const exchanges = [];
+    const lines = funcBody.split('\n');
+    let currentName = null;
+    let currentBlock = '';
+
+    for (const line of lines) {
+        const caseMatch = line.match(/^\s*case "([^"]+)":/);
+        if (caseMatch) {
+            if (currentName) exchanges.push(buildExchange(currentName, currentBlock));
+            currentName = caseMatch[1];
+            currentBlock = '';
+            continue;
+        }
+        if (/^\s*default:/.test(line) && currentName) {
+            exchanges.push(buildExchange(currentName, currentBlock));
+            currentName = null;
+            currentBlock = '';
+            continue;
+        }
+        if (currentName) currentBlock += line + '\n';
+    }
+    if (currentName) exchanges.push(buildExchange(currentName, currentBlock));
+
+    return exchanges;
+}
+
+function buildExchange(name, block) {
+    return {
+        name,
+        creds: {
+            apiKey:        /credentials\?\.apiKey/.test(block),
+            apiToken:      /credentials\?\.apiToken/.test(block),
+            apiSecret:     /credentials\?\.apiSecret/.test(block),
+            passphrase:    /credentials\?\.passphrase/.test(block),
+            privateKey:    /credentials\?\.privateKey/.test(block),
+            funderAddress: /credentials\?\.funderAddress/.test(block),
+            signatureType: /credentials\?\.signatureType/.test(block),
+        },
+    };
+}
+
+// Credential flag → default param metadata
+const CRED_PARAM_MAP = {
+    apiKey:        { name: 'api_key',        tsName: 'apiKey',        description: 'API key for authentication' },
+    apiToken:      { name: 'api_token',      tsName: 'apiToken',      description: 'API token for authentication' },
+    apiSecret:     { name: 'api_secret',     tsName: 'apiSecret',     description: 'API secret for authentication' },
+    passphrase:    { name: 'passphrase',     tsName: 'passphrase',    description: 'Passphrase for authentication' },
+    privateKey:    { name: 'private_key',    tsName: 'privateKey',    description: 'Private key for authentication' },
+    funderAddress: { name: 'proxy_address',  tsName: 'proxyAddress',  description: 'Proxy/smart wallet address' },
+    signatureType: { name: 'signature_type', tsName: 'signatureType', description: 'Signature type' },
+};
+
+function camelCase(snakeName) {
+    return snakeName.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+function buildSdkConstructors(exchanges) {
+    const result = {};
+
+    for (const exchange of exchanges) {
+        const { name, creds } = exchange;
+        const ov = EXCHANGE_OVERRIDES[name] || {};
+        const aliases = ov.paramAliases || {};
+        const defaults = ov.defaults || {};
+        const paramDocs = ov.paramDocs || {};
+
+        // Every exchange gets the hosted API key param first
+        const params = [
+            {
+                name: 'pmxt_api_key',
+                tsName: 'pmxtApiKey',
+                type: 'string',
+                description: 'PMXT API key for hosted access',
+            },
+        ];
+
+        for (const [credFlag, baseMeta] of Object.entries(CRED_PARAM_MAP)) {
+            if (!creds[credFlag]) continue;
+
+            const aliasedSnakeName = aliases[baseMeta.name] || baseMeta.name;
+            const aliasedTsName = camelCase(aliasedSnakeName);
+            const description = paramDocs[aliasedSnakeName] || baseMeta.description;
+
+            const param = {
+                name: aliasedSnakeName,
+                tsName: aliasedTsName,
+                type: 'string',
+                description,
+            };
+
+            const defaultVal = defaults[baseMeta.name];
+            if (defaultVal) {
+                param.default = defaultVal;
+            }
+
+            params.push(param);
+        }
+
+        result[name] = {
+            className: toClassName(name),
+            params,
+        };
+    }
+
+    return result;
+}
+
 function main() {
   // Build the interface registry and the full component-schema map
   // FIRST. `buildPathSpec` below consults the global SCHEMAS map via
@@ -980,6 +1134,11 @@ function main() {
   const methodNodes = extractMethods(sourceFile);
   const methodSpecs = methodNodes.map(m => buildPathSpec(m, sourceFile));
   const spec = buildSpec(methodSpecs);
+
+  // Attach per-exchange SDK constructor metadata from app.ts
+  const appTsContent = fs.readFileSync(APP_TS_PATH, 'utf-8');
+  const exchanges = parseExchanges(appTsContent);
+  spec['x-sdk-constructors'] = buildSdkConstructors(exchanges);
 
   const yamlStr = yaml.dump(spec, {
     indent: 2,

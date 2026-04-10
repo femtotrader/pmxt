@@ -108,7 +108,7 @@ for (const line of pmxt.server.logs(100)) {
 
 ### `implicitApi`
 
-How long (ms) a market snapshot created by `fetchMarketsPaginated` remains valid
+HTTP verb for the endpoint (e.g. GET, POST). */
 
 
 **Signature:**
@@ -126,7 +126,7 @@ async implicitApi(): Promise<ImplicitApiMethodInfo[]>
 **Example:**
 
 ```typescript
-// No example available
+await exchange.implicitApi()
 ```
 
 
@@ -151,11 +151,7 @@ async loadMarkets(reload: boolean): Promise<Record<string, UnifiedMarket>>
 **Example:**
 
 ```typescript
-// Stable pagination
-await exchange.loadMarkets();
-const all = Object.values(exchange.markets);
-const page1 = all.slice(0, 100);
-const page2 = all.slice(100, 200);
+await exchange.loadMarkets(true)
 ```
 
 
@@ -186,12 +182,7 @@ async fetchMarkets(params?: MarketFetchParams): Promise<UnifiedMarket[]>
 **Example:**
 
 ```typescript
-// Fetch markets
-const markets = await exchange.fetchMarkets({ query: 'Trump', limit: 10000 });
-console.log(markets[0].title);
-
-// Get market by slug
-const markets = await exchange.fetchMarkets({ slug: 'will-trump-win' });
+await exchange.fetchMarkets({ query: "Trump", slug: "will-trump-win", limit: 10 })
 ```
 
 **Notes:**
@@ -222,7 +213,7 @@ async fetchMarketsPaginated(params?: { limit?: number; cursor?: string }): Promi
 **Example:**
 
 ```typescript
-// No example available
+await exchange.fetchMarketsPaginated({ limit: 10, cursor: "..." })
 ```
 
 
@@ -251,10 +242,7 @@ async fetchEvents(params?: EventFetchParams): Promise<UnifiedEvent[]>
 **Example:**
 
 ```typescript
-// Search events
-const events = await exchange.fetchEvents({ query: 'Fed Chair' });
-const fedEvent = events[0];
-console.log(fedEvent.title, fedEvent.markets.length, 'markets');
+await exchange.fetchEvents({ query: "Trump", limit: 10, offset: 0 })
 ```
 
 **Notes:**
@@ -281,11 +269,7 @@ async fetchMarket(params?: MarketFetchParams): Promise<UnifiedMarket>
 **Example:**
 
 ```typescript
-// Fetch by market ID
-const market = await exchange.fetchMarket({ marketId: '663583' });
-
-// Fetch by outcome ID
-const market = await exchange.fetchMarket({ outcomeId: '10991849...' });
+await exchange.fetchMarket()
 ```
 
 
@@ -310,8 +294,7 @@ async fetchEvent(params?: EventFetchParams): Promise<UnifiedEvent>
 **Example:**
 
 ```typescript
-// Fetch by event ID
-const event = await exchange.fetchEvent({ eventId: 'TRUMP25DEC' });
+await exchange.fetchEvent()
 ```
 
 
@@ -337,14 +320,7 @@ async fetchOHLCV(id: string, params: OHLCVParams): Promise<PriceCandle[]>
 **Example:**
 
 ```typescript
-// Fetch hourly candles
-const markets = await exchange.fetchMarkets({ query: 'Trump' });
-const outcomeId = markets[0].yes.outcomeId;
-const candles = await exchange.fetchOHLCV(outcomeId, {
-  resolution: '1h',
-  limit: 100
-});
-console.log(`Latest close: ${candles[candles.length - 1].close}`);
+await exchange.fetchOHLCV("12345", "...")
 ```
 
 **Notes:**
@@ -373,11 +349,7 @@ async fetchOrderBook(id: string): Promise<OrderBook>
 **Example:**
 
 ```typescript
-// Fetch order book
-const book = await exchange.fetchOrderBook(outcome.outcomeId);
-console.log(`Best bid: ${book.bids[0].price}`);
-console.log(`Best ask: ${book.asks[0].price}`);
-console.log(`Spread: ${(book.asks[0].price - book.bids[0].price) * 100}%`);
+await exchange.fetchOrderBook("12345")
 ```
 
 
@@ -403,11 +375,7 @@ async fetchTrades(id: string, params: TradesParams | HistoryFilterParams): Promi
 **Example:**
 
 ```typescript
-// Fetch recent trades
-const trades = await exchange.fetchTrades(outcome.outcomeId, { limit: 100 });
-for (const trade of trades) {
-  console.log(`${trade.side} ${trade.amount} @ ${trade.price}`);
-}
+await exchange.fetchTrades("12345", "...")
 ```
 
 **Notes:**
@@ -434,25 +402,7 @@ async createOrder(params: CreateOrderParams): Promise<Order>
 **Example:**
 
 ```typescript
-// Place a limit order
-const order = await exchange.createOrder({
-  marketId: market.marketId,
-  outcomeId: market.yes.outcomeId,
-  side: 'buy',
-  type: 'limit',
-  amount: 10,
-  price: 0.55
-});
-console.log(`Order ${order.id}: ${order.status}`);
-
-// Place a market order
-const order = await exchange.createOrder({
-  marketId: market.marketId,
-  outcomeId: market.yes.outcomeId,
-  side: 'buy',
-  type: 'market',
-  amount: 5
-});
+await exchange.createOrder()
 ```
 
 
@@ -477,17 +427,7 @@ async buildOrder(params: CreateOrderParams): Promise<BuiltOrder>
 **Example:**
 
 ```typescript
-// Build then inspect a Polymarket order
-const built = await exchange.buildOrder({
-  marketId: market.marketId,
-  outcomeId: market.yes.outcomeId,
-  side: 'buy',
-  type: 'limit',
-  amount: 10,
-  price: 0.55
-});
-console.log(built.signedOrder); // EIP-712 signed order struct
-const order = await exchange.submitOrder(built);
+await exchange.buildOrder()
 ```
 
 
@@ -512,10 +452,7 @@ async submitOrder(built: BuiltOrder): Promise<Order>
 **Example:**
 
 ```typescript
-// Submit a pre-built order
-const built = await exchange.buildOrder(params);
-const order = await exchange.submitOrder(built);
-console.log(`Order ${order.id}: ${order.status}`);
+await exchange.submitOrder("...")
 ```
 
 
@@ -540,9 +477,7 @@ async cancelOrder(orderId: string): Promise<Order>
 **Example:**
 
 ```typescript
-// Cancel an order
-const cancelled = await exchange.cancelOrder('order-123');
-console.log(cancelled.status); // 'cancelled'
+await exchange.cancelOrder("ord-001")
 ```
 
 
@@ -567,9 +502,7 @@ async fetchOrder(orderId: string): Promise<Order>
 **Example:**
 
 ```typescript
-// Fetch order status
-const order = await exchange.fetchOrder('order-456');
-console.log(`Filled: ${order.filled}/${order.amount}`);
+await exchange.fetchOrder("ord-001")
 ```
 
 
@@ -594,14 +527,7 @@ async fetchOpenOrders(marketId?: string): Promise<Order[]>
 **Example:**
 
 ```typescript
-// Fetch all open orders
-const orders = await exchange.fetchOpenOrders();
-for (const order of orders) {
-  console.log(`${order.side} ${order.amount} @ ${order.price}`);
-}
-
-// Fetch orders for a specific market
-const orders = await exchange.fetchOpenOrders('FED-25JAN');
+await exchange.fetchOpenOrders({ marketId: "12345" })
 ```
 
 
@@ -626,12 +552,7 @@ async fetchPositions(address?: string): Promise<Position[]>
 **Example:**
 
 ```typescript
-// Fetch positions
-const positions = await exchange.fetchPositions();
-for (const pos of positions) {
-  console.log(`${pos.outcomeLabel}: ${pos.size} @ $${pos.entryPrice}`);
-  console.log(`Unrealized P&L: $${pos.unrealizedPnL.toFixed(2)}`);
-}
+await exchange.fetchPositions({ address: "0xabc..." })
 ```
 
 
@@ -656,9 +577,7 @@ async fetchBalance(address?: string): Promise<Balance[]>
 **Example:**
 
 ```typescript
-// Fetch balance
-const balances = await exchange.fetchBalance();
-console.log(`Available: $${balances[0].available}`);
+await exchange.fetchBalance({ address: "0xabc..." })
 ```
 
 
@@ -685,10 +604,7 @@ async getExecutionPrice(orderBook: OrderBook, side: 'buy' | 'sell', amount: numb
 **Example:**
 
 ```typescript
-// Get execution price
-const book = await exchange.fetchOrderBook(outcome.outcomeId);
-const price = exchange.getExecutionPrice(book, 'buy', 100);
-console.log(`Avg price for 100 contracts: ${price}`);
+await exchange.getExecutionPrice("...", "buy", 50)
 ```
 
 
@@ -715,12 +631,7 @@ async getExecutionPriceDetailed(orderBook: OrderBook, side: 'buy' | 'sell', amou
 **Example:**
 
 ```typescript
-// Get detailed execution price
-const book = await exchange.fetchOrderBook(outcome.outcomeId);
-const result = exchange.getExecutionPriceDetailed(book, 'buy', 100);
-console.log(`Price: ${result.price}`);
-console.log(`Filled: ${result.filledAmount}/${100}`);
-console.log(`Fully filled: ${result.fullyFilled}`);
+await exchange.getExecutionPriceDetailed("...", "buy", 50)
 ```
 
 
@@ -746,20 +657,7 @@ async filterMarkets(markets: UnifiedMarket[], criteria: string | MarketFilterCri
 **Example:**
 
 ```typescript
-// Simple text search
-const filtered = exchange.filterMarkets(markets, 'Trump');
-
-// Advanced criteria
-const undervalued = exchange.filterMarkets(markets, {
-  text: 'Election',
-  volume24h: { min: 10000 },
-  price: { outcome: 'yes', max: 0.4 }
-});
-
-// Custom predicate
-const volatile = exchange.filterMarkets(markets,
-  m => m.yes?.priceChange24h < -0.1
-);
+await exchange.filterMarkets("...", "...")
 ```
 
 
@@ -785,11 +683,7 @@ async filterEvents(events: UnifiedEvent[], criteria: string | EventFilterCriteri
 **Example:**
 
 ```typescript
-// Filter by category
-const filtered = exchange.filterEvents(events, {
-  category: 'Politics',
-  marketCount: { min: 5 }
-});
+await exchange.filterEvents("...", "...")
 ```
 
 
@@ -815,11 +709,7 @@ async watchOrderBook(id: string, limit?: number): Promise<OrderBook>
 **Example:**
 
 ```typescript
-// Stream order book
-while (true) {
-  const book = await exchange.watchOrderBook(outcome.outcomeId);
-  console.log(`Bid: ${book.bids[0]?.price} Ask: ${book.asks[0]?.price}`);
-}
+await exchange.watchOrderBook("12345", { limit: 10 })
 ```
 
 
@@ -847,13 +737,7 @@ async watchTrades(id: string, address?: string, since?: number, limit?: number):
 **Example:**
 
 ```typescript
-// Stream trades
-while (true) {
-  const trades = await exchange.watchTrades(outcome.outcomeId);
-  for (const trade of trades) {
-    console.log(`${trade.side} ${trade.amount} @ ${trade.price}`);
-  }
-}
+await exchange.watchTrades("12345", { address: "0xabc...", since: "..." })
 ```
 
 
@@ -879,11 +763,7 @@ async watchAddress(address: string, types?: SubscriptionOption[]): Promise<Subsc
 **Example:**
 
 ```typescript
-// Stream wallet activity
-while (true) {
-  const activity = await exchange.watchAddress('0xabc...', ['trades', 'positions']);
-  console.log(activity.trades, activity.positions);
-}
+await exchange.watchAddress("0xabc...", { types: "..." })
 ```
 
 
@@ -908,8 +788,7 @@ async unwatchAddress(address: string): Promise<void>
 **Example:**
 
 ```typescript
-// Stop watching
-await exchange.unwatchAddress('0xabc...');
+await exchange.unwatchAddress("0xabc...")
 ```
 
 
@@ -934,8 +813,7 @@ async close(): Promise<void>
 **Example:**
 
 ```typescript
-// Close connections
-await exchange.close();
+await exchange.close()
 ```
 
 
@@ -963,10 +841,7 @@ async watchPrices(marketAddress: string, callback: (data: any)): Promise<void>
 **Example:**
 
 ```typescript
-// Watch prices
-await exchange.watchPrices(marketAddress, (data) => {
-  console.log('Price update:', data);
-});
+await exchange.watchPrices("...", "...")
 ```
 
 
@@ -993,10 +868,7 @@ async watchUserPositions(callback: (data: any)): Promise<void>
 **Example:**
 
 ```typescript
-// Watch positions
-await exchange.watchUserPositions((data) => {
-  console.log('Position update:', data);
-});
+await exchange.watchUserPositions("...")
 ```
 
 
@@ -1023,10 +895,7 @@ async watchUserTransactions(callback: (data: any)): Promise<void>
 **Example:**
 
 ```typescript
-// Watch transactions
-await exchange.watchUserTransactions((data) => {
-  console.log('Transaction:', data);
-});
+await exchange.watchUserTransactions("...")
 ```
 
 
@@ -1053,7 +922,7 @@ async initAuth(): Promise<void>
 **Example:**
 
 ```typescript
-// No example available
+await exchange.initAuth()
 ```
 
 
@@ -1080,11 +949,7 @@ async preWarmMarket(outcomeId: string): Promise<void>
 **Example:**
 
 ```typescript
-// Pre-warm before placing orders
-const markets = await exchange.fetchMarkets({ query: 'Trump' });
-const outcomeId = markets[0].outcomes[0].outcomeId;
-await exchange.preWarmMarket(outcomeId);
-// Subsequent createOrder calls are faster
+await exchange.preWarmMarket("abc123")
 ```
 
 
@@ -1111,12 +976,7 @@ async getEventById(id: string): Promise<UnifiedEvent | null>
 **Example:**
 
 ```typescript
-// Get event by ID
-const event = await exchange.getEventById('42');
-if (event) {
-  console.log(event.title);
-  console.log(event.markets.length, 'markets');
-}
+await exchange.getEventById("12345")
 ```
 
 
@@ -1143,11 +1003,7 @@ async getEventBySlug(slug: string): Promise<UnifiedEvent | null>
 **Example:**
 
 ```typescript
-// Get event by slug
-const event = await exchange.getEventBySlug('trump-2024-election');
-if (event) {
-  console.log(event.title);
-}
+await exchange.getEventBySlug("will-trump-win")
 ```
 
 
@@ -1213,27 +1069,27 @@ positions.forEach(pos => {
 ```typescript
 interface UnifiedMarket {
 marketId: string; // The unique identifier for this market
-title: string; // 
-description: string; // 
-slug: string; // 
-outcomes: MarketOutcome[]; // 
 eventId: string; // Link to parent event
-resolutionDate: string; // 
-volume24h: number; // 
-volume: number; // 
-liquidity: number; // 
-openInterest: number; // 
-url: string; // 
-image: string; // 
-category: string; // 
-tags: string[]; // 
+title: string; // The market title (e.g., "Will BTC close above $100k on Dec 31?").
+description: string; // Long-form market description or resolution criteria.
+slug: string; // URL-friendly slug for the market.
+outcomes: MarketOutcome[]; // The possible outcomes for this market.
+resolutionDate: string; // When the market is scheduled to resolve.
+volume24h: number; // Trading volume over the past 24 hours (USD).
+volume: number; // Total / Lifetime volume
+liquidity: number; // Current market liquidity (USD).
+openInterest: number; // Total value of outstanding contracts (USD).
+url: string; // Canonical URL to view the market on the venue.
+image: string; // Optional image URL for the market.
+category: string; // Optional category label (e.g., "Politics", "Crypto").
+tags: string[]; // Optional list of tags associated with the market.
 tickSize: number; // Minimum price increment (e.g., 0.01, 0.001)
 status: string; // Venue-native lifecycle status (e.g. 'active', 'closed', 'archived').
 contractAddress: string; // On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.).
-yes: MarketOutcome; // 
-no: MarketOutcome; // 
-up: MarketOutcome; // 
-down: MarketOutcome; // 
+yes: any; // Convenience accessor for the YES outcome on a binary market.
+no: any; // Convenience accessor for the NO outcome on a binary market.
+up: any; // Convenience accessor for the UP outcome on a binary market.
+down: any; // Convenience accessor for the DOWN outcome on a binary market.
 }
 ```
 
@@ -1245,10 +1101,10 @@ down: MarketOutcome; //
 ```typescript
 interface MarketOutcome {
 outcomeId: string; // Outcome ID for trading operations (CLOB Token ID for Polymarket, Market Ticker for Kalshi)
-marketId: string; // The market this outcome belongs to (set automatically)
-label: string; // 
-price: number; // 
-priceChange24h: number; // 
+marketId: string; // The market this outcome belongs to (set automatically when outcomes are built)
+label: string; // Human-readable outcome label (e.g., "Yes", "No", candidate name).
+price: number; // Probability between 0.0 and 1.0.
+priceChange24h: number; // Change in price over the past 24 hours, as an absolute probability delta.
 metadata: object; // Exchange-specific metadata (e.g., clobTokenId for Polymarket)
 }
 ```
@@ -1256,21 +1112,21 @@ metadata: object; // Exchange-specific metadata (e.g., clobTokenId for Polymarke
 ---
 ### `UnifiedEvent`
 
-A grouped collection of related markets (e.g., "Who will be Fed Chair?" contains multiple candidate markets)
+A grouped collection of related markets (e.g., "Who will be Fed Chair?" contains multiple candidate markets).
 
 ```typescript
 interface UnifiedEvent {
-id: string; // 
-title: string; // 
-description: string; // 
-slug: string; // 
-markets: UnifiedMarket[]; // 
-volume24h: number; // 
+id: string; // The unique identifier for this event.
+title: string; // The event title (e.g., "Who will be Fed Chair?").
+description: string; // Long-form event description.
+slug: string; // URL-friendly slug for the event.
+markets: UnifiedMarket[]; // Markets grouped under this event.
+volume24h: number; // Trading volume over the past 24 hours (USD).
 volume: number; // Total / Lifetime volume (sum across markets; undefined if no market provides it)
-url: string; // 
-image: string; // 
-category: string; // 
-tags: string[]; // 
+url: string; // Canonical URL to view the event on the venue.
+image: string; // Optional image URL for the event.
+category: string; // Optional category label (e.g., "Politics", "Sports").
+tags: string[]; // Optional list of tags associated with the event.
 }
 ```
 
@@ -1281,12 +1137,12 @@ tags: string[]; //
 
 ```typescript
 interface PriceCandle {
-timestamp: number; // 
-open: number; // 
-high: number; // 
-low: number; // 
-close: number; // 
-volume: number; // 
+timestamp: number; // Unix timestamp in milliseconds marking the start of the candle.
+open: number; // Opening price for the interval (probability between 0.0 and 1.0).
+high: number; // Highest price during the interval (probability between 0.0 and 1.0).
+low: number; // Lowest price during the interval (probability between 0.0 and 1.0).
+close: number; // Closing price for the interval (probability between 0.0 and 1.0).
+volume: number; // Trading volume during the interval.
 }
 ```
 
@@ -1297,9 +1153,9 @@ volume: number; //
 
 ```typescript
 interface OrderBook {
-bids: OrderLevel[]; // 
-asks: OrderLevel[]; // 
-timestamp: number; // 
+bids: OrderLevel[]; // Order book bid levels, sorted by price descending.
+asks: OrderLevel[]; // Order book ask levels, sorted by price ascending.
+timestamp: number; // Unix timestamp in milliseconds when the snapshot was taken.
 }
 ```
 
@@ -1310,8 +1166,8 @@ timestamp: number; //
 
 ```typescript
 interface OrderLevel {
-price: number; // 
-size: number; // 
+price: number; // 0.0 to 1.0 (probability)
+size: number; // contracts/shares
 }
 ```
 
@@ -1322,11 +1178,12 @@ size: number; //
 
 ```typescript
 interface Trade {
-id: string; // 
-price: number; // 
-amount: number; // 
-side: string; // 
-timestamp: number; // 
+id: string; // The unique identifier for this trade.
+timestamp: number; // Unix timestamp in milliseconds when the trade executed.
+price: number; // Probability between 0.0 and 1.0.
+amount: number; // Size of the trade in contracts/shares.
+side: string; // Trade side from the taker's perspective.
+outcomeId: string; // The outcome this trade is for (if known).
 }
 ```
 
@@ -1337,14 +1194,13 @@ timestamp: number; //
 
 ```typescript
 interface UserTrade {
-id: string; // 
-price: number; // 
-amount: number; // 
-side: string; // 
-timestamp: number; // 
-orderId: string; // 
-outcomeId: string; // 
-marketId: string; // 
+id: string; // The unique identifier for this trade.
+timestamp: number; // Unix timestamp in milliseconds when the trade executed.
+price: number; // Probability between 0.0 and 1.0.
+amount: number; // Size of the trade in contracts/shares.
+side: string; // Trade side from the taker's perspective.
+outcomeId: string; // The outcome this trade is for (if known).
+orderId: string; // The order that produced this trade, if known.
 }
 ```
 
@@ -1355,18 +1211,18 @@ marketId: string; //
 
 ```typescript
 interface Order {
-id: string; // 
-marketId: string; // 
-outcomeId: string; // 
-side: string; // 
-type: string; // 
-price: number; // 
-amount: number; // 
-status: string; // 
-filled: number; // 
-remaining: number; // 
-timestamp: number; // 
-fee: number; // 
+id: string; // The exchange-assigned order identifier.
+marketId: string; // The market this order was placed on.
+outcomeId: string; // The outcome this order was placed on.
+side: string; // Order side: buy or sell.
+type: string; // Order type: market (execute immediately) or limit (resting at a price).
+price: number; // For limit orders
+amount: number; // Size in contracts/shares
+status: string; // Lifecycle status of the order.
+filled: number; // Amount filled
+remaining: number; // Amount remaining
+timestamp: number; // Unix timestamp in milliseconds when the order was created.
+fee: number; // Fee paid for this order, if known.
 }
 ```
 
@@ -1377,14 +1233,14 @@ fee: number; //
 
 ```typescript
 interface Position {
-marketId: string; // 
-outcomeId: string; // 
-outcomeLabel: string; // 
-size: number; // 
-entryPrice: number; // 
-currentPrice: number; // 
-unrealizedPnL: number; // 
-realizedPnL: number; // 
+marketId: string; // The market this position is held in.
+outcomeId: string; // The outcome this position is held in.
+outcomeLabel: string; // Human-readable label for the outcome held.
+size: number; // Positive for long, negative for short
+entryPrice: number; // Average entry price for the position (probability between 0.0 and 1.0).
+currentPrice: number; // Current mark price for the position (probability between 0.0 and 1.0).
+unrealizedPnL: number; // Unrealized profit or loss at the current price (USD).
+realizedPnL: number; // Realized profit or loss booked so far (USD).
 }
 ```
 
@@ -1395,10 +1251,10 @@ realizedPnL: number; //
 
 ```typescript
 interface Balance {
-currency: string; // 
-total: number; // 
-available: number; // 
-locked: number; // 
+currency: string; // e.g., 'USDC'
+total: number; // Total balance including funds locked in open orders.
+available: number; // Balance available to trade (excludes locked funds).
+locked: number; // In open orders
 }
 ```
 
@@ -1418,27 +1274,27 @@ fullyFilled: boolean; //
 ---
 ### `PaginatedMarketsResult`
 
-
+Shape returned by fetchMarketsPaginated
 
 ```typescript
 interface PaginatedMarketsResult {
-data: UnifiedMarket[]; // 
-total: number; // 
-nextCursor: string; // 
+data: UnifiedMarket[]; // The page of unified markets
+total: number; // Total number of markets in the snapshot
+nextCursor: string; // Cursor to pass to the next call, or undefined if this is the last page
 }
 ```
 
 ---
 ### `BuiltOrder`
 
-An order built but not yet submitted, ready for inspection or middleware forwarding
+
 
 ```typescript
 interface BuiltOrder {
-exchange: string; // The exchange name this order was built for
-params: CreateOrderParams; // 
-signedOrder: object; // For CLOB exchanges (Polymarket): the EIP-712 signed order ready to POST
-tx: object; // For on-chain AMM exchanges: the EVM transaction payload (reserved for future use)
+exchange: string; // The exchange name this order was built for.
+params: any; // The original params used to build this order.
+signedOrder: object; // For CLOB exchanges (Polymarket): the EIP-712 signed order ready to POST to the exchange's order endpoint.
+tx: object; // For on-chain AMM exchanges: the EVM transaction payload. Reserved for future exchanges; no current exchange populates this.
 raw: any; // The raw, exchange-native payload. Always present.
 }
 ```
@@ -1446,16 +1302,17 @@ raw: any; // The raw, exchange-native payload. Always present.
 ---
 ### `ExchangeCredentials`
 
-Optional authentication credentials for exchange operations
+Optional authentication credentials for exchange operations.
 
 ```typescript
 interface ExchangeCredentials {
-apiKey: string; // API key for the exchange
-privateKey: string; // Private key for signing transactions
-apiSecret: string; // API secret (if required by exchange)
-passphrase: string; // Passphrase (if required by exchange)
-funderAddress: string; // The address funding the trades (Proxy address)
-signatureType: any; // Signature type (0=EOA, 1=Poly Proxy, 2=Gnosis Safe, or names like 'gnosis_safe')
+apiKey: string; // 
+apiSecret: string; // Standard API secret for HMAC-authenticated exchanges
+passphrase: string; // Standard API passphrase for HMAC-authenticated exchanges
+apiToken: string; // Metaculus: `Authorization: Token <apiToken>` for higher rate limits
+privateKey: string; // Required for Polymarket L1 auth
+signatureType: any; // 0 = EOA, 1 = Poly Proxy, 2 = Gnosis Safe (Can also use 'eoa', 'polyproxy', 'gnosis_safe')
+funderAddress: string; // The address funding the trades (defaults to signer address)
 }
 ```
 
@@ -1480,18 +1337,18 @@ credentials?: ExchangeCredentials; //
 
 ```typescript
 interface MarketFilterParams {
-limit?: number; // 
-offset?: number; // 
-sort?: string; // 
-status?: string; // Filter by market status (default: active)
-searchIn?: string; // 
-query?: string; // 
-slug?: string; // 
+limit?: number; // Maximum number of results to return
+offset?: number; // Pagination offset — number of results to skip
+sort?: string; // Sort order for results
+status?: string; // Filter by market status (default: 'active', 'inactive' and 'closed' are interchangeable)
+searchIn?: string; // Where to search (default: 'title')
+query?: string; // For keyword search
+slug?: string; // For slug/ticker lookup
 marketId?: string; // Direct lookup by market ID
 outcomeId?: string; // Reverse lookup -- find market containing this outcome
 eventId?: string; // Find markets belonging to an event
-page?: number; // 
-similarityThreshold?: number; // 
+page?: number; // For pagination (used by Limitless)
+similarityThreshold?: number; // For semantic search (used by Limitless)
 }
 ```
 
@@ -1502,12 +1359,12 @@ similarityThreshold?: number; //
 
 ```typescript
 interface EventFetchParams {
-query?: string; // 
-sort?: string; // 
-limit?: number; // 
-offset?: number; // 
-status?: string; // Filter by event status (default: active)
-searchIn?: string; // 
+query?: string; // For keyword search
+limit?: number; // Maximum number of results to return
+offset?: number; // Pagination offset — number of results to skip
+sort?: string; // Sort order for results
+status?: string; // Filter by event status (default: 'active', 'inactive' and 'closed' are interchangeable)
+searchIn?: string; // Where to search (default: 'title')
 eventId?: string; // Direct lookup by event ID
 slug?: string; // Lookup by event slug
 }
@@ -1520,10 +1377,10 @@ Deprecated - use OHLCVParams or TradesParams instead. Resolution is optional for
 
 ```typescript
 interface HistoryFilterParams {
-resolution?: string; // 
-start?: string; // 
-end?: string; // 
-limit?: number; // 
+resolution?: string; // Optional for backward compatibility
+start?: string; // Start of the time range
+end?: string; // End of the time range
+limit?: number; // Maximum number of results to return
 }
 ```
 
@@ -1534,10 +1391,10 @@ limit?: number; //
 
 ```typescript
 interface OHLCVParams {
-resolution: string; // Candle interval for aggregation
-start?: string; // 
-end?: string; // 
-limit?: number; // 
+resolution: string; // Required for candle aggregation
+start?: string; // Start of the time range
+end?: string; // End of the time range
+limit?: number; // Maximum number of results to return
 }
 ```
 
@@ -1548,9 +1405,9 @@ Parameters for fetching trade history. No resolution parameter - trades are disc
 
 ```typescript
 interface TradesParams {
-start?: string; // 
-end?: string; // 
-limit?: number; // 
+start?: string; // Start of the time range
+end?: string; // End of the time range
+limit?: number; // Maximum number of results to return
 }
 ```
 
@@ -1561,13 +1418,13 @@ limit?: number; //
 
 ```typescript
 interface CreateOrderParams {
-marketId: string; // 
-outcomeId: string; // 
-side: string; // 
-type: string; // 
-amount: number; // 
-price?: number; // 
-fee?: number; // 
+marketId: string; // The market to trade on.
+outcomeId: string; // The outcome to trade.
+side: string; // Order side: buy or sell.
+type: string; // Order type: market (execute immediately) or limit (resting at a price).
+amount: number; // Size of the order in contracts/shares.
+price?: number; // Required for limit orders
+fee?: number; // Optional fee rate (e.g., 1000 for 0.1%)
 tickSize?: number; // Optional override for Limitless/Polymarket
 negRisk?: boolean; // Optional override to skip neg-risk lookup (Polymarket)
 }
@@ -1580,12 +1437,12 @@ negRisk?: boolean; // Optional override to skip neg-risk lookup (Polymarket)
 
 ```typescript
 interface MyTradesParams {
-outcomeId?: string; // Filter to specific outcome/ticker
-marketId?: string; // Filter to specific market
-since?: string; // 
-until?: string; // 
-limit?: number; // 
-cursor?: string; // For Kalshi cursor pagination
+outcomeId?: string; // filter to specific outcome/ticker
+marketId?: string; // filter to specific market
+since?: string; // Only return records after this date
+until?: string; // Only return records before this date
+limit?: number; // Maximum number of results to return
+cursor?: string; // for Kalshi cursor pagination
 }
 ```
 
@@ -1596,11 +1453,11 @@ cursor?: string; // For Kalshi cursor pagination
 
 ```typescript
 interface OrderHistoryParams {
-marketId?: string; // Required for Limitless (slug)
-since?: string; // 
-until?: string; // 
-limit?: number; // 
-cursor?: string; // 
+marketId?: string; // required for Limitless (slug)
+since?: string; // Only return records after this date
+until?: string; // Only return records before this date
+limit?: number; // Maximum number of results to return
+cursor?: string; // Opaque pagination cursor from a previous response
 }
 ```
 

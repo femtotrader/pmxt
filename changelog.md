@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.27.9] - 2026-04-10
+
+### Fixed
+
+- **`watch_order_book` returns "Unauthorized: Invalid or missing access token" despite valid credentials** (issue #76): Eight methods in both the Python and TypeScript SDKs — `watchOrderBook`, `watchTrades`, `watchAddress`, `unwatchAddress`, `watchPrices`, `watchUserPositions`, `watchUserTransactions`, `createOrder`, `buildOrder`, and `submitOrder` — were dispatched through the auto-generated `DefaultApi` client, which does not attach the `x-pmxt-access-token` header required by the sidecar's auth middleware. All other methods (e.g. `fetchOrderBook`, `cancelOrder`) already used direct HTTP calls with the access token. Replaced every `self._api.*` / `this.api.*` call site with the same manual `call_api()` / `fetch()` pattern used by working methods, ensuring `_get_auth_headers()` / `getAuthHeaders()` is called on every request.
+
 ## [2.27.8] - 2026-04-10
 
 ### Fixed

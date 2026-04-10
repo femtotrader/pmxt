@@ -953,17 +953,20 @@ export abstract class Exchange {
                 args.push(limit);
             }
 
-            const requestBody: any = {
-                args,
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.watchOrderBook({
-                exchange: this.exchangeName as any,
-                watchOrderBookRequest: requestBody,
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/watchOrderBook`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
             });
-
-            const data = this.handleResponse(response);
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                if (body.error && typeof body.error === "object") {
+                    throw fromServerError(body.error);
+                }
+                throw new PmxtError(body.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
             return convertOrderBook(data);
         } catch (error) {
             if (error instanceof PmxtError) throw error;
@@ -1014,17 +1017,20 @@ export abstract class Exchange {
                 args.push(limit);
             }
 
-            const requestBody: any = {
-                args,
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.watchTrades({
-                exchange: this.exchangeName as any,
-                watchTradesRequest: requestBody,
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/watchTrades`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
             });
-
-            const data = this.handleResponse(response);
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                if (body.error && typeof body.error === "object") {
+                    throw fromServerError(body.error);
+                }
+                throw new PmxtError(body.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
             return data.map(convertTrade);
         } catch (error) {
             if (error instanceof PmxtError) throw error;
@@ -1063,17 +1069,20 @@ export abstract class Exchange {
             if (types !== undefined) {
                 args.push(types);
             }
-            const requestBody: any = {
-                args,
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.watchAddress({
-                exchange: this.exchangeName as any,
-                watchAddressRequest: requestBody,
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/watchAddress`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
             });
-
-            const data = this.handleResponse(response);
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                if (body.error && typeof body.error === "object") {
+                    throw fromServerError(body.error);
+                }
+                throw new PmxtError(body.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
             return convertSubscriptionSnapshot(data);
         } catch (error) {
             if (error instanceof PmxtError) throw error;
@@ -1094,17 +1103,20 @@ export abstract class Exchange {
         try {
             const args: any[] = [address];
 
-            const requestBody: any = {
-                args,
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.unwatchAddress({
-                exchange: this.exchangeName as any,
-                unwatchAddressRequest: requestBody,
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/unwatchAddress`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
             });
-
-            return this.handleResponse(response);
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                if (body.error && typeof body.error === "object") {
+                    throw fromServerError(body.error);
+                }
+                throw new PmxtError(body.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            return this.handleResponse(json);
         } catch (error) {
             if (error instanceof PmxtError) throw error;
             throw new PmxtError(`Failed to unwatch address: ${error}`);
@@ -1185,17 +1197,20 @@ export abstract class Exchange {
                 paramsDict.fee = params.fee;
             }
 
-            const requestBody: BuildOrderRequest = {
-                args: [paramsDict],
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.buildOrder({
-                exchange: this.exchangeName as any,
-                buildOrderRequest: requestBody,
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/buildOrder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
+                body: JSON.stringify({ args: [paramsDict], credentials: this.getCredentials() }),
             });
-
-            const data = this.handleResponse(response);
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                if (body.error && typeof body.error === "object") {
+                    throw fromServerError(body.error);
+                }
+                throw new PmxtError(body.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
             return data as BuiltOrder;
         } catch (error) {
             if (error instanceof PmxtError) throw error;
@@ -1225,17 +1240,20 @@ export abstract class Exchange {
     async submitOrder(built: BuiltOrder): Promise<Order> {
         await this.initPromise;
         try {
-            const requestBody: SubmitOrderRequest = {
-                args: [built as any],
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.submitOrder({
-                exchange: this.exchangeName as any,
-                submitOrderRequest: requestBody,
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/submitOrder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
+                body: JSON.stringify({ args: [built as any], credentials: this.getCredentials() }),
             });
-
-            const data = this.handleResponse(response);
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                if (body.error && typeof body.error === "object") {
+                    throw fromServerError(body.error);
+                }
+                throw new PmxtError(body.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
             return convertOrder(data);
         } catch (error) {
             if (error instanceof PmxtError) throw error;
@@ -1298,17 +1316,20 @@ export abstract class Exchange {
                 paramsDict.fee = params.fee;
             }
 
-            const requestBody: CreateOrderRequest = {
-                args: [paramsDict],
-                credentials: this.getCredentials()
-            };
-
-            const response = await this.api.createOrder({
-                exchange: this.exchangeName as any,
-                createOrderRequest: requestBody,
+            const response = await fetch(`${this.config.basePath}/api/${this.exchangeName}/createOrder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
+                body: JSON.stringify({ args: [paramsDict], credentials: this.getCredentials() }),
             });
-
-            const data = this.handleResponse(response);
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                if (body.error && typeof body.error === "object") {
+                    throw fromServerError(body.error);
+                }
+                throw new PmxtError(body.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
             return convertOrder(data);
         } catch (error) {
             if (error instanceof PmxtError) throw error;

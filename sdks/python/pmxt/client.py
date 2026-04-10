@@ -1255,25 +1255,29 @@ class Exchange(ABC):
         """
         try:
             outcome_id = _resolve_outcome_id(outcome_id)
-            args = [outcome_id]
+            args: List[Any] = [outcome_id]
             if limit is not None:
                 args.append(limit)
 
-            body_dict = {"args": args}
+            body: Dict[str, Any] = {"args": args}
 
             # Add credentials if available
             creds = self._get_credentials_dict()
             if creds:
-                body_dict["credentials"] = creds
+                body["credentials"] = creds
 
-            request_body = internal_models.WatchOrderBookRequest.from_dict(body_dict)
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
 
-            response = self._api.watch_order_book(
-                exchange=self.exchange_name,
-                watch_order_book_request=request_body,
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/watchOrderBook"
+            response = self._api_client.call_api(
+                method="POST",
+                url=url,
+                body=body,
+                header_params=headers,
             )
-
-            data = self._handle_response(response.to_dict())
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return _convert_order_book(data)
         except ApiException as e:
             raise self._parse_api_exception(e) from None
@@ -1309,7 +1313,7 @@ class Exchange(ABC):
         """
         try:
             outcome_id = _resolve_outcome_id(outcome_id)
-            args = [outcome_id]
+            args: List[Any] = [outcome_id]
             if address is not None:
                 args.append(address)
             if since is not None:
@@ -1317,21 +1321,25 @@ class Exchange(ABC):
             if limit is not None:
                 args.append(limit)
 
-            body_dict = {"args": args}
+            body: Dict[str, Any] = {"args": args}
 
             # Add credentials if available
             creds = self._get_credentials_dict()
             if creds:
-                body_dict["credentials"] = creds
+                body["credentials"] = creds
 
-            request_body = internal_models.WatchTradesRequest.from_dict(body_dict)
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
 
-            response = self._api.watch_trades(
-                exchange=self.exchange_name,
-                watch_trades_request=request_body,
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/watchTrades"
+            response = self._api_client.call_api(
+                method="POST",
+                url=url,
+                body=body,
+                header_params=headers,
             )
-
-            data = self._handle_response(response.to_dict())
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return [_convert_trade(t) for t in data]
         except ApiException as e:
             raise self._parse_api_exception(e) from None
@@ -1433,21 +1441,25 @@ class Exchange(ABC):
             Next price update
         """
         try:
-            body_dict = {"args": [market_address]}
+            body: Dict[str, Any] = {"args": [market_address]}
 
             # Add credentials if available
             creds = self._get_credentials_dict()
             if creds:
-                body_dict["credentials"] = creds
+                body["credentials"] = creds
 
-            request_body = internal_models.WatchPricesRequest.from_dict(body_dict)
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
 
-            response = self._api.watch_prices(
-                exchange=self.exchange_name,
-                watch_prices_request=request_body,
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/watchPrices"
+            response = self._api_client.call_api(
+                method="POST",
+                url=url,
+                body=body,
+                header_params=headers,
             )
-
-            return self._handle_response(response.to_dict())
+            response.read()
+            return self._handle_response(json.loads(response.data))
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
@@ -1463,21 +1475,25 @@ class Exchange(ABC):
             Next position update
         """
         try:
-            body_dict = {}
+            body: Dict[str, Any] = {"args": []}
 
             # Add credentials (required)
             creds = self._get_credentials_dict()
             if creds:
-                body_dict["credentials"] = creds
+                body["credentials"] = creds
 
-            request_body = internal_models.WatchUserPositionsRequest.from_dict(body_dict)
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
 
-            response = self._api.watch_user_positions(
-                exchange=self.exchange_name,
-                watch_user_positions_request=request_body,
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/watchUserPositions"
+            response = self._api_client.call_api(
+                method="POST",
+                url=url,
+                body=body,
+                header_params=headers,
             )
-
-            data = self._handle_response(response.to_dict())
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return [_convert_position(p) for p in data]
         except ApiException as e:
             raise self._parse_api_exception(e) from None
@@ -1494,21 +1510,25 @@ class Exchange(ABC):
             Next transaction update
         """
         try:
-            body_dict = {}
+            body: Dict[str, Any] = {"args": []}
 
             # Add credentials (required)
             creds = self._get_credentials_dict()
             if creds:
-                body_dict["credentials"] = creds
+                body["credentials"] = creds
 
-            request_body = internal_models.WatchUserPositionsRequest.from_dict(body_dict)
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
 
-            response = self._api.watch_user_transactions(
-                exchange=self.exchange_name,
-                watch_user_positions_request=request_body,
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/watchUserTransactions"
+            response = self._api_client.call_api(
+                method="POST",
+                url=url,
+                body=body,
+                header_params=headers,
             )
-
-            return self._handle_response(response.to_dict())
+            response.read()
+            return self._handle_response(json.loads(response.data))
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
@@ -1593,21 +1613,25 @@ class Exchange(ABC):
             if fee is not None:
                 params_dict["fee"] = fee
 
-            request_body_dict = {"args": [params_dict]}
+            body: Dict[str, Any] = {"args": [params_dict]}
 
             # Add credentials if available
             creds = self._get_credentials_dict()
             if creds:
-                request_body_dict["credentials"] = creds
+                body["credentials"] = creds
 
-            request_body = internal_models.CreateOrderRequest.from_dict(request_body_dict)
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
 
-            response = self._api.create_order(
-                exchange=self.exchange_name,
-                create_order_request=request_body,
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/createOrder"
+            response = self._api_client.call_api(
+                method="POST",
+                url=url,
+                body=body,
+                header_params=headers,
             )
-
-            data = self._handle_response(response.to_dict())
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return _convert_order(data)
         except ApiException as e:
             raise self._parse_api_exception(e) from None
@@ -1697,21 +1721,25 @@ class Exchange(ABC):
             if fee is not None:
                 params_dict["fee"] = fee
 
-            request_body_dict = {"args": [params_dict]}
+            body: Dict[str, Any] = {"args": [params_dict]}
 
             # Add credentials if available
             creds = self._get_credentials_dict()
             if creds:
-                request_body_dict["credentials"] = creds
+                body["credentials"] = creds
 
-            request_body = internal_models.BuildOrderRequest.from_dict(request_body_dict)
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
 
-            response = self._api.build_order(
-                exchange=self.exchange_name,
-                build_order_request=request_body,
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/buildOrder"
+            response = self._api_client.call_api(
+                method="POST",
+                url=url,
+                body=body,
+                header_params=headers,
             )
-
-            data = self._handle_response(response.to_dict())
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return _convert_built_order(data)
         except ApiException as e:
             raise self._parse_api_exception(e) from None
@@ -1748,20 +1776,24 @@ class Exchange(ABC):
             if built.tx is not None:
                 built_dict["tx"] = built.tx
 
-            request_body_dict = {"args": [built_dict]}
+            body: Dict[str, Any] = {"args": [built_dict]}
 
             creds = self._get_credentials_dict()
             if creds:
-                request_body_dict["credentials"] = creds
+                body["credentials"] = creds
 
-            request_body = internal_models.SubmitOrderRequest.from_dict(request_body_dict)
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
 
-            response = self._api.submit_order(
-                exchange=self.exchange_name,
-                submit_order_request=request_body,
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/submitOrder"
+            response = self._api_client.call_api(
+                method="POST",
+                url=url,
+                body=body,
+                header_params=headers,
             )
-
-            data = self._handle_response(response.to_dict())
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return _convert_order(data)
         except ApiException as e:
             raise self._parse_api_exception(e) from None

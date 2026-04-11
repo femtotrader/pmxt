@@ -12,28 +12,15 @@ import { MyriadNormalizer } from './normalizer';
 import { FetcherContext } from '../interfaces';
 
 export class MyriadExchange extends PredictionMarketExchange {
-    override readonly has = {
-        fetchMarkets: true as const,
-        fetchEvents: true as const,
-        fetchOHLCV: true as const,
+    protected override readonly capabilityOverrides = {
         fetchOrderBook: 'emulated' as const,
-        fetchTrades: true as const,
         createOrder: 'emulated' as const,
         cancelOrder: false as const,
         fetchOrder: false as const,
         fetchOpenOrders: 'emulated' as const,
-        fetchPositions: true as const,
         fetchBalance: 'emulated' as const,
-        watchAddress: false as const,
-        unwatchAddress: false as const,
         watchOrderBook: 'emulated' as const,
-        unwatchOrderBook: false as const,
         watchTrades: 'emulated' as const,
-        fetchMyTrades: true as const,
-        fetchClosedOrders: false as const,
-        fetchAllOrders: false as const,
-        buildOrder: false as const,
-        submitOrder: false as const,
     };
 
     private auth?: MyriadAuth;

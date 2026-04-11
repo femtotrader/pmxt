@@ -46,28 +46,8 @@ export interface LimitlessExchangeOptions {
 }
 
 export class LimitlessExchange extends PredictionMarketExchange {
-    override readonly has = {
-        fetchMarkets: true as const,
-        fetchEvents: true as const,
-        fetchOHLCV: true as const,
-        fetchOrderBook: true as const,
-        fetchTrades: true as const,
-        createOrder: true as const,
-        cancelOrder: true as const,
+    protected override readonly capabilityOverrides = {
         fetchOrder: false as const,
-        fetchOpenOrders: true as const,
-        fetchPositions: true as const,
-        fetchBalance: true as const,
-        watchAddress: true as const,
-        unwatchAddress: true as const,
-        watchOrderBook: true as const,
-        unwatchOrderBook: false as const,
-        watchTrades: true as const,
-        fetchMyTrades: true as const,
-        fetchClosedOrders: true as const,
-        fetchAllOrders: true as const,
-        buildOrder: false as const,
-        submitOrder: false as const,
     };
 
     private auth?: LimitlessAuth;

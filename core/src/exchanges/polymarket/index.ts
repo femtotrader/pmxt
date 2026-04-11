@@ -50,30 +50,6 @@ export interface PolymarketExchangeOptions {
 }
 
 export class PolymarketExchange extends PredictionMarketExchange {
-    override readonly has = {
-        fetchMarkets: true as const,
-        fetchEvents: true as const,
-        fetchOHLCV: true as const,
-        fetchOrderBook: true as const,
-        fetchTrades: true as const,
-        createOrder: true as const,
-        cancelOrder: true as const,
-        fetchOrder: true as const,
-        fetchOpenOrders: true as const,
-        fetchPositions: true as const,
-        fetchBalance: true as const,
-        watchAddress: true as const,
-        unwatchAddress: true as const,
-        watchOrderBook: true as const,
-        unwatchOrderBook: true as const,
-        watchTrades: true as const,
-        fetchMyTrades: true as const,
-        fetchClosedOrders: false as const,
-        fetchAllOrders: false as const,
-        buildOrder: true as const,
-        submitOrder: true as const,
-    };
-
     private auth?: PolymarketAuth;
     private wsConfig?: PolymarketWebSocketConfig;
     private cachedApiCreds?: { key: string; secret: string; passphrase: string };

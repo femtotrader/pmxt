@@ -48,30 +48,6 @@ export interface KalshiInternalOptions extends KalshiExchangeOptions {
 }
 
 export class KalshiExchange extends PredictionMarketExchange {
-  override readonly has = {
-    fetchMarkets: true as const,
-    fetchEvents: true as const,
-    fetchOHLCV: true as const,
-    fetchOrderBook: true as const,
-    fetchTrades: true as const,
-    createOrder: true as const,
-    cancelOrder: true as const,
-    fetchOrder: true as const,
-    fetchOpenOrders: true as const,
-    fetchPositions: true as const,
-    fetchBalance: true as const,
-    watchAddress: false as const,
-    unwatchAddress: false as const,
-    watchOrderBook: true as const,
-    unwatchOrderBook: false as const,
-    watchTrades: true as const,
-    fetchMyTrades: true as const,
-    fetchClosedOrders: true as const,
-    fetchAllOrders: true as const,
-    buildOrder: true as const,
-    submitOrder: true as const,
-  };
-
   private auth?: KalshiAuth;
   private wsConfig?: KalshiWebSocketConfig;
   private config: KalshiApiConfig;

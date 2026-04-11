@@ -314,29 +314,28 @@ export abstract class PredictionMarketExchange {
     public markets: Record<string, UnifiedMarket> = {};
     public marketsBySlug: Record<string, UnifiedMarket> = {};
     public loadedMarkets: boolean = false;
-    readonly has: ExchangeHas = {
-        fetchMarkets: false,
-        fetchEvents: false,
-        fetchOHLCV: false,
-        fetchOrderBook: false,
-        fetchTrades: false,
-        createOrder: false,
-        cancelOrder: false,
-        fetchOrder: false,
-        fetchOpenOrders: false,
-        fetchPositions: false,
-        fetchBalance: false,
-        watchAddress: false,
-        unwatchAddress: false,
-        watchOrderBook: false,
-        unwatchOrderBook: false,
-        watchTrades: false,
-        fetchMyTrades: false,
-        fetchClosedOrders: false,
-        fetchAllOrders: false,
-        buildOrder: false,
-        submitOrder: false,
-    };
+    /**
+     * Capability map derived automatically from method overrides at runtime.
+     * Exchanges do NOT need to declare this manually -- if a subclass overrides
+     * a method (and the override does not throw "not supported"), it is `true`.
+     * To mark a capability as `'emulated'`, add its key to `emulatedCapabilities`.
+     */
+    get has(): ExchangeHas {
+        if (!this._has) {
+            this._has = this._deriveCapabilities();
+        }
+        return this._has;
+    }
+    private _has?: ExchangeHas;
+
+    /**
+     * Override in subclasses to force specific capability values.
+     * Use `'emulated'` for methods backed by a non-native mechanism,
+     * or `false` for methods that override the base only to throw a
+     * better error message (e.g. "pari-mutuel bets cannot be cancelled").
+     */
+    protected readonly capabilityOverrides: Partial<Record<keyof ExchangeHas, ExchangeCapability>> = {};
+
     protected credentials?: ExchangeCredentials;
     // Implicit API (merged across multiple defineImplicitApi calls)
     protected apiDescriptor?: ApiDescriptor;
@@ -1252,5 +1251,68 @@ export abstract class PredictionMarketExchange {
                 throw this.mapImplicitApiError(error);
             }
         };
+    }
+
+    // ----------------------------------------------------------------------------
+    // Capability Derivation
+    // ----------------------------------------------------------------------------
+
+    /** All keys that appear in ExchangeHas -- kept in sync via the exhaustive check below. */
+    private static readonly _capabilityKeys: readonly (keyof ExchangeHas)[] = [
+        'fetchMarkets', 'fetchEvents', 'fetchOHLCV', 'fetchOrderBook',
+        'fetchTrades', 'createOrder', 'cancelOrder', 'fetchOrder',
+        'fetchOpenOrders', 'fetchPositions', 'fetchBalance',
+        'watchAddress', 'unwatchAddress', 'watchOrderBook',
+        'unwatchOrderBook', 'watchTrades', 'fetchMyTrades',
+        'fetchClosedOrders', 'fetchAllOrders', 'buildOrder', 'submitOrder',
+    ];
+
+    // Compile-time exhaustiveness check: fails tsc if a key exists in
+    // ExchangeHas but is missing from _capabilityKeys above.
+    private static readonly _exhaustiveCheck: Record<keyof ExchangeHas, true> = {
+        fetchMarkets: true, fetchEvents: true, fetchOHLCV: true,
+        fetchOrderBook: true, fetchTrades: true, createOrder: true,
+        cancelOrder: true, fetchOrder: true, fetchOpenOrders: true,
+        fetchPositions: true, fetchBalance: true, watchAddress: true,
+        unwatchAddress: true, watchOrderBook: true, unwatchOrderBook: true,
+        watchTrades: true, fetchMyTrades: true, fetchClosedOrders: true,
+        fetchAllOrders: true, buildOrder: true, submitOrder: true,
+    };
+
+    /**
+     * Map from capability keys to the actual method(s) whose override status
+     * determines support. Most map 1:1, but `fetchMarkets` and `fetchEvents`
+     * are implemented in the base class and delegate to `*Impl` methods that
+     * exchanges override instead.
+     */
+    private static readonly _capabilityDelegates: Partial<Record<keyof ExchangeHas, string>> = {
+        fetchMarkets: 'fetchMarketsImpl',
+        fetchEvents: 'fetchEventsImpl',
+    };
+
+    /**
+     * Derive the capability map by comparing this instance's prototype chain
+     * against the base class stubs. A method that is overridden (i.e. not the
+     * same function reference as the base stub) is considered supported.
+     *
+     * Explicit `capabilityOverrides` take precedence over introspection.
+     */
+    private _deriveCapabilities(): ExchangeHas {
+        const base = PredictionMarketExchange.prototype;
+        const result = {} as Record<keyof ExchangeHas, ExchangeCapability>;
+
+        for (const key of PredictionMarketExchange._capabilityKeys) {
+            // Explicit override wins unconditionally
+            if (key in this.capabilityOverrides) {
+                result[key] = this.capabilityOverrides[key]!;
+                continue;
+            }
+
+            // Check the delegate method (usually same name, but fetchMarkets -> fetchMarketsImpl)
+            const methodName = PredictionMarketExchange._capabilityDelegates[key] ?? key;
+            result[key] = (this as any)[methodName] !== (base as any)[methodName];
+        }
+
+        return result as ExchangeHas;
     }
 }

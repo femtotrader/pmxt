@@ -58,30 +58,6 @@ export * from './errors';
 export { PolymarketUSNormalizer } from './normalizer';
 
 export class PolymarketUSExchange extends PredictionMarketExchange {
-    override readonly has = {
-        fetchMarkets: true as const,
-        fetchEvents: true as const,
-        fetchOHLCV: false as const,
-        fetchOrderBook: true as const,
-        fetchTrades: false as const,
-        createOrder: true as const,
-        cancelOrder: true as const,
-        fetchOrder: true as const,
-        fetchOpenOrders: true as const,
-        fetchPositions: true as const,
-        fetchBalance: true as const,
-        watchAddress: false as const,
-        unwatchAddress: false as const,
-        watchOrderBook: true as const,
-        unwatchOrderBook: false as const,
-        watchTrades: true as const,
-        fetchMyTrades: true as const,
-        fetchClosedOrders: false as const,
-        fetchAllOrders: false as const,
-        buildOrder: true as const,
-        submitOrder: true as const,
-    };
-
     private readonly client: PolymarketUSClient;
     private readonly normalizer: PolymarketUSNormalizer;
     private readonly config: PolymarketUSConfig;

@@ -50,28 +50,13 @@ export interface BaoziExchangeOptions {
 }
 
 export class BaoziExchange extends PredictionMarketExchange {
-    override readonly has = {
-        fetchMarkets: true as const,
-        fetchEvents: true as const,
+    protected override readonly capabilityOverrides = {
         fetchOHLCV: 'emulated' as const,
         fetchOrderBook: 'emulated' as const,
         fetchTrades: 'emulated' as const,
-        createOrder: true as const,
-        cancelOrder: false as const,
-        fetchOrder: true as const,
         fetchOpenOrders: 'emulated' as const,
-        fetchPositions: true as const,
-        fetchBalance: true as const,
-        watchAddress: false as const,
-        unwatchAddress: false as const,
-        watchOrderBook: true as const,
-        unwatchOrderBook: false as const,
+        cancelOrder: false as const,
         watchTrades: false as const,
-        fetchMyTrades: false as const,
-        fetchClosedOrders: false as const,
-        fetchAllOrders: false as const,
-        buildOrder: false as const,
-        submitOrder: false as const,
     };
 
     private auth?: BaoziAuth;

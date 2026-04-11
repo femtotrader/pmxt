@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.28.1] - 2026-04-11
+
+### Changed
+
+- **`exchange.has` capabilities are now derived from method overrides at runtime**: Removed the manual 21-key `override readonly has = { ... }` block from all 10 exchanges (~240 lines deleted). Capabilities are now computed automatically by `BaseExchange` via prototype introspection — if a subclass overrides a method, `has` reports `true`; if not, `false`. The `fetchMarkets`/`fetchEvents` delegation pattern (base class calls `*Impl`) is handled via a delegate map. For the three exchanges that need `'emulated'` annotations (Baozi, Myriad, Smarkets) or `false` overrides on methods that throw custom errors (e.g. "pari-mutuel bets cannot be cancelled"), a minimal `capabilityOverrides` property replaces the full declaration. Adding a new method to `BaseExchange` no longer requires touching non-implementing exchanges. Verified against old manual declarations for all 10 exchanges — exact match.
+
 ## [2.28.0] - 2026-04-11
 
 ### Added

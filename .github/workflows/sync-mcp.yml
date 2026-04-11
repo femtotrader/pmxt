@@ -67,6 +67,6 @@ jobs:
         run: |
           cd /tmp/pmxt-mcp
           cp ~/.npmrc . 2>/dev/null || echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
-          npm publish --provenance --access public
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

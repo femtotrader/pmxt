@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.28.3] - 2026-04-11
+
+### Fixed
+
+- **Mintlify docs not updating on new releases**: The publish workflow ran `generate:mintlify` to regenerate `docs.json` navigation, but never committed the result back to the repo. Since Mintlify reads `docs.json` from git, the navigation stayed stale after every release. Changed the workflow to amend the tagged commit with the regenerated docs (`docs.json`, `openapi.json`, `venues.mdx`) and force-update the tag, so docs stay in sync without creating extra commits.
+
 ## [2.28.2] - 2026-04-11
 
 ### Changed

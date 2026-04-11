@@ -3,7 +3,7 @@
   "info": {
     "title": "PMXT Hosted API",
     "description": "One API for every prediction market. Cross-venue search in under 10ms, a single unified schema, and the complete venue surface from reads to trades.",
-    "version": "2.27.7"
+    "version": "2.17.1"
   },
   "servers": [
     {
@@ -4998,6 +4998,168 @@
         ]
       }
     },
+    "/api/{exchange}/unwatchOrderBook": {
+      "post": {
+        "summary": "Unwatch Order Book",
+        "operationId": "unwatchOrderBook",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExchangeParam"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UnwatchOrderBookRequest",
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "array",
+                    "maxItems": 1,
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  },
+                  "credentials": {
+                    "$ref": "#/components/schemas/ExchangeCredentials"
+                  }
+                },
+                "required": [
+                  "args"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unwatch Order Book response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Unsubscribe from a previously watched order book stream.",
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "label": "Polymarket",
+            "source": "import pmxt\n\nexchange = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n    proxy_address=\"YOUR_PROXY_ADDRESS\",\n    signature_type=\"gnosis-safe\",\n)\nresult = exchange.unwatch_order_book()"
+          },
+          {
+            "lang": "python",
+            "label": "Limitless",
+            "source": "import pmxt\n\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.unwatch_order_book()"
+          },
+          {
+            "lang": "python",
+            "label": "Kalshi",
+            "source": "import pmxt\n\nexchange = pmxt.Kalshi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.unwatch_order_book()"
+          },
+          {
+            "lang": "python",
+            "label": "KalshiDemo",
+            "source": "import pmxt\n\nexchange = pmxt.KalshiDemo(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.unwatch_order_book()"
+          },
+          {
+            "lang": "python",
+            "label": "Probable",
+            "source": "import pmxt\n\nexchange = pmxt.Probable(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.unwatch_order_book()"
+          },
+          {
+            "lang": "python",
+            "label": "Baozi",
+            "source": "import pmxt\n\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.unwatch_order_book()"
+          },
+          {
+            "lang": "python",
+            "label": "Myriad",
+            "source": "import pmxt\n\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    wallet_address=\"YOUR_WALLET_ADDRESS\",\n)\nresult = exchange.unwatch_order_book()"
+          },
+          {
+            "lang": "python",
+            "label": "Opinion",
+            "source": "import pmxt\n\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n    proxy_address=\"YOUR_PROXY_ADDRESS\",\n)\nresult = exchange.unwatch_order_book()"
+          },
+          {
+            "lang": "python",
+            "label": "Metaculus",
+            "source": "import pmxt\n\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_token=\"YOUR_API_TOKEN\",\n)\nresult = exchange.unwatch_order_book()"
+          },
+          {
+            "lang": "python",
+            "label": "Smarkets",
+            "source": "import pmxt\n\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.unwatch_order_book()"
+          },
+          {
+            "lang": "python",
+            "label": "PolymarketUs",
+            "source": "import pmxt\n\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.unwatch_order_book()"
+          },
+          {
+            "lang": "javascript",
+            "label": "Polymarket",
+            "source": "import { Polymarket } from \"pmxtjs\";\n\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n  signatureType: \"gnosis-safe\",\n});\nconst result = await exchange.unwatchOrderBook();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Limitless",
+            "source": "import { Limitless } from \"pmxtjs\";\n\nconst exchange = new Limitless({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.unwatchOrderBook();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Kalshi",
+            "source": "import { Kalshi } from \"pmxtjs\";\n\nconst exchange = new Kalshi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.unwatchOrderBook();"
+          },
+          {
+            "lang": "javascript",
+            "label": "KalshiDemo",
+            "source": "import { KalshiDemo } from \"pmxtjs\";\n\nconst exchange = new KalshiDemo({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.unwatchOrderBook();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Probable",
+            "source": "import { Probable } from \"pmxtjs\";\n\nconst exchange = new Probable({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.unwatchOrderBook();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Baozi",
+            "source": "import { Baozi } from \"pmxtjs\";\n\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.unwatchOrderBook();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Myriad",
+            "source": "import { Myriad } from \"pmxtjs\";\n\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  walletAddress: \"YOUR_WALLET_ADDRESS\",\n});\nconst result = await exchange.unwatchOrderBook();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Opinion",
+            "source": "import { Opinion } from \"pmxtjs\";\n\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n});\nconst result = await exchange.unwatchOrderBook();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Metaculus",
+            "source": "import { Metaculus } from \"pmxtjs\";\n\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiToken: \"YOUR_API_TOKEN\",\n});\nconst result = await exchange.unwatchOrderBook();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Smarkets",
+            "source": "import { Smarkets } from \"pmxtjs\";\n\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.unwatchOrderBook();"
+          },
+          {
+            "lang": "javascript",
+            "label": "PolymarketUs",
+            "source": "import { PolymarketUs } from \"pmxtjs\";\n\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.unwatchOrderBook();"
+          }
+        ]
+      }
+    },
     "/api/{exchange}/watchTrades": {
       "post": {
         "summary": "Watch Trades",
@@ -5534,6 +5696,176 @@
         ]
       }
     },
+    "/api/{exchange}/testDummyMethod": {
+      "post": {
+        "summary": "Test Dummy Method",
+        "operationId": "testDummyMethod",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExchangeParam"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "TestDummyMethodRequest",
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "array",
+                    "maxItems": 1,
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "credentials": {
+                    "$ref": "#/components/schemas/ExchangeCredentials"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Test Dummy Method response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Test method for auto-generation verification.",
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "label": "Polymarket",
+            "source": "import pmxt\n\nexchange = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n    proxy_address=\"YOUR_PROXY_ADDRESS\",\n    signature_type=\"gnosis-safe\",\n)\nresult = exchange.test_dummy_method()"
+          },
+          {
+            "lang": "python",
+            "label": "Limitless",
+            "source": "import pmxt\n\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.test_dummy_method()"
+          },
+          {
+            "lang": "python",
+            "label": "Kalshi",
+            "source": "import pmxt\n\nexchange = pmxt.Kalshi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.test_dummy_method()"
+          },
+          {
+            "lang": "python",
+            "label": "KalshiDemo",
+            "source": "import pmxt\n\nexchange = pmxt.KalshiDemo(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.test_dummy_method()"
+          },
+          {
+            "lang": "python",
+            "label": "Probable",
+            "source": "import pmxt\n\nexchange = pmxt.Probable(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.test_dummy_method()"
+          },
+          {
+            "lang": "python",
+            "label": "Baozi",
+            "source": "import pmxt\n\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.test_dummy_method()"
+          },
+          {
+            "lang": "python",
+            "label": "Myriad",
+            "source": "import pmxt\n\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    wallet_address=\"YOUR_WALLET_ADDRESS\",\n)\nresult = exchange.test_dummy_method()"
+          },
+          {
+            "lang": "python",
+            "label": "Opinion",
+            "source": "import pmxt\n\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n    proxy_address=\"YOUR_PROXY_ADDRESS\",\n)\nresult = exchange.test_dummy_method()"
+          },
+          {
+            "lang": "python",
+            "label": "Metaculus",
+            "source": "import pmxt\n\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_token=\"YOUR_API_TOKEN\",\n)\nresult = exchange.test_dummy_method()"
+          },
+          {
+            "lang": "python",
+            "label": "Smarkets",
+            "source": "import pmxt\n\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.test_dummy_method()"
+          },
+          {
+            "lang": "python",
+            "label": "PolymarketUs",
+            "source": "import pmxt\n\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.test_dummy_method()"
+          },
+          {
+            "lang": "javascript",
+            "label": "Polymarket",
+            "source": "import { Polymarket } from \"pmxtjs\";\n\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n  signatureType: \"gnosis-safe\",\n});\nconst result = await exchange.testDummyMethod();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Limitless",
+            "source": "import { Limitless } from \"pmxtjs\";\n\nconst exchange = new Limitless({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.testDummyMethod();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Kalshi",
+            "source": "import { Kalshi } from \"pmxtjs\";\n\nconst exchange = new Kalshi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.testDummyMethod();"
+          },
+          {
+            "lang": "javascript",
+            "label": "KalshiDemo",
+            "source": "import { KalshiDemo } from \"pmxtjs\";\n\nconst exchange = new KalshiDemo({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.testDummyMethod();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Probable",
+            "source": "import { Probable } from \"pmxtjs\";\n\nconst exchange = new Probable({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.testDummyMethod();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Baozi",
+            "source": "import { Baozi } from \"pmxtjs\";\n\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.testDummyMethod();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Myriad",
+            "source": "import { Myriad } from \"pmxtjs\";\n\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  walletAddress: \"YOUR_WALLET_ADDRESS\",\n});\nconst result = await exchange.testDummyMethod();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Opinion",
+            "source": "import { Opinion } from \"pmxtjs\";\n\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n});\nconst result = await exchange.testDummyMethod();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Metaculus",
+            "source": "import { Metaculus } from \"pmxtjs\";\n\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiToken: \"YOUR_API_TOKEN\",\n});\nconst result = await exchange.testDummyMethod();"
+          },
+          {
+            "lang": "javascript",
+            "label": "Smarkets",
+            "source": "import { Smarkets } from \"pmxtjs\";\n\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.testDummyMethod();"
+          },
+          {
+            "lang": "javascript",
+            "label": "PolymarketUs",
+            "source": "import { PolymarketUs } from \"pmxtjs\";\n\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.testDummyMethod();"
+          }
+        ]
+      }
+    },
     "/api/{exchange}/close": {
       "post": {
         "summary": "Close",
@@ -5575,7 +5907,6 @@
             }
           }
         },
-        "description": "Close all WebSocket connections and clean up resources. Call this when you're done streaming to properly release connections.",
         "x-codeSamples": [
           {
             "lang": "python",
@@ -5688,1012 +6019,6 @@
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.close();"
           }
         ]
-      }
-    },
-    "/v0/events": {
-      "get": {
-        "summary": "List events",
-        "description": "Returns a paginated list of unified prediction market events with nested markets and outcomes. Ordered by 24h volume descending.",
-        "operationId": "listEvents",
-        "tags": [
-          "Events"
-        ],
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "description": "Full-text search query (ILIKE on title/question and slug).",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Maximum number of results to return.",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 50,
-              "minimum": 1,
-              "maximum": 500
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "Number of results to skip (for pagination).",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "minimum": 0
-            }
-          },
-          {
-            "name": "closed",
-            "in": "query",
-            "description": "Include closed/resolved items. Accepts \"true\", \"1\", or \"yes\".",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          },
-          {
-            "name": "sourceExchange",
-            "in": "query",
-            "description": "Filter by source exchange/venue name.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "category",
-            "in": "query",
-            "description": "Filter by category.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Paginated list of events.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "slug": {
-                            "type": "string"
-                          },
-                          "markets": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "marketId": {
-                                  "type": "string"
-                                },
-                                "eventId": {
-                                  "type": "string",
-                                  "nullable": true
-                                },
-                                "title": {
-                                  "type": "string"
-                                },
-                                "slug": {
-                                  "type": "string"
-                                },
-                                "description": {
-                                  "type": "string",
-                                  "nullable": true
-                                },
-                                "url": {
-                                  "type": "string",
-                                  "nullable": true
-                                },
-                                "image": {
-                                  "type": "string",
-                                  "nullable": true
-                                },
-                                "category": {
-                                  "type": "string",
-                                  "nullable": true
-                                },
-                                "tags": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string"
-                                  },
-                                  "nullable": true
-                                },
-                                "volume": {
-                                  "type": "number",
-                                  "nullable": true
-                                },
-                                "volume24h": {
-                                  "type": "number"
-                                },
-                                "liquidity": {
-                                  "type": "number"
-                                },
-                                "resolutionDate": {
-                                  "type": "string",
-                                  "format": "date-time",
-                                  "nullable": true
-                                },
-                                "tickSize": {
-                                  "type": "number",
-                                  "nullable": true
-                                },
-                                "status": {
-                                  "type": "string",
-                                  "nullable": true
-                                },
-                                "contractAddress": {
-                                  "type": "string",
-                                  "nullable": true
-                                },
-                                "outcomes": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "outcomeId": {
-                                        "type": "string"
-                                      },
-                                      "marketId": {
-                                        "type": "string"
-                                      },
-                                      "label": {
-                                        "type": "string"
-                                      },
-                                      "price": {
-                                        "type": "number",
-                                        "nullable": true
-                                      },
-                                      "priceChange24h": {
-                                        "type": "number",
-                                        "nullable": true
-                                      },
-                                      "metadata": {
-                                        "nullable": true
-                                      }
-                                    },
-                                    "required": [
-                                      "outcomeId",
-                                      "marketId",
-                                      "label"
-                                    ]
-                                  }
-                                }
-                              },
-                              "required": [
-                                "marketId",
-                                "title",
-                                "slug",
-                                "outcomes"
-                              ]
-                            }
-                          },
-                          "volume24h": {
-                            "type": "number",
-                            "nullable": true
-                          },
-                          "volume": {
-                            "type": "number",
-                            "nullable": true
-                          },
-                          "url": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "image": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "category": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "tags": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "nullable": true
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "title",
-                          "slug",
-                          "markets"
-                        ]
-                      }
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "count": {
-                          "type": "integer"
-                        },
-                        "limit": {
-                          "type": "integer"
-                        },
-                        "offset": {
-                          "type": "integer"
-                        }
-                      },
-                      "required": [
-                        "count",
-                        "limit",
-                        "offset"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "data",
-                    "meta"
-                  ]
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit or monthly quota exceeded.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "plan": {
-                      "type": "string"
-                    },
-                    "limit": {
-                      "type": "integer"
-                    },
-                    "used": {
-                      "type": "integer"
-                    },
-                    "window": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error",
-                    "plan",
-                    "limit",
-                    "used"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v0/events/{id}": {
-      "get": {
-        "summary": "Get event by ID",
-        "description": "Returns a single unified event with its nested markets and outcomes.",
-        "operationId": "getEvent",
-        "tags": [
-          "Events"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "UUID of the event.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The requested event.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "title": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "slug": {
-                          "type": "string"
-                        },
-                        "markets": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "marketId": {
-                                "type": "string"
-                              },
-                              "eventId": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "title": {
-                                "type": "string"
-                              },
-                              "slug": {
-                                "type": "string"
-                              },
-                              "description": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "url": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "image": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "category": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "tags": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                },
-                                "nullable": true
-                              },
-                              "volume": {
-                                "type": "number",
-                                "nullable": true
-                              },
-                              "volume24h": {
-                                "type": "number"
-                              },
-                              "liquidity": {
-                                "type": "number"
-                              },
-                              "resolutionDate": {
-                                "type": "string",
-                                "format": "date-time",
-                                "nullable": true
-                              },
-                              "tickSize": {
-                                "type": "number",
-                                "nullable": true
-                              },
-                              "status": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "contractAddress": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "outcomes": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "outcomeId": {
-                                      "type": "string"
-                                    },
-                                    "marketId": {
-                                      "type": "string"
-                                    },
-                                    "label": {
-                                      "type": "string"
-                                    },
-                                    "price": {
-                                      "type": "number",
-                                      "nullable": true
-                                    },
-                                    "priceChange24h": {
-                                      "type": "number",
-                                      "nullable": true
-                                    },
-                                    "metadata": {
-                                      "nullable": true
-                                    }
-                                  },
-                                  "required": [
-                                    "outcomeId",
-                                    "marketId",
-                                    "label"
-                                  ]
-                                }
-                              }
-                            },
-                            "required": [
-                              "marketId",
-                              "title",
-                              "slug",
-                              "outcomes"
-                            ]
-                          }
-                        },
-                        "volume24h": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "volume": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "url": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "image": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "category": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "tags": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "nullable": true
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "title",
-                        "slug",
-                        "markets"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Event not found.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit or monthly quota exceeded.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "plan": {
-                      "type": "string"
-                    },
-                    "limit": {
-                      "type": "integer"
-                    },
-                    "used": {
-                      "type": "integer"
-                    },
-                    "window": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error",
-                    "plan",
-                    "limit",
-                    "used"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v0/markets": {
-      "get": {
-        "summary": "List markets",
-        "description": "Returns a paginated list of unified prediction markets with nested outcomes. Ordered by 24h volume descending.",
-        "operationId": "listMarkets",
-        "tags": [
-          "Markets"
-        ],
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "description": "Full-text search query (ILIKE on title/question and slug).",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Maximum number of results to return.",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 50,
-              "minimum": 1,
-              "maximum": 500
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "Number of results to skip (for pagination).",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "minimum": 0
-            }
-          },
-          {
-            "name": "closed",
-            "in": "query",
-            "description": "Include closed/resolved items. Accepts \"true\", \"1\", or \"yes\".",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          },
-          {
-            "name": "sourceExchange",
-            "in": "query",
-            "description": "Filter by source exchange/venue name.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "category",
-            "in": "query",
-            "description": "Filter by category.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Paginated list of markets.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "marketId": {
-                            "type": "string"
-                          },
-                          "eventId": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "slug": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "url": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "image": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "category": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "tags": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "nullable": true
-                          },
-                          "volume": {
-                            "type": "number",
-                            "nullable": true
-                          },
-                          "volume24h": {
-                            "type": "number"
-                          },
-                          "liquidity": {
-                            "type": "number"
-                          },
-                          "resolutionDate": {
-                            "type": "string",
-                            "format": "date-time",
-                            "nullable": true
-                          },
-                          "tickSize": {
-                            "type": "number",
-                            "nullable": true
-                          },
-                          "status": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "contractAddress": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "outcomes": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "outcomeId": {
-                                  "type": "string"
-                                },
-                                "marketId": {
-                                  "type": "string"
-                                },
-                                "label": {
-                                  "type": "string"
-                                },
-                                "price": {
-                                  "type": "number",
-                                  "nullable": true
-                                },
-                                "priceChange24h": {
-                                  "type": "number",
-                                  "nullable": true
-                                },
-                                "metadata": {
-                                  "nullable": true
-                                }
-                              },
-                              "required": [
-                                "outcomeId",
-                                "marketId",
-                                "label"
-                              ]
-                            }
-                          }
-                        },
-                        "required": [
-                          "marketId",
-                          "title",
-                          "slug",
-                          "outcomes"
-                        ]
-                      }
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "count": {
-                          "type": "integer"
-                        },
-                        "limit": {
-                          "type": "integer"
-                        },
-                        "offset": {
-                          "type": "integer"
-                        }
-                      },
-                      "required": [
-                        "count",
-                        "limit",
-                        "offset"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "data",
-                    "meta"
-                  ]
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit or monthly quota exceeded.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "plan": {
-                      "type": "string"
-                    },
-                    "limit": {
-                      "type": "integer"
-                    },
-                    "used": {
-                      "type": "integer"
-                    },
-                    "window": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error",
-                    "plan",
-                    "limit",
-                    "used"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v0/markets/{id}": {
-      "get": {
-        "summary": "Get market by ID",
-        "description": "Returns a single unified market with its nested outcomes.",
-        "operationId": "getMarket",
-        "tags": [
-          "Markets"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "UUID of the market.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The requested market.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "marketId": {
-                          "type": "string"
-                        },
-                        "eventId": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "title": {
-                          "type": "string"
-                        },
-                        "slug": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "url": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "image": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "category": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "tags": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "nullable": true
-                        },
-                        "volume": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "volume24h": {
-                          "type": "number"
-                        },
-                        "liquidity": {
-                          "type": "number"
-                        },
-                        "resolutionDate": {
-                          "type": "string",
-                          "format": "date-time",
-                          "nullable": true
-                        },
-                        "tickSize": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "status": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "contractAddress": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "outcomes": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "outcomeId": {
-                                "type": "string"
-                              },
-                              "marketId": {
-                                "type": "string"
-                              },
-                              "label": {
-                                "type": "string"
-                              },
-                              "price": {
-                                "type": "number",
-                                "nullable": true
-                              },
-                              "priceChange24h": {
-                                "type": "number",
-                                "nullable": true
-                              },
-                              "metadata": {
-                                "nullable": true
-                              }
-                            },
-                            "required": [
-                              "outcomeId",
-                              "marketId",
-                              "label"
-                            ]
-                          }
-                        }
-                      },
-                      "required": [
-                        "marketId",
-                        "title",
-                        "slug",
-                        "outcomes"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Market not found.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit or monthly quota exceeded.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "plan": {
-                      "type": "string"
-                    },
-                    "limit": {
-                      "type": "integer"
-                    },
-                    "used": {
-                      "type": "integer"
-                    },
-                    "window": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error",
-                    "plan",
-                    "limit",
-                    "used"
-                  ]
-                }
-              }
-            }
-          }
-        }
       }
     }
   },

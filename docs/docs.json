@@ -1,7 +1,11 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "PMXT Hosted",
+  "name": "PMXT",
+  "logo": {
+    "light": "/logo-light.png",
+    "dark": "/logo-dark.png"
+  },
   "favicon": "/favicon.png",
   "colors": {
     "primary": "#0B0B0B",
@@ -142,19 +146,17 @@
             "openapi": "api-reference/openapi.json",
             "pages": [
               "POST /api/{exchange}/watchOrderBook",
+              "POST /api/{exchange}/unwatchOrderBook",
               "POST /api/{exchange}/watchTrades",
               "POST /api/{exchange}/watchAddress",
               "POST /api/{exchange}/unwatchAddress"
             ]
           },
           {
-            "group": "Router",
+            "group": "Other",
             "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /v0/events",
-              "GET /v0/events/{id}",
-              "GET /v0/markets",
-              "GET /v0/markets/{id}"
+              "POST /api/{exchange}/testDummyMethod"
             ]
           }
         ]

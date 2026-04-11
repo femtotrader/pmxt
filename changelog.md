@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.28.2] - 2026-04-11
+
+### Changed
+
+- **Docs rebrand from "PMXT Hosted" to "PMXT"**: Updated `docs.json` name field and added combined icon+wordmark logo images (`logo-light.png`, `logo-dark.png`) for Mintlify light/dark mode. Removed invalid `/v0/` Router endpoints from API Reference navigation that had no matching OpenAPI spec paths. Added `unwatchOrderBook` and `testDummyMethod` to Realtime and Other groups respectively.
+
 ## [2.28.1] - 2026-04-11
 
 ### Changed

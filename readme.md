@@ -90,6 +90,12 @@ pip install pmxt
 npm install pmxtjs
 ```
 
+### MCP (for AI agents)
+```bash
+npx -y @pmxt/mcp
+```
+See [@pmxt/mcp](https://github.com/pmxt-dev/pmxt-mcp) for setup with Claude, Cursor, and other MCP-compatible clients.
+
 ## Migrating from Dome API
 
 If you're currently using **Dome API**, pmxt is a drop-in replacement with a unified interface for Polymarket and Kalshi.

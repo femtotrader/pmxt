@@ -77,9 +77,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main
           git add docs/docs.json docs/api-reference/openapi.json docs/concepts/venues.mdx
           if ! git diff --cached --quiet; then
+            git stash --include-untracked
+            git pull --rebase origin main
+            git stash pop
+            git add docs/docs.json docs/api-reference/openapi.json docs/concepts/venues.mdx
             git commit -m "docs: auto-update for v${{ steps.get_version.outputs.version }}"
             git push origin HEAD:main
           fi

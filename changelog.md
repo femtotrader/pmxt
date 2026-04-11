@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.28.6] - 2026-04-11
+
+### Fixed
+
+- **Publish workflow docs commit failed on unstaged changes**: The `git pull --rebase` ran before `git add`, but SDK generation leaves unstaged files in the working tree, causing rebase to abort. Reordered to stash unstaged changes before pulling, then pop and re-add after rebase.
+
 ## [2.28.5] - 2026-04-11
 
 ### Fixed

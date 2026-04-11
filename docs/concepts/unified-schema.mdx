@@ -1,0 +1,79 @@
+---
+title: Unified Schema
+description: "One shape for events, markets, and outcomes — across every venue."
+---
+
+PMXT normalizes every supported venue to the same three-level shape:
+
+```
+Event  (a topic, like "2028 US Presidential Election")
+  └─ Market  (a concrete question, like "Will Gavin Newsom win?")
+       └─ Outcome  (a tradable side, like "Yes" @ 0.31)
+```
+
+Every response — from the local sidecar, from the hosted Router, or from
+a hosted venue pass-through — uses the same field names. Write your client
+once, switch venues with a config change.
+
+## UnifiedMarket
+
+| Field             | Type              | Notes                                                     |
+| ----------------- | ----------------- | --------------------------------------------------------- |
+| `marketId`        | `string`          | Stable PMXT id (UUID).                                    |
+| `eventId`         | `string \| null`  | Parent event, if any.                                     |
+| `title`           | `string`          | Human-readable market question.                           |
+| `slug`            | `string \| null`  | Venue-native slug, when available.                        |
+| `description`     | `string \| null`  | Long-form resolution criteria.                            |
+| `url`             | `string \| null`  | Canonical venue URL for the market.                       |
+| `image`           | `string \| null`  | Venue-hosted image.                                       |
+| `category`        | `string \| null`  | Normalized category (e.g. `Sports`, `Politics`).          |
+| `tags`            | `string[] \| null`| Free-form tags from the venue.                            |
+| `volume`          | `number`          | All-time volume, in USD (or venue base unit).             |
+| `volume24h`       | `number`          | Trailing-24h volume.                                      |
+| `liquidity`       | `number`          | Depth metric — venue-specific, compared like-for-like.    |
+| `resolutionDate`  | `string \| null`  | ISO 8601, UTC.                                            |
+| `tickSize`        | `number \| null`  | Minimum price increment, when the venue exposes one.      |
+| `status`          | `string \| null`  | Venue status — `active`, `closed`, `resolved`, ...        |
+| `contractAddress` | `string \| null`  | On-chain address, when the venue is on-chain.             |
+| `outcomes`        | `UnifiedOutcome[]`| See below.                                                |
+
+## UnifiedOutcome
+
+| Field             | Type               | Notes                                                     |
+| ----------------- | ------------------ | --------------------------------------------------------- |
+| `outcomeId`       | `string`           | Venue-native outcome id (token id, side id, ...).         |
+| `marketId`        | `string`           | Back-reference to the parent market.                      |
+| `label`           | `string`           | Display label (e.g. `Yes`, `No`, `Donald Trump`).         |
+| `price`           | `number`           | Last price, 0–1 for binary venues.                        |
+| `priceChange24h`  | `number`           | Absolute change vs 24h ago.                               |
+| `metadata`        | `object`           | Venue-specific fields (e.g. `clobTokenId`).               |
+
+## UnifiedEvent
+
+| Field          | Type              | Notes                                                        |
+| -------------- | ----------------- | ------------------------------------------------------------ |
+| `eventId`      | `string`          | Stable PMXT id.                                              |
+| `title`        | `string`          | Event title.                                                 |
+| `slug`         | `string \| null`  |                                                              |
+| `description`  | `string \| null`  |                                                              |
+| `category`     | `string \| null`  |                                                              |
+| `tags`         | `string[] \| null`|                                                              |
+| `volume`       | `number`          |                                                              |
+| `volume24h`    | `number`          |                                                              |
+| `url`          | `string \| null`  |                                                              |
+| `image`        | `string \| null`  |                                                              |
+| `markets`      | `UnifiedMarket[]` | Child markets. Nested on every event response — no second fetch needed. |
+
+<Note>
+  Fields that a specific venue doesn't expose come back as `null`. That's
+  intentional — `null` always means "venue has no value for this field",
+  never "PMXT failed to populate it".
+</Note>
+
+## Where the shape is defined
+
+The canonical definition lives in
+[`core/src/types.ts`](https://github.com/pmxt-dev/pmxt/blob/main/core/src/types.ts)
+in the `pmxt` repo, and every SDK client (TypeScript and Python) mirrors
+it. The [OpenAPI reference](/api-reference/overview) is generated from
+the same source on every `pmxt-core` release.

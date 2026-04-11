@@ -1,0 +1,93 @@
+---
+title: Introduction
+description: "One API for every prediction market. Unified data, cross-venue search, and trading."
+---
+
+PMXT is a unified API for every major prediction market — Polymarket,
+Kalshi, Limitless, Smarkets, and [8 more venues](/concepts/venues). Same
+SDK methods, same response shape, regardless of which venue you're
+talking to.
+
+It runs two ways:
+
+- **Locally** — the open-source [pmxt](https://github.com/pmxt-dev/pmxt)
+  sidecar runs on your machine. No API key, no external dependency. Your
+  requests go directly to the venues.
+- **Hosted** — `api.pmxt.dev` adds a shared catalog, cross-venue search,
+  and you skip running infrastructure. Set an API key and the SDK
+  switches automatically.
+
+The code is identical either way:
+
+```python
+import pmxt
+
+# Local: talks directly to Polymarket
+poly = pmxt.Polymarket()
+
+# Hosted: talks to api.pmxt.dev (add an API key and that's it)
+poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
+
+markets = poly.fetch_markets(query="fed rate cut", limit=5)
+for m in markets:
+    print(m.title, m.outcomes[0].price)
+```
+
+Swap the venue class — `pmxt.Kalshi(...)`, `pmxt.Limitless(...)` — and
+the methods and response shapes stay the same.
+
+## What you get
+
+<CardGroup cols={2}>
+  <Card title="Unified interface for every venue" icon="layer-group" href="/concepts/unified-schema">
+    Same methods, same response shape, every venue. `fetch_markets`,
+    `create_order`, `fetch_positions` work identically whether you're on
+    Polymarket or Kalshi.
+  </Card>
+  <Card title="Cross-venue search" icon="magnifying-glass" href="/router/events">
+    The Router searches every venue in a single query and returns ranked,
+    unified results — the foundation for a smart order router for
+    prediction markets.
+  </Card>
+  <Card title="Fast reads from a shared catalog" icon="bolt" href="/concepts/catalog-vs-live">
+    PMXT continuously ingests every venue into a Postgres catalog. Reads
+    hit an index instead of fanning out across 11 different APIs.
+  </Card>
+  <Card title="Same SDK, local or hosted" icon="code" href="/quickstart">
+    The `pmxt` (Python) and `pmxtjs` (TypeScript) SDKs work identically
+    against localhost or the hosted API. Set one env var to switch.
+  </Card>
+</CardGroup>
+
+## What you'd build yourself
+
+Without PMXT, getting cross-venue prediction market data means:
+
+- **11 venue integrations** — each with its own auth, pagination, field
+  names, and rate limits. Polymarket uses CLOB token IDs. Kalshi uses
+  tickers. Smarkets uses contract IDs. You normalize all of it.
+- **A data pipeline** — to ingest, deduplicate, and keep fresh as markets
+  open, resolve, and re-price across every venue.
+- **A search layer** — because querying 11 APIs sequentially is slow.
+- **Ongoing maintenance** — every time a venue changes a field name or
+  ships a new endpoint, your integration breaks.
+
+PMXT handles all of that. You write `fetch_markets(query="...")` and get
+back clean, unified data.
+
+## Get started
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    API key to working code in 30 seconds.
+  </Card>
+  <Card title="Router" icon="router" href="/router/events">
+    Cross-venue search and the beginning of smart order routing.
+  </Card>
+  <Card title="Unified schema" icon="layer-group" href="/concepts/unified-schema">
+    The data shape that works everywhere.
+  </Card>
+  <Card title="API reference" icon="book" href="/api-reference/overview">
+    Every method, with interactive try-it-out.
+  </Card>
+</CardGroup>

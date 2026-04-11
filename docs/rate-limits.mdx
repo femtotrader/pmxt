@@ -1,0 +1,58 @@
+---
+title: Rate Limits
+description: "How much traffic your API key gives you."
+---
+
+Every API key includes the full surface — cross-venue search, unified
+schema, and the complete venue pass-through.
+
+## Limits
+
+| Per-minute | Per-month |
+| ---------- | --------- |
+| 60         | 25,000    |
+
+Every request to `/v0/*` or `/api/*` counts as **1 request**, regardless
+of how much data it returns. Health checks are free.
+
+## Rate limit responses
+
+When you hit a limit, the API returns `429 Too Many Requests` with the
+window and retry timing. The SDKs handle short bursts automatically with
+exponential backoff.
+
+<Tabs>
+  <Tab title="Per-minute">
+    ```json
+    {
+      "error": "rate_limit_exceeded",
+      "plan": "free",
+      "limit": 60,
+      "used": 60,
+      "window": "1 minute"
+    }
+    ```
+  </Tab>
+  <Tab title="Per-month">
+    ```json
+    {
+      "error": "monthly_quota_exceeded",
+      "plan": "free",
+      "limit": 25000,
+      "used": 25000
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Usage dashboard
+
+Every request shows up under **Usage > Request Log** with endpoint,
+status, and latency. The same counts power the quotas — what you see
+is what's being counted.
+
+## Need more?
+
+<Card title="Contact us" icon="envelope" href="https://pmxt.dev/dashboard">
+  Reach out from the dashboard if you need higher limits.
+</Card>

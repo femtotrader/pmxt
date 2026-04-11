@@ -1,0 +1,159 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "PMXT Hosted",
+  "favicon": "/favicon.png",
+  "colors": {
+    "primary": "#0B0B0B",
+    "light": "#FAFAFA",
+    "dark": "#0B0B0B"
+  },
+  "api": {
+    "examples": {
+      "languages": [
+        "curl",
+        "python",
+        "javascript",
+        "go",
+        "java"
+      ]
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "claude",
+      "chatgpt",
+      "cursor"
+    ],
+    "display": "header"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Dashboard",
+        "href": "https://pmxt.dev/dashboard"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get API Key",
+      "href": "https://pmxt.dev/dashboard"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "authentication",
+              "rate-limits"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/unified-schema",
+              "concepts/catalog-vs-live",
+              "concepts/venues"
+            ]
+          },
+          {
+            "group": "Router",
+            "pages": [
+              "router/events",
+              "router/markets"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/overview"
+            ]
+          },
+          {
+            "group": "System",
+            "openapi": "api-reference/openapi.json",
+            "pages": [
+              "GET /health",
+              "POST /api/{exchange}/loadMarkets",
+              "POST /api/{exchange}/close"
+            ]
+          },
+          {
+            "group": "Markets & Events",
+            "openapi": "api-reference/openapi.json",
+            "pages": [
+              "GET /api/{exchange}/fetchMarkets",
+              "GET /api/{exchange}/fetchMarketsPaginated",
+              "GET /api/{exchange}/fetchEvents",
+              "GET /api/{exchange}/fetchMarket",
+              "GET /api/{exchange}/fetchEvent",
+              "POST /api/{exchange}/filterMarkets",
+              "POST /api/{exchange}/filterEvents"
+            ]
+          },
+          {
+            "group": "Order Book & Trades",
+            "openapi": "api-reference/openapi.json",
+            "pages": [
+              "GET /api/{exchange}/fetchOHLCV",
+              "GET /api/{exchange}/fetchOrderBook",
+              "GET /api/{exchange}/fetchTrades",
+              "POST /api/{exchange}/getExecutionPrice",
+              "POST /api/{exchange}/getExecutionPriceDetailed"
+            ]
+          },
+          {
+            "group": "Trading",
+            "openapi": "api-reference/openapi.json",
+            "pages": [
+              "POST /api/{exchange}/createOrder",
+              "POST /api/{exchange}/buildOrder",
+              "POST /api/{exchange}/submitOrder",
+              "POST /api/{exchange}/cancelOrder"
+            ]
+          },
+          {
+            "group": "Orders & Positions",
+            "openapi": "api-reference/openapi.json",
+            "pages": [
+              "GET /api/{exchange}/fetchOrder",
+              "GET /api/{exchange}/fetchOpenOrders",
+              "GET /api/{exchange}/fetchMyTrades",
+              "GET /api/{exchange}/fetchClosedOrders",
+              "GET /api/{exchange}/fetchAllOrders",
+              "GET /api/{exchange}/fetchPositions",
+              "GET /api/{exchange}/fetchBalance"
+            ]
+          },
+          {
+            "group": "Realtime",
+            "openapi": "api-reference/openapi.json",
+            "pages": [
+              "POST /api/{exchange}/watchOrderBook",
+              "POST /api/{exchange}/watchTrades",
+              "POST /api/{exchange}/watchAddress",
+              "POST /api/{exchange}/unwatchAddress"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/pmxt-dev/pmxt"
+    }
+  }
+}

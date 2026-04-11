@@ -1,0 +1,96 @@
+---
+title: Authentication
+description: "API keys, SDK setup, and venue credentials."
+---
+
+## API key
+
+Every request to `https://api.pmxt.dev` needs a Bearer token. Get one
+from [pmxt.dev/dashboard](https://pmxt.dev/dashboard) — it works
+immediately.
+
+```http
+Authorization: Bearer pmxt_live_...
+```
+
+`X-Api-Key: pmxt_live_...` also works as a fallback, but Bearer is
+canonical and what every SDK sends.
+
+## SDK setup
+
+Set `PMXT_API_KEY` and the SDK automatically routes to the hosted
+endpoint. No code changes versus local development.
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    import os, pmxt
+    os.environ["PMXT_API_KEY"] = "pmxt_live_..."
+
+    poly = pmxt.Polymarket()   # -> https://api.pmxt.dev
+    ```
+
+    Or pass it directly:
+
+    ```python
+    poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    import pmxt from "pmxtjs";
+    process.env.PMXT_API_KEY = "pmxt_live_...";
+
+    const poly = new pmxt.Polymarket({});  // -> https://api.pmxt.dev
+    ```
+
+    Or pass it directly:
+
+    ```typescript
+    const poly = new pmxt.Polymarket({ pmxtApiKey: "pmxt_live_..." });
+    ```
+  </Tab>
+</Tabs>
+
+Explicit argument takes precedence over the environment variable.
+
+## Venue credentials
+
+Your PMXT API key authenticates you to **PMXT**. Venue credentials
+(Polymarket private key, Kalshi API key, etc.) authenticate you to the
+**venue** and are passed in the request body for calls that need them:
+
+```python
+order = poly.create_order(
+    outcome=market.yes,
+    side="buy",
+    type="limit",
+    price=0.42,
+    amount=100,
+)
+```
+
+PMXT never stores venue credentials. They are forwarded to the venue
+and dropped when the call completes.
+
+## Rotating keys
+
+<Warning>
+Rotate immediately if you suspect a key is exposed. Old keys are revoked
+atomically — in-flight requests with the old key are rejected within 60
+seconds.
+</Warning>
+
+1. **Create** a new key from the [dashboard](https://pmxt.dev/dashboard).
+2. **Deploy** the new key to your application.
+3. **Revoke** the old key once traffic has drained.
+
+All revocations are logged under **Settings > Audit Log**.
+
+## Errors
+
+| Status | Body                                     | Meaning                                   |
+| ------ | ---------------------------------------- | ----------------------------------------- |
+| `401`  | `{"error": "missing api key"}`           | No `Authorization` header on the request. |
+| `401`  | `{"error": "invalid api key"}`           | Key unknown, revoked, or expired.         |
+| `429`  | `{"error": "rate_limit_exceeded", ... }` | See [Plans & Limits](/rate-limits).       |

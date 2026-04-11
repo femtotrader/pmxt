@@ -1,0 +1,96 @@
+---
+title: Overview
+description: "The full venue pass-through surface — auto-generated from pmxt-core."
+---
+
+Every endpoint in the **Endpoints** section of this sidebar is generated
+automatically from the `pmxt-core` package's OpenAPI specification. This
+page is the hand-written preface; everything else under
+**API Reference → Endpoints** is rendered directly from the spec.
+
+## How this works
+
+PMXT Hosted mounts `pmxt-core`'s HTTP surface under
+`POST /api/:exchange/:method`. That surface is the same one the local
+sidecar exposes, and it's described by a single OpenAPI 3 document
+([`openapi.yaml`](https://github.com/pmxt-dev/pmxt/blob/main/core/src/server/openapi.yaml))
+generated from the TypeScript source of
+[`BaseExchange.ts`](https://github.com/pmxt-dev/pmxt/blob/main/core/src/exchanges/BaseExchange.ts)
+on every `pmxt-core` build.
+
+The spec ships inside the `pmxt-core` npm package at
+`node_modules/pmxt-core/dist/server/openapi.yaml`. On every `npm install`,
+hosted-pmxt's `postinstall` hook runs `scripts/sync-docs.js`, which:
+
+1. Copies the spec into `docs/api-reference/openapi.yaml`.
+2. Rewrites `servers` to point at `https://api.pmxt.dev`.
+3. Adds a `bearerAuth` security scheme so every endpoint in this
+   reference shows the correct `Authorization: Bearer …` requirement.
+4. Regenerates [`concepts/venues`](/concepts/venues) from the
+   `ExchangeParam` enum.
+
+When `pmxt-core` publishes a new version, the immediate watcher in
+hosted-pmxt opens a PR that bumps the dependency — `npm install` inside
+that PR re-runs the sync, and the refreshed spec lands in the same
+commit. **There is no separate docs build, no drift, and no manual
+step.** If you see a method documented here, it exists in the hosted
+surface at exactly that path.
+
+## Request shape
+
+Every venue pass-through call has the same wire shape:
+
+```http
+POST /api/:exchange/:method
+Authorization: Bearer pmxt_live_...
+Content-Type: application/json
+
+{
+  "args": [ /* positional arguments to the SDK method, in order */ ],
+  "credentials": { /* optional — venue-scoped credentials */ }
+}
+```
+
+The `args` array is the positional signature of the underlying SDK
+method, which is why each generated endpoint page lists its arguments in
+order. For example, `fetchMarkets({ query, limit })` becomes:
+
+```json
+{ "args": [{ "query": "election", "limit": 5 }] }
+```
+
+When the SDK supports keyword arguments, pass an object as the first
+element of `args`. When it supports positional arguments, pass them
+inline.
+
+## Response envelope
+
+Every pass-through response is wrapped in the same envelope:
+
+```json
+{ "success": true, "data": /* method-specific payload */ }
+```
+
+On error:
+
+```json
+{
+  "success": false,
+  "error": {
+    "message": "…",
+    "code": "AUTHENTICATION_ERROR",
+    "retryable": false,
+    "exchange": "Polymarket"
+  }
+}
+```
+
+The envelope is identical whether a call was served from the
+[catalog](/concepts/catalog-vs-live) or forwarded live to the venue —
+clients cannot tell the difference.
+
+## Interactive try-it-out
+
+Every generated endpoint page in this reference has a **"Try It"** panel
+on the right — paste your API key once at the top of the page and every
+request runs against `https://api.pmxt.dev` with Bearer auth attached.

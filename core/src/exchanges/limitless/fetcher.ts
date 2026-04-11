@@ -205,9 +205,11 @@ export class LimitlessFetcher implements IExchangeFetcher<LimitlessRawMarket, Li
     }
 
     private async searchRawMarkets(query: string, params?: MarketFetchParams): Promise<LimitlessRawMarket[]> {
+        // Limitless search API caps limit at 100.
+        const limit = Math.min(params?.limit || 100, 100);
         const data = await this.ctx.callApi('MarketSearchController_search', {
             query: query,
-            limit: params?.limit || 250000,
+            limit,
             page: params?.page || 1,
             similarityThreshold: params?.similarityThreshold || 0.5,
         });
@@ -255,9 +257,11 @@ export class LimitlessFetcher implements IExchangeFetcher<LimitlessRawMarket, Li
     }
 
     private async searchRawEvents(params: EventFetchParams): Promise<LimitlessRawEvent[]> {
+        // Limitless search API caps limit at 100.
+        const limit = Math.min(params?.limit || 100, 100);
         const data = await this.ctx.callApi('MarketSearchController_search', {
             query: params.query,
-            limit: params?.limit || 10000,
+            limit,
             similarityThreshold: 0.5,
         });
 

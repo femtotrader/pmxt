@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.30.3 (2026-04-12)
+
+### Bug Fixes
+
+- **limitless**: cap search `limit` to 100 (the Limitless API maximum) in
+  `searchRawMarkets` and `searchRawEvents`. Previously the defaults were
+  250 000 and 10 000 respectively, which caused every search query
+  (`fetchMarkets({ query })`, `fetchEvents({ query })`) to return HTTP 400
+  (`"limit must not be greater than 100"`).
+
 ## [2.30.2] - 2026-04-11
 
 ### Fixed

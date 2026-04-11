@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.27.10] - 2026-04-11
+
+### Fixed
+
+- **`fetch_balance` returns $0 for wallets that omit `signature_type`** (issue #80): When `signatureType` was not provided and the Polymarket Data API profile lookup failed (404), `getClobClient()` defaulted to EOA (signature type 0). Since 2023, all new Polymarket accounts use Gnosis Safe (signature type 2), so the EOA default caused the CLOB API to query the wrong on-chain address — returning a zero balance with no error. Changed the fallback default from EOA (0) to Gnosis Safe (2). Users who explicitly pass `signature_type='gnosis_safe'` or `signature_type='eoa'` are unaffected — explicit values are still respected. Also replaced magic numbers 0/1/2 throughout `auth.ts` with named constants (`SIG_TYPE_EOA`, `SIG_TYPE_POLY_PROXY`, `SIG_TYPE_GNOSIS_SAFE`).
+
 ## [2.27.9] - 2026-04-10
 
 ### Fixed

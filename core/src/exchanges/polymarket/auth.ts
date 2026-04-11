@@ -8,6 +8,12 @@ import { polymarketErrorMapper } from './errors';
 const POLYMARKET_HOST = 'https://clob.polymarket.com';
 const POLYGON_CHAIN_ID = 137;
 
+// Polymarket CLOB signature types — determines how the CLOB API
+// resolves the on-chain address holding the user's funds.
+const SIG_TYPE_EOA = 0;
+const SIG_TYPE_POLY_PROXY = 1;
+const SIG_TYPE_GNOSIS_SAFE = 2;
+
 /**
  * Manages Polymarket authentication and CLOB client initialization.
  * Handles both L1 (wallet-based) and L2 (API credentials) authentication.
@@ -117,7 +123,7 @@ export class PolymarketAuth {
         if (this.discoveredProxyAddress) {
             return {
                 proxyAddress: this.discoveredProxyAddress,
-                signatureType: this.discoveredSignatureType ?? 0
+                signatureType: this.discoveredSignatureType ?? SIG_TYPE_EOA
             };
         }
 
@@ -136,7 +142,7 @@ export class PolymarketAuth {
                 // Determine signature type. 
                 // Polymarket usually uses 1 for their own proxy and 2 for Gnosis Safe (which is what their new profiles use).
                 // If it's a proxy address but we don't know the type, 1 is a safe default for Polymarket.
-                this.discoveredSignatureType = profile.isGnosisSafe ? 2 : 1;
+                this.discoveredSignatureType = profile.isGnosisSafe ? SIG_TYPE_GNOSIS_SAFE : SIG_TYPE_POLY_PROXY;
 
                 // console.log(`[PolymarketAuth] Auto-discovered proxy for ${address}: ${this.discoveredProxyAddress} (Type: ${this.discoveredSignatureType})`);
                 return {
@@ -151,7 +157,7 @@ export class PolymarketAuth {
         // Fallback to EOA if discovery fails
         return {
             proxyAddress: address,
-            signatureType: 0
+            signatureType: SIG_TYPE_EOA
         };
     }
 
@@ -159,23 +165,22 @@ export class PolymarketAuth {
      * Maps human-readable signature type names to their numeric values.
      */
     private mapSignatureType(type: number | string | undefined | null): number {
-        if (type === undefined || type === null) return 0;
+        if (type === undefined || type === null) return SIG_TYPE_EOA;
         if (typeof type === 'number') return type;
 
         const normalized = type.toLowerCase().replace(/[^a-z0-9]/g, '');
         switch (normalized) {
             case 'eoa':
-                return 0;
+                return SIG_TYPE_EOA;
             case 'polyproxy':
             case 'polymarketproxy':
-                return 1;
+                return SIG_TYPE_POLY_PROXY;
             case 'gnosissafe':
             case 'safe':
-                return 2;
+                return SIG_TYPE_GNOSIS_SAFE;
             default:
-                // If it's a numeric string, parse it
                 const parsed = parseInt(normalized);
-                return isNaN(parsed) ? 0 : parsed;
+                return isNaN(parsed) ? SIG_TYPE_EOA : parsed;
         }
     }
 
@@ -189,14 +194,16 @@ export class PolymarketAuth {
             return this.clobClient;
         }
 
-        // 1. Determine proxy and signature type early.
+        // 1. Determine proxy and signature type.
         //
-        // Important: if signatureType is not provided we MUST run discovery
-        // even when funderAddress is provided. Previously this branch was
-        // skipped whenever funderAddress was set, which silently defaulted
-        // signatureType to 0 (EOA). For wallets whose funds live on a Gnosis
-        // Safe (the modern Polymarket onboarding default) the CLOB then
-        // reports balance "0" instead of the real value, with no error.
+        // Priority order:
+        //   1. Discovery (Polymarket Data API) — authoritative when it works
+        //   2. User-provided signatureType — respected as explicit override
+        //   3. Default: Gnosis Safe (2) — correct for all Polymarket
+        //      accounts created since 2023
+        //
+        // The previous default was EOA (0), which silently returned $0
+        // balances for the vast majority of wallets (#80).
         const sigTypeProvided =
             this.credentials.signatureType !== undefined && this.credentials.signatureType !== null;
         let proxyAddress = this.credentials.funderAddress || undefined;
@@ -204,13 +211,9 @@ export class PolymarketAuth {
             ? this.mapSignatureType(this.credentials.signatureType)
             : undefined;
 
-        // Run discovery if either piece is missing. Note: discoverProxy()
-        // returns a synthetic { proxyAddress: signerEOA, signatureType: 0 }
-        // fallback when its HTTP call fails — that fallback should NOT be
-        // used to populate signatureType when funderAddress is already set,
-        // because it would silently assign EOA semantics to a Gnosis Safe.
-        let discoverySucceeded = false;
+        // Run discovery when we need to fill in missing values.
         if (!proxyAddress || signatureType === undefined) {
+            let discoverySucceeded = false;
             try {
                 const discovered = await this.discoverProxy();
                 discoverySucceeded =
@@ -223,25 +226,22 @@ export class PolymarketAuth {
                     signatureType = discovered.signatureType;
                 }
             } catch {
-                // Discovery failure is handled by the heuristic below.
+                // Discovery failure — fall through to default below.
             }
+        }
+
+        if (signatureType === undefined) {
+            // Neither user nor discovery provided a value. Default to
+            // Gnosis Safe — the modern Polymarket standard.
+            signatureType = SIG_TYPE_GNOSIS_SAFE;
         }
 
         // Get API credentials (L1 auth)
         const apiCreds = await this.getApiCredentials();
 
-        // 3. Defaults
+        // Final addresses
         const signerAddress = this.signer!.address;
         const finalProxyAddress: string = (proxyAddress || signerAddress) as string;
-        // If signature type is still unknown, infer from address relationship:
-        // when the funder differs from the signer EOA, the funder must be a
-        // proxy/safe — default to Gnosis Safe (2), which is what Polymarket
-        // has created for new accounts since 2023. Users on the legacy
-        // Polymarket Proxy (1) need to set signatureType explicitly.
-        if (signatureType === undefined) {
-            signatureType =
-                finalProxyAddress.toLowerCase() !== signerAddress.toLowerCase() ? 2 : 0;
-        }
         const finalSignatureType: number = signatureType;
 
         // Create L2-authenticated client

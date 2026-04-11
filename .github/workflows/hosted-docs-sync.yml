@@ -24,17 +24,37 @@ jobs:
         run: node scripts/apply-hosted-manifest.js .doc-manifest.json
 
       - name: Create PR if changed
-        uses: peter-evans/create-pull-request@v6
-        with:
-          branch: sync/hosted-docs
-          title: 'docs: sync hosted-pmxt custom endpoints'
-          body: |
-            Auto-generated from hosted-pmxt doc manifest.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet docs/; then
+            echo "No docs changes — nothing to do."
+            exit 0
+          fi
 
-            Updates:
-            - OpenAPI paths for custom hosted endpoints
-            - docs.json navigation
-            - Rate limit tables
-            - Catalog venue list
-          commit-message: 'docs: sync hosted-pmxt custom endpoints'
-          delete-branch: true
+          BRANCH="sync/hosted-docs"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add docs/
+          git commit -m "docs: sync hosted-pmxt custom endpoints"
+          git push -u origin "$BRANCH" --force
+
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            echo "PR #$EXISTING already open — updated branch."
+          else
+            gh pr create \
+              --head "$BRANCH" \
+              --title "docs: sync hosted-pmxt custom endpoints" \
+              --body "$(cat <<'EOF'
+          Auto-generated from hosted-pmxt doc manifest.
+
+          Updates:
+          - OpenAPI paths for custom hosted endpoints
+          - docs.json navigation
+          - Rate limit tables
+          - Catalog venue list
+          EOF
+          )"
+          fi

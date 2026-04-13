@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.30.5] - 2026-04-13
+
+### Added
+
+- **MCP compact responses**: Tool responses are now compacted by default for
+  agent-friendly output. Strips URLs, images, slugs, metadata, convenience
+  accessors, and deep nested data that bloat context windows. Order books capped
+  at 10 levels, trades at 20, OHLCV at 50 candles. Orders trimmed to essential
+  fields. `fetchEvents` output reduced ~66%+. All tools accept `verbose=true`
+  to opt into full uncompacted output.
+
 ## [2.30.4] - 2026-04-13
 
 ### Bug Fixes

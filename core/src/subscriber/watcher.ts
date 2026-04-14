@@ -201,7 +201,21 @@ export class AddressWatcher {
                 }
                 this.dispatchAssetResolvers(key, value);
             }
-        } catch {
+        } catch (err) {
+            const error = err instanceof Error ? err : new Error(String(err));
+
+            const resolvers = this.resolvers.get(key);
+            if (resolvers?.length) {
+                resolvers.forEach(r => r.reject(error));
+                this.resolvers.set(key, []);
+            }
+
+            for (const [assetKey, assetResolvers] of this.assetIdResolvers) {
+                if (assetKey.startsWith(`${key} `) && assetResolvers.length > 0) {
+                    assetResolvers.forEach(r => r.reject(error));
+                    this.assetIdResolvers.set(assetKey, []);
+                }
+            }
         }
     }
 

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.30.9] - 2026-04-14
+
+### Bug Fixes
+
+- **polymarket_us: orderbook validation, auth test, and compliance timeouts**
+  Corrected PolymarketUS orderbook validation, auth test assertions, and
+  compliance test timeouts.
+
 ## [2.30.8] - 2026-04-14
 
 ### Bug Fixes

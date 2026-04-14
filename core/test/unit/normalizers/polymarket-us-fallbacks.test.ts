@@ -102,16 +102,20 @@ describe('PolymarketUS silent-fallback removal', () => {
     });
 });
 
-describe('PolymarketUSNormalizer orderbook fallback removal', () => {
+describe('PolymarketUSNormalizer orderbook handling', () => {
     const normalizer = new PolymarketUSNormalizer();
 
-    test('normalizeOrderBook throws when book.bids is undefined', () => {
+    test('normalizeOrderBook treats missing bids as empty (no liquidity)', () => {
         const book = { offers: [{ px: '500000', qty: '10' }] } as any;
-        expect(() => normalizer.normalizeOrderBook(book, 'test')).toThrow();
+        const ob = normalizer.normalizeOrderBook(book, 'test');
+        expect(ob.bids).toHaveLength(0);
+        expect(ob.asks).toHaveLength(1);
     });
 
-    test('normalizeOrderBook throws when book.offers is undefined', () => {
+    test('normalizeOrderBook treats missing offers as empty (no liquidity)', () => {
         const book = { bids: [{ px: '500000', qty: '10' }] } as any;
-        expect(() => normalizer.normalizeOrderBook(book, 'test')).toThrow();
+        const ob = normalizer.normalizeOrderBook(book, 'test');
+        expect(ob.bids).toHaveLength(1);
+        expect(ob.asks).toHaveLength(0);
     });
 });

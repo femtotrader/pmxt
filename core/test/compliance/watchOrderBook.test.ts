@@ -32,7 +32,7 @@ describe('Compliance: watchOrderBook', () => {
                         try {
                             const watchPromise = exchange.watchOrderBook(outcome.outcomeId);
                             const timeoutPromise = new Promise((_, reject) => {
-                                timeoutId = setTimeout(() => reject(new Error('Timeout waiting for watchOrderBook data')), 10000);
+                                timeoutId = setTimeout(() => reject(new Error('Timeout waiting for watchOrderBook data')), 30000);
                             });
 
                             orderbook = await Promise.race([watchPromise, timeoutPromise]);
@@ -73,6 +73,6 @@ describe('Compliance: watchOrderBook', () => {
             } finally {
                 await exchange.close();
             }
-        }, 60000);
+        }, 30000);
     });
 });

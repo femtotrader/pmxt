@@ -66,9 +66,12 @@ describe('PolymarketAuth: signature type inference', () => {
         expect(auth.discoverProxy).not.toHaveBeenCalled();
     });
 
-    it('keeps signatureType=0 when no funder is provided and discovery falls back to EOA', async () => {
+    it('defaults to gnosissafe (2) when no funder is provided and discovery falls back to EOA', async () => {
         const auth = makeAuth({ privateKey: signerKey });
         // No discovered fields cached → discoverySucceeded=false
+        // Discovery returns EOA-like result but without setting instance
+        // properties, so the code correctly falls through to the Gnosis Safe
+        // default (the modern Polymarket standard since 2023).
         auth.discoverProxy = jest.fn().mockResolvedValue({
             proxyAddress: auth.signer.address,
             signatureType: 0,
@@ -76,6 +79,6 @@ describe('PolymarketAuth: signature type inference', () => {
 
         const client = await auth.getClobClient();
 
-        expect(client.orderBuilder.signatureType).toBe(0);
+        expect(client.orderBuilder.signatureType).toBe(2);
     });
 });

@@ -390,19 +390,13 @@ export class PolymarketUSNormalizer {
      * needing the short-side view must invert prices themselves.
      */
     normalizeOrderBook(book: MarketBook, _marketId: string): OrderBook {
-        if (!book.bids) {
-            throw new Error('PolymarketUS market book response missing required "bids" field');
-        }
-        if (!book.offers) {
-            throw new Error('PolymarketUS market book response missing required "offers" field');
-        }
-
-        const bids = book.bids.map(level => ({
+        // Missing bids/offers is a valid state (no liquidity), not broken data
+        const bids = (book.bids ?? []).map(level => ({
             price: fromAmount(level.px),
             size: parseFloat(level.qty || '0'),
         }));
 
-        const asks = book.offers.map(level => ({
+        const asks = (book.offers ?? []).map(level => ({
             price: fromAmount(level.px),
             size: parseFloat(level.qty || '0'),
         }));

@@ -33,7 +33,7 @@ describe('Compliance: fetchEvents with new ID params', () => {
             }
             throw error;
         }
-    }, 120000);
+    }, 30000);
 
     test.each(exchangeClasses)('$name should support slug param in fetchEvents', async ({ name, cls }) => {
         const exchange = initExchange(name, cls);
@@ -70,7 +70,7 @@ describe('Compliance: fetchEvents with new ID params', () => {
             }
             throw error;
         }
-    }, 120000);
+    }, 30000);
 });
 
 describe('Compliance: fetchEvent (singular)', () => {
@@ -104,7 +104,7 @@ describe('Compliance: fetchEvent (singular)', () => {
             }
             throw error;
         }
-    }, 120000);
+    }, 30000);
 
     test.each(exchangeClasses)('$name should throw for nonexistent eventId', async ({ name, cls }) => {
         const exchange = initExchange(name, cls);
@@ -123,5 +123,5 @@ describe('Compliance: fetchEvent (singular)', () => {
             expect(error).toBeDefined();
             expect(error.message.length).toBeGreaterThan(0);
         }
-    }, 120000);
+    }, 30000);
 });

@@ -13,106 +13,15 @@ describe('Compliance: watchTrades', () => {
             try {
                 console.info(`[Compliance] Testing ${name}.watchTrades`);
 
-                // -----------------------------------------------------------
-                // Phase 1: Discover actively-traded markets via REST
-                // -----------------------------------------------------------
+                // Fetch top markets by volume
                 const markets = await exchange.fetchMarkets({ limit: 25, sort: 'volume' });
                 if (!markets || markets.length === 0) {
                     throw new Error(`${name}: No markets found to test watchTrades`);
                 }
 
-                const CONCURRENT_WATCHERS = 50;
-
-                let candidates = markets.slice(0, 50);
-
-                // For Kalshi, pull a larger pool sorted by volume to maximise
-                // the chance of finding markets with real-time activity.
-                const scanLimit = (name === 'KalshiExchange') ? 50 : 20;
-
-                if (name === 'KalshiExchange') {
-                    console.info(`[Compliance] Finding high-volume markets for ${name}...`);
-                    const volumeMarkets = await exchange.fetchMarkets({
-                        limit: 5000,
-                        sort: 'volume',
-                        status: 'active'
-                    });
-                    console.info(`[Compliance] ${name}: Found ${volumeMarkets.length} active markets sorted by volume.`);
-                    if (volumeMarkets.length > 0) {
-                        candidates = volumeMarkets.slice(0, scanLimit);
-                    }
-                } else {
-                    candidates = candidates.slice(0, scanLimit);
-                }
-
-                interface ScoredMarket {
-                    market: any;
-                    lastTradeTs: number;
-                }
-
-                console.info(`[Compliance] Scanning top ${candidates.length} markets for recent activity...`);
-
-                // Throttled REST scan: fetch last trade per market
-                const chunkedChecks = async () => {
-                    const results = [];
-                    const CHUNK_SIZE = 5;
-                    for (let i = 0; i < candidates.length; i += CHUNK_SIZE) {
-                        const chunk = candidates.slice(i, i + CHUNK_SIZE);
-                        const chunkResults = await Promise.all(chunk.map(async (m: any) => {
-                            try {
-                                const trades = await exchange.fetchTrades(m.marketId, { limit: 1 });
-                                if (trades.length > 0 && !isNaN(trades[0].timestamp)) {
-                                    return { market: m, lastTradeTs: trades[0].timestamp };
-                                }
-                            } catch (e) {
-                                // ignore errors during scan
-                            }
-                            return null;
-                        }));
-                        results.push(...chunkResults);
-                        if (i + CHUNK_SIZE < candidates.length) await new Promise(r => setTimeout(r, 500));
-                    }
-                    return results;
-                };
-
-                const results = await chunkedChecks();
-
-                const now = Date.now();
-                const FIVE_MINUTES = 5 * 60 * 1000;
-
-                const activeMarketsList = results
-                    .filter((r): r is ScoredMarket => r !== null)
-                    .sort((a, b) => b.lastTradeTs - a.lastTradeTs);
-
-                // Prefer markets that traded within the last 5 minutes
-                const recentlyActive = activeMarketsList.filter(r => (now - r.lastTradeTs) < FIVE_MINUTES);
-
-                const bestCandidates = recentlyActive.length > 0
-                    ? recentlyActive.map(r => r.market)
-                    : activeMarketsList.map(r => r.market);
-
-                const marketsToUse = bestCandidates.slice(0, CONCURRENT_WATCHERS);
-
-                if (marketsToUse.length === 0) {
-                    // No markets with any trade history found — fall back to
-                    // highest-volume markets as a last resort
-                    marketsToUse.push(...candidates.slice(0, CONCURRENT_WATCHERS));
-                }
-
-                const newestTs = activeMarketsList.length > 0 ? activeMarketsList[0].lastTradeTs : NaN;
-                const newestDateStr = !isNaN(newestTs) ? new Date(newestTs).toISOString() : 'N/A';
-                const ageStr = !isNaN(newestTs) ? `${Math.round((now - newestTs) / 1000)}s ago` : 'unknown';
-
-                console.info(`[Compliance] Selected ${marketsToUse.length} markets (${recentlyActive.length} traded <5min). Most recent trade: ${newestDateStr} (${ageStr})`);
-
-                // If no market has traded in the last 10 minutes, there's no
-                // reasonable expectation a trade will arrive within our timeout.
-                const TEN_MINUTES = 10 * 60 * 1000;
-                if (isNaN(newestTs) || (now - newestTs) > TEN_MINUTES) {
-                    console.info(`[Compliance] ${name}.watchTrades skipped: no markets with recent trade activity (most recent: ${ageStr})`);
-                    return;
-                }
-
-                const outcomesToWatch = marketsToUse
+                // Watch the top 10 outcomes concurrently, first trade wins
+                const outcomesToWatch = markets
+                    .slice(0, 10)
                     .map((m: any) => m.outcomes[0])
                     .filter((o: any) => o !== undefined);
 
@@ -120,23 +29,16 @@ describe('Compliance: watchTrades', () => {
                     throw new Error(`${name}: No outcomes found to test watchTrades`);
                 }
 
-                console.info(`[Compliance] Watching ${outcomesToWatch.length} outcomes concurrently for activity...`);
+                console.info(`[Compliance] Watching ${outcomesToWatch.length} outcomes for activity...`);
 
-                // -----------------------------------------------------------
-                // Phase 2: Watch concurrently, race against timeout
-                // -----------------------------------------------------------
                 const watchers = outcomesToWatch.map(async (outcome: any) => {
-                    try {
-                        const result = await exchange.watchTrades(outcome.outcomeId);
-                        return { result, outcomeId: outcome.outcomeId };
-                    } catch (error: any) {
-                        throw error;
-                    }
+                    const result = await exchange.watchTrades(outcome.outcomeId);
+                    return { result, outcomeId: outcome.outcomeId };
                 });
 
                 let timeoutId: NodeJS.Timeout;
                 const globalTimeout = new Promise<never>((_, reject) => {
-                    timeoutId = setTimeout(() => reject(new Error('Test timeout: No trades detected on any top market within 120s')), 120000);
+                    timeoutId = setTimeout(() => reject(new Error(`${name}: No trades detected within 30s`)), 30000);
                 });
 
                 try {
@@ -176,6 +78,6 @@ describe('Compliance: watchTrades', () => {
             } finally {
                 await exchange.close();
             }
-        }, 150000);
+        }, 60000);
     });
 });

@@ -64,31 +64,22 @@ export interface ProbableRawTrade {
     id?: string | number;
     tradeId?: string | number;
     time?: number;
-    timestamp?: number;
     price?: string | number;
-    qty?: string | number;
     size?: string | number;
-    amount?: string | number;
     side?: string;
     orderId?: string;
     [key: string]: unknown;
 }
 
 export interface ProbableRawPosition {
-    conditionId?: string;
     condition_id?: string;
-    asset?: string;
     token_id?: string;
     outcome?: string;
     title?: string;
     size?: string | number;
-    avgPrice?: string | number;
     avg_price?: string | number;
-    curPrice?: string | number;
     cur_price?: string | number;
-    cashPnl?: string | number;
     cash_pnl?: string | number;
-    realizedPnl?: string | number;
     realized_pnl?: string | number;
     [key: string]: unknown;
 }
@@ -203,7 +194,16 @@ export class ProbableFetcher implements IExchangeFetcher<ProbableRawMarket, Prob
         if (params.end) queryParams.endTs = Math.floor(params.end.getTime() / 1000);
 
         const data = await this.ctx.callApi('getPublicApiV1PricesHistory', queryParams);
-        return data?.history || data || [];
+        if (data != null && typeof data === 'object' && !Array.isArray(data) && Array.isArray(data.history)) {
+            return data.history;
+        }
+        if (Array.isArray(data)) {
+            return data;
+        }
+        throw new Error(
+            `Probable OHLCV: unexpected response shape (got ${typeof data}). ` +
+            `Expected { history: [...] } or an array.`
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -218,8 +218,12 @@ export class ProbableFetcher implements IExchangeFetcher<ProbableRawMarket, Prob
         // client's getTrades through callApi or directly. For now, this goes
         // through the implicit API.
         const data = await this.ctx.callApi('getPublicApiV1Trades', queryParams);
-        const trades = Array.isArray(data) ? data : (data?.data || []);
-        return trades;
+        if (!Array.isArray(data)) {
+            throw new Error(
+                `Probable trades: unexpected response shape (got ${typeof data}). Expected an array.`
+            );
+        }
+        return data;
     }
 
     async fetchRawMyTrades(params: MyTradesParams, walletAddress: string): Promise<ProbableRawTrade[]> {
@@ -227,8 +231,12 @@ export class ProbableFetcher implements IExchangeFetcher<ProbableRawMarket, Prob
         if (params?.limit) queryParams.limit = params.limit;
 
         const data = await this.ctx.callApi('getPublicApiV1Trades', queryParams);
-        const trades = Array.isArray(data) ? data : (data?.data || []);
-        return trades;
+        if (!Array.isArray(data)) {
+            throw new Error(
+                `Probable myTrades: unexpected response shape (got ${typeof data}). Expected an array.`
+            );
+        }
+        return data;
     }
 
     // -----------------------------------------------------------------------
@@ -237,7 +245,12 @@ export class ProbableFetcher implements IExchangeFetcher<ProbableRawMarket, Prob
 
     async fetchRawPositions(walletAddress: string): Promise<ProbableRawPosition[]> {
         const result = await this.ctx.callApi('getPublicApiV1PositionCurrent', { user: walletAddress, limit: 500 });
-        return Array.isArray(result) ? result : (result?.data || []);
+        if (!Array.isArray(result)) {
+            throw new Error(
+                `Probable positions: unexpected response shape (got ${typeof result}). Expected an array.`
+            );
+        }
+        return result;
     }
 
     // -----------------------------------------------------------------------
@@ -287,7 +300,12 @@ export class ProbableFetcher implements IExchangeFetcher<ProbableRawMarket, Prob
                     const response = await this.ctx.http.get(`${BASE_URL}${MARKETS_PATH}`, {
                         params: { page: 1, limit: 100, active: true },
                     });
-                    const markets: ProbableRawMarket[] = response.data?.markets || [];
+                    if (!response.data?.markets || !Array.isArray(response.data.markets)) {
+                        throw new Error(
+                            `Probable markets list: unexpected response shape. Expected { markets: [...] }.`
+                        );
+                    }
+                    const markets: ProbableRawMarket[] = response.data.markets;
                     return markets.filter(m => String(m.id) === cleanSlug);
                 }
                 throw error;
@@ -324,7 +342,12 @@ export class ProbableFetcher implements IExchangeFetcher<ProbableRawMarket, Prob
         }
 
         const response = await this.ctx.http.get(`${BASE_URL}${MARKETS_PATH}`, { params: queryParams });
-        return response.data?.markets || [];
+        if (!response.data?.markets || !Array.isArray(response.data.markets)) {
+            throw new Error(
+                `Probable markets list: unexpected response shape. Expected { markets: [...] }.`
+            );
+        }
+        return response.data.markets;
     }
 
     private async fetchRawMarketsViaSearch(
@@ -380,7 +403,12 @@ export class ProbableFetcher implements IExchangeFetcher<ProbableRawMarket, Prob
         }
 
         const searchData = await this.ctx.callApi('getPublicApiV1PublicSearch', queryParams);
-        const events: ProbableRawEvent[] = searchData?.events || [];
+        if (!searchData?.events || !Array.isArray(searchData.events)) {
+            throw new Error(
+                `Probable search: unexpected response shape. Expected { events: [...] }.`
+            );
+        }
+        const events: ProbableRawEvent[] = searchData.events;
 
         const rawMarkets: ProbableRawMarket[] = [];
         for (const event of events) {
@@ -422,8 +450,12 @@ export class ProbableFetcher implements IExchangeFetcher<ProbableRawMarket, Prob
 
         const response = await this.ctx.http.get(`${BASE_URL}${EVENTS_PATH}`, { params: queryParams });
         const data = response.data;
-        // API returns either a raw array or { events: [...] }
-        return Array.isArray(data) ? data : (data?.events || []);
+        if (!Array.isArray(data)) {
+            throw new Error(
+                `Probable events list: unexpected response shape (got ${typeof data}). Expected an array.`
+            );
+        }
+        return data;
     }
 
     private async fetchRawEventsViaSearch(params: EventFetchParams): Promise<ProbableRawEvent[]> {
@@ -439,7 +471,12 @@ export class ProbableFetcher implements IExchangeFetcher<ProbableRawMarket, Prob
         };
 
         const searchData = await this.ctx.callApi('getPublicApiV1PublicSearch', queryParams);
-        return searchData?.events || [];
+        if (!searchData?.events || !Array.isArray(searchData.events)) {
+            throw new Error(
+                `Probable event search: unexpected response shape. Expected { events: [...] }.`
+            );
+        }
+        return searchData.events;
     }
 }
 

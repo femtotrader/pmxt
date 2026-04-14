@@ -1,4 +1,4 @@
-import { Position, Trade } from '../../types';
+import { Trade } from '../../types';
 import {
     BaseSubscriber,
     SubscribedActivityBuilder,
@@ -56,12 +56,6 @@ export interface GoldSkyConfig extends Omit<SubscriberConfig, 'buildSubscription
 const POLYMARKET_TRADES_ENDPOINT =
     'https://api.goldsky.com/api/public/project_cl6mb8i9h0003e201j6li0diw/subgraphs/orderbook-subgraph/prod/gn';
 
-const POLYMARKET_POSITIONS_ENDPOINT =
-    'https://api.goldsky.com/api/public/project_cl6mb8i9h0003e201j6li0diw/subgraphs/positions-subgraph/0.0.7/gn';
-
-const POLYMARKET_PNL_ENDPOINT =
-    'https://api.goldsky.com/api/public/project_cl6mb8i9h0003e201j6li0diw/subgraphs/pnl-subgraph/0.0.14/gn';
-
 // NOTE: orderBy must use `id` (primary key) on pnl-subgraph and positions-subgraph.
 // Sorting by any unindexed column (e.g. amount, balance) causes a statement timeout.
 
@@ -111,46 +105,6 @@ const BUILD_POLYMARKET_TRADES_AS_TAKER_QUERY = (address: string, url?: string): 
     variables: { address: address.toLowerCase() },
 });
 
-const BUILD_POLYMARKET_PNL_QUERY = (address: string, url?: string): GoldSkyGraphQlQuery => ({
-    url: url ?? POLYMARKET_PNL_ENDPOINT,
-    query: `
-        query GetPolymarketPnl($address: String!) {
-            userPositions(
-                where: { user: $address, amount_gt: "0" }
-                first: 1000
-                orderBy: id
-                orderDirection: asc
-            ) {
-                tokenId
-                amount
-                avgPrice
-                realizedPnl
-            }
-        }
-    `,
-    variables: { address: address.toLowerCase() },
-});
-
-const BUILD_POLYMARKET_POSITIONS_QUERY = (_address: string, tokenIds: string[], url?: string): GoldSkyGraphQlQuery => ({
-    url: url ?? POLYMARKET_POSITIONS_ENDPOINT,
-    query: `
-        query GetPolymarketPositions($tokenIds: [ID!]!) {
-            tokenIdConditions(
-                where: { id_in: $tokenIds }
-                first: 1000
-                orderBy: id
-                orderDirection: asc
-            ) {
-                id
-                outcomeIndex
-                condition {
-                    id
-                }
-            }
-        }
-    `,
-    variables: { tokenIds },
-});
 
 // ----------------------------------------------------------------------------
 // Exported subscription builders
@@ -169,43 +123,24 @@ const BUILD_POLYMARKET_POSITIONS_QUERY = (_address: string, tokenIds: string[], 
  * Pair with `buildPolymarketActivity`.
  */
 export const POLYMARKET_DEFAULT_SUBSCRIPTION: GoldSkySubscriptionBuilder = async (address, types, goldSkyFetch, baseUrl?: string) => {
-    if (!types.includes('trades') && !types.includes('positions')) return null;
+    if (!types.includes('trades')) return null;
 
-    // Trades (maker + taker) and PNL all run in parallel.
-    const [makerData, takerData, pnlData] = await Promise.all([
-        types.includes('trades') ? goldSkyFetch(BUILD_POLYMARKET_TRADES_AS_MAKER_QUERY(address, baseUrl)) : null,
-        types.includes('trades') ? goldSkyFetch(BUILD_POLYMARKET_TRADES_AS_TAKER_QUERY(address, baseUrl)) : null,
-        types.includes('positions') ? goldSkyFetch(BUILD_POLYMARKET_PNL_QUERY(address, baseUrl)) : null,
+    const [makerData, takerData] = await Promise.all([
+        goldSkyFetch(BUILD_POLYMARKET_TRADES_AS_MAKER_QUERY(address, baseUrl)),
+        goldSkyFetch(BUILD_POLYMARKET_TRADES_AS_TAKER_QUERY(address, baseUrl)),
     ]);
 
-    const result: Record<string, unknown> = {};
-
-    if (types.includes('trades')) {
-        const seen = new Set<string>();
-        const trades: any[] = [];
-        for (const row of [...(makerData?.orderFilledEvents as any[] ?? []), ...(takerData?.orderFilledEvents as any[] ?? [])]) {
-            if (!seen.has(row.id)) {
-                seen.add(row.id);
-                trades.push(row);
-            }
-        }
-        trades.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
-        result.orderFilledEvents = trades;
-    }
-
-    if (pnlData) {
-        const sorted = ((pnlData.userPositions as any[]) ?? [])
-            .sort((a, b) => parseFloat(b.amount ?? '0') - parseFloat(a.amount ?? '0'));
-        result.userPositions = sorted;
-
-        const tokenIds = sorted.map((p: any) => String(p.tokenId));
-        if (tokenIds.length > 0) {
-            const metaData = await goldSkyFetch(BUILD_POLYMARKET_POSITIONS_QUERY(address, tokenIds, baseUrl));
-            if (metaData) Object.assign(result, metaData);
+    const seen = new Set<string>();
+    const trades: any[] = [];
+    for (const row of [...(makerData?.orderFilledEvents as any[] ?? []), ...(takerData?.orderFilledEvents as any[] ?? [])]) {
+        if (!seen.has(row.id)) {
+            seen.add(row.id);
+            trades.push(row);
         }
     }
+    trades.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
 
-    return result;
+    return { orderFilledEvents: trades };
 };
 
 /**
@@ -290,67 +225,14 @@ export const buildPolymarketTradesActivity: SubscribedActivityBuilder = (data, a
 };
 
 /**
- * Derives `Position[]` from the joined PNL + positions-metadata event data.
- *
- * `userPositions` (PNL) and `userBalances` (positions) are guaranteed
- * to share the same tokenIds since step 2 is filtered by step 1's results.
- *
- * `currentPrice` and `unrealizedPnL` are left at 0 (not available on-chain).
- */
-/**
- * Derives `Position[]` from joined PNL (`userPositions`) + metadata (`userBalances`).
- * `currentPrice` and `unrealizedPnL` are left at 0 (not available on-chain).
- */
-export const buildPolymarketPositionsActivity: SubscribedActivityBuilder = (data, _address, types): SubscribedResult | null => {
-    if (!types.includes('positions')) return null;
-
-    const pnlRows: any[] = (data as any)?.userPositions ?? [];
-    if (pnlRows.length === 0) return null;
-
-    const conditionRows: any[] = (data as any)?.tokenIdConditions ?? [];
-    const metaByToken = new Map<string, { marketId: string; outcomeIndex: number }>();
-    for (const c of conditionRows) {
-        metaByToken.set(c.id ?? '', {
-            marketId: c.condition?.id ?? '',
-            outcomeIndex: Number(c.outcomeIndex ?? 0),
-        });
-    }
-
-    const positions: Position[] = pnlRows.map((p: any) => {
-        const tokenId = String(p.tokenId ?? '');
-        const meta = metaByToken.get(tokenId);
-        return {
-            marketId: meta?.marketId ?? '',
-            outcomeId: tokenId,
-            outcomeLabel: (meta?.outcomeIndex ?? 0) === 1 ? 'Yes' : 'No',
-            size: parseFloat(p.amount ?? '0') / 1e6,
-            entryPrice: parseFloat(p.avgPrice ?? '0') / 1e6,
-            currentPrice: 0, // Not available on-chain
-            unrealizedPnL: 0,  // Not available on-chain
-            realizedPnL: parseFloat(p.realizedPnl ?? '0') / 1e6,
-        };
-    });
-
-    return { positions };
-};
-
-/**
  * Combined activity builder for Polymarket. Pair with `POLYMARKET_DEFAULT_SUBSCRIPTION`.
+ *
+ * Only handles trades from GoldSky on-chain data. Positions are always fetched
+ * via the REST fallback because on-chain data lacks real market IDs and outcome labels.
  */
 export const buildPolymarketActivity: SubscribedActivityBuilder = (data, address, types, lastSnapshot): SubscribedResult | null => {
-    const result: SubscribedResult = {};
-
-    if (types.includes('trades')) {
-        const r = buildPolymarketTradesActivity(data, address, types, lastSnapshot);
-        if (r?.trades) result.trades = r.trades;
-    }
-
-    if (types.includes('positions')) {
-        const r = buildPolymarketPositionsActivity(data, address, types, lastSnapshot);
-        if (r?.positions) result.positions = r.positions;
-    }
-
-    return Object.keys(result).length > 0 ? result : null;
+    if (!types.includes('trades')) return null;
+    return buildPolymarketTradesActivity(data, address, types, lastSnapshot);
 };
 
 /**

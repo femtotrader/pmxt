@@ -335,9 +335,10 @@ describe('PolymarketNormalizer.normalizeOHLCV', () => {
 // ---------------------------------------------------------------------------
 
 describe('PolymarketNormalizer.normalizePosition', () => {
-    test('should convert raw position to unified Position', () => {
+    test('should prefer resolvedMarketId over conditionId', () => {
         const raw: PolymarketRawPosition = {
             conditionId: 'cond-1',
+            resolvedMarketId: 'gamma-market-123',
             asset: 'tok-yes',
             outcome: 'Yes',
             size: '100.5',
@@ -348,7 +349,7 @@ describe('PolymarketNormalizer.normalizePosition', () => {
         };
 
         const pos = normalizer.normalizePosition(raw);
-        expect(pos.marketId).toBe('cond-1');
+        expect(pos.marketId).toBe('gamma-market-123');
         expect(pos.outcomeId).toBe('tok-yes');
         expect(pos.outcomeLabel).toBe('Yes');
         expect(pos.size).toBeCloseTo(100.5);
@@ -356,5 +357,19 @@ describe('PolymarketNormalizer.normalizePosition', () => {
         expect(pos.currentPrice).toBeCloseTo(0.75);
         expect(pos.unrealizedPnL).toBeCloseTo(15.0);
         expect(pos.realizedPnL).toBeCloseTo(5.0);
+    });
+
+    test('should use resolvedMarketId as marketId (conditionId is never used)', () => {
+        const raw: PolymarketRawPosition = {
+            conditionId: 'cond-1',
+            resolvedMarketId: 'gamma-456',
+            asset: 'tok-no',
+            outcome: 'No',
+            size: '50',
+            avgPrice: '0.40',
+        };
+
+        const pos = normalizer.normalizePosition(raw);
+        expect(pos.marketId).toBe('gamma-456');
     });
 });

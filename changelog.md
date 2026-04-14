@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.30.6] - 2026-04-14
+
+### Bug Fixes
+
+- **polymarket: `watchAddress` and `fetchPositions` return wrong `marketId`**
+  ([#83](https://github.com/pmxt-dev/pmxt/issues/83)):
+  `Position.marketId` contained the on-chain condition ID (a bytes32 hash like
+  `0x9191a...`) instead of the Polymarket market ID. Calling
+  `fetchMarket({ marketId: position.marketId })` always failed with 422.
+  Additionally, the GoldSky on-chain builder guessed `outcomeLabel` as
+  `"Yes"`/`"No"` from a binary index, which was wrong for non-binary markets
+  (e.g. returning `"No"` instead of `"Not December 31, 2026"`).
+
+  **Fix:** Positions are no longer built from GoldSky on-chain data (which
+  lacks real market IDs and outcome labels). `fetchRawPositions` now
+  batch-resolves condition IDs to Gamma market IDs via
+  `GET gamma-api.polymarket.com/markets?condition_ids=...`. Positions whose
+  condition ID cannot be resolved are excluded from the result.
+  Removed ~120 lines of dead GoldSky positions/PNL subgraph code.
+
 ## [2.30.5] - 2026-04-13
 
 ### Added

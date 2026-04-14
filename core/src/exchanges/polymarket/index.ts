@@ -690,22 +690,9 @@ export class PolymarketExchange extends PredictionMarketExchange {
 
         if (types.includes('positions')) {
             fetches.push(
-                this.callApi('getPositions', { user: address, limit: 100 })
-                    .then((data: any) => {
-                        const raw = Array.isArray(data) ? data : [];
-                        result.positions = raw.map((p: any) => ({
-                            marketId: p.conditionId,
-                            outcomeId: p.asset,
-                            outcomeLabel: p.outcome || 'Unknown',
-                            size: parseFloat(p.size),
-                            entryPrice: parseFloat(p.avgPrice),
-                            currentPrice: parseFloat(p.curPrice || '0'),
-                            unrealizedPnL: parseFloat(p.cashPnl || '0'),
-                            realizedPnL: parseFloat(p.realizedPnl || '0'),
-                        }));
-                    })
-                    .catch(() => {
-                        result.positions = [];
+                this.fetcher.fetchRawPositions(address)
+                    .then((rawPositions) => {
+                        result.positions = rawPositions.map((p) => this.normalizer.normalizePosition(p));
                     }),
             );
         }

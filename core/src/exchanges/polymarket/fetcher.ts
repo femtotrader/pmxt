@@ -77,6 +77,8 @@ export interface PolymarketRawTrade {
 
 export interface PolymarketRawPosition {
     conditionId?: string;
+    /** Gamma market ID resolved from conditionId. Set by enrichPositionsWithMarketIds. */
+    resolvedMarketId?: string;
     asset?: string;
     outcome?: string;
     size: string;
@@ -250,7 +252,42 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
 
     async fetchRawPositions(walletAddress: string): Promise<PolymarketRawPosition[]> {
         const result = await this.ctx.callApi('getPositions', { user: walletAddress, limit: 100 });
-        return Array.isArray(result) ? result : [];
+        const raw: PolymarketRawPosition[] = Array.isArray(result) ? result : [];
+        return this.enrichPositionsWithMarketIds(raw);
+    }
+
+    /**
+     * Resolve conditionIds to Gamma market IDs in a single batch request.
+     * Throws if the Gamma lookup fails — positions must have correct market IDs.
+     */
+    private async enrichPositionsWithMarketIds(positions: PolymarketRawPosition[]): Promise<PolymarketRawPosition[]> {
+        const conditionIds = [...new Set(
+            positions.map(p => p.conditionId).filter((id): id is string => !!id),
+        )];
+        if (conditionIds.length === 0) return positions;
+
+        const conditionToMarketId = await this.resolveConditionIds(conditionIds);
+
+        return positions
+            .map(p => ({
+                ...p,
+                resolvedMarketId: conditionToMarketId.get(p.conditionId ?? ''),
+            }))
+            .filter(p => p.resolvedMarketId !== undefined);
+    }
+
+    private async resolveConditionIds(conditionIds: string[]): Promise<Map<string, string>> {
+        const response = await this.http.get(GAMMA_MARKETS_URL, {
+            params: { condition_ids: conditionIds.join(',') },
+        });
+        const markets: any[] = Array.isArray(response.data) ? response.data : [];
+        const result = new Map<string, string>();
+        for (const market of markets) {
+            if (market.conditionId && market.id) {
+                result.set(market.conditionId, String(market.id));
+            }
+        }
+        return result;
     }
 
     // ------------------------------------------------------------------------

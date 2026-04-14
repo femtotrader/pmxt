@@ -158,7 +158,10 @@ export class PolymarketUSExchange extends PredictionMarketExchange {
                 limit: params?.limit ?? 250,
                 offset: params?.offset ?? 0,
             });
-            let markets = (resp.markets || []).map(m => this.normalizer.normalizeMarket(m));
+            if (!resp.markets) {
+                throw new Error('PolymarketUS markets.list response missing required "markets" field');
+            }
+            let markets = resp.markets.map(m => this.normalizer.normalizeMarket(m));
 
             if (params?.query) {
                 const q = params.query.toLowerCase();
@@ -187,7 +190,10 @@ export class PolymarketUSExchange extends PredictionMarketExchange {
                 limit: params?.limit ?? 100,
                 offset: params?.offset ?? 0,
             });
-            let events = (resp.events || []).map(e => this.normalizer.normalizeEvent(e));
+            if (!resp.events) {
+                throw new Error('PolymarketUS events.list response missing required "events" field');
+            }
+            let events = resp.events.map(e => this.normalizer.normalizeEvent(e));
 
             if (params?.query) {
                 const q = params.query.toLowerCase();
@@ -228,7 +234,10 @@ export class PolymarketUSExchange extends PredictionMarketExchange {
         this.requireAuth();
         return this.run(async () => {
             const resp = await this.client.portfolio.positions({});
-            return this.normalizer.normalizePositions(resp.positions || {});
+            if (!resp.positions) {
+                throw new Error('PolymarketUS portfolio.positions response missing required "positions" field');
+            }
+            return this.normalizer.normalizePositions(resp.positions);
         });
     }
 
@@ -240,7 +249,10 @@ export class PolymarketUSExchange extends PredictionMarketExchange {
                 limit: params?.limit ?? 100,
                 marketSlug: params?.marketId,
             });
-            const activities = resp.activities || [];
+            if (!resp.activities) {
+                throw new Error('PolymarketUS portfolio.activities response missing required "activities" field');
+            }
+            const activities = resp.activities;
             const trades: UserTrade[] = [];
             activities.forEach((activity, idx) => {
                 const trade = this.normalizer.normalizeUserTradeFromActivity(activity, idx);
@@ -260,7 +272,10 @@ export class PolymarketUSExchange extends PredictionMarketExchange {
             const resp = await this.client.orders.list({
                 slugs: marketId ? [marketId] : undefined,
             });
-            const raws = resp.orders || [];
+            if (!resp.orders) {
+                throw new Error('PolymarketUS orders.list response missing required "orders" field');
+            }
+            const raws = resp.orders;
             return raws.map(raw => {
                 const normalized = this.normalizer.normalizeOrder(raw);
                 this.cacheOrder(normalized.id, raw.marketSlug);
@@ -324,25 +339,7 @@ export class PolymarketUSExchange extends PredictionMarketExchange {
         const newId = response.id;
         this.cacheOrder(newId, built.params.marketId);
 
-        try {
-            return await this.fetchOrder(newId);
-        } catch {
-            // Order may not yet be visible via retrieve. Fall back to a
-            // synthetic Order built from the original params.
-            return {
-                id: newId,
-                marketId: built.params.marketId,
-                outcomeId: built.params.outcomeId,
-                side: built.params.side,
-                type: built.params.type,
-                price: built.params.price ?? 0,
-                amount: built.params.amount,
-                status: 'open',
-                filled: 0,
-                remaining: built.params.amount,
-                timestamp: Date.now(),
-            };
-        }
+        return await this.fetchOrder(newId);
     }
 
     override async createOrder(params: CreateOrderParams): Promise<Order> {

@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.31.1] - 2026-04-18
+
+### Bug Fixes
+
+- **Python SDK: exchange subclasses reject `pmxt_api_key` kwarg**
+  ([#97](https://github.com/pmxt-dev/pmxt/issues/97)):
+  Auto-generated classes (`Polymarket`, `Kalshi`, `Limitless`, etc.) did not
+  accept `pmxt_api_key`, even though the base `Exchange` class does. Fixed the
+  code generator to include `pmxt_api_key` in every subclass `__init__` and
+  forward it to `super()`.
+
+### Docs
+
+- **SDK server management page**: new `docs/sdk/server.mdx` covering
+  `server.start()`, `stop()`, `restart()`, `status()`, `health()`, and
+  `logs()`.
+
+### Housekeeping
+
+- Removed `testDummyMethod` from the OpenAPI spec and method-verbs map.
+- Added description to the `close` endpoint in the OpenAPI spec.
+- Regenerated OpenAPI spec to include `category` / `tags` shorthand params
+  on `fetchEvents` and `fetchEvent` (present in source since v2.31.0 but
+  the spec had not been regenerated).
+
 ## [2.31.0] - 2026-04-14
 
 ### New Features
@@ -57,11 +82,6 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
-<<<<<<< Updated upstream
-- **polymarket_us: orderbook validation, auth test, and compliance timeouts**
-  Corrected PolymarketUS orderbook validation, auth test assertions, and
-  compliance test timeouts.
-=======
 - **limitless: `fetchWatchedAddressActivity` silently swallows errors**
   ([#85](https://github.com/pmxt-dev/pmxt/issues/85)):
   Two `.catch()` handlers silently replaced errors from `fetchPositions` and
@@ -90,7 +110,6 @@ All notable changes to this project will be documented in this file.
   market indistinguishable (Yes vs No). Derived from `raw.outcome` /
   `raw.outcomeSide` instead. Also replaced `|| ''` fallbacks on required token
   IDs with throws.
->>>>>>> Stashed changes
 
 ## [2.30.8] - 2026-04-14
 

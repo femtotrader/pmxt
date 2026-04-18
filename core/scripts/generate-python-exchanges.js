@@ -142,8 +142,10 @@ function generateClass(exchange) {
     }
     constructorParams.push('base_url: str = "http://localhost:3847"');
     constructorParams.push('auto_start_server: bool = True');
+    constructorParams.push('pmxt_api_key: Optional[str] = None');
     superArgs.push('base_url=base_url');
     superArgs.push('auto_start_server=auto_start_server');
+    superArgs.push('pmxt_api_key=pmxt_api_key');
 
     const docLines = [];
     if (creds.apiKey)        docLines.push('            api_key: API key for authentication (optional)');
@@ -159,6 +161,7 @@ function generateClass(exchange) {
     if (creds.signatureType) docLines.push('            signature_type: Signature type (optional)');
     docLines.push('            base_url: Base URL of the PMXT sidecar server');
     docLines.push('            auto_start_server: Automatically start server if not running (default: True)');
+    docLines.push('            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)');
 
     const indent4 = s => `    ${s}`;
     const indent8 = s => `        ${s}`;

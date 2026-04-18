@@ -288,6 +288,20 @@ paths:
             allOf:
               - $ref: '#/components/schemas/EventFilterCriteria'
           description: Optional client-side filter applied after fetching
+        - in: query
+          name: category
+          required: false
+          schema:
+            type: string
+          description: Shorthand for filter.category -- merged into filter (takes precedence)
+        - in: query
+          name: tags
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          description: Shorthand for filter.tags -- merged into filter (takes precedence)
       responses:
         '200':
           description: Fetch Events response
@@ -485,6 +499,20 @@ paths:
             allOf:
               - $ref: '#/components/schemas/EventFilterCriteria'
           description: Optional client-side filter applied after fetching
+        - in: query
+          name: category
+          required: false
+          schema:
+            type: string
+          description: Shorthand for filter.category -- merged into filter (takes precedence)
+        - in: query
+          name: tags
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          description: Shorthand for filter.tags -- merged into filter (takes precedence)
       responses:
         '200':
           description: Fetch Event response
@@ -2014,6 +2042,14 @@ components:
           allOf:
             - $ref: '#/components/schemas/EventFilterCriteria'
           description: Optional client-side filter applied after fetching
+        category:
+          type: string
+          description: Shorthand for filter.category -- merged into filter (takes precedence)
+        tags:
+          type: array
+          items:
+            type: string
+          description: Shorthand for filter.tags -- merged into filter (takes precedence)
     HistoryFilterParams:
       type: object
       description: Deprecated - use OHLCVParams or TradesParams instead. Resolution is optional for backward compatibility.

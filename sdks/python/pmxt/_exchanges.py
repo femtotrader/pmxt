@@ -20,6 +20,7 @@ class Polymarket(Exchange):
         signature_type: Optional[Any] = "gnosis-safe",
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
     ):
         """
         Initialize Polymarket client.
@@ -33,6 +34,7 @@ class Polymarket(Exchange):
             signature_type: Signature type (optional)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
         """
         super().__init__(
             exchange_name="polymarket",
@@ -42,6 +44,7 @@ class Polymarket(Exchange):
             signature_type=signature_type,
             base_url=base_url,
             auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
         )
 
         self.api_secret = api_secret
@@ -67,6 +70,7 @@ class Limitless(Exchange):
         private_key: Optional[str] = None,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
     ):
         """
         Initialize Limitless client.
@@ -78,6 +82,7 @@ class Limitless(Exchange):
             private_key: Private key for authentication (optional)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
         """
         super().__init__(
             exchange_name="limitless",
@@ -85,6 +90,7 @@ class Limitless(Exchange):
             private_key=private_key,
             base_url=base_url,
             auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
         )
 
         self.api_secret = api_secret
@@ -108,6 +114,7 @@ class Kalshi(Exchange):
         private_key: Optional[str] = None,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
     ):
         """
         Initialize Kalshi client.
@@ -117,6 +124,7 @@ class Kalshi(Exchange):
             private_key: Private key for authentication (optional)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
         """
         super().__init__(
             exchange_name="kalshi",
@@ -124,6 +132,7 @@ class Kalshi(Exchange):
             private_key=private_key,
             base_url=base_url,
             auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
         )
 
 
@@ -136,6 +145,7 @@ class KalshiDemo(Exchange):
         private_key: Optional[str] = None,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
     ):
         """
         Initialize KalshiDemo client.
@@ -145,6 +155,7 @@ class KalshiDemo(Exchange):
             private_key: Private key for authentication (optional)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
         """
         super().__init__(
             exchange_name="kalshi-demo",
@@ -152,6 +163,7 @@ class KalshiDemo(Exchange):
             private_key=private_key,
             base_url=base_url,
             auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
         )
 
 
@@ -166,6 +178,7 @@ class Probable(Exchange):
         private_key: Optional[str] = None,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
     ):
         """
         Initialize Probable client.
@@ -177,6 +190,7 @@ class Probable(Exchange):
             private_key: Private key for authentication (optional)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
         """
         super().__init__(
             exchange_name="probable",
@@ -184,6 +198,7 @@ class Probable(Exchange):
             private_key=private_key,
             base_url=base_url,
             auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
         )
 
         self.api_secret = api_secret
@@ -206,6 +221,7 @@ class Baozi(Exchange):
         private_key: Optional[str] = None,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
     ):
         """
         Initialize Baozi client.
@@ -214,12 +230,14 @@ class Baozi(Exchange):
             private_key: Private key for authentication (optional)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
         """
         super().__init__(
             exchange_name="baozi",
             private_key=private_key,
             base_url=base_url,
             auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
         )
 
 
@@ -232,6 +250,7 @@ class Myriad(Exchange):
         wallet_address: Optional[str] = None,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
     ):
         """
         Initialize Myriad client.
@@ -241,6 +260,7 @@ class Myriad(Exchange):
             wallet_address: Wallet address (required for positions and balance)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
         """
         super().__init__(
             exchange_name="myriad",
@@ -248,6 +268,7 @@ class Myriad(Exchange):
             private_key=wallet_address,
             base_url=base_url,
             auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
         )
 
 
@@ -261,6 +282,7 @@ class Opinion(Exchange):
         proxy_address: Optional[str] = None,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
     ):
         """
         Initialize Opinion client.
@@ -271,6 +293,7 @@ class Opinion(Exchange):
             proxy_address: Proxy/smart wallet address (optional)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
         """
         super().__init__(
             exchange_name="opinion",
@@ -279,6 +302,7 @@ class Opinion(Exchange):
             proxy_address=proxy_address,
             base_url=base_url,
             auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
         )
 
 
@@ -290,6 +314,7 @@ class Metaculus(Exchange):
         api_token: Optional[str] = None,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
     ):
         """
         Initialize Metaculus client.
@@ -298,12 +323,14 @@ class Metaculus(Exchange):
             api_token: API token for authentication (optional; required for Metaculus API access)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
         """
         super().__init__(
             exchange_name="metaculus",
             api_token=api_token,
             base_url=base_url,
             auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
         )
 
 
@@ -312,52 +339,58 @@ class Smarkets(Exchange):
 
     def __init__(
         self,
-        email: Optional[str] = None,
-        password: Optional[str] = None,
+        api_key: Optional[str] = None,
+        private_key: Optional[str] = None,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
     ):
         """
         Initialize Smarkets client.
 
         Args:
-            email: Smarkets account email (optional; required for trading)
-            password: Smarkets account password (optional; required for trading)
+            api_key: API key for authentication (optional)
+            private_key: Private key for authentication (optional)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
         """
         super().__init__(
             exchange_name="smarkets",
-            api_key=email,
-            private_key=password,
+            api_key=api_key,
+            private_key=private_key,
             base_url=base_url,
             auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
         )
 
 
-class PolymarketUS(Exchange):
-    """Polymarket US exchange client."""
+class Polymarket_us(Exchange):
+    """Polymarket_us exchange client."""
 
     def __init__(
         self,
-        key_id: Optional[str] = None,
-        secret_key: Optional[str] = None,
+        api_key: Optional[str] = None,
+        private_key: Optional[str] = None,
         base_url: str = "http://localhost:3847",
         auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
     ):
         """
-        Initialize Polymarket US client.
+        Initialize Polymarket_us client.
 
         Args:
-            key_id: Polymarket US API key id (optional; required for trading)
-            secret_key: Polymarket US API secret key (optional; required for trading)
+            api_key: API key for authentication (optional)
+            private_key: Private key for authentication (optional)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
         """
         super().__init__(
             exchange_name="polymarket_us",
-            api_key=key_id,
-            private_key=secret_key,
+            api_key=api_key,
+            private_key=private_key,
             base_url=base_url,
             auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
         )

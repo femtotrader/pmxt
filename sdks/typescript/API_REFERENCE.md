@@ -106,9 +106,34 @@ for (const line of pmxt.server.logs(100)) {
 
 ## Methods
 
-### `implicitApi`
+### `has`
 
 HTTP verb for the endpoint (e.g. GET, POST). */
+
+
+**Signature:**
+
+```typescript
+async has(): Promise<ExchangeHas>
+```
+
+**Parameters:**
+
+- None
+
+**Returns:** Promise<ExchangeHas> - Result
+
+**Example:**
+
+```typescript
+await exchange.has()
+```
+
+
+---
+### `implicitApi`
+
+Override in subclasses to force specific capability values.
 
 
 **Signature:**
@@ -199,12 +224,12 @@ Fetch markets with cursor-based pagination backed by a stable in-memory snapshot
 **Signature:**
 
 ```typescript
-async fetchMarketsPaginated(params?: { limit?: number; cursor?: string }): Promise<PaginatedMarketsResult>
+async fetchMarketsPaginated(params?: { limit?: number; cursor?: string; filter?: MarketFilterCriteria }): Promise<PaginatedMarketsResult>
 ```
 
 **Parameters:**
 
-- `params` ({ limit?: number; cursor?: string }) - **Optional**: params
+- `params` ({ limit?: number; cursor?: string; filter?: MarketFilterCriteria }) - **Optional**: params
   - `params.limit` - Page size (default: return all markets)
   - `params.cursor` - Opaque cursor returned by a previous call
 
@@ -710,6 +735,31 @@ async watchOrderBook(id: string, limit?: number): Promise<OrderBook>
 
 ```typescript
 await exchange.watchOrderBook("12345", { limit: 10 })
+```
+
+
+---
+### `unwatchOrderBook`
+
+Unsubscribe from a previously watched order book stream.
+
+
+**Signature:**
+
+```typescript
+async unwatchOrderBook(id: string): Promise<void>
+```
+
+**Parameters:**
+
+- `id` (string): The Outcome ID to stop watching
+
+**Returns:** Promise<void> - Result
+
+**Example:**
+
+```typescript
+await exchange.unwatchOrderBook("12345")
 ```
 
 
@@ -1300,6 +1350,43 @@ raw: any; // The raw, exchange-native payload. Always present.
 ```
 
 ---
+### `MarketFilterCriteria`
+
+
+
+```typescript
+interface MarketFilterCriteria {
+text: string; // 
+searchIn: string[]; // Default: ['title']
+volume24h: object; // 
+volume: object; // Filter by total (lifetime) volume range
+liquidity: object; // Filter by current liquidity range
+openInterest: object; // Filter by open interest range
+resolutionDate: object; // 
+category: string; // 
+tags: string[]; // Match if market has ANY of these tags
+price: object; // 
+priceChange24h: object; // 
+}
+```
+
+---
+### `EventFilterCriteria`
+
+
+
+```typescript
+interface EventFilterCriteria {
+text: string; // 
+searchIn: string[]; // Default: ['title']
+category: string; // 
+tags: string[]; // Match events that have any of these tags
+marketCount: object; // 
+totalVolume: object; // Sum of market volumes
+}
+```
+
+---
 ### `ExchangeCredentials`
 
 Optional authentication credentials for exchange operations.
@@ -1367,6 +1454,9 @@ status?: string; // Filter by event status (default: 'active', 'inactive' and 'c
 searchIn?: string; // Where to search (default: 'title')
 eventId?: string; // Direct lookup by event ID
 slug?: string; // Lookup by event slug
+filter?: any; // Optional client-side filter applied after fetching
+category?: string; // Shorthand for filter.category -- merged into filter (takes precedence)
+tags?: string[]; // Shorthand for filter.tags -- merged into filter (takes precedence)
 }
 ```
 

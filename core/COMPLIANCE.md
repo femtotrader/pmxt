@@ -20,8 +20,8 @@ This document details the feature support and compliance status for each exchang
 | **Private Data** | `fetchBalance` | Y | Y | Y | Y | Y | Y | - | - |
 |  | `fetchPositions` | Y | Y | Y | Y | Y | Y | Y | - |
 |  | `fetchMyTrades` | Y | Y | Y | Y | - | Y | Y | - |
-| **Trading** | `createOrder` | Y | Y | Y | Y | Y | Y | Y | - |
-|  | `cancelOrder` | Y | Y | Y | Y | Y | - | Y | - |
+| **Trading** | `createOrder` | Y | Y | Y | Y | Y | Y | Y | Y |
+|  | `cancelOrder` | Y | Y | Y | Y | Y | - | Y | Y |
 |  | `fetchOrder` | Y | Y | Y | Y | Y | - | Y | - |
 |  | `fetchOpenOrders` | Y | Y | Y | Y | Y | Y | Y | - |
 |  | `fetchClosedOrders` | - | Y | Y | - | - | - | Y | - |

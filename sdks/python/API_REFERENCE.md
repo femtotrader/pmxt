@@ -103,9 +103,34 @@ for line in pmxt.server.logs(100):
 
 ## Methods
 
-### `implicit_api`
+### `has`
 
 HTTP verb for the endpoint (e.g. GET, POST). */
+
+
+**Signature:**
+
+```python
+def has() -> ExchangeHas:
+```
+
+**Parameters:**
+
+- None
+
+**Returns:** ExchangeHas - Result
+
+**Example:**
+
+```python
+exchange.has()
+```
+
+
+---
+### `implicit_api`
+
+Override in subclasses to force specific capability values.
 
 
 **Signature:**
@@ -196,12 +221,12 @@ Fetch markets with cursor-based pagination backed by a stable in-memory snapshot
 **Signature:**
 
 ```python
-def fetch_markets_paginated(params: Optional[{ limit?: number; cursor?: string }] = None) -> PaginatedMarketsResult:
+def fetch_markets_paginated(params: Optional[{ limit?: number; cursor?: string; filter?: MarketFilterCriteria }] = None) -> PaginatedMarketsResult:
 ```
 
 **Parameters:**
 
-- `params` ({ limit?: number; cursor?: string }) - **Optional**: params
+- `params` ({ limit?: number; cursor?: string; filter?: MarketFilterCriteria }) - **Optional**: params
   - `params.limit` - Page size (default: return all markets)
   - `params.cursor` - Opaque cursor returned by a previous call
 
@@ -707,6 +732,31 @@ def watch_order_book(id: str, limit: Optional[float] = None) -> OrderBook:
 
 ```python
 exchange.watch_order_book(id="12345", limit=10)
+```
+
+
+---
+### `unwatch_order_book`
+
+Unsubscribe from a previously watched order book stream.
+
+
+**Signature:**
+
+```python
+def unwatch_order_book(id: str) -> void:
+```
+
+**Parameters:**
+
+- `id` (str): The Outcome ID to stop watching
+
+**Returns:** void - Result
+
+**Example:**
+
+```python
+exchange.unwatch_order_book(id="12345")
 ```
 
 
@@ -1299,6 +1349,43 @@ raw: Any # The raw, exchange-native payload. Always present.
 ```
 
 ---
+### `MarketFilterCriteria`
+
+
+
+```python
+@dataclass
+class MarketFilterCriteria:
+text: str # 
+search_in: List[string] # Default: ['title']
+volume24h: object # 
+volume: object # Filter by total (lifetime) volume range
+liquidity: object # Filter by current liquidity range
+open_interest: object # Filter by open interest range
+resolution_date: object # 
+category: str # 
+tags: List[string] # Match if market has ANY of these tags
+price: object # 
+price_change24h: object # 
+```
+
+---
+### `EventFilterCriteria`
+
+
+
+```python
+@dataclass
+class EventFilterCriteria:
+text: str # 
+search_in: List[string] # Default: ['title']
+category: str # 
+tags: List[string] # Match events that have any of these tags
+market_count: object # 
+total_volume: object # Sum of market volumes
+```
+
+---
 ### `ExchangeCredentials`
 
 Optional authentication credentials for exchange operations.
@@ -1367,6 +1454,9 @@ status: str # Filter by event status (default: 'active', 'inactive' and 'closed'
 search_in: str # Where to search (default: 'title')
 event_id: str # Direct lookup by event ID
 slug: str # Lookup by event slug
+filter: Any # Optional client-side filter applied after fetching
+category: str # Shorthand for filter.category -- merged into filter (takes precedence)
+tags: List[string] # Shorthand for filter.tags -- merged into filter (takes precedence)
 ```
 
 ---

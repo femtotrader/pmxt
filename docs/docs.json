@@ -70,6 +70,12 @@
             ]
           },
           {
+            "group": "SDK",
+            "pages": [
+              "sdk/server"
+            ]
+          },
+          {
             "group": "Router",
             "pages": [
               "router/events",

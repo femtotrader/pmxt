@@ -251,7 +251,7 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
     // ------------------------------------------------------------------------
 
     async fetchRawPositions(walletAddress: string): Promise<PolymarketRawPosition[]> {
-        const result = await this.ctx.callApi('getPositions', { user: walletAddress, limit: 100 });
+        const result = await this.ctx.callApi('getPositions', { user: walletAddress, limit: 100, sizeThreshold: 0 });
         const raw: PolymarketRawPosition[] = Array.isArray(result) ? result : [];
         return this.enrichPositionsWithMarketIds(raw);
     }
@@ -271,9 +271,8 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
         return positions
             .map(p => ({
                 ...p,
-                resolvedMarketId: conditionToMarketId.get(p.conditionId ?? ''),
-            }))
-            .filter(p => p.resolvedMarketId !== undefined);
+                resolvedMarketId: conditionToMarketId.get(p.conditionId ?? '') ?? undefined,
+            }));
     }
 
     private async resolveConditionIds(conditionIds: string[]): Promise<Map<string, string>> {

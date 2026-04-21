@@ -522,10 +522,12 @@ export abstract class PredictionMarketExchange {
             const start = offset ?? 0;
             return limit !== undefined ? filtered.slice(start, start + limit) : filtered.slice(start);
         }
+        const { limit, offset, ...venueParams } = fetchParams;
         const markets = await this.fetchMarketsImpl(
-            Object.keys(fetchParams).length > 0 ? fetchParams : undefined
+            Object.keys(venueParams).length > 0 ? venueParams : undefined
         );
-        return markets;
+        const start = offset ?? 0;
+        return limit !== undefined ? markets.slice(start, start + limit) : markets.slice(start);
     }
 
     /**
@@ -626,8 +628,10 @@ export abstract class PredictionMarketExchange {
             const start = offset ?? 0;
             return limit !== undefined ? filtered.slice(start, start + limit) : filtered.slice(start);
         }
-        const events = await this.fetchEventsImpl(fetchParams);
-        return events;
+        const { limit, offset, ...venueParams } = fetchParams;
+        const events = await this.fetchEventsImpl(venueParams);
+        const start = offset ?? 0;
+        return limit !== undefined ? events.slice(start, start + limit) : events.slice(start);
     }
 
     /**

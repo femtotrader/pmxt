@@ -1597,6 +1597,7 @@ result = exchange.call_api('operationName', {'param': 'value'})
 | `getMidpoint` | `GET` | `/midpoint` | Get midpoint price | Public |
 | `postSpreads` | `POST` | `/spreads` | Get bid-ask spreads | Public |
 | `getPricesHistory` | `GET` | `/prices-history` | Get price history for a traded token | Public |
+| `getMarketsByToken` | `GET` | `/markets-by-token/{token_id}` | Get market by token | Public |
 | `postAuthApiKey` | `POST` | `/auth/api-key` | Create API Key | Required |
 | `getAuthDeriveApiKey` | `GET` | `/auth/derive-api-key` | Derive API Key | Required |
 | `postOrder` | `POST` | `/order` | Place Single Order | Required |
@@ -2045,6 +2046,16 @@ Get price history for a traded token
 - `endTs` (query, number)
 - `interval` (query, string) — enum: `1m,1w,1d,6h,1h,max`
 - `fidelity` (query, number)
+
+---
+##### `getMarketsByToken`
+
+**GET** `/markets-by-token/{token_id}`
+
+Get market by token
+
+**Parameters:**
+- `token_id` (path, string) **required**
 
 ---
 ##### `postAuthApiKey`

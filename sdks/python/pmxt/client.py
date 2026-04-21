@@ -690,94 +690,130 @@ class Exchange(ABC):
 
     def fetch_markets(self, params: Optional[dict] = None, **kwargs) -> List[UnifiedMarket]:
         try:
-            args: List[Any] = []
+            args = []
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
                 args.append(params)
-            query = dict(params or {})
-            data = self._handle_response(
-                self._sidecar_read_request("fetchMarkets", query, args)
-            )
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchMarkets"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return [_convert_market(e) for e in data]
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_markets: {self._extract_api_error(e)}") from None
 
     def fetch_markets_paginated(self, params: Optional[dict] = None, **kwargs) -> PaginatedMarketsResult:
         try:
-            args: List[Any] = []
+            args = []
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
                 args.append(params)
-            query = dict(params or {})
-            data = self._handle_response(
-                self._sidecar_read_request("fetchMarketsPaginated", query, args)
-            )
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchMarketsPaginated"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return PaginatedMarketsResult(
                 data=[_convert_market(m) for m in data.get("data", [])],
                 total=data.get("total", 0),
                 next_cursor=data.get("nextCursor"),
             )
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_markets_paginated: {self._extract_api_error(e)}") from None
 
     def fetch_events(self, params: Optional[dict] = None, **kwargs) -> List[UnifiedEvent]:
         try:
-            args: List[Any] = []
+            args = []
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
                 args.append(params)
-            query = dict(params or {})
-            data = self._handle_response(
-                self._sidecar_read_request("fetchEvents", query, args)
-            )
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchEvents"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return [_convert_event(e) for e in data]
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_events: {self._extract_api_error(e)}") from None
 
     def fetch_market(self, params: Optional[dict] = None, **kwargs) -> UnifiedMarket:
         try:
-            args: List[Any] = []
+            args = []
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
                 args.append(params)
-            query = dict(params or {})
-            data = self._handle_response(
-                self._sidecar_read_request("fetchMarket", query, args)
-            )
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchMarket"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return _convert_market(data)
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_market: {self._extract_api_error(e)}") from None
 
     def fetch_event(self, params: Optional[dict] = None, **kwargs) -> UnifiedEvent:
         try:
-            args: List[Any] = []
+            args = []
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
                 args.append(params)
-            query = dict(params or {})
-            data = self._handle_response(
-                self._sidecar_read_request("fetchEvent", query, args)
-            )
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchEvent"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return _convert_event(data)
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_event: {self._extract_api_error(e)}") from None
 
-    def fetch_order_book(self, id: Union[str, "MarketOutcome"]) -> OrderBook:
+    def fetch_order_book(self, id: str) -> OrderBook:
         try:
-            id = _resolve_outcome_id(id)
-            args: List[Any] = [id]
-            query = {"id": id}
-            data = self._handle_response(
-                self._sidecar_read_request("fetchOrderBook", query, args)
-            )
+            args = []
+            args.append(id)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchOrderBook"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return _convert_order_book(data)
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_order_book: {self._extract_api_error(e)}") from None
 
     def cancel_order(self, order_id: str) -> Order:
         try:
@@ -795,98 +831,179 @@ class Exchange(ABC):
             data = self._handle_response(json.loads(response.data))
             return _convert_order(data)
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to cancel_order: {self._extract_api_error(e)}") from None
 
     def fetch_order(self, order_id: str) -> Order:
         try:
-            args: List[Any] = [order_id]
-            query = {"orderId": order_id}
-            data = self._handle_response(
-                self._sidecar_read_request("fetchOrder", query, args)
-            )
+            args = []
+            args.append(order_id)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchOrder"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return _convert_order(data)
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_order: {self._extract_api_error(e)}") from None
 
     def fetch_open_orders(self, market_id: Optional[str] = None) -> List[Order]:
         try:
-            args: List[Any] = []
+            args = []
             if market_id is not None:
                 args.append(market_id)
-            query = {"marketId": market_id}
-            data = self._handle_response(
-                self._sidecar_read_request("fetchOpenOrders", query, args)
-            )
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchOpenOrders"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return [_convert_order(e) for e in data]
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_open_orders: {self._extract_api_error(e)}") from None
 
     def fetch_my_trades(self, params: Optional[dict] = None, **kwargs) -> List[UserTrade]:
         try:
-            args: List[Any] = []
+            args = []
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
                 args.append(params)
-            query = dict(params or {})
-            data = self._handle_response(
-                self._sidecar_read_request("fetchMyTrades", query, args)
-            )
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchMyTrades"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return [_convert_user_trade(e) for e in data]
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_my_trades: {self._extract_api_error(e)}") from None
 
     def fetch_closed_orders(self, params: Optional[dict] = None, **kwargs) -> List[Order]:
         try:
-            args: List[Any] = []
+            args = []
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
                 args.append(params)
-            query = dict(params or {})
-            data = self._handle_response(
-                self._sidecar_read_request("fetchClosedOrders", query, args)
-            )
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchClosedOrders"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return [_convert_order(e) for e in data]
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_closed_orders: {self._extract_api_error(e)}") from None
 
     def fetch_all_orders(self, params: Optional[dict] = None, **kwargs) -> List[Order]:
         try:
-            args: List[Any] = []
+            args = []
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
                 args.append(params)
-            query = dict(params or {})
-            data = self._handle_response(
-                self._sidecar_read_request("fetchAllOrders", query, args)
-            )
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchAllOrders"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return [_convert_order(e) for e in data]
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_all_orders: {self._extract_api_error(e)}") from None
 
-    def fetch_positions(self) -> List[Position]:
+    def fetch_positions(self, address: Optional[str] = None) -> List[Position]:
         try:
-            args: List[Any] = []
-            query: Dict[str, Any] = {}
-            data = self._handle_response(
-                self._sidecar_read_request("fetchPositions", query, args)
-            )
+            args = []
+            if address is not None:
+                args.append(address)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchPositions"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return [_convert_position(e) for e in data]
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_positions: {self._extract_api_error(e)}") from None
 
-    def fetch_balance(self) -> List[Balance]:
+    def fetch_balance(self, address: Optional[str] = None) -> List[Balance]:
         try:
-            args: List[Any] = []
-            query: Dict[str, Any] = {}
-            data = self._handle_response(
-                self._sidecar_read_request("fetchBalance", query, args)
-            )
+            args = []
+            if address is not None:
+                args.append(address)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/fetchBalance"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            data = self._handle_response(json.loads(response.data))
             return [_convert_balance(e) for e in data]
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to fetch_balance: {self._extract_api_error(e)}") from None
+
+    def unwatch_order_book(self, id: str) -> None:
+        try:
+            args = []
+            args.append(id)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/unwatchOrderBook"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            self._handle_response(json.loads(response.data))
+        except Exception as e:
+            raise Exception(f"Failed to unwatch_order_book: {self._extract_api_error(e)}") from None
+
+    def unwatch_address(self, address: str) -> None:
+        try:
+            args = []
+            args.append(address)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._api_client.configuration.host}/api/{self.exchange_name}/unwatchAddress"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            response.read()
+            self._handle_response(json.loads(response.data))
+        except Exception as e:
+            raise Exception(f"Failed to unwatch_address: {self._extract_api_error(e)}") from None
 
     def close(self) -> None:
         try:
@@ -902,7 +1019,7 @@ class Exchange(ABC):
             response.read()
             self._handle_response(json.loads(response.data))
         except Exception as e:
-            raise self._parse_api_exception(e) from None
+            raise Exception(f"Failed to close: {self._extract_api_error(e)}") from None
 
     # END GENERATED METHODS
 

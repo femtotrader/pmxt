@@ -219,6 +219,25 @@ components:
         type: string
       description: Map of token_id to spread value
 
+    # --- Markets Schemas ---
+    MarketsByTokenResponse:
+      type: object
+      required:
+        - condition_id
+        - primary_token_id
+        - secondary_token_id
+      properties:
+        condition_id:
+          type: string
+          description: The condition ID of the market
+        primary_token_id:
+          type: string
+          description: The primary (Yes) token ID
+        secondary_token_id:
+          type: string
+          description: The secondary (No) token ID
+      description: Condition ID and both token IDs in the market
+    
     # --- Auth Schemas ---
     ApiKeyCreds:
       type: object
@@ -615,6 +634,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PriceHistoryResponse'
+
+  # ----------------------------------------------------------------------------
+  # Markets
+  # ----------------------------------------------------------------------------
+  /markets-by-token/{token_id}:
+    get:
+      tags: [Markets]
+      summary: Get market by token
+      parameters:
+        - name: token_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketsByTokenResponse'
 
   # ----------------------------------------------------------------------------
   # L1 Auth Methods (From "L1 Authentication" text)

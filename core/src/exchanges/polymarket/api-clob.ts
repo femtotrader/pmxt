@@ -1,6 +1,6 @@
 /**
- * Auto-generated from /Users/samueltinnerholm/Documents/GitHub/pmxt/core/specs/polymarket/PolymarketClobAPI.yaml
- * Generated at: 2026-03-21T08:02:59.429Z
+ * Auto-generated from /Users/ndmeiri/Developer/pmxt/core/specs/polymarket/PolymarketClobAPI.yaml
+ * Generated at: 2026-04-21T22:01:26.553Z
  * Do not edit manually -- run "npm run fetch:openapi" to regenerate.
  */
 export const polymarketClobSpec = {
@@ -183,6 +183,24 @@ export const polymarketClobSpec = {
                         "in": "query",
                         "schema": {
                             "type": "number"
+                        }
+                    }
+                ]
+            }
+        },
+        "/markets-by-token/{token_id}": {
+            "get": {
+                "tags": [
+                    "Markets"
+                ],
+                "summary": "Get market by token",
+                "parameters": [
+                    {
+                        "name": "token_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ]

@@ -638,7 +638,7 @@ export class PolymarketExchange extends PredictionMarketExchange {
         }
         // Static network avoids ethers v5 auto-detect (eth_chainId), which can throw
         // noNetwork / NETWORK_ERROR on flaky public RPCs (#92).
-        const provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com', {
+        const provider = new ethers.providers.StaticJsonRpcProvider('https://polygon-rpc.com', {
             chainId: 137,
             name: 'matic',
         });

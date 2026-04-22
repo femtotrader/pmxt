@@ -838,6 +838,7 @@ class TestExchangeAPIMethods:
             "data": [
                 {
                     "marketId": "m1",
+                    "slug": "s1",
                     "title": "Cached",
                     "outcomes": [],
                     "volume24h": 0,
@@ -847,13 +848,17 @@ class TestExchangeAPIMethods:
             ],
         })
         result1 = ex.load_markets()
+        markets_by_slug1 = ex.markets_by_slug
         assert "m1" in result1
+        assert "s1" in markets_by_slug1
 
         # Second call should not hit the API again
         ex._api_client.call_api.reset_mock()
         result2 = ex.load_markets()
+        markets_by_slug2 = ex.markets_by_slug
         ex._api_client.call_api.assert_not_called()
         assert result2 is result1
+        assert markets_by_slug2 is markets_by_slug1
 
     def test_load_markets_reload(self):
         ex = self._setup_exchange_with_response({
@@ -861,6 +866,7 @@ class TestExchangeAPIMethods:
             "data": [
                 {
                     "marketId": "m1",
+                    "slug": "s1",
                     "title": "Orig",
                     "outcomes": [],
                     "volume24h": 0,
@@ -877,6 +883,7 @@ class TestExchangeAPIMethods:
             "data": [
                 {
                     "marketId": "m2",
+                    "slug": "s2",
                     "title": "New",
                     "outcomes": [],
                     "volume24h": 0,
@@ -889,6 +896,9 @@ class TestExchangeAPIMethods:
         result = ex.load_markets(reload=True)
         assert "m2" in result
         assert "m1" not in result
+        markets_by_slug = ex.markets_by_slug
+        assert "s2" in markets_by_slug
+        assert "s1" not in markets_by_slug
 
     # -- close --
 

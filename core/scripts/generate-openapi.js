@@ -654,7 +654,8 @@ const TYPE_REF_MAP = {
   EventMatchResult: 'EventMatchResult',
   PriceComparison: 'PriceComparison',
   ArbitrageOpportunity: 'ArbitrageOpportunity',
-  MatchRelation: 'MatchRelation',
+  // MatchRelation is a type alias (string union), not an interface.
+  // It resolves inline via TYPE_ALIAS_REGISTRY — do NOT add it here.
 };
 
 // ---------------------------------------------------------------------------

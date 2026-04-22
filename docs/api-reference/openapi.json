@@ -5493,7 +5493,14 @@
             "name": "relation",
             "required": false,
             "schema": {
-              "$ref": "#/components/schemas/MatchRelation"
+              "type": "string",
+              "enum": [
+                "identity",
+                "subset",
+                "superset",
+                "overlap",
+                "disjoint"
+              ]
             }
           },
           {
@@ -5601,7 +5608,14 @@
             "name": "relation",
             "required": false,
             "schema": {
-              "$ref": "#/components/schemas/MatchRelation"
+              "type": "string",
+              "enum": [
+                "identity",
+                "subset",
+                "superset",
+                "overlap",
+                "disjoint"
+              ]
             }
           },
           {
@@ -5803,7 +5817,14 @@
             "name": "relation",
             "required": false,
             "schema": {
-              "$ref": "#/components/schemas/MatchRelation"
+              "type": "string",
+              "enum": [
+                "identity",
+                "subset",
+                "superset",
+                "overlap",
+                "disjoint"
+              ]
             }
           },
           {
@@ -7215,7 +7236,14 @@
             "type": "string"
           },
           "relation": {
-            "$ref": "#/components/schemas/MatchRelation"
+            "type": "string",
+            "enum": [
+              "identity",
+              "subset",
+              "superset",
+              "overlap",
+              "disjoint"
+            ]
           },
           "minConfidence": {
             "type": "number"
@@ -7238,7 +7266,14 @@
             "type": "string"
           },
           "relation": {
-            "$ref": "#/components/schemas/MatchRelation"
+            "type": "string",
+            "enum": [
+              "identity",
+              "subset",
+              "superset",
+              "overlap",
+              "disjoint"
+            ]
           },
           "minConfidence": {
             "type": "number"
@@ -7272,7 +7307,14 @@
             "$ref": "#/components/schemas/UnifiedMarket"
           },
           "relation": {
-            "$ref": "#/components/schemas/MatchRelation"
+            "type": "string",
+            "enum": [
+              "identity",
+              "subset",
+              "superset",
+              "overlap",
+              "disjoint"
+            ]
           },
           "confidence": {
             "type": "number"
@@ -7336,7 +7378,14 @@
             "$ref": "#/components/schemas/UnifiedMarket"
           },
           "relation": {
-            "$ref": "#/components/schemas/MatchRelation"
+            "type": "string",
+            "enum": [
+              "identity",
+              "subset",
+              "superset",
+              "overlap",
+              "disjoint"
+            ]
           },
           "confidence": {
             "type": "number"

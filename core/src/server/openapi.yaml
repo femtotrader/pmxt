@@ -1489,7 +1489,13 @@ paths:
           name: relation
           required: false
           schema:
-            $ref: '#/components/schemas/MatchRelation'
+            type: string
+            enum:
+              - identity
+              - subset
+              - superset
+              - overlap
+              - disjoint
         - in: query
           name: minConfidence
           required: false
@@ -1540,7 +1546,13 @@ paths:
           name: relation
           required: false
           schema:
-            $ref: '#/components/schemas/MatchRelation'
+            type: string
+            enum:
+              - identity
+              - subset
+              - superset
+              - overlap
+              - disjoint
         - in: query
           name: minConfidence
           required: false
@@ -1634,7 +1646,13 @@ paths:
           name: relation
           required: false
           schema:
-            $ref: '#/components/schemas/MatchRelation'
+            type: string
+            enum:
+              - identity
+              - subset
+              - superset
+              - overlap
+              - disjoint
         - in: query
           name: minConfidence
           required: false
@@ -2620,7 +2638,13 @@ components:
         url:
           type: string
         relation:
-          $ref: '#/components/schemas/MatchRelation'
+          type: string
+          enum:
+            - identity
+            - subset
+            - superset
+            - overlap
+            - disjoint
         minConfidence:
           type: number
         limit:
@@ -2635,7 +2659,13 @@ components:
         slug:
           type: string
         relation:
-          $ref: '#/components/schemas/MatchRelation'
+          type: string
+          enum:
+            - identity
+            - subset
+            - superset
+            - overlap
+            - disjoint
         minConfidence:
           type: number
         limit:
@@ -2657,7 +2687,13 @@ components:
         market:
           $ref: '#/components/schemas/UnifiedMarket'
         relation:
-          $ref: '#/components/schemas/MatchRelation'
+          type: string
+          enum:
+            - identity
+            - subset
+            - superset
+            - overlap
+            - disjoint
         confidence:
           type: number
         reasoning:
@@ -2697,7 +2733,13 @@ components:
         market:
           $ref: '#/components/schemas/UnifiedMarket'
         relation:
-          $ref: '#/components/schemas/MatchRelation'
+          type: string
+          enum:
+            - identity
+            - subset
+            - superset
+            - overlap
+            - disjoint
         confidence:
           type: number
         reasoning:

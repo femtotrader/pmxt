@@ -25,7 +25,7 @@
     "clean": "rm -rf dist",
     "prebuild": "npm run clean",
     "build": "tsc && cp src/server/openapi.yaml dist/server/openapi.yaml && cp src/server/method-verbs.json dist/server/method-verbs.json",
-    "bundle:server": "npm run build && esbuild dist/server/index.js --bundle --platform=node --target=node18 --outfile=dist/server/bundled.js --external:fsevents --external:@opinion-labs/opinion-clob-sdk",
+    "bundle:server": "npm run build && esbuild dist/server/index.js --bundle --platform=node --target=node18 --outfile=dist/server/bundled.js --define:__PMXT_VERSION__=\\\"$npm_package_version\\\" --external:fsevents --external:@opinion-labs/opinion-clob-sdk",
     "test": "jest -c jest.config.js",
     "server": "tsx watch src/server/index.ts",
     "server:prod": "node dist/server/index.js",

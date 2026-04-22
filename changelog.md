@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.32.2] - 2026-04-22
+
+### Bug Fixes
+
+- **Sidecar reports hardcoded `2.0.2` version**: The bundled sidecar server
+  could not resolve `package.json` at runtime in pip/npm packages, so it always
+  fell back to a stale hardcoded version string. The version is now injected at
+  build time via esbuild `--define`, so `server.status()` reports the real
+  release version.
+
 ## [2.32.1] - 2026-04-22
 
 ### Bug Fixes

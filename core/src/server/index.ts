@@ -7,41 +7,20 @@ import { LockFile } from './utils/lock-file';
 import { randomUUID } from 'crypto';
 
 import { createHash } from 'crypto';
-import { readFileSync, statSync } from 'fs';
-import { join } from 'path';
+import { statSync } from 'fs';
+
+declare const __PMXT_VERSION__: string;
 
 function getServerVersion(): string {
-    let baseVersion = '2.0.2'; // Hardcoded fallback matching package.json
-    let packageJson;
-
-    try {
-        // Try multiple possible locations for package.json
-        const possiblePaths = [
-            join(__dirname, '../../package.json'),      // From dist/server/
-            join(__dirname, '../../../package.json'),   // From dist/server/bundled
-            join(__dirname, 'package.json'),            // Same directory (unlikely)
-        ];
-
-        for (const pkgPath of possiblePaths) {
-            try {
-                const packageCtx = readFileSync(pkgPath, 'utf-8');
-                packageJson = JSON.parse(packageCtx);
-                baseVersion = packageJson.version;
-                break; // Found it, stop searching
-            } catch {
-                // Try next path
-                continue;
-            }
-        }
-    } catch (e) {
-        // Use hardcoded fallback
-    }
+    const baseVersion = typeof __PMXT_VERSION__ !== 'undefined'
+        ? __PMXT_VERSION__
+        : '0.0.0-dev';
 
     // Check if we're in development mode or if generic forced restart is requested
     const isDev = process.env.NODE_ENV === 'development' ||
         process.env.PMXT_ALWAYS_RESTART === '1' ||
-        (__dirname.includes('/core/src/') && !!packageJson) ||
-        (__dirname.includes('/core/dist/') && !!packageJson);
+        __dirname.includes('/core/src/') ||
+        __dirname.includes('/core/dist/');
 
     if (!isDev) {
         return baseVersion;

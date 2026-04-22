@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.33.0] - 2026-04-22
+
+### New Features
+
+- **Router is now a first-class exchange**: `Router` extends
+  `PredictionMarketExchange`, making it usable with the same interface as any
+  venue adapter. `pmxt.Router({ apiKey })` works like `pmxt.Polymarket()` — it
+  shows up in the exchange dropdown, gets auto-generated SDK code samples, and
+  integrates with the capability system.
+
+- **5 new matching methods on BaseExchange**: `fetchMatches`,
+  `fetchEventMatches`, `compareMarketPrices`, `fetchHedges`, and
+  `fetchArbitrage` are now part of the base exchange interface. Currently only
+  Router implements them; other exchanges report `has.fetchMatches === false`.
+
+- **"Matching" endpoint group in API reference**: The Mintlify docs sidebar now
+  has a dedicated Matching section with all 5 cross-venue discovery methods.
+
+### Improvements
+
+- **Per-operation exchange scoping in docs**: The API reference exchange dropdown
+  is now scoped per-method using the capability system (`exchange.has`). For
+  example, `fetchMatches` only shows Router, `createOrder` excludes read-only
+  exchanges, and `fetchOrderBook` excludes Metaculus. Previously every method
+  showed every exchange regardless of support. This also reduced the OpenAPI spec
+  from 470KB to 368KB by eliminating inapplicable code samples.
+
+- **Router types in OpenAPI spec**: `FetchMatchesParams`, `MatchResult`,
+  `EventMatchResult`, `PriceComparison`, `ArbitrageOpportunity`, and related
+  types are now fully documented in the API reference with proper JSON schemas.
+
 ## [2.32.5] - 2026-04-22
 
 ### Bug Fixes

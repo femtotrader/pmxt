@@ -1803,6 +1803,20 @@ paths:
           required: false
           schema:
             type: number
+        - in: query
+          name: relations
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - identity
+                - subset
+                - superset
+                - overlap
+                - disjoint
+          description: 'Comma-separated relation types to include (default: ''identity'').'
       responses:
         '200':
           description: Find Arbitrage Opportunities response
@@ -2796,6 +2810,17 @@ components:
           type: string
         limit:
           type: number
+        relations:
+          type: array
+          items:
+            type: string
+            enum:
+              - identity
+              - subset
+              - superset
+              - overlap
+              - disjoint
+          description: 'Comma-separated relation types to include (default: ''identity'').'
     MatchResult:
       type: object
       properties:
@@ -2896,6 +2921,18 @@ components:
           type: number
         sellPrice:
           type: number
+        relation:
+          type: string
+          enum:
+            - identity
+            - subset
+            - superset
+            - overlap
+            - disjoint
+          description: 'The set-theoretic relation between the two markets (e.g. identity, subset).'
+        confidence:
+          type: number
+          description: Match confidence score (0.0 to 1.0).
       required:
         - marketA
         - marketB

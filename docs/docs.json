@@ -187,6 +187,13 @@
               "POST /api/{exchange}/watchAddress",
               "POST /api/{exchange}/unwatchAddress"
             ]
+          },
+          {
+            "group": "Other",
+            "openapi": "api-reference/openapi.json",
+            "pages": [
+              "GET /api/{exchange}/fetchMarketMatches"
+            ]
           }
         ]
       }

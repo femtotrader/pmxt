@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.34.0] - 2026-04-23
+
+### Breaking Changes (with backwards compatibility)
+
+- **`fetchMatches` renamed to `fetchMarketMatches`**: The old name is
+  preserved as a deprecated wrapper that emits a warning. Update call
+  sites at your convenience — `fetchMatches` will continue to work.
+
+### New Features
+
+- **TypeScript Router class**: New `Router` class in the TypeScript SDK
+  with full parity to the Python SDK — `fetchMarketMatches`,
+  `fetchEventMatches`, `compareMarketPrices`, `fetchHedges`,
+  `fetchArbitrage`.
+
+- **`sourceExchange` on UnifiedMarket / UnifiedEvent**: Both Python and
+  TypeScript SDK converters now propagate the `sourceExchange` field so
+  callers always know which venue a market/event originated from.
+
+- **Expanded `fetchArbitrage`**: Accepts a `relations` parameter to scan
+  for identity, subset, superset, and disjoint opportunities. Response
+  includes `relation` and `confidence` on each `ArbitrageOpportunity`.
+
+### Bug Fixes
+
+- **Probable URLs return 404**: Event URLs used `/events/` (plural,
+  404) instead of `/event/` (singular). Market URLs used
+  `/markets/{slug}` instead of `/event/{eventSlug}?market={id}`.
+
 ## [2.33.5] - 2026-04-23
 
 ### Bug Fixes

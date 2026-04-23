@@ -19,7 +19,7 @@ interface.
     markets = router.fetch_markets(query="fed rate cut", limit=5)
 
     # Find the same market on other venues
-    matches = router.fetch_matches(market_id=markets[0].market_id)
+    matches = router.fetch_market_matches(market_id=markets[0].market_id)
 
     # Compare prices across venues
     prices = router.compare_market_prices(market_id=markets[0].market_id)
@@ -35,7 +35,7 @@ interface.
     const markets = await router.fetchMarkets({ query: "fed rate cut", limit: 5 });
 
     // Find the same market on other venues
-    const matches = await router.fetchMatches({ marketId: markets[0].marketId });
+    const matches = await router.fetchMarketMatches({ marketId: markets[0].marketId });
 
     // Compare prices across venues
     const prices = await router.compareMarketPrices({ marketId: markets[0].marketId });

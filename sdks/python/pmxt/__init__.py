@@ -17,7 +17,7 @@ Example:
 """
 
 from .client import Exchange
-from ._exchanges import Polymarket, Limitless, Kalshi, KalshiDemo, Probable, Baozi, Myriad, Opinion, Metaculus, Smarkets, Polymarket_us
+from ._exchanges import Polymarket, Limitless, Kalshi, KalshiDemo, Probable, Baozi, Myriad, Opinion, Metaculus, Smarkets, Polymarket_us, Router
 from .router import Router
 from .server_manager import ServerManager
 from .errors import (

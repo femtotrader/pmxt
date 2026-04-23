@@ -394,3 +394,28 @@ class Polymarket_us(Exchange):
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
         )
+
+
+class Router(Exchange):
+    """Router exchange client."""
+
+    def __init__(
+        self,
+        base_url: str = "http://localhost:3847",
+        auto_start_server: bool = True,
+        pmxt_api_key: Optional[str] = None,
+    ):
+        """
+        Initialize Router client.
+
+        Args:
+            base_url: Base URL of the PMXT sidecar server
+            auto_start_server: Automatically start server if not running (default: True)
+            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+        """
+        super().__init__(
+            exchange_name="router",
+            base_url=base_url,
+            auto_start_server=auto_start_server,
+            pmxt_api_key=pmxt_api_key,
+        )

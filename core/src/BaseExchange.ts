@@ -18,6 +18,7 @@ import {
 import { ExecutionPriceResult, getExecutionPrice, getExecutionPriceDetailed } from './utils/math';
 import { Throttler } from './utils/throttler';
 import type {
+    FetchMarketMatchesParams,
     FetchMatchesParams,
     FetchEventMatchesParams,
     FetchArbitrageParams,
@@ -280,6 +281,8 @@ export interface ExchangeHas {
     /** Whether this exchange supports submitting a pre-built order. */
     submitOrder: ExchangeCapability;
     /** Whether this exchange supports fetching cross-venue market matches. */
+    fetchMarketMatches: ExchangeCapability;
+    /** @deprecated Use {@link fetchMarketMatches} instead. */
     fetchMatches: ExchangeCapability;
     /** Whether this exchange supports fetching cross-venue event matches. */
     fetchEventMatches: ExchangeCapability;
@@ -1209,8 +1212,16 @@ export abstract class PredictionMarketExchange {
      * @param params - Match filter parameters (marketId, relation, minConfidence, etc.)
      * @returns Array of matched markets with relation and confidence
      */
+    async fetchMarketMatches(params: FetchMarketMatchesParams): Promise<MatchResult[]> {
+        throw new Error("Method fetchMarketMatches not implemented.");
+    }
+
+    /**
+     * @deprecated Use {@link fetchMarketMatches} instead.
+     */
     async fetchMatches(params: FetchMatchesParams): Promise<MatchResult[]> {
-        throw new Error("Method fetchMatches not implemented.");
+        console.warn('[pmxt] fetchMatches is deprecated, use fetchMarketMatches instead');
+        return this.fetchMarketMatches(params);
     }
 
     /**
@@ -1398,7 +1409,7 @@ export abstract class PredictionMarketExchange {
         'watchAddress', 'unwatchAddress', 'watchOrderBook',
         'unwatchOrderBook', 'watchTrades', 'fetchMyTrades',
         'fetchClosedOrders', 'fetchAllOrders', 'buildOrder', 'submitOrder',
-        'fetchMatches', 'fetchEventMatches', 'compareMarketPrices',
+        'fetchMarketMatches', 'fetchMatches', 'fetchEventMatches', 'compareMarketPrices',
         'fetchHedges', 'fetchArbitrage',
     ];
 
@@ -1412,7 +1423,7 @@ export abstract class PredictionMarketExchange {
         unwatchAddress: true, watchOrderBook: true, unwatchOrderBook: true,
         watchTrades: true, fetchMyTrades: true, fetchClosedOrders: true,
         fetchAllOrders: true, buildOrder: true, submitOrder: true,
-        fetchMatches: true, fetchEventMatches: true, compareMarketPrices: true,
+        fetchMarketMatches: true, fetchMatches: true, fetchEventMatches: true, compareMarketPrices: true,
         fetchHedges: true, fetchArbitrage: true,
     };
 
@@ -1425,6 +1436,7 @@ export abstract class PredictionMarketExchange {
     private static readonly _capabilityDelegates: Partial<Record<keyof ExchangeHas, string>> = {
         fetchMarkets: 'fetchMarketsImpl',
         fetchEvents: 'fetchEventsImpl',
+        fetchMatches: 'fetchMarketMatches',
     };
 
     /**

@@ -7,7 +7,7 @@ Given a market on any venue, find semantically equivalent or related
 markets on every other venue PMXT ingests. Each match comes with a
 relation type, confidence score, and reasoning.
 
-## fetchMatches
+## fetchMarketMatches
 
 <Tabs>
   <Tab title="Python">
@@ -16,7 +16,7 @@ relation type, confidence score, and reasoning.
 
     router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 
-    matches = router.fetch_matches(market_id="d35bc8c6-...", min_confidence=0.8)
+    matches = router.fetch_market_matches(market_id="d35bc8c6-...", min_confidence=0.8)
 
     for m in matches:
         print(m.relation, m.confidence, m.market.title)
@@ -29,7 +29,7 @@ relation type, confidence score, and reasoning.
 
     const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
 
-    const matches = await router.fetchMatches({
+    const matches = await router.fetchMarketMatches({
       marketId: "d35bc8c6-...",
       minConfidence: 0.8,
     });
@@ -93,10 +93,10 @@ Filter to a specific relation with the `relation` parameter:
 
 ```python
 # Only identity matches (same market, different venue)
-matches = router.fetch_matches(market_id="...", relation="identity")
+matches = router.fetch_market_matches(market_id="...", relation="identity")
 
 # Only subset/superset (useful for hedging — see fetchHedges)
-matches = router.fetch_matches(market_id="...", relation="subset")
+matches = router.fetch_market_matches(market_id="...", relation="subset")
 ```
 
 <Info>

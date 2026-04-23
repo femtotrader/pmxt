@@ -20,11 +20,13 @@
 
 
 import { Exchange, Polymarket, Kalshi, KalshiDemo, Limitless, Myriad, Probable, Baozi, Opinion, Metaculus, Smarkets, PolymarketUS } from "./pmxt/client.js";
+import { Router } from "./pmxt/router.js";
 import { ServerManager } from "./pmxt/server-manager.js";
 import * as models from "./pmxt/models.js";
 import * as errors from "./pmxt/errors.js";
 
 export { Exchange, Polymarket, Kalshi, KalshiDemo, Limitless, Myriad, Probable, Baozi, Opinion, Metaculus, Smarkets, PolymarketUS, PolymarketOptions } from "./pmxt/client.js";
+export { Router } from "./pmxt/router.js";
 export { ServerManager } from "./pmxt/server-manager.js";
 export { MarketList } from "./pmxt/models.js";
 export type * from "./pmxt/models.js";
@@ -77,6 +79,7 @@ const pmxt = {
     Metaculus,
     Smarkets,
     PolymarketUS,
+    Router,
     ServerManager,
     server,
     stopServer,

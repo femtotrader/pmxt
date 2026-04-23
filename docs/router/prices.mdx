@@ -10,7 +10,7 @@ questions across venues.
 
 Side-by-side bid/ask for the same market on every venue.
 
-Under the hood this calls `fetchMatches` with `relation: "identity"`
+Under the hood this calls `fetchMarketMatches` with `relation: "identity"`
 and `includePrices: true`, then maps the results to a flat comparison.
 
 <Tabs>
@@ -107,7 +107,7 @@ full taxonomy.
 <Info>
   `fetchHedges` filters matches to `subset` and `superset` relations
   only. If you want all relations, use
-  [`fetchMatches`](/router/matching#fetchmatches) directly.
+  [`fetchMarketMatches`](/router/matching#fetchmarketmatches) directly.
 </Info>
 
 ## fetchArbitrage

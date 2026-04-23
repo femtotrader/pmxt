@@ -51,13 +51,19 @@ export interface ArbitrageOpportunity {
     sellVenue: string;
     buyPrice: number;
     sellPrice: number;
+    /** The set-theoretic relation between the two markets (e.g. identity, subset). */
+    relation?: MatchRelation;
+    /** Match confidence score (0.0 to 1.0). */
+    confidence?: number;
 }
 
 // ---------------------------------------------------------------------------
 // Param types
 // ---------------------------------------------------------------------------
 
-export interface FetchMatchesParams {
+export interface FetchMarketMatchesParams {
+    /** Pass a UnifiedMarket directly instead of marketId/slug/url. */
+    market?: UnifiedMarket;
     marketId?: string;
     slug?: string;
     url?: string;
@@ -67,7 +73,12 @@ export interface FetchMatchesParams {
     includePrices?: boolean;
 }
 
+/** @deprecated Use {@link FetchMarketMatchesParams} instead. */
+export type FetchMatchesParams = FetchMarketMatchesParams;
+
 export interface FetchEventMatchesParams {
+    /** Pass a UnifiedEvent directly instead of eventId/slug. */
+    event?: UnifiedEvent;
     eventId?: string;
     slug?: string;
     relation?: MatchRelation;
@@ -80,6 +91,8 @@ export interface FetchArbitrageParams {
     minSpread?: number;
     category?: string;
     limit?: number;
+    /** Comma-separated relation types to include (default: 'identity'). */
+    relations?: MatchRelation[];
 }
 
 export interface RouterMarketSearchParams {

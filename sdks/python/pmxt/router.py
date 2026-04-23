@@ -5,6 +5,7 @@ Search, match, compare prices, find hedges, and detect arbitrage across
 every venue PMXT supports. Only requires a PMXT API key.
 """
 
+import warnings
 from typing import Any, Dict, List, Optional
 
 from .client import Exchange, _convert_market, _convert_event
@@ -63,7 +64,7 @@ class Router(Exchange):
 
         router = pmxt.Router(pmxt_api_key="pmxt_live_...")
         markets = router.fetch_markets(query="election")
-        matches = router.fetch_matches(market_id=markets[0].market_id)
+        matches = router.fetch_market_matches(market=markets[0])
     """
 
     def __init__(
@@ -91,9 +92,10 @@ class Router(Exchange):
     # Matching
     # ------------------------------------------------------------------
 
-    def fetch_matches(
+    def fetch_market_matches(
         self,
         *,
+        market: Optional[UnifiedMarket] = None,
         market_id: Optional[str] = None,
         slug: Optional[str] = None,
         url: Optional[str] = None,
@@ -105,6 +107,7 @@ class Router(Exchange):
         """Find markets on other venues that correspond to a given market.
 
         Args:
+            market: A UnifiedMarket object (extracts market_id automatically).
             market_id: PMXT market ID.
             slug: Market slug (alternative to market_id).
             url: Market URL on the source venue (alternative to market_id).
@@ -116,6 +119,8 @@ class Router(Exchange):
         Returns:
             List of MatchResult with relation, confidence, and reasoning.
         """
+        if market is not None and market_id is None:
+            market_id = market.market_id
         params: Dict[str, Any] = {}
         if market_id is not None:
             params["marketId"] = market_id
@@ -137,9 +142,39 @@ class Router(Exchange):
             return []
         return [_parse_match_result(m) for m in raw]
 
+    def fetch_matches(
+        self,
+        *,
+        market: Optional[UnifiedMarket] = None,
+        market_id: Optional[str] = None,
+        slug: Optional[str] = None,
+        url: Optional[str] = None,
+        relation: Optional[MatchRelation] = None,
+        min_confidence: Optional[float] = None,
+        limit: Optional[int] = None,
+        include_prices: bool = False,
+    ) -> List[MatchResult]:
+        """Deprecated: use :meth:`fetch_market_matches` instead."""
+        warnings.warn(
+            "fetch_matches is deprecated, use fetch_market_matches instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.fetch_market_matches(
+            market=market,
+            market_id=market_id,
+            slug=slug,
+            url=url,
+            relation=relation,
+            min_confidence=min_confidence,
+            limit=limit,
+            include_prices=include_prices,
+        )
+
     def fetch_event_matches(
         self,
         *,
+        event: Optional[UnifiedEvent] = None,
         event_id: Optional[str] = None,
         slug: Optional[str] = None,
         relation: Optional[MatchRelation] = None,
@@ -153,6 +188,7 @@ class Router(Exchange):
         in a single call.
 
         Args:
+            event: A UnifiedEvent object (extracts event_id automatically).
             event_id: PMXT event ID.
             slug: Event slug (alternative to event_id).
             relation: Filter market matches to a specific relation type.
@@ -163,6 +199,8 @@ class Router(Exchange):
         Returns:
             List of EventMatchResult with nested market matches.
         """
+        if event is not None and event_id is None:
+            event_id = event.id
         params: Dict[str, Any] = {}
         if event_id is not None:
             params["eventId"] = event_id
@@ -198,6 +236,7 @@ class Router(Exchange):
     def compare_market_prices(
         self,
         *,
+        market: Optional[UnifiedMarket] = None,
         market_id: Optional[str] = None,
         slug: Optional[str] = None,
         url: Optional[str] = None,
@@ -208,6 +247,7 @@ class Router(Exchange):
         venue.
 
         Args:
+            market: A UnifiedMarket object (extracts market_id automatically).
             market_id: PMXT market ID.
             slug: Market slug (alternative to market_id).
             url: Market URL (alternative to market_id).
@@ -215,6 +255,8 @@ class Router(Exchange):
         Returns:
             List of PriceComparison with venue, bestBid, bestAsk.
         """
+        if market is not None and market_id is None:
+            market_id = market.market_id
         params: Dict[str, Any] = {}
         if market_id is not None:
             params["marketId"] = market_id
@@ -247,6 +289,7 @@ class Router(Exchange):
     def fetch_hedges(
         self,
         *,
+        market: Optional[UnifiedMarket] = None,
         market_id: Optional[str] = None,
         slug: Optional[str] = None,
         url: Optional[str] = None,
@@ -257,6 +300,7 @@ class Router(Exchange):
         condition is narrower or broader than the target.
 
         Args:
+            market: A UnifiedMarket object (extracts market_id automatically).
             market_id: PMXT market ID.
             slug: Market slug (alternative to market_id).
             url: Market URL (alternative to market_id).
@@ -264,6 +308,8 @@ class Router(Exchange):
         Returns:
             List of PriceComparison with subset/superset relations.
         """
+        if market is not None and market_id is None:
+            market_id = market.market_id
         params: Dict[str, Any] = {}
         if market_id is not None:
             params["marketId"] = market_id
@@ -299,16 +345,18 @@ class Router(Exchange):
         min_spread: Optional[float] = None,
         category: Optional[str] = None,
         limit: Optional[int] = None,
+        relations: Optional[List[MatchRelation]] = None,
     ) -> List[ArbitrageOpportunity]:
         """Scan for cross-venue arbitrage opportunities.
 
-        Finds identity-matched markets with divergent pricing, sorted by
-        spread descending.
+        Finds matched markets with divergent pricing, sorted by spread
+        descending.
 
         Args:
             min_spread: Only return pairs with spread >= this value.
             category: Filter source markets by category.
             limit: Max source markets to scan (default: 50).
+            relations: Relation types to include (default: ['identity']).
 
         Returns:
             List of ArbitrageOpportunity sorted by spread.
@@ -320,6 +368,8 @@ class Router(Exchange):
             params["category"] = category
         if limit is not None:
             params["limit"] = limit
+        if relations is not None and len(relations) > 0:
+            params["relations"] = ",".join(relations)
 
         raw = self._call_method("fetchArbitrage", params)
         if not raw:
@@ -334,6 +384,8 @@ class Router(Exchange):
                 sell_venue=r.get("sellVenue", ""),
                 buy_price=r.get("buyPrice", 0.0),
                 sell_price=r.get("sellPrice", 0.0),
+                relation=r.get("relation"),
+                confidence=r.get("confidence"),
             )
             for r in raw
         ]

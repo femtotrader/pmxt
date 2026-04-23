@@ -82,6 +82,11 @@ export class PmxtApiClient {
         return res.data;
     }
 
+    async getArbitrage(query?: Record<string, string>): Promise<any> {
+        const res = await this.request('GET', '/v0/arbitrage', query);
+        return res.data;
+    }
+
     // -----------------------------------------------------------------------
     // Internal
     // -----------------------------------------------------------------------

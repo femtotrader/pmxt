@@ -98,6 +98,9 @@ class UnifiedMarket:
     contract_address: Optional[str] = None
     """On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.)."""
 
+    source_exchange: Optional[str] = None
+    """The exchange/venue this market comes from (e.g. 'polymarket', 'kalshi'). Populated by the Router."""
+
     yes: Optional[MarketOutcome] = None
     """Convenience access to the Yes outcome for binary markets."""
 
@@ -229,6 +232,9 @@ class UnifiedEvent:
 
     volume: Optional[float] = None
     """Total / Lifetime volume (sum across markets; undefined if no market provides it)"""
+
+    source_exchange: Optional[str] = None
+    """The exchange/venue this event comes from (e.g. 'polymarket', 'kalshi'). Populated by the Router."""
 
 
 
@@ -629,4 +635,10 @@ class ArbitrageOpportunity:
 
     sell_price: float
     """Price to sell at."""
+
+    relation: Optional[MatchRelation] = None
+    """The set-theoretic relation between the two markets (e.g. identity, subset)."""
+
+    confidence: Optional[float] = None
+    """Match confidence score (0.0 to 1.0)."""
 

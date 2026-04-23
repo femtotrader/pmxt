@@ -86,6 +86,9 @@ export interface UnifiedMarket {
     /** On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.). */
     contractAddress?: string;
 
+    /** The exchange/venue this market originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router. */
+    sourceExchange?: string;
+
     /** ID of the parent event this market belongs to */
     eventId?: string;
 
@@ -545,6 +548,9 @@ export interface UnifiedEvent {
 
     /** Event tags */
     tags?: string[];
+
+    /** The exchange/venue this event originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router. */
+    sourceExchange?: string;
 }
 
 // ----------------------------------------------------------------------------
@@ -663,4 +669,95 @@ export interface SubscribedAddressSnapshot {
 
     /** Unix timestamp (ms) of this snapshot */
     timestamp: number;
+}
+
+// ----------------------------------------------------------------------------
+// Router Types
+// ----------------------------------------------------------------------------
+
+/** Set-theoretic relation between two markets' resolution conditions. */
+export type MatchRelation = 'identity' | 'subset' | 'superset' | 'overlap' | 'disjoint';
+
+/** A cross-venue market match with relation classification. */
+export interface MatchResult {
+    /** The matched market on another venue. */
+    market: UnifiedMarket;
+
+    /** Set-theoretic relation between the source and matched market. */
+    relation: MatchRelation;
+
+    /** Confidence score (0.0 to 1.0). */
+    confidence: number;
+
+    /** Human-readable explanation of the match. */
+    reasoning?: string;
+
+    /** Best bid price on the matched venue (when includePrices=true). */
+    bestBid?: number;
+
+    /** Best ask price on the matched venue (when includePrices=true). */
+    bestAsk?: number;
+}
+
+/** A cross-venue event match with constituent market matches. */
+export interface EventMatchResult {
+    /** The matched event on another venue. */
+    event: UnifiedEvent;
+
+    /** Cross-venue market matches within this event. */
+    marketMatches: MatchResult[];
+}
+
+/** Side-by-side price comparison for a matched market. */
+export interface PriceComparison {
+    /** The matched market. */
+    market: UnifiedMarket;
+
+    /** Relation type (typically 'identity' for price comparisons). */
+    relation: MatchRelation;
+
+    /** Confidence score (0.0 to 1.0). */
+    confidence: number;
+
+    /** Human-readable explanation. */
+    reasoning?: string;
+
+    /** Best bid price on this venue. */
+    bestBid?: number;
+
+    /** Best ask price on this venue. */
+    bestAsk?: number;
+
+    /** The venue name (e.g. 'kalshi', 'polymarket'). */
+    venue: string;
+}
+
+/** A cross-venue arbitrage opportunity. */
+export interface ArbitrageOpportunity {
+    /** Market on the buy side. */
+    marketA: UnifiedMarket;
+
+    /** Market on the sell side. */
+    marketB: UnifiedMarket;
+
+    /** Price spread (sellPrice - buyPrice). */
+    spread: number;
+
+    /** Venue to buy on. */
+    buyVenue: string;
+
+    /** Venue to sell on. */
+    sellVenue: string;
+
+    /** Price to buy at. */
+    buyPrice: number;
+
+    /** Price to sell at. */
+    sellPrice: number;
+
+    /** The set-theoretic relation between the two markets (e.g. identity, subset). */
+    relation?: MatchRelation;
+
+    /** Match confidence score (0.0 to 1.0). */
+    confidence?: number;
 }

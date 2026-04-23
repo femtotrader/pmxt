@@ -27,7 +27,7 @@ describe('Router', () => {
         });
     });
 
-    describe('fetchMatches', () => {
+    describe('fetchMarketMatches', () => {
         it('returns matches from the API using marketId', async () => {
             const mockApiResponse = [
                 {
@@ -39,7 +39,7 @@ describe('Router', () => {
             ];
             clientInstance.getMarketMatches = jest.fn().mockResolvedValue({ matches: mockApiResponse });
 
-            const result = await router.fetchMatches({ marketId: 'm1', relation: 'identity' });
+            const result = await router.fetchMarketMatches({ marketId: 'm1', relation: 'identity' });
             expect(clientInstance.getMarketMatches).toHaveBeenCalledWith({ marketId: 'm1', relation: 'identity' });
             expect(result[0].confidence).toBe(0.95);
             expect(result[0].bestBid).toBe(0.60);
@@ -49,14 +49,36 @@ describe('Router', () => {
         it('accepts slug as identifier', async () => {
             clientInstance.getMarketMatches = jest.fn().mockResolvedValue({ matches: [] });
 
-            await router.fetchMatches({ slug: 'btc-100k' });
+            await router.fetchMarketMatches({ slug: 'btc-100k' });
             expect(clientInstance.getMarketMatches).toHaveBeenCalledWith({ slug: 'btc-100k' });
         });
 
         it('returns empty array when no matches', async () => {
             clientInstance.getMarketMatches = jest.fn().mockResolvedValue({});
-            const result = await router.fetchMatches({ marketId: 'm1' });
+            const result = await router.fetchMarketMatches({ marketId: 'm1' });
             expect(result).toEqual([]);
+        });
+    });
+
+    describe('fetchMatches (deprecated)', () => {
+        it('delegates to fetchMarketMatches and logs deprecation warning', async () => {
+            const mockApiResponse = [
+                {
+                    market: { marketId: 'k1', sourceExchange: 'kalshi', bestBid: 0.60, bestAsk: 0.65 },
+                    relation: 'identity',
+                    confidence: 0.95,
+                    reasoning: 'Same resolution condition.',
+                },
+            ];
+            clientInstance.getMarketMatches = jest.fn().mockResolvedValue({ matches: mockApiResponse });
+            const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const result = await router.fetchMatches({ marketId: 'm1' });
+            expect(warnSpy).toHaveBeenCalledWith(
+                '[pmxt] fetchMatches is deprecated, use fetchMarketMatches instead',
+            );
+            expect(result[0].confidence).toBe(0.95);
+            warnSpy.mockRestore();
         });
     });
 
@@ -163,6 +185,7 @@ describe('Router', () => {
 
     describe('capabilities', () => {
         it('reports matching methods as supported', () => {
+            expect(router.has.fetchMarketMatches).toBe(true);
             expect(router.has.fetchMatches).toBe(true);
             expect(router.has.fetchEventMatches).toBe(true);
             expect(router.has.compareMarketPrices).toBe(true);

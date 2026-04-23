@@ -1464,12 +1464,19 @@ paths:
       description: >-
         Close all WebSocket connections and clean up resources. Call this when you're done streaming to properly release
         connections.
-  '/api/{exchange}/fetchMatches':
+  '/api/{exchange}/fetchMarketMatches':
     get:
       summary: Find Similar Markets
-      operationId: fetchMatches
+      operationId: fetchMarketMatches
       parameters:
         - $ref: '#/components/parameters/ExchangeParam'
+        - in: query
+          name: market
+          required: false
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/UnifiedMarket'
+          description: Pass a UnifiedMarket directly instead of marketId/slug/url.
         - in: query
           name: marketId
           required: false
@@ -1529,12 +1536,88 @@ paths:
         Find the same or related market on other venues. Given a market on one venue, discover semantically equivalent
         markets across every other venue PMXT ingests — each with a relation type (identity, subset, superset, overlap,
         disjoint), confidence score, and reasoning.
+  '/api/{exchange}/fetchMatches':
+    get:
+      summary: Find Similar Markets (Deprecated)
+      operationId: fetchMatches
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+        - in: query
+          name: market
+          required: false
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/UnifiedMarket'
+          description: Pass a UnifiedMarket directly instead of marketId/slug/url.
+        - in: query
+          name: marketId
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: slug
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: url
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: relation
+          required: false
+          schema:
+            type: string
+            enum:
+              - identity
+              - subset
+              - superset
+              - overlap
+              - disjoint
+        - in: query
+          name: minConfidence
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: includePrices
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Find Similar Markets (Deprecated) response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MatchResult'
+      deprecated: true
   '/api/{exchange}/fetchEventMatches':
     get:
       summary: Find Similar Events
       operationId: fetchEventMatches
       parameters:
         - $ref: '#/components/parameters/ExchangeParam'
+        - in: query
+          name: event
+          required: false
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/UnifiedEvent'
+          description: Pass a UnifiedEvent directly instead of eventId/slug.
         - in: query
           name: eventId
           required: false
@@ -1605,7 +1688,7 @@ paths:
                   type: array
                   maxItems: 1
                   items:
-                    $ref: '#/components/schemas/FetchMatchesParams'
+                    $ref: '#/components/schemas/FetchMarketMatchesParams'
                   minItems: 1
                 credentials:
                   $ref: '#/components/schemas/ExchangeCredentials'
@@ -1634,6 +1717,13 @@ paths:
       operationId: fetchHedges
       parameters:
         - $ref: '#/components/parameters/ExchangeParam'
+        - in: query
+          name: market
+          required: false
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/UnifiedMarket'
+          description: Pass a UnifiedMarket directly instead of marketId/slug/url.
         - in: query
           name: marketId
           required: false
@@ -1842,6 +1932,9 @@ components:
         contractAddress:
           type: string
           description: 'On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.).'
+        sourceExchange:
+          type: string
+          description: 'The exchange/venue this market originates from (e.g. ''polymarket'', ''kalshi''). Populated by the Router.'
         'yes':
           allOf:
             - $ref: '#/components/schemas/MarketOutcome'
@@ -1934,6 +2027,9 @@ components:
           items:
             type: string
           description: Optional list of tags associated with the event.
+        sourceExchange:
+          type: string
+          description: 'The exchange/venue this event originates from (e.g. ''polymarket'', ''kalshi''). Populated by the Router.'
       required:
         - id
         - title
@@ -2639,9 +2735,13 @@ components:
             max:
               type: number
           description: Sum of market volumes
-    FetchMatchesParams:
+    FetchMarketMatchesParams:
       type: object
       properties:
+        market:
+          allOf:
+            - $ref: '#/components/schemas/UnifiedMarket'
+          description: Pass a UnifiedMarket directly instead of marketId/slug/url.
         marketId:
           type: string
         slug:
@@ -2665,6 +2765,10 @@ components:
     FetchEventMatchesParams:
       type: object
       properties:
+        event:
+          allOf:
+            - $ref: '#/components/schemas/UnifiedEvent'
+          description: Pass a UnifiedEvent directly instead of eventId/slug.
         eventId:
           type: string
         slug:

@@ -358,6 +358,16 @@
     "verb": "post",
     "args": []
   },
+  "fetchMarketMatches": {
+    "verb": "get",
+    "args": [
+      {
+        "name": "params",
+        "kind": "object",
+        "optional": false
+      }
+    ]
+  },
   "fetchMatches": {
     "verb": "get",
     "args": [

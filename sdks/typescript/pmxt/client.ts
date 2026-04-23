@@ -132,6 +132,7 @@ function convertMarket(raw: any): UnifiedMarket {
         tickSize: raw.tickSize,
         status: raw.status,
         contractAddress: raw.contractAddress,
+        sourceExchange: raw.sourceExchange,
         eventId: raw.eventId,
         yes: convertOutcome(raw.yes),
         no: convertOutcome(raw.no),
@@ -247,6 +248,7 @@ function convertEvent(raw: any): UnifiedEvent {
         image: raw.image,
         category: raw.category,
         tags: raw.tags,
+        sourceExchange: raw.sourceExchange,
     };
 
     return event;

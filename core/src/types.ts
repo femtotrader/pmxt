@@ -45,6 +45,9 @@ export interface UnifiedEvent {
     category?: string;
     /** Optional list of tags associated with the event. */
     tags?: string[];
+
+    /** The exchange/venue this event originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router. */
+    sourceExchange?: string;
 }
 
 export interface UnifiedMarket {
@@ -86,6 +89,9 @@ export interface UnifiedMarket {
     status?: string;
     /** On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.). */
     contractAddress?: string;
+
+    /** The exchange/venue this market originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router. */
+    sourceExchange?: string;
 
     // Convenience getters for binary markets
     /** Convenience accessor for the YES outcome on a binary market. */

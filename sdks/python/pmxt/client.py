@@ -103,6 +103,7 @@ def _convert_market(raw: Dict[str, Any]) -> UnifiedMarket:
         tick_size=raw.get("tickSize"),
         status=raw.get("status"),
         contract_address=raw.get("contractAddress"),
+        source_exchange=raw.get("sourceExchange"),
         yes=_convert_outcome(raw["yes"]) if raw.get("yes") else None,
         no=_convert_outcome(raw["no"]) if raw.get("no") else None,
         up=_convert_outcome(raw["up"]) if raw.get("up") else None,
@@ -126,6 +127,7 @@ def _convert_event(raw: Dict[str, Any]) -> UnifiedEvent:
         tags=raw.get("tags"),
         volume_24h=raw.get("volume24h"),
         volume=raw.get("volume"),
+        source_exchange=raw.get("sourceExchange"),
     )
 
 

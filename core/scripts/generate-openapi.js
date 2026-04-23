@@ -263,6 +263,7 @@ const PARAM_OVERRIDES = {
         { name: 'price', value: 0.55 },
         { name: 'amount', value: 10 },
     ],
+    fetchMarketMatches: [{ name: 'marketId', value: '12345' }],
     fetchMatches: [{ name: 'marketId', value: '12345' }],
     fetchEventMatches: [{ name: 'eventId', value: '12345' }],
     compareMarketPrices: [{ name: 'marketId', value: '12345' }],
@@ -647,7 +648,9 @@ const TYPE_REF_MAP = {
   BuiltOrder: 'BuiltOrder',
   MarketFilterCriteria: 'MarketFilterCriteria',
   EventFilterCriteria: 'EventFilterCriteria',
-  FetchMatchesParams: 'FetchMatchesParams',
+  FetchMarketMatchesParams: 'FetchMarketMatchesParams',
+  // FetchMatchesParams is a deprecated alias for FetchMarketMatchesParams
+  FetchMatchesParams: 'FetchMarketMatchesParams',
   FetchEventMatchesParams: 'FetchEventMatchesParams',
   FetchArbitrageParams: 'FetchArbitrageParams',
   MatchResult: 'MatchResult',
@@ -829,7 +832,8 @@ function typeNodeToSchema(node, sourceFile) {
 // ---------------------------------------------------------------------------
 
 const SUMMARY_OVERRIDES = {
-  fetchMatches: 'Find Similar Markets',
+  fetchMarketMatches: 'Find Similar Markets',
+  fetchMatches: 'Find Similar Markets (Deprecated)',
   fetchEventMatches: 'Find Similar Events',
   compareMarketPrices: 'Compare Prices Across Venues',
   fetchHedges: 'Find Hedging Opportunities',
@@ -874,6 +878,19 @@ function getJSDocDescription(node, sourceFile) {
     return description || null;
   }
   return null;
+}
+
+function isDeprecated(node, sourceFile) {
+  const ranges = ts.getLeadingCommentRanges(sourceFile.text, node.pos);
+  if (!ranges || ranges.length === 0) return false;
+
+  for (let i = ranges.length - 1; i >= 0; i--) {
+    const r = ranges[i];
+    const text = sourceFile.text.slice(r.pos, r.end);
+    if (!text.startsWith('/**')) continue;
+    if (/@deprecated/i.test(text)) return true;
+  }
+  return false;
 }
 
 function isPublicMethod(node) {
@@ -1077,6 +1094,7 @@ function buildPathSpec(method, sourceFile) {
 
   const description = getJSDocDescription(method, sourceFile);
   const summary = camelToTitle(name);
+  const deprecated = isDeprecated(method, sourceFile);
 
   // ---- GET: query-parameter shape, no request body ----------------------
   if (verb === 'get') {
@@ -1128,6 +1146,7 @@ function buildPathSpec(method, sourceFile) {
       },
     };
     if (description) pathObj.get.description = description;
+    if (deprecated) pathObj.get.deprecated = true;
     return { name, pathObj, verb, paramsMeta };
   }
 
@@ -1197,6 +1216,9 @@ function buildPathSpec(method, sourceFile) {
 
   if (description) {
     pathObj.post.description = description;
+  }
+  if (deprecated) {
+    pathObj.post.deprecated = true;
   }
 
   return { name, pathObj, verb, paramsMeta };
@@ -1323,7 +1345,7 @@ const GENERATED_SCHEMA_ORDER = [
   'MarketFilterCriteria',
   'EventFilterCriteria',
   // Matching types (Router)
-  'FetchMatchesParams',
+  'FetchMarketMatchesParams',
   'FetchEventMatchesParams',
   'FetchArbitrageParams',
   'MatchResult',

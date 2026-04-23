@@ -49,7 +49,7 @@ router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 markets = router.fetch_markets(query="fed rate cut")
 
 # Find this market on other venues with confidence scores
-matches = router.fetch_matches(market_id=markets[0].market_id)
+matches = router.fetch_market_matches(market_id=markets[0].market_id)
 
 # Scan for cross-venue price spreads
 arb = router.fetch_arbitrage(min_spread=0.03)

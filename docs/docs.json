@@ -129,7 +129,9 @@
               "GET /api/{exchange}/fetchMarketsPaginated",
               "GET /api/{exchange}/fetchEvents",
               "GET /api/{exchange}/fetchMarket",
-              "GET /api/{exchange}/fetchEvent"
+              "GET /api/{exchange}/fetchEvent",
+              "POST /api/{exchange}/filterMarkets",
+              "POST /api/{exchange}/filterEvents"
             ]
           },
           {

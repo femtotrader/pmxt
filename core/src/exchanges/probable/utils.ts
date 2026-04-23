@@ -37,7 +37,18 @@ export function mapMarketToUnified(market: any, event?: any): UnifiedMarket | nu
         volume: Number(market.volume || 0),
         liquidity: Number(market.liquidity || 0),
         openInterest: 0,
-        url: `https://probable.markets/markets/${market.market_slug || market.slug || market.id}`,
+        url: (() => {
+            const eventSlug = event?.slug || (market as any)._parentEvent?.slug;
+            const marketId = market.id;
+            if (eventSlug) {
+                return `https://probable.markets/event/${eventSlug}?market=${marketId}`;
+            }
+            const eventId = event?.id || market.event_id;
+            if (eventId) {
+                return `https://probable.markets/event/${eventId}?market=${marketId}`;
+            }
+            return `https://probable.markets/event/?market=${marketId}`;
+        })(),
         image: market.icon || event?.icon || event?.image || undefined,
         category: event?.category || market.category || undefined,
         tags: market.tags || event?.tags || [],
@@ -66,7 +77,7 @@ export function mapEventToUnified(event: any): UnifiedEvent | null {
         markets,
         volume24h: markets.reduce((sum, m) => sum + m.volume24h, 0),
         volume: markets.some(m => m.volume !== undefined) ? markets.reduce((sum, m) => sum + (m.volume ?? 0), 0) : undefined,
-        url: `https://probable.markets/events/${event.slug || event.id}`,
+        url: `https://probable.markets/event/${event.slug || event.id}`,
         image: event.icon || event.image || undefined,
         category: event.category || undefined,
         tags: event.tags || [],

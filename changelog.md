@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.34.1] - 2026-04-23
+
+### Bug Fixes
+
+- **Router-only endpoints showed all exchanges in API docs**: The
+  interactive API reference allowed selecting any exchange (e.g. Kalshi)
+  for cross-venue endpoints (`fetchArbitrage`, `fetchMarketMatches`,
+  `fetchEventMatches`, `fetchHedges`, `fetchMatches`), which returned a
+  500 "not implemented" error. The per-operation exchange scoping logic
+  existed in the generator but the spec was stale from a CI run that
+  predated it. Regenerated — these endpoints now only show "router" in
+  the exchange dropdown and only include Router code samples.
+
 ## [2.34.0] - 2026-04-23
 
 ### Breaking Changes (with backwards compatibility)

@@ -56,6 +56,7 @@ export class LimitlessExchange extends PredictionMarketExchange {
     private ws?: LimitlessWebSocket;
     private readonly fetcher: LimitlessFetcher;
     private readonly normalizer: LimitlessNormalizer;
+    private readonly outcomeToSlug = new Map<string, string>();
 
     constructor(options?: ExchangeCredentials | LimitlessExchangeOptions) {
         // Support both old signature (credentials only) and new signature (options object)
@@ -128,24 +129,30 @@ export class LimitlessExchange extends PredictionMarketExchange {
 
         // Handle outcomeId filtering (client-side)
         if (params?.outcomeId) {
-            return rawMarkets
+            const results = rawMarkets
                 .map((raw) => this.normalizer.normalizeMarket(raw))
                 .filter((m): m is UnifiedMarket => m !== null && m.outcomes.length > 0)
                 .filter(m => m.outcomes.some(o => o.outcomeId === params.outcomeId));
+            this.indexOutcomeSlugs(results);
+            return results;
         }
 
         // Handle search results -- filter and limit
         if (params?.query) {
-            return rawMarkets
+            const results = rawMarkets
                 .map((raw) => this.normalizer.normalizeMarket(raw))
                 .filter((m): m is UnifiedMarket => m !== null && m.outcomes.length > 0)
                 .slice(0, params?.limit || 250000);
+            this.indexOutcomeSlugs(results);
+            return results;
         }
 
         // Default fetch -- normalize, filter, sort, apply offset/limit
         const unifiedMarkets = rawMarkets
             .map((raw) => this.normalizer.normalizeMarket(raw))
             .filter((m): m is UnifiedMarket => m !== null && m.outcomes.length > 0);
+
+        this.indexOutcomeSlugs(unifiedMarkets);
 
         if (params?.sort === 'volume') {
             unifiedMarkets.sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0));
@@ -165,12 +172,14 @@ export class LimitlessExchange extends PredictionMarketExchange {
     }
 
     async fetchOHLCV(id: string, params: OHLCVParams): Promise<PriceCandle[]> {
-        const rawPrices = await this.fetcher.fetchRawOHLCV!(id, params);
+        const slug = await this.resolveSlug(id);
+        const rawPrices = await this.fetcher.fetchRawOHLCV!(slug, params);
         return this.normalizer.normalizeOHLCV!(rawPrices as any, params);
     }
 
     async fetchOrderBook(id: string): Promise<OrderBook> {
-        const rawOrderBook = await this.fetcher.fetchRawOrderBook!(id);
+        const slug = await this.resolveSlug(id);
+        const rawOrderBook = await this.fetcher.fetchRawOrderBook!(slug);
         return this.normalizer.normalizeOrderBook!(rawOrderBook as any, id);
     }
 
@@ -523,6 +532,39 @@ export class LimitlessExchange extends PredictionMarketExchange {
             this.ws = new LimitlessWebSocket(this.callApi.bind(this), wsConfig);
         }
         return this.ws;
+    }
+
+    /**
+     * Populate the outcomeId -> slug lookup from a list of unified markets.
+     */
+    private indexOutcomeSlugs(markets: UnifiedMarket[]): void {
+        for (const market of markets) {
+            if (!market.slug) continue;
+            for (const outcome of market.outcomes) {
+                this.outcomeToSlug.set(outcome.outcomeId, market.slug);
+            }
+        }
+    }
+
+    /**
+     * Resolve an outcomeId to the market slug required by the Limitless API.
+     * Returns the id unchanged if it already looks like a slug (no digits-only check)
+     * or if no mapping is found.
+     */
+    private async resolveSlug(outcomeId: string): Promise<string> {
+        const cached = this.outcomeToSlug.get(outcomeId);
+        if (cached) return cached;
+
+        // If the id doesn't look like a numeric token ID, assume it's already a slug.
+        if (!/^\d+$/.test(outcomeId)) return outcomeId;
+
+        // Attempt to discover the slug by fetching markets filtered by outcomeId.
+        const markets = await this.fetchMarketsImpl({ outcomeId });
+        if (markets.length > 0 && markets[0].slug) {
+            return markets[0].slug;
+        }
+
+        return outcomeId;
     }
 
     /**

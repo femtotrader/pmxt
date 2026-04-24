@@ -299,7 +299,7 @@ export class OpinionNormalizer implements IExchangeNormalizer<OpinionRawMarket, 
             title: child.marketTitle || '',
             description: child.rules || '',
             outcomes: [yesOutcome, noOutcome],
-            resolutionDate: new Date(toMillis(child.cutoffAt)),
+            resolutionDate: new Date(toMillis(child.cutoffAt || parent.cutoffAt)),
             volume24h: 0, // child markets do not have volume24h
             volume: parseNumStr(child.volume),
             liquidity: 0,

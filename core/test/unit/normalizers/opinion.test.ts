@@ -348,6 +348,23 @@ describe('OpinionNormalizer.normalizeMarketsFromEvent', () => {
         expect(normalizer.normalizeMarketsFromEvent(noChildren)).toEqual([]);
     });
 
+    test('should use parent cutoffAt when child cutoffAt is 0', () => {
+        const withZeroCutoff: OpinionRawMarket = {
+            ...RAW_CATEGORICAL_MARKET,
+            cutoffAt: 1798761600,
+            childMarkets: [
+                { ...CHILD_MARKET_A, cutoffAt: 0 },
+                { ...CHILD_MARKET_B, cutoffAt: 0 },
+            ],
+        };
+        const markets = normalizer.normalizeMarketsFromEvent(withZeroCutoff);
+        expect(markets).toHaveLength(2);
+        // Should inherit parent's cutoffAt, not produce 1970-01-01
+        const expected = new Date(1798761600 * 1000).toISOString();
+        expect(markets[0].resolutionDate.toISOString()).toBe(expected);
+        expect(markets[1].resolutionDate.toISOString()).toBe(expected);
+    });
+
     test('should handle categorical market with missing childMarkets field', () => {
         const noField: OpinionRawMarket = {
             ...RAW_CATEGORICAL_MARKET,

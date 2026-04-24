@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.0] - 2026-04-24
+
+### New Features
+
+- **`fetchEventsPaginated`**: New cursor-based paginated variant of
+  `fetchEvents`, mirroring the existing `fetchMarketsPaginated`. The first
+  call builds an in-memory snapshot and returns the first page with an
+  opaque cursor; subsequent calls serve pages from the cached snapshot
+  with zero additional API calls. Available in core, both SDKs
+  (TypeScript: `fetchEventsPaginated`, Python: `fetch_events_paginated`),
+  and the REST API. (#105)
+
+- **`fetchEvents` 10k cap removed**: All exchange implementations
+  previously hard-capped `fetchEvents` results at 10,000 events,
+  silently dropping anything beyond that. Polymarket (which currently
+  has ~11k active events) was the first venue to hit this ceiling. The
+  internal fetch limits have been raised so all available events are
+  returned. (#105)
+
 ## [2.34.3] - 2026-04-24
 
 ### Bug Fixes

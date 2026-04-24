@@ -320,6 +320,20 @@ class PaginatedMarketsResult:
 
 
 @dataclass
+class PaginatedEventsResult:
+    """Result of a paginated events fetch."""
+
+    data: "List[UnifiedEvent]"
+    """Events in this page"""
+
+    total: int
+    """Total number of events in the snapshot"""
+
+    next_cursor: Optional[str] = None
+    """Opaque cursor to pass to the next call, or None if this is the last page"""
+
+
+@dataclass
 class Order:
     """An order (open, filled, or cancelled)."""
     

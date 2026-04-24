@@ -214,6 +214,45 @@ paths:
         previous call slice directly from the cached snapshot — no additional API calls are made. The snapshot is
         invalidated after `snapshotTTL` ms (configured via `ExchangeOptions` in the constructor). A request using a
         cursor from an expired snapshot throws `'Cursor has expired'`.
+  '/api/{exchange}/fetchEventsPaginated':
+    get:
+      summary: Fetch Events Paginated
+      operationId: fetchEventsPaginated
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: cursor
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: filter
+          required: false
+          schema:
+            $ref: '#/components/schemas/EventFilterCriteria'
+      responses:
+        '200':
+          description: Fetch Events Paginated response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaginatedEventsResult'
+      description: >-
+        Paginated variant of {@link fetchEvents}. On the first call (no `cursor`), all events are fetched from the
+        exchange and cached in an in-memory snapshot. A cursor is returned along with the first page. Subsequent calls
+        with that cursor serve additional pages directly from the cached snapshot -- no additional API calls are made.
+        The snapshot is invalidated after `snapshotTTL` ms (configured via `ExchangeOptions` in the constructor). A
+        request using a cursor from an expired snapshot throws `'Cursor has expired'`.
   '/api/{exchange}/fetchEvents':
     get:
       summary: Fetch Events
@@ -2317,6 +2356,24 @@ components:
         total:
           type: number
           description: Total number of markets in the snapshot
+        nextCursor:
+          type: string
+          description: 'Cursor to pass to the next call, or undefined if this is the last page'
+      required:
+        - data
+        - total
+    PaginatedEventsResult:
+      type: object
+      description: Shape returned by fetchEventsPaginated
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnifiedEvent'
+          description: The page of unified events
+        total:
+          type: number
+          description: Total number of events in the snapshot
         nextCursor:
           type: string
           description: 'Cursor to pass to the next call, or undefined if this is the last page'

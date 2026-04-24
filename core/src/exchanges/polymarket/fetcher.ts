@@ -374,7 +374,7 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
     // ------------------------------------------------------------------------
 
     private async fetchRawEventsSearch(params: EventFetchParams): Promise<PolymarketRawEvent[]> {
-        const limit = params.limit || 10000;
+        const limit = params.limit || 25000;
 
         let sortParam = 'volume';
         if (params.sort === 'newest') sortParam = 'startDate';
@@ -431,7 +431,7 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
     }
 
     private async fetchRawEventsDefault(params: EventFetchParams): Promise<PolymarketRawEvent[]> {
-        const limit = params.limit || 10000;
+        const limit = params.limit || 25000;
         const status = params.status || 'active';
 
         let sortParam = 'volume';

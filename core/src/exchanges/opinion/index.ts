@@ -177,7 +177,7 @@ export class OpinionExchange extends PredictionMarketExchange {
         params: EventFetchParams,
     ): Promise<UnifiedEvent[]> {
         const rawEvents = await this.fetcher.fetchRawEvents(params);
-        const limit = params.limit || 10000;
+        const limit = params.limit || 250000;
         const query = (params.query || '').toLowerCase();
 
         const filtered = query

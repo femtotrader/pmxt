@@ -334,6 +334,16 @@ export interface PaginatedMarketsResult {
     nextCursor?: string;
 }
 
+/** Shape returned by fetchEventsPaginated */
+export interface PaginatedEventsResult {
+    /** The page of unified events */
+    data: UnifiedEvent[];
+    /** Total number of events in the snapshot */
+    total: number;
+    /** Cursor to pass to the next call, or undefined if this is the last page */
+    nextCursor?: string;
+}
+
 // ----------------------------------------------------------------------------
 // Base Exchange Class
 // ----------------------------------------------------------------------------
@@ -377,6 +387,7 @@ export abstract class PredictionMarketExchange {
     // Snapshot state for cursor-based pagination
     private _snapshotTTL: number;
     private _snapshot?: { markets: UnifiedMarket[]; takenAt: number; id: string };
+    private _eventSnapshot?: { events: UnifiedEvent[]; takenAt: number; id: string };
     private apiDescriptors: ApiDescriptor[] = [];
 
     constructor(credentials?: ExchangeCredentials, options?: ExchangeOptions) {
@@ -619,6 +630,75 @@ export abstract class PredictionMarketExchange {
         const slice = markets.slice(0, limit);
         const nextCursor = limit < markets.length ? `${this._snapshot.id}:${limit}` : undefined;
         return { data: applyFilter(slice), total: markets.length, nextCursor };
+    }
+
+    /**
+     * Paginated variant of {@link fetchEvents}.
+     *
+     * On the first call (no `cursor`), all events are fetched from the exchange
+     * and cached in an in-memory snapshot. A cursor is returned along with the
+     * first page. Subsequent calls with that cursor serve additional pages
+     * directly from the cached snapshot -- no additional API calls are made.
+     *
+     * The snapshot is invalidated after `snapshotTTL` ms (configured via `ExchangeOptions`
+     * in the constructor). A request using a cursor from an expired snapshot throws
+     * `'Cursor has expired'`.
+     *
+     * @param params.limit      - Page size (default: return all events)
+     * @param params.cursor     - Opaque cursor returned by a previous call
+     * @returns PaginatedEventsResult with data, total, and optional nextCursor
+     */
+    async fetchEventsPaginated(params?: { limit?: number; cursor?: string; filter?: EventFilterCriteria }): Promise<PaginatedEventsResult> {
+        const limit = params?.limit;
+        const cursor = params?.cursor;
+        const filter = params?.filter;
+
+        const applyFilter = (events: UnifiedEvent[]): UnifiedEvent[] =>
+            filter ? this.filterEvents(events, filter) : events;
+
+        if (cursor) {
+            const sep = cursor.indexOf(':');
+            const snapshotId = cursor.substring(0, sep);
+            const offset = parseInt(cursor.substring(sep + 1), 10);
+
+            if (
+                !this._eventSnapshot ||
+                this._eventSnapshot.id !== snapshotId ||
+                (this._snapshotTTL > 0 && Date.now() - this._eventSnapshot.takenAt > this._snapshotTTL)
+            ) {
+                throw new Error('Cursor has expired');
+            }
+
+            const events = this._eventSnapshot.events;
+            const slice = limit !== undefined ? events.slice(offset, offset + limit) : events.slice(offset);
+            const nextOffset = offset + slice.length;
+            const nextCursor = nextOffset < events.length ? `${snapshotId}:${nextOffset}` : undefined;
+
+            return { data: applyFilter(slice), total: events.length, nextCursor };
+        }
+
+        // No cursor -- (re)fetch snapshot
+        if (
+            !this._eventSnapshot ||
+            this._snapshotTTL === 0 ||
+            Date.now() - this._eventSnapshot.takenAt > this._snapshotTTL
+        ) {
+            const events = await this.fetchEventsImpl({});
+            this._eventSnapshot = {
+                events,
+                takenAt: Date.now(),
+                id: Math.random().toString(36).slice(2),
+            };
+        }
+
+        const events = this._eventSnapshot.events;
+        if (!limit) {
+            return { data: applyFilter(events), total: events.length, nextCursor: undefined };
+        }
+
+        const slice = events.slice(0, limit);
+        const nextCursor = limit < events.length ? `${this._eventSnapshot.id}:${limit}` : undefined;
+        return { data: applyFilter(slice), total: events.length, nextCursor };
     }
 
     /**

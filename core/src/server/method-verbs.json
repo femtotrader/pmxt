@@ -29,6 +29,16 @@
       }
     ]
   },
+  "fetchEventsPaginated": {
+    "verb": "get",
+    "args": [
+      {
+        "name": "params",
+        "kind": "object",
+        "optional": true
+      }
+    ]
+  },
   "fetchEvents": {
     "verb": "get",
     "args": [

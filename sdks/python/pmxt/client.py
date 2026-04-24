@@ -35,6 +35,7 @@ from .models import (
     Trade,
     UserTrade,
     PaginatedMarketsResult,
+    PaginatedEventsResult,
     Order,
     BuiltOrder,
     Position,
@@ -803,6 +804,33 @@ class Exchange(ABC):
             response.read()
             data = self._handle_response(json.loads(response.data))
             return [_convert_event(e) for e in data]
+        except ApiException as e:
+            raise self._parse_api_exception(e) from None
+
+    def fetch_events_paginated(self, params: Optional[dict] = None, **kwargs) -> PaginatedEventsResult:
+        try:
+            args = []
+            if kwargs:
+                params = {**(params or {}), **kwargs}
+            if params is not None:
+                args.append(params)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._resolve_sidecar_host()}/api/{self.exchange_name}/fetchEventsPaginated"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._fetch_with_retry(
+                lambda: self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            )
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return PaginatedEventsResult(
+                data=[_convert_event(m) for m in data.get("data", [])],
+                total=data.get("total", 0),
+                next_cursor=data.get("nextCursor"),
+            )
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 

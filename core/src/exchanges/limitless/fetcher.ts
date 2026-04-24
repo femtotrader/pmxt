@@ -279,7 +279,7 @@ export class LimitlessFetcher implements IExchangeFetcher<LimitlessRawMarket, Li
     }
 
     private async fetchRawEventsDefault(params: EventFetchParams): Promise<LimitlessRawEvent[]> {
-        const limit = params?.limit || 10000;
+        const limit = params?.limit || 250000;
         let page = 1;
         const pageSize = 25;
         const MAX_PAGES = 40;

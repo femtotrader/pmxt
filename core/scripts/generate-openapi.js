@@ -635,6 +635,7 @@ const TYPE_REF_MAP = {
   OrderLevel: 'OrderLevel',
   ExecutionPriceResult: 'ExecutionPriceResult',
   PaginatedMarketsResult: 'PaginatedMarketsResult',
+  PaginatedEventsResult: 'PaginatedEventsResult',
   // MarketFetchParams is an alias for MarketFilterParams
   MarketFetchParams: 'MarketFilterParams',
   MarketFilterParams: 'MarketFilterParams',
@@ -1331,6 +1332,7 @@ const GENERATED_SCHEMA_ORDER = [
   'Balance',
   'ExecutionPriceResult',
   'PaginatedMarketsResult',
+  'PaginatedEventsResult',
   // Input parameter schemas
   'MarketFilterParams',
   'EventFetchParams',

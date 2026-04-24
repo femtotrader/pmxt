@@ -612,7 +612,7 @@ export class PolymarketExchange extends PredictionMarketExchange {
         return rawEvents
             .map((raw) => this.normalizer.normalizeEvent(raw))
             .filter((e): e is UnifiedEvent => e !== null)
-            .slice(0, params.limit || 10000);
+            .slice(0, params.limit || 250000);
     }
 
     /**

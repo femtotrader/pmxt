@@ -211,6 +211,20 @@ export interface PaginatedMarketsResult {
 }
 
 /**
+ * Result of a paginated event fetch.
+ */
+export interface PaginatedEventsResult {
+    /** The events for this page */
+    data: UnifiedEvent[];
+
+    /** Total number of events (if available) */
+    total?: number;
+
+    /** Cursor for the next page (pass to fetchEventsPaginated) */
+    nextCursor?: string;
+}
+
+/**
  * A historical trade.
  */
 export interface Trade {

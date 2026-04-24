@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.34.2] - 2026-04-24
+
+### Bug Fixes
+
+- **Limitless `fetchOHLCV` and `fetchOrderBook` fail with "No entity found"**:
+  Both methods passed the numeric outcome token ID as the `slug` path
+  parameter to the Limitless API, which only accepts market slugs.
+  Added an internal outcomeId-to-slug lookup populated during
+  `fetchMarkets`, with a fallback fetch for callers that skip market
+  discovery. (#109)
+
 ## [2.34.1] - 2026-04-23
 
 ### Bug Fixes

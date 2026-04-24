@@ -192,6 +192,7 @@
             "group": "Other",
             "openapi": "api-reference/openapi.json",
             "pages": [
+              "GET /api/{exchange}/fetchEventsPaginated",
               "GET /api/{exchange}/fetchMarketMatches"
             ]
           }

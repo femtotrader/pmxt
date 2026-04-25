@@ -171,7 +171,8 @@ export class Router extends PredictionMarketExchange {
         if (params?.limit !== undefined) query.limit = String(params.limit);
 
         const res = await this.client.getArbitrage(query);
-        const items: any[] = res.data ?? [];
+        // getArbitrage already unwraps .data — res is the opportunities array.
+        const items: any[] = Array.isArray(res) ? res : (res?.data ?? []);
 
         return items.map((r: any) => ({
             marketA: r.marketA,

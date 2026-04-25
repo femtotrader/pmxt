@@ -133,10 +133,10 @@ const ENDPOINT_GROUPS = [
     {
         name: 'Cross-Venue',
         match: (opId) =>
-            /^(fetchEventMatches|fetchMatches|compareMarketPrices|fetchHedges|fetchArbitrage)$/.test(
+            /^(fetchEventMatches|fetchMarketMatches|compareMarketPrices|fetchHedges|fetchArbitrage)$/.test(
                 opId
             ),
-        order: ['fetchEventMatches', 'fetchMatches', 'compareMarketPrices', 'fetchHedges', 'fetchArbitrage'],
+        order: ['fetchEventMatches', 'fetchMarketMatches', 'compareMarketPrices', 'fetchHedges', 'fetchArbitrage'],
     },
     {
         name: 'Order Book & Trades',

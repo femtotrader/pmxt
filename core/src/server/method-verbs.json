@@ -378,16 +378,6 @@
       }
     ]
   },
-  "fetchMatches": {
-    "verb": "get",
-    "args": [
-      {
-        "name": "params",
-        "kind": "object",
-        "optional": false
-      }
-    ]
-  },
   "fetchEventMatches": {
     "verb": "get",
     "args": [

@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.5] - 2026-04-25
+
+### Improvements
+
+- **Removed deprecated `fetchMatches` from API spec and docs**: The
+  deprecated `/api/{exchange}/fetchMatches` endpoint has been removed
+  from the OpenAPI spec, Mintlify docs, and MCP tool list. Use
+  `fetchMarketMatches` instead. The runtime route still works (logs a
+  deprecation warning and delegates to `fetchMarketMatches`) so existing
+  callers are unaffected.
+
+- **Added `fetchMarketMatches` to Mintlify docs sidebar**: The
+  Cross-Venue section now correctly lists "Find Similar Markets"
+  pointing to `fetchMarketMatches`, which was previously missing from
+  the sidebar.
+
 ## [2.35.4] - 2026-04-25
 
 ### Bug Fixes

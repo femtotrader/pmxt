@@ -264,7 +264,6 @@ const PARAM_OVERRIDES = {
         { name: 'amount', value: 10 },
     ],
     fetchMarketMatches: [{ name: 'marketId', value: '12345' }],
-    fetchMatches: [{ name: 'marketId', value: '12345' }],
     fetchEventMatches: [{ name: 'eventId', value: '12345' }],
     compareMarketPrices: [{ name: 'marketId', value: '12345' }],
     fetchHedges: [{ name: 'marketId', value: '12345' }],
@@ -618,7 +617,7 @@ function generateHostedDocsSpec(spec) {
     );
 }
 
-const EXCLUDED_METHODS = new Set(['callApi', 'defineImplicitApi']);
+const EXCLUDED_METHODS = new Set(['callApi', 'defineImplicitApi', 'fetchMatches']);
 
 // Map TypeScript type names to OpenAPI component schema names
 const TYPE_REF_MAP = {
@@ -834,7 +833,6 @@ function typeNodeToSchema(node, sourceFile) {
 
 const SUMMARY_OVERRIDES = {
   fetchMarketMatches: 'Find Similar Markets',
-  fetchMatches: 'Find Similar Markets (Deprecated)',
   fetchEventMatches: 'Find Similar Events',
   compareMarketPrices: 'Compare Prices Across Venues',
   fetchHedges: 'Find Hedging Opportunities',

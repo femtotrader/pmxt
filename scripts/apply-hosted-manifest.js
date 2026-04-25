@@ -6,6 +6,7 @@ const path = require('path');
 
 const DOCS_DIR = path.resolve(__dirname, '..', 'docs');
 const OPENAPI_HOSTED_PATH = path.join(DOCS_DIR, 'api-reference', 'openapi-hosted.json');
+const OPENAPI_CORE_PATH = path.join(DOCS_DIR, 'api-reference', 'openapi.json');
 const DOCS_JSON_PATH = path.join(DOCS_DIR, 'docs.json');
 const RATE_LIMITS_PATH = path.join(DOCS_DIR, 'rate-limits.mdx');
 const VENUES_PATH = path.join(DOCS_DIR, 'concepts', 'venues.mdx');
@@ -98,6 +99,11 @@ function writeHostedOpenApiSpec(openApiPaths, openApiComponents, hostedVersion) 
     },
   };
 
+  // Resolve path-based $refs (e.g. "#/paths/~1v0~1sql/post/responses/200")
+  // into inline content. Most OpenAPI renderers (including Mintlify) only
+  // support $refs to #/components/*.
+  resolvePathRefs(spec);
+
   fs.mkdirSync(path.dirname(OPENAPI_HOSTED_PATH), { recursive: true });
   writeJson(OPENAPI_HOSTED_PATH, spec);
 
@@ -105,14 +111,101 @@ function writeHostedOpenApiSpec(openApiPaths, openApiComponents, hostedVersion) 
   console.log(`  [openapi-hosted] Wrote ${pathKeys.length} path(s): ${pathKeys.join(', ')}`);
 }
 
+// Walk the spec and replace any $ref pointing at #/paths/... with the
+// referenced object inlined.
+function resolvePathRefs(spec) {
+  function resolve(ref) {
+    // "#/paths/~1v0~1sql/post/responses/200" -> ["paths","/v0/sql","post","responses","200"]
+    const parts = ref
+      .replace(/^#\//, '')
+      .split('/')
+      .map((seg) => seg.replace(/~1/g, '/').replace(/~0/g, '~'));
+    let current = spec;
+    for (const part of parts) {
+      if (current == null) return undefined;
+      current = current[part];
+    }
+    return current;
+  }
+
+  function walk(obj) {
+    if (obj == null || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(walk);
+
+    if (obj.$ref && typeof obj.$ref === 'string' && obj.$ref.startsWith('#/paths/')) {
+      const resolved = resolve(obj.$ref);
+      if (resolved) return walk(JSON.parse(JSON.stringify(resolved)));
+      // If unresolvable, leave the $ref as-is.
+      return obj;
+    }
+
+    const result = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = walk(value);
+    }
+    return result;
+  }
+
+  // Mutate spec.paths in place with resolved references.
+  spec.paths = walk(spec.paths);
+}
+
 // ---------------------------------------------------------------------------
 // 2. Update docs.json navigation
 // ---------------------------------------------------------------------------
 
+// Collect all operationIds from the core spec so we can skip hosted
+// endpoints that already have a core equivalent in the docs.
+function getCoreOperationIds() {
+  if (!fs.existsSync(OPENAPI_CORE_PATH)) return new Set();
+  const spec = readJson(OPENAPI_CORE_PATH);
+  const ids = new Set();
+  for (const methods of Object.values(spec.paths || {})) {
+    for (const op of Object.values(methods)) {
+      if (op.operationId) ids.add(op.operationId.toLowerCase());
+    }
+  }
+  return ids;
+}
+
+// Derive a canonical name from a hosted path for matching against core
+// operationIds.  e.g. /v0/markets/{id}/matches -> "marketmatches",
+// /v0/sql -> "sql".
+function deriveCanonicalName(pathKey) {
+  return pathKey
+    .replace(/^\/v0\//, '')
+    .replace(/\{[^}]+\}\/?/g, '')
+    .replace(/\/$/, '')
+    .split('/')
+    .map((seg, i) => i > 0 ? seg : seg.replace(/s$/, ''))
+    .join('');
+}
+
 function buildNavPages(openApiPaths) {
-  return Object.entries(openApiPaths).flatMap(([pathKey, methods]) =>
-    Object.keys(methods).map((method) => `${method.toUpperCase()} ${pathKey}`)
-  );
+  const coreOps = getCoreOperationIds();
+  const pages = [];
+  const skipped = [];
+
+  for (const [pathKey, methods] of Object.entries(openApiPaths)) {
+    const canonical = deriveCanonicalName(pathKey);
+    const hasCoreEquivalent = [...coreOps].some(
+      (opId) => opId.includes(canonical) && canonical.length > 0
+    );
+
+    for (const method of Object.keys(methods)) {
+      const ref = `${method.toUpperCase()} ${pathKey}`;
+      if (hasCoreEquivalent) {
+        skipped.push(ref);
+      } else {
+        pages.push(ref);
+      }
+    }
+  }
+
+  if (skipped.length > 0) {
+    console.log(`  [docs.json] Skipped ${skipped.length} page(s) with core equivalents: ${skipped.join(', ')}`);
+  }
+  return pages;
 }
 
 function updateDocsNavigation(openApiPaths) {

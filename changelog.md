@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.3] - 2026-04-25
+
+### Bug Fixes
+
+- **`fetchArbitrage` always returned empty results**: The bulk arbitrage
+  endpoint (`GET /v0/arbitrage`) was working correctly on the server, but
+  `Router.fetchArbitrageBulk` double-unwrapped the response — `client.getArbitrage()`
+  already extracts `.data`, so `res.data` in the Router was `undefined`,
+  producing an empty array on every call. The SDK silently fell through to
+  the N+1 fallback (`fetchArbitrageFallback`), which fetched matches
+  per-market with live order book calls. This masked the bug but made
+  arbitrage detection slow and fragile. Fixed by checking whether `res`
+  is already an array before accessing `.data`.
+
 ## [2.35.2] - 2026-04-24
 
 ### Bug Fixes

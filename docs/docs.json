@@ -137,7 +137,7 @@
             "openapi": "api-reference/openapi.json",
             "pages": [
               "GET /api/{exchange}/fetchEventMatches",
-              "GET /api/{exchange}/fetchMatches",
+              "GET /api/{exchange}/fetchMarketMatches",
               "POST /api/{exchange}/compareMarketPrices",
               "GET /api/{exchange}/fetchHedges",
               "GET /api/{exchange}/fetchArbitrage"
@@ -192,8 +192,7 @@
             "group": "Other",
             "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /api/{exchange}/fetchEventsPaginated",
-              "GET /api/{exchange}/fetchMarketMatches"
+              "GET /api/{exchange}/fetchEventsPaginated"
             ]
           }
         ]

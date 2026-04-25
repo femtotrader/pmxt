@@ -32,7 +32,8 @@ jobs:
 
       - name: Check for uncommitted docs changes
         run: |
-          if ! git diff --exit-code docs/; then
+          # Exclude hosted-owned files — those are managed by hosted-pmxt's sync workflow.
+          if ! git diff --exit-code -- docs/ ':!docs/api-reference/openapi-hosted.json'; then
             echo "::error::Docs are out of sync with core. Run 'npm run generate:openapi --workspace=pmxt-core && npm run generate:mintlify --workspace=pmxt-core' and commit the result."
             exit 1
           fi

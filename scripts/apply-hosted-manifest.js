@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DOCS_DIR = path.resolve(__dirname, '..', 'docs');
-const OPENAPI_PATH = path.join(DOCS_DIR, 'api-reference', 'openapi.json');
+const OPENAPI_HOSTED_PATH = path.join(DOCS_DIR, 'api-reference', 'openapi-hosted.json');
 const DOCS_JSON_PATH = path.join(DOCS_DIR, 'docs.json');
 const RATE_LIMITS_PATH = path.join(DOCS_DIR, 'rate-limits.mdx');
 const VENUES_PATH = path.join(DOCS_DIR, 'concepts', 'venues.mdx');
@@ -63,31 +63,46 @@ function replaceBetweenMarkers(text, markerName, replacement, fallbackInsertBefo
 }
 
 // ---------------------------------------------------------------------------
-// 1. Merge OpenAPI paths
+// 1. Write standalone hosted OpenAPI spec
 // ---------------------------------------------------------------------------
 
-function mergeOpenApiPaths(openApiPaths) {
+function writeHostedOpenApiSpec(openApiPaths, openApiComponents, hostedVersion) {
   if (!openApiPaths || Object.keys(openApiPaths).length === 0) {
-    console.log('  [openapi] No paths in manifest — skipping.');
+    console.log('  [openapi-hosted] No paths in manifest — skipping.');
     return;
   }
 
-  if (!fs.existsSync(OPENAPI_PATH)) {
-    console.warn(`  [openapi] WARN: ${OPENAPI_PATH} does not exist — skipping.`);
-    return;
-  }
+  const spec = {
+    openapi: '3.0.0',
+    info: {
+      title: 'PMXT Hosted Router API',
+      description: 'Hosted-only endpoints for cross-venue search, matching, arbitrage, and SQL.',
+      version: hostedVersion || '0.0.0',
+    },
+    servers: [
+      { url: 'https://api.pmxt.dev', description: 'Production' },
+    ],
+    security: [{ apiKey: [] }],
+    paths: openApiPaths,
+    components: {
+      securitySchemes: {
+        apiKey: {
+          type: 'apiKey',
+          in: 'header',
+          name: 'X-API-Key',
+        },
+      },
+      ...(openApiComponents && Object.keys(openApiComponents).length > 0
+        ? { schemas: openApiComponents.schemas || {} }
+        : {}),
+    },
+  };
 
-  const spec = readJson(OPENAPI_PATH);
-
-  // Build new paths object: start with existing, overlay hosted
-  const updatedPaths = { ...spec.paths, ...openApiPaths };
-
-  const updatedSpec = { ...spec, paths: updatedPaths };
-
-  writeJson(OPENAPI_PATH, updatedSpec);
+  fs.mkdirSync(path.dirname(OPENAPI_HOSTED_PATH), { recursive: true });
+  writeJson(OPENAPI_HOSTED_PATH, spec);
 
   const pathKeys = Object.keys(openApiPaths);
-  console.log(`  [openapi] Merged ${pathKeys.length} path(s): ${pathKeys.join(', ')}`);
+  console.log(`  [openapi-hosted] Wrote ${pathKeys.length} path(s): ${pathKeys.join(', ')}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -127,7 +142,7 @@ function updateDocsNavigation(openApiPaths) {
 
   const newGroup = {
     group: 'Router',
-    openapi: 'api-reference/openapi.json',
+    openapi: 'api-reference/openapi-hosted.json',
     pages: navPages,
   };
 
@@ -262,7 +277,7 @@ function main() {
 
   console.log('Manifest loaded. Applying updates…');
 
-  mergeOpenApiPaths(manifest.openApiPaths);
+  writeHostedOpenApiSpec(manifest.openApiPaths, manifest.openApiComponents, manifest.hostedPmxtVersion);
   updateDocsNavigation(manifest.openApiPaths);
   updateRateLimits(manifest.rateLimits);
   updateVenues(manifest.catalogVenues);

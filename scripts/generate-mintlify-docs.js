@@ -56,13 +56,36 @@ function extractVenues(spec) {
     }));
 }
 
+// Extract all HOSTED-AUTOGEN:*:START ... HOSTED-AUTOGEN:*:END blocks from
+// existing file content so they can be preserved after regeneration.
+function extractHostedAutoGenBlocks(text) {
+    const blocks = [];
+    const re = /(\{\/\* HOSTED-AUTOGEN:[\w-]+:START \*\/\}[\s\S]*?\{\/\* HOSTED-AUTOGEN:[\w-]+:END \*\/\})/g;
+    let match;
+    while ((match = re.exec(text)) !== null) {
+        blocks.push(match[1]);
+    }
+    return blocks;
+}
+
 function writeVenuesPage(venues, coreVersion) {
+    // Read existing file to preserve HOSTED-AUTOGEN blocks
+    let hostedBlocks = [];
+    if (fs.existsSync(VENUES_DEST)) {
+        const existing = fs.readFileSync(VENUES_DEST, 'utf8');
+        hostedBlocks = extractHostedAutoGenBlocks(existing);
+    }
+
     const rows = venues
         .map(
             ({ wire, label }) =>
                 `| ${label} | \`${wire}\` | \`POST /api/${wire}/:method\` |`
         )
         .join('\n');
+
+    const hostedSection = hostedBlocks.length > 0
+        ? '\n\n' + hostedBlocks.join('\n\n') + '\n'
+        : '';
 
     const body = `---
 title: Supported Venues
@@ -89,7 +112,7 @@ ${rows}
   in pmxt-core's OpenAPI spec on every \`pmxt-core\` upgrade. If a venue
   is missing here, it's not yet wired through pmxt-core.
 </Note>
-
+${hostedSection}
 ## Feature support
 
 Not every venue supports every method. Broadly:
@@ -109,7 +132,9 @@ matrix (inferred from the OpenAPI \`operationId\`s).
     fs.writeFileSync(VENUES_DEST, body);
     console.log(
         `[generate-mintlify] wrote ${path.relative(ROOT, VENUES_DEST)} ` +
-            `(${venues.length} venues)`
+            `(${venues.length} venues` +
+            (hostedBlocks.length > 0 ? `, preserved ${hostedBlocks.length} hosted block(s)` : '') +
+            ')'
     );
 }
 
@@ -241,6 +266,14 @@ function updateDocsJsonEndpoints(spec) {
     const nav = docs.navigation || {};
     const tabs = Array.isArray(nav.tabs) ? [...nav.tabs] : [];
     const apiTabIdx = tabs.findIndex((t) => t && t.tab === 'API Reference');
+    // Preserve nav groups owned by other systems (e.g. hosted-pmxt's Router
+    // group, which references openapi-hosted.json instead of openapi.json).
+    const CORE_OPENAPI = 'api-reference/openapi.json';
+    const existingApiTab = apiTabIdx >= 0 ? tabs[apiTabIdx] : null;
+    const externalGroups = (existingApiTab?.groups || []).filter(
+        (g) => g.openapi && g.openapi !== CORE_OPENAPI
+    );
+
     const apiTab = {
         tab: 'API Reference',
         groups: [
@@ -249,6 +282,7 @@ function updateDocsJsonEndpoints(spec) {
                 pages: ['api-reference/overview'],
             },
             ...endpointGroups,
+            ...externalGroups,
         ],
     };
     if (apiTabIdx >= 0) {

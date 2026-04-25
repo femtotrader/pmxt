@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.4] - 2026-04-25
+
+### Bug Fixes
+
+- **Limitless `fetchOrderBook` returned identical data for Yes and No
+  tokens**: The Limitless API returns a single order book per market
+  (always the Yes side), but `fetchOrderBook` passed both token IDs
+  through `resolveSlug` to the same slug, so callers got the Yes-side
+  book regardless of which outcome they asked for. Now detects when the
+  requested token is the No outcome and flips the book
+  (`noBid = 1 - yesAsk`, `noAsk = 1 - yesBid`). This caused the hosted
+  aggregator to report inverted prices for Limitless markets and produce
+  false arbitrage signals with ~99% spreads.
+
 ## [2.35.3] - 2026-04-25
 
 ### Bug Fixes

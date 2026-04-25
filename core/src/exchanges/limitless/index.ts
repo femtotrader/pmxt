@@ -57,6 +57,7 @@ export class LimitlessExchange extends PredictionMarketExchange {
     private readonly fetcher: LimitlessFetcher;
     private readonly normalizer: LimitlessNormalizer;
     private readonly outcomeToSlug = new Map<string, string>();
+    private readonly noTokenIds = new Set<string>();
 
     constructor(options?: ExchangeCredentials | LimitlessExchangeOptions) {
         // Support both old signature (credentials only) and new signature (options object)
@@ -180,7 +181,39 @@ export class LimitlessExchange extends PredictionMarketExchange {
     async fetchOrderBook(id: string): Promise<OrderBook> {
         const slug = await this.resolveSlug(id);
         const rawOrderBook = await this.fetcher.fetchRawOrderBook!(slug);
-        return this.normalizer.normalizeOrderBook!(rawOrderBook as any, id);
+        const orderBook = this.normalizer.normalizeOrderBook!(rawOrderBook as any, id);
+
+        // The Limitless API always returns the Yes-side order book regardless
+        // of which token is queried. If the caller asked for the No token,
+        // flip: noBid = 1 - yesAsk, noAsk = 1 - yesBid.
+        const isNoToken = await this.isNoOutcome(id, slug);
+        if (isNoToken) {
+            return {
+                bids: orderBook.asks.map((level) => ({ price: 1 - level.price, size: level.size }))
+                    .sort((a, b) => b.price - a.price),
+                asks: orderBook.bids.map((level) => ({ price: 1 - level.price, size: level.size }))
+                    .sort((a, b) => a.price - b.price),
+                timestamp: orderBook.timestamp,
+            };
+        }
+
+        return orderBook;
+    }
+
+    private async isNoOutcome(outcomeId: string, slug: string): Promise<boolean> {
+        // Check the cached set first (populated by indexOutcomeSlugs).
+        if (this.noTokenIds.has(outcomeId)) return true;
+
+        // If not cached, fetch the market by slug and index it.
+        if (/^\d+$/.test(outcomeId)) {
+            const markets = await this.fetchMarketsImpl({ slug });
+            if (markets.length > 0) {
+                this.indexOutcomeSlugs(markets);
+                return this.noTokenIds.has(outcomeId);
+            }
+        }
+
+        return false;
     }
 
     async fetchTrades(id: string, params: TradesParams | HistoryFilterParams): Promise<Trade[]> {
@@ -542,6 +575,9 @@ export class LimitlessExchange extends PredictionMarketExchange {
             if (!market.slug) continue;
             for (const outcome of market.outcomes) {
                 this.outcomeToSlug.set(outcome.outcomeId, market.slug);
+                if (outcome.label.toLowerCase() === 'no') {
+                    this.noTokenIds.add(outcome.outcomeId);
+                }
             }
         }
     }

@@ -194,6 +194,13 @@
             "pages": [
               "GET /api/{exchange}/fetchEventsPaginated"
             ]
+          },
+          {
+            "group": "Enterprise",
+            "openapi": "api-reference/openapi-hosted.json",
+            "pages": [
+              "POST /v0/sql"
+            ]
           }
         ]
       }

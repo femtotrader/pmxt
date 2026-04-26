@@ -1,0 +1,1145 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "PMXT Hosted Router API",
+    "description": "Hosted-only endpoints for cross-venue search, matching, arbitrage, and SQL.",
+    "version": "87035e6"
+  },
+  "servers": [
+    {
+      "url": "https://api.pmxt.dev",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/v0/arbitrage": {
+      "get": {
+        "summary": "Discover cross-exchange arbitrage opportunities",
+        "description": "Bulk cross-exchange arbitrage discovery. Returns matched market pairs from the market_matches table, computing directional spread opportunities across venues.\n",
+        "tags": [
+          "Arbitrage"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "relations",
+            "schema": {
+              "type": "string",
+              "default": "identity"
+            },
+            "description": "Comma-separated relation filter. Valid values: identity, subset, superset, overlap, disjoint.\n",
+            "example": "identity,overlap"
+          },
+          {
+            "in": "query",
+            "name": "minSpread",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0
+            },
+            "description": "Minimum price spread to include (0.0-1.0)."
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter both sides of the match by category."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 50
+            },
+            "description": "Maximum number of matched pairs to return."
+          },
+          {
+            "in": "query",
+            "name": "minConfidence",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0
+            },
+            "description": "Minimum match confidence score (0.0-1.0)."
+          },
+          {
+            "in": "query",
+            "name": "includePrices",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Enrich markets with live order book prices."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arbitrage opportunities sorted by spread descending.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "marketA": {
+                            "$ref": "#/components/schemas/UnifiedMarket"
+                          },
+                          "marketB": {
+                            "$ref": "#/components/schemas/UnifiedMarket"
+                          },
+                          "spread": {
+                            "type": "number"
+                          },
+                          "buyVenue": {
+                            "type": "string"
+                          },
+                          "sellVenue": {
+                            "type": "string"
+                          },
+                          "buyPrice": {
+                            "type": "number"
+                          },
+                          "sellPrice": {
+                            "type": "number"
+                          },
+                          "relation": {
+                            "type": "string",
+                            "enum": [
+                              "identity",
+                              "subset",
+                              "superset",
+                              "overlap",
+                              "disjoint"
+                            ]
+                          },
+                          "confidence": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getV0Arbitrage"
+      }
+    },
+    "/v0/events": {
+      "get": {
+        "summary": "List events with pagination, search, and filters",
+        "tags": [
+          "Events"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Full-text search on event title and slug (ILIKE)"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 50
+            },
+            "description": "Maximum number of events to return"
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Number of events to skip for pagination"
+          },
+          {
+            "in": "query",
+            "name": "closed",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Include closed/resolved/settled events"
+          },
+          {
+            "in": "query",
+            "name": "sourceExchange",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by source exchange (e.g. polymarket, kalshi)"
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by event category"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of unified events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/UnifiedEvent"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "offset": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getV0Events"
+      }
+    },
+    "/v0/events/{id}/matches": {
+      "get": {
+        "summary": "Get cross-exchange event matches",
+        "description": "Finds markets belonging to the source event, looks up cross-exchange matches via market_matches, groups by parent event, and returns matched events with market-level match details.\n",
+        "tags": [
+          "Events"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Event UUID or slug"
+          },
+          {
+            "in": "query",
+            "name": "relation",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "identity",
+                "subset",
+                "superset",
+                "overlap",
+                "disjoint"
+              ]
+            },
+            "description": "Filter by match relation type"
+          },
+          {
+            "in": "query",
+            "name": "minConfidence",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0
+            },
+            "description": "Minimum match confidence score"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 50
+            },
+            "description": "Maximum number of matched events to return"
+          },
+          {
+            "in": "query",
+            "name": "includePrices",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Attach bestBid, bestAsk, and lastPrice to each market"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Source event with cross-exchange matches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "$ref": "#/components/schemas/UnifiedEvent"
+                        },
+                        "matches": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "event": {
+                                "$ref": "#/components/schemas/UnifiedEvent"
+                              },
+                              "marketMatches": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "sourceMarket": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "title": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "market": {
+                                      "$ref": "#/components/schemas/UnifiedMarket"
+                                    },
+                                    "relation": {
+                                      "type": "string",
+                                      "enum": [
+                                        "identity",
+                                        "subset",
+                                        "superset",
+                                        "overlap",
+                                        "disjoint"
+                                      ]
+                                    },
+                                    "confidence": {
+                                      "type": "number"
+                                    },
+                                    "reasoning": {
+                                      "type": "string",
+                                      "nullable": true
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid relation parameter"
+          },
+          "404": {
+            "description": "Event not found"
+          }
+        },
+        "operationId": "getV0EventsIdMatches"
+      }
+    },
+    "/v0/events/{id}": {
+      "get": {
+        "summary": "Get a single event by UUID",
+        "tags": [
+          "Events"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Event UUID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Single unified event with nested markets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UnifiedEvent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Event not found"
+          }
+        },
+        "operationId": "getV0EventsId"
+      }
+    },
+    "/v0/markets": {
+      "get": {
+        "summary": "List markets",
+        "description": "Returns a paginated list of prediction markets with optional search and filters.",
+        "tags": [
+          "Markets"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Full-text search on market question and slug (case-insensitive)."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 50
+            },
+            "description": "Maximum number of markets to return."
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Number of markets to skip for pagination."
+          },
+          {
+            "in": "query",
+            "name": "closed",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "When true, include closed and resolved markets."
+          },
+          {
+            "in": "query",
+            "name": "sourceExchange",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by source exchange (e.g. polymarket, kalshi)."
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by market category."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of markets.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/UnifiedMarket"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "offset": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getV0Markets"
+      }
+    },
+    "/v0/markets/{id}/matches": {
+      "get": {
+        "summary": "Get cross-exchange matches for a market",
+        "description": "Returns all cross-exchange matches for the given market. Each match includes the full UnifiedMarket shape plus relation, confidence, and reasoning from the matching engine. The market can be looked up by UUID, slug, or URL.\n",
+        "tags": [
+          "Markets"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Market UUID, slug, or URL."
+          },
+          {
+            "in": "query",
+            "name": "relation",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "identity",
+                "subset",
+                "superset",
+                "overlap",
+                "disjoint"
+              ]
+            },
+            "description": "Filter matches by semantic relation type."
+          },
+          {
+            "in": "query",
+            "name": "minConfidence",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0
+            },
+            "description": "Minimum confidence threshold (0-1)."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 50
+            },
+            "description": "Maximum number of matches to return."
+          },
+          {
+            "in": "query",
+            "name": "includePrices",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "When true, attach bestBid, bestAsk, and lastPrice to each market."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Source market and its cross-exchange matches.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "market": {
+                          "$ref": "#/components/schemas/UnifiedMarket"
+                        },
+                        "matches": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "market": {
+                                "$ref": "#/components/schemas/UnifiedMarket"
+                              },
+                              "relation": {
+                                "type": "string",
+                                "enum": [
+                                  "identity",
+                                  "subset",
+                                  "superset",
+                                  "overlap",
+                                  "disjoint"
+                                ]
+                              },
+                              "confidence": {
+                                "type": "number"
+                              },
+                              "reasoning": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid relation parameter."
+          },
+          "404": {
+            "description": "Market not found."
+          }
+        },
+        "operationId": "getV0MarketsIdMatches"
+      }
+    },
+    "/v0/markets/{id}": {
+      "get": {
+        "summary": "Get a single market",
+        "description": "Returns a single prediction market by its UUID.",
+        "tags": [
+          "Markets"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Market UUID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested market.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UnifiedMarket"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Market not found."
+          }
+        },
+        "operationId": "getV0MarketsId"
+      }
+    },
+    "/v0/sql": {
+      "post": {
+        "summary": "Execute a read-only SQL query against ClickHouse",
+        "tags": [
+          "SQL"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "query"
+                ],
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "example": "SELECT * FROM markets LIMIT 10"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Query executed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      },
+                      "example": [
+                        {
+                          "column1": "value1"
+                        }
+                      ]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "columns": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "example": [
+                            {
+                              "name": "column1",
+                              "type": "String"
+                            }
+                          ]
+                        },
+                        "rows": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "statistics": {
+                          "type": "object",
+                          "properties": {
+                            "elapsed": {
+                              "type": "number",
+                              "example": 0.005
+                            },
+                            "rows_read": {
+                              "type": "integer",
+                              "example": 100
+                            },
+                            "bytes_read": {
+                              "type": "integer",
+                              "example": 5000
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or disallowed query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "query_error"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Enterprise plan required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "sql_access_denied"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "SQL query access requires an Enterprise plan"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Query timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "query_timeout"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Query exceeded the maximum execution time (5s)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "ClickHouse not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "service_unavailable"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "SQL query service is not available"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "postV0Sql"
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Required when calling the hosted API directly (curl, requests, fetch). SDK users pass credentials via constructor params instead."
+      }
+    },
+    "schemas": {
+      "UnifiedOutcome": {
+        "type": "object",
+        "required": [
+          "outcomeId",
+          "marketId",
+          "label"
+        ],
+        "properties": {
+          "outcomeId": {
+            "type": "string"
+          },
+          "marketId": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "nullable": true
+          },
+          "priceChange24h": {
+            "type": "number",
+            "nullable": true
+          },
+          "bestBid": {
+            "type": "number",
+            "nullable": true
+          },
+          "bestAsk": {
+            "type": "number",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true
+          }
+        }
+      },
+      "UnifiedMarket": {
+        "type": "object",
+        "required": [
+          "marketId",
+          "title",
+          "slug",
+          "outcomes"
+        ],
+        "properties": {
+          "marketId": {
+            "type": "string"
+          },
+          "eventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "image": {
+            "type": "string",
+            "nullable": true
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "volume": {
+            "type": "number",
+            "nullable": true
+          },
+          "volume24h": {
+            "type": "number"
+          },
+          "liquidity": {
+            "type": "number"
+          },
+          "openInterest": {
+            "type": "number",
+            "nullable": true
+          },
+          "resolutionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "tickSize": {
+            "type": "number",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "contractAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "outcomes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnifiedOutcome"
+            }
+          }
+        }
+      },
+      "UnifiedEvent": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "markets"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string"
+          },
+          "markets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnifiedMarket"
+            }
+          },
+          "volume24h": {
+            "type": "number",
+            "nullable": true
+          },
+          "volume": {
+            "type": "number",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "image": {
+            "type": "string",
+            "nullable": true
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "ListMeta": {
+        "type": "object",
+        "required": [
+          "count",
+          "limit",
+          "offset"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "offset": {
+            "type": "integer"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "RateLimitError": {
+        "type": "object",
+        "required": [
+          "error",
+          "plan",
+          "limit",
+          "used"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "plan": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "used": {
+            "type": "integer"
+          },
+          "window": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -46,6 +46,25 @@
   </a>
 </p>
 
+## Sponsors
+<div align="center">
+<table>
+  <tr>
+    <td align="center" width="300" valign="middle">
+      <a href="https://nearbase.dev/?utm_source=pmxt&utm_medium=sponsorship">
+        <img src="https://nearbase.dev/nearbase.svg" alt="Nearbase" height="40"/>
+      </a>
+    </td>
+    <td align="center" width="300" valign="middle">
+      <a href="https://ondb.ai/">
+        <img src="https://ondb.ai/images/logo-full-white-text.svg" alt="OnDB.ai" height="40" valign="middle"/>
+        <b>OnDB.ai</b>
+      </a>
+    </td>
+  </tr>
+</table>
+</div>
+
 ## Why pmxt?
 
 Different prediction market platforms have different APIs, data formats, and conventions. pmxt provides a single, consistent interface to work with all of them.

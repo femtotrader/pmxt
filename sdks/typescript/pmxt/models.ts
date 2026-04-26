@@ -692,8 +692,9 @@ export interface SubscribedAddressSnapshot {
 /** Set-theoretic relation between two markets' resolution conditions. */
 export type MatchRelation = 'identity' | 'subset' | 'superset' | 'overlap' | 'disjoint';
 
-/** A cross-venue market match with relation classification. */
-export interface MatchResult {
+/** A cross-venue market match with relation classification.
+ *  Market properties (title, slug, url, etc.) are accessible directly on the result. */
+export interface MatchResult extends Readonly<UnifiedMarket> {
     /** The matched market on another venue. */
     market: UnifiedMarket;
 
@@ -713,8 +714,9 @@ export interface MatchResult {
     bestAsk?: number;
 }
 
-/** A cross-venue event match with constituent market matches. */
-export interface EventMatchResult {
+/** A cross-venue event match with constituent market matches.
+ *  Event properties (title, slug, url, etc.) are accessible directly on the result. */
+export interface EventMatchResult extends Readonly<UnifiedEvent> {
     /** The matched event on another venue. */
     event: UnifiedEvent;
 

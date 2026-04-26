@@ -64,7 +64,7 @@ class Router(Exchange):
 
         router = pmxt.Router(pmxt_api_key="pmxt_live_...")
         markets = router.fetch_markets(query="election")
-        matches = router.fetch_market_matches(market=markets[0])
+        matches = router.fetch_market_matches(markets[0])
     """
 
     def __init__(
@@ -94,8 +94,8 @@ class Router(Exchange):
 
     def fetch_market_matches(
         self,
-        *,
         market: Optional[UnifiedMarket] = None,
+        *,
         market_id: Optional[str] = None,
         slug: Optional[str] = None,
         url: Optional[str] = None,
@@ -144,8 +144,8 @@ class Router(Exchange):
 
     def fetch_matches(
         self,
-        *,
         market: Optional[UnifiedMarket] = None,
+        *,
         market_id: Optional[str] = None,
         slug: Optional[str] = None,
         url: Optional[str] = None,
@@ -173,8 +173,8 @@ class Router(Exchange):
 
     def fetch_event_matches(
         self,
-        *,
         event: Optional[UnifiedEvent] = None,
+        *,
         event_id: Optional[str] = None,
         slug: Optional[str] = None,
         relation: Optional[MatchRelation] = None,
@@ -235,8 +235,8 @@ class Router(Exchange):
 
     def compare_market_prices(
         self,
-        *,
         market: Optional[UnifiedMarket] = None,
+        *,
         market_id: Optional[str] = None,
         slug: Optional[str] = None,
         url: Optional[str] = None,
@@ -288,8 +288,8 @@ class Router(Exchange):
 
     def fetch_hedges(
         self,
-        *,
         market: Optional[UnifiedMarket] = None,
+        *,
         market_id: Optional[str] = None,
         slug: Optional[str] = None,
         url: Optional[str] = None,

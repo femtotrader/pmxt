@@ -81,8 +81,10 @@ function convertEvent(raw: any): UnifiedEvent {
 
 function parseMatchResult(raw: any): MatchResult {
     const marketData = raw.market || {};
+    const market = convertMarket(marketData);
     return {
-        market: convertMarket(marketData),
+        ...market,
+        market,
         relation: raw.relation || 'identity',
         confidence: raw.confidence || 0,
         reasoning: raw.reasoning,
@@ -116,7 +118,7 @@ export interface RouterOptions {
  *
  * const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
  * const markets = await router.fetchMarkets({ query: "election" });
- * const matches = await router.fetchMarketMatches({ market: markets[0] });
+ * const matches = await router.fetchMarketMatches(markets[0]);
  * ```
  */
 export class Router extends Exchange {
@@ -131,16 +133,20 @@ export class Router extends Exchange {
     /**
      * Find markets on other venues that correspond to a given market.
      *
-     * @param params.market - A UnifiedMarket object (extracts marketId automatically).
-     * @param params.marketId - PMXT market ID.
-     * @param params.slug - Market slug (alternative to marketId).
-     * @param params.url - Market URL on the source venue.
-     * @param params.relation - Filter to a specific relation type.
-     * @param params.minConfidence - Minimum confidence threshold (0–1).
-     * @param params.limit - Maximum number of matches to return.
-     * @param params.includePrices - Attach live bestBid/bestAsk to each match.
+     * @param marketOrParams - A UnifiedMarket, or an options object.
      */
-    async fetchMarketMatches(params: {
+    async fetchMarketMatches(market: UnifiedMarket): Promise<MatchResult[]>;
+    async fetchMarketMatches(params?: {
+        market?: UnifiedMarket;
+        marketId?: string;
+        slug?: string;
+        url?: string;
+        relation?: MatchRelation;
+        minConfidence?: number;
+        limit?: number;
+        includePrices?: boolean;
+    }): Promise<MatchResult[]>;
+    async fetchMarketMatches(marketOrParams: UnifiedMarket | {
         market?: UnifiedMarket;
         marketId?: string;
         slug?: string;
@@ -150,6 +156,7 @@ export class Router extends Exchange {
         limit?: number;
         includePrices?: boolean;
     } = {}): Promise<MatchResult[]> {
+        const params = 'title' in marketOrParams ? { market: marketOrParams as UnifiedMarket } : marketOrParams;
         await this.initPromise;
         const query: Record<string, unknown> = {};
         const marketId = params.marketId ?? params.market?.marketId;
@@ -175,7 +182,18 @@ export class Router extends Exchange {
     /**
      * @deprecated Use {@link fetchMarketMatches} instead.
      */
-    async fetchMatches(params: {
+    async fetchMatches(market: UnifiedMarket): Promise<MatchResult[]>;
+    async fetchMatches(params?: {
+        market?: UnifiedMarket;
+        marketId?: string;
+        slug?: string;
+        url?: string;
+        relation?: MatchRelation;
+        minConfidence?: number;
+        limit?: number;
+        includePrices?: boolean;
+    }): Promise<MatchResult[]>;
+    async fetchMatches(marketOrParams: UnifiedMarket | {
         market?: UnifiedMarket;
         marketId?: string;
         slug?: string;
@@ -186,21 +204,25 @@ export class Router extends Exchange {
         includePrices?: boolean;
     } = {}): Promise<MatchResult[]> {
         console.warn('[pmxt] fetchMatches is deprecated, use fetchMarketMatches instead');
-        return this.fetchMarketMatches(params);
+        return this.fetchMarketMatches(marketOrParams as any);
     }
 
     /**
      * Match an entire event across venues.
      *
-     * @param params.event - A UnifiedEvent object (extracts id automatically).
-     * @param params.eventId - PMXT event ID.
-     * @param params.slug - Event slug.
-     * @param params.relation - Filter market matches to a specific relation type.
-     * @param params.minConfidence - Minimum confidence threshold (0–1).
-     * @param params.limit - Maximum number of event matches to return.
-     * @param params.includePrices - Attach live prices to each market match.
+     * @param eventOrParams - A UnifiedEvent, or an options object.
      */
-    async fetchEventMatches(params: {
+    async fetchEventMatches(event: UnifiedEvent): Promise<EventMatchResult[]>;
+    async fetchEventMatches(params?: {
+        event?: UnifiedEvent;
+        eventId?: string;
+        slug?: string;
+        relation?: MatchRelation;
+        minConfidence?: number;
+        limit?: number;
+        includePrices?: boolean;
+    }): Promise<EventMatchResult[]>;
+    async fetchEventMatches(eventOrParams: UnifiedEvent | {
         event?: UnifiedEvent;
         eventId?: string;
         slug?: string;
@@ -209,6 +231,7 @@ export class Router extends Exchange {
         limit?: number;
         includePrices?: boolean;
     } = {}): Promise<EventMatchResult[]> {
+        const params = 'title' in eventOrParams && 'markets' in eventOrParams ? { event: eventOrParams as UnifiedEvent } : eventOrParams;
         await this.initPromise;
         const query: Record<string, unknown> = {};
         const eventId = params.eventId ?? params.event?.id;
@@ -223,10 +246,14 @@ export class Router extends Exchange {
             const json = await this.sidecarReadRequest('fetchEventMatches', query, [query]);
             const data = this.handleResponse(json);
             if (!data) return [];
-            return (data as any[]).map((entry) => ({
-                event: convertEvent(entry.event || {}),
-                marketMatches: (entry.marketMatches || []).map(parseMatchResult),
-            }));
+            return (data as any[]).map((entry) => {
+                const event = convertEvent(entry.event || {});
+                return {
+                    ...event,
+                    event,
+                    marketMatches: (entry.marketMatches || []).map(parseMatchResult),
+                };
+            });
         } catch (error) {
             if (error instanceof Error) throw error;
             throw new Error(`Failed to fetchEventMatches: ${error}`);
@@ -240,17 +267,22 @@ export class Router extends Exchange {
     /**
      * Compare prices for the same market across venues.
      *
-     * @param params.market - A UnifiedMarket object (extracts marketId automatically).
-     * @param params.marketId - PMXT market ID.
-     * @param params.slug - Market slug.
-     * @param params.url - Market URL.
+     * @param marketOrParams - A UnifiedMarket, or an options object.
      */
-    async compareMarketPrices(params: {
+    async compareMarketPrices(market: UnifiedMarket): Promise<PriceComparison[]>;
+    async compareMarketPrices(params?: {
+        market?: UnifiedMarket;
+        marketId?: string;
+        slug?: string;
+        url?: string;
+    }): Promise<PriceComparison[]>;
+    async compareMarketPrices(marketOrParams: UnifiedMarket | {
         market?: UnifiedMarket;
         marketId?: string;
         slug?: string;
         url?: string;
     } = {}): Promise<PriceComparison[]> {
+        const params = 'title' in marketOrParams ? { market: marketOrParams as UnifiedMarket } : marketOrParams;
         await this.initPromise;
         const query: Record<string, unknown> = {};
         const marketId = params.marketId ?? params.market?.marketId;
@@ -298,17 +330,22 @@ export class Router extends Exchange {
     /**
      * Find markets that partially hedge a position.
      *
-     * @param params.market - A UnifiedMarket object (extracts marketId automatically).
-     * @param params.marketId - PMXT market ID.
-     * @param params.slug - Market slug.
-     * @param params.url - Market URL.
+     * @param marketOrParams - A UnifiedMarket, or an options object.
      */
-    async fetchHedges(params: {
+    async fetchHedges(market: UnifiedMarket): Promise<PriceComparison[]>;
+    async fetchHedges(params?: {
+        market?: UnifiedMarket;
+        marketId?: string;
+        slug?: string;
+        url?: string;
+    }): Promise<PriceComparison[]>;
+    async fetchHedges(marketOrParams: UnifiedMarket | {
         market?: UnifiedMarket;
         marketId?: string;
         slug?: string;
         url?: string;
     } = {}): Promise<PriceComparison[]> {
+        const params = 'title' in marketOrParams ? { market: marketOrParams as UnifiedMarket } : marketOrParams;
         await this.initPromise;
         const query: Record<string, unknown> = {};
         const marketId = params.marketId ?? params.market?.marketId;

@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.6] - 2026-04-26
+
+### Fixes
+
+- **SDK: Router methods now accept market/event as a positional
+  argument** (Python & TypeScript): `fetch_market_matches(market)`,
+  `fetch_event_matches(event)`, `compare_market_prices(market)`, and
+  `fetch_hedges(market)` all accept the primary object directly instead
+  of requiring it as a named/keyword argument. The old named style still
+  works.
+
+- **SDK: `MatchResult` and `EventMatchResult` proxy through to the
+  underlying market/event** (Python & TypeScript): Properties like
+  `title`, `slug`, `url`, `source_exchange`, etc. are now accessible
+  directly on the result object (`match.title`) instead of requiring
+  `match.market.title`.
+
 ## [2.35.5] - 2026-04-25
 
 ### Improvements

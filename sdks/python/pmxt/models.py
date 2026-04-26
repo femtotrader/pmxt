@@ -587,6 +587,9 @@ class MatchResult:
     best_ask: Optional[float] = None
     """Best ask price on the matched venue (when includePrices=True)."""
 
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.market, name)
+
 
 @dataclass
 class EventMatchResult:
@@ -597,6 +600,9 @@ class EventMatchResult:
 
     market_matches: List[MatchResult]
     """Cross-venue market matches within this event."""
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.event, name)
 
 
 @dataclass

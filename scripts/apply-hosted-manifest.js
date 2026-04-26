@@ -93,6 +93,36 @@ function ensureOperationIds(paths) {
   return result;
 }
 
+// Strip per-operation security overrides so all operations inherit the
+// top-level bearerAuth (matching the core spec's auth scheme).
+function stripOperationSecurity(paths) {
+  const result = {};
+  for (const [pathKey, methods] of Object.entries(paths)) {
+    const cleaned = {};
+    for (const [method, op] of Object.entries(methods)) {
+      const { security: _, ...rest } = op;
+      cleaned[method] = rest;
+    }
+    result[pathKey] = cleaned;
+  }
+  return result;
+}
+
+// When a path has both POST and GET (e.g. /v0/sql), keep only POST for docs.
+// The GET variant is a curl convenience, not a distinct endpoint.
+function dropGetDuplicates(paths) {
+  const result = {};
+  for (const [pathKey, methods] of Object.entries(paths)) {
+    if (methods.post && methods.get) {
+      const { get: _, ...rest } = methods;
+      result[pathKey] = rest;
+    } else {
+      result[pathKey] = methods;
+    }
+  }
+  return result;
+}
+
 function writeHostedOpenApiSpec(openApiPaths, openApiComponents, hostedVersion) {
   if (!openApiPaths || Object.keys(openApiPaths).length === 0) {
     console.log('  [openapi-hosted] No paths in manifest — skipping.');
@@ -109,14 +139,14 @@ function writeHostedOpenApiSpec(openApiPaths, openApiComponents, hostedVersion) 
     servers: [
       { url: 'https://api.pmxt.dev', description: 'Production' },
     ],
-    security: [{ apiKey: [] }],
+    security: [{ bearerAuth: [] }],
     paths: ensureOperationIds(openApiPaths),
     components: {
       securitySchemes: {
-        apiKey: {
-          type: 'apiKey',
-          in: 'header',
-          name: 'X-API-Key',
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          description: 'Required when calling the hosted API directly (curl, requests, fetch). SDK users pass credentials via constructor params instead.',
         },
       },
       ...(openApiComponents && Object.keys(openApiComponents).length > 0
@@ -257,17 +287,18 @@ function updateDocsNavigation(openApiPaths) {
     return;
   }
 
-  const routerGroup = apiRefTab.groups.find((g) => g.group === 'Router');
-
   const newGroup = {
-    group: 'Router',
+    group: 'Enterprise',
     openapi: 'api-reference/openapi-hosted.json',
     pages: navPages,
   };
 
-  const updatedGroups = routerGroup
-    ? apiRefTab.groups.map((g) => (g.group === 'Router' ? newGroup : g))
-    : [...apiRefTab.groups, newGroup];
+  // Remove any existing groups that point at the hosted spec (regardless of
+  // name) to avoid duplicates, then append the new one.
+  const withoutHosted = apiRefTab.groups.filter(
+    (g) => g.openapi !== 'api-reference/openapi-hosted.json'
+  );
+  const updatedGroups = [...withoutHosted, newGroup];
 
   const updatedApiRefTab = { ...apiRefTab, groups: updatedGroups };
   const updatedTabs = docsJson.navigation.tabs.map((t) =>
@@ -277,7 +308,7 @@ function updateDocsNavigation(openApiPaths) {
   const updatedDocsJson = { ...docsJson, navigation: updatedNavigation };
 
   writeJson(DOCS_JSON_PATH, updatedDocsJson);
-  console.log(`  [docs.json] Router group updated with ${navPages.length} page(s).`);
+  console.log(`  [docs.json] Enterprise group updated with ${navPages.length} page(s).`);
 }
 
 // ---------------------------------------------------------------------------
@@ -396,8 +427,9 @@ function main() {
 
   console.log('Manifest loaded. Applying updates…');
 
-  writeHostedOpenApiSpec(manifest.openApiPaths, manifest.openApiComponents, manifest.hostedPmxtVersion);
-  updateDocsNavigation(manifest.openApiPaths);
+  const docsPaths = stripOperationSecurity(dropGetDuplicates(manifest.openApiPaths));
+  writeHostedOpenApiSpec(docsPaths, manifest.openApiComponents, manifest.hostedPmxtVersion);
+  updateDocsNavigation(docsPaths);
   updateRateLimits(manifest.rateLimits);
   updateVenues(manifest.catalogVenues);
 

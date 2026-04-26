@@ -67,6 +67,32 @@ function replaceBetweenMarkers(text, markerName, replacement, fallbackInsertBefo
 // 1. Write standalone hosted OpenAPI spec
 // ---------------------------------------------------------------------------
 
+// Mintlify requires operationId to resolve "METHOD /path" references in
+// docs.json. Auto-generate one for any operation that lacks it.
+// e.g. POST /v0/sql -> "postV0Sql", GET /v0/events/{id} -> "getV0EventsId"
+function ensureOperationIds(paths) {
+  const result = {};
+  for (const [pathKey, methods] of Object.entries(paths)) {
+    const updatedMethods = {};
+    for (const [method, op] of Object.entries(methods)) {
+      if (op.operationId) {
+        updatedMethods[method] = op;
+      } else {
+        const slug = pathKey
+          .replace(/^\//, '')
+          .replace(/\{(\w+)\}/g, (_, p) => p.charAt(0).toUpperCase() + p.slice(1))
+          .split('/')
+          .map((seg, i) => i === 0 ? seg : seg.charAt(0).toUpperCase() + seg.slice(1))
+          .join('');
+        const operationId = method.toLowerCase() + slug.charAt(0).toUpperCase() + slug.slice(1);
+        updatedMethods[method] = { ...op, operationId };
+      }
+    }
+    result[pathKey] = updatedMethods;
+  }
+  return result;
+}
+
 function writeHostedOpenApiSpec(openApiPaths, openApiComponents, hostedVersion) {
   if (!openApiPaths || Object.keys(openApiPaths).length === 0) {
     console.log('  [openapi-hosted] No paths in manifest — skipping.');
@@ -84,7 +110,7 @@ function writeHostedOpenApiSpec(openApiPaths, openApiComponents, hostedVersion) 
       { url: 'https://api.pmxt.dev', description: 'Production' },
     ],
     security: [{ apiKey: [] }],
-    paths: openApiPaths,
+    paths: ensureOperationIds(openApiPaths),
     components: {
       securitySchemes: {
         apiKey: {

@@ -126,6 +126,7 @@
             "openapi": "api-reference/openapi.json",
             "pages": [
               "GET /api/{exchange}/fetchEvents",
+              "GET /api/{exchange}/fetchEventsPaginated",
               "GET /api/{exchange}/fetchEvent",
               "GET /api/{exchange}/fetchMarkets",
               "GET /api/{exchange}/fetchMarketsPaginated",
@@ -186,13 +187,6 @@
               "POST /api/{exchange}/watchTrades",
               "POST /api/{exchange}/watchAddress",
               "POST /api/{exchange}/unwatchAddress"
-            ]
-          },
-          {
-            "group": "Other",
-            "openapi": "api-reference/openapi.json",
-            "pages": [
-              "GET /api/{exchange}/fetchEventsPaginated"
             ]
           },
           {

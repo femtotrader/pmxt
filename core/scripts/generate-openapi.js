@@ -609,16 +609,31 @@ function injectCodeSamples(spec) {
  * of { methodName: Set<wireKey> } indicating which exchanges support
  * which methods.
  */
+// Operations that only exist on the Router. Used as a fallback when
+// dist/ is not built and the full capability map is unavailable.
+// Keep this in sync with Router's capability overrides.
+const ROUTER_ONLY_OPERATIONS = new Set([
+    'fetchMarketMatches', 'fetchEventMatches', 'compareMarketPrices',
+    'fetchRelatedMarkets', 'fetchMatchedMarkets', 'fetchMatchedPrices',
+    'fetchHedges', 'fetchArbitrage', 'fetchMatches',
+]);
+
 function buildCapabilityMap() {
     let pmxt;
     try {
         pmxt = require(path.join(__dirname, '../dist'));
     } catch (e) {
         console.warn(
-            '[generate-openapi] dist/ not found — run `npm run build` first. ' +
-            'Skipping per-operation exchange scoping.'
+            '[generate-openapi] dist/ not found — using static Router-only list ' +
+            'for exchange scoping. Run `npm run build` for full capability detection.'
         );
-        return null;
+        // Return a minimal capability map: Router-only ops get ['router'],
+        // everything else gets null (no scoping applied).
+        const fallback = {};
+        for (const op of ROUTER_ONLY_OPERATIONS) {
+            fallback[op] = ['router'];
+        }
+        return fallback;
     }
 
     const exchangeInstances = {

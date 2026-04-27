@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.12] - 2026-04-27
+
+### Fix: Router-only path rewriting survives CI
+
+- **CI fix**: The path rewriting that replaces `/api/{exchange}/...`
+  with `/api/router/...` for Router-only endpoints previously depended
+  on `dist/` to detect exchange capabilities. In CI, `generate:openapi`
+  runs before `build`, so `dist/` doesn't exist and the rewriting was
+  silently skipped — causing every tag release to overwrite the correct
+  paths with `{exchange}`. Added a static `ROUTER_ONLY_OPERATIONS`
+  fallback so the generator produces correct paths regardless of build
+  state.
+
 ## [2.35.11] - 2026-04-27
 
 ### Docs: Router-only endpoints show correct paths

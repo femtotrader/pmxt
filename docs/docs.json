@@ -181,7 +181,7 @@
             "openapi": "api-reference/openapi.json",
             "pages": [
               "POST /api/{exchange}/watchOrderBook",
-              "POST /api/polymarket/unwatchOrderBook",
+              "POST /api/{exchange}/unwatchOrderBook",
               "POST /api/{exchange}/watchTrades",
               "POST /api/{exchange}/watchAddress",
               "POST /api/{exchange}/unwatchAddress"

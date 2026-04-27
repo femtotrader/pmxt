@@ -138,8 +138,8 @@
             "group": "Cross-Venue",
             "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /api/{exchange}/fetchEventMatches",
-              "GET /api/{exchange}/fetchMarketMatches"
+              "GET /api/router/fetchEventMatches",
+              "GET /api/router/fetchMarketMatches"
             ]
           },
           {
@@ -181,7 +181,7 @@
             "openapi": "api-reference/openapi.json",
             "pages": [
               "POST /api/{exchange}/watchOrderBook",
-              "POST /api/{exchange}/unwatchOrderBook",
+              "POST /api/polymarket/unwatchOrderBook",
               "POST /api/{exchange}/watchTrades",
               "POST /api/{exchange}/watchAddress",
               "POST /api/{exchange}/unwatchAddress"

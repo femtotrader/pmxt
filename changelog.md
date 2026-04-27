@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.11] - 2026-04-27
+
+### Docs: Router-only endpoints show correct paths
+
+- Router-only endpoints (`fetchMarketMatches`, `fetchEventMatches`,
+  `fetchMatchedMarkets`) now display `/api/router/...` in the docs
+  instead of `/api/{exchange}/...`. The OpenAPI generator detects
+  single-exchange endpoints and replaces the `{exchange}` template
+  with the concrete value, removing the exchange path parameter.
+
+- Regenerated `docs.json` sidebar navigation to match the updated
+  OpenAPI paths, fixing `mint dev` errors where Mintlify couldn't
+  find endpoints under the old `{exchange}` template.
+
 ## [2.35.10] - 2026-04-27
 
 ### Bug Fix: Python SDK Hosted Mode Detection

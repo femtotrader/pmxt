@@ -332,7 +332,14 @@ export interface Balance {
 }
 
 // Parameter types
-export type CandleInterval = "1m" | "5m" | "15m" | "1h" | "6h" | "1d";
+/**
+ * Candle interval for OHLCV data.
+ *
+ * Common values: `'1m'`, `'5m'`, `'15m'`, `'1h'`, `'6h'`, `'1d'`.
+ * Arbitrary intervals matching `^[0-9]+[smhd]$` (e.g. `'30s'`, `'120s'`,
+ * `'3h'`) are accepted by venues that support them.
+ */
+export type CandleInterval = string;
 export type SortOption = "volume" | "liquidity" | "newest";
 export type SearchIn = "title" | "description" | "both";
 export type OrderSide = "buy" | "sell";

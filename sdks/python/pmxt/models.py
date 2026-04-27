@@ -9,7 +9,10 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any, Literal
 
 # Parameter types
-CandleInterval = Literal["1m", "5m", "15m", "1h", "6h", "1d"]
+# Common values: "1m", "5m", "15m", "1h", "6h", "1d".
+# Arbitrary intervals matching ^[0-9]+[smhd]$ (e.g. "30s", "120s", "3h")
+# are accepted by venues that support them.
+CandleInterval = str
 SortOption = Literal["volume", "liquidity", "newest"]
 SearchIn = Literal["title", "description", "both"]
 OrderSide = Literal["buy", "sell"]

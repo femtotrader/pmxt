@@ -104,7 +104,14 @@ export interface UnifiedMarket {
     down?: MarketOutcome;
 }
 
-export type CandleInterval = '1m' | '5m' | '15m' | '1h' | '6h' | '1d';
+/**
+ * Candle interval for OHLCV data.
+ *
+ * Common values: `'1m'`, `'5m'`, `'15m'`, `'1h'`, `'6h'`, `'1d'`.
+ * Arbitrary intervals matching `^[0-9]+[smhd]$` (e.g. `'30s'`, `'2m'`,
+ * `'120s'`, `'3h'`) are accepted by venues that support them.
+ */
+export type CandleInterval = string;
 
 export interface PriceCandle {
     /** Unix timestamp in milliseconds marking the start of the candle. */

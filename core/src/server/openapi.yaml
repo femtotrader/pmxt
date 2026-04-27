@@ -583,14 +583,9 @@ paths:
           required: false
           schema:
             type: string
-            enum:
-              - 1m
-              - 5m
-              - 15m
-              - 1h
-              - 6h
-              - 1d
-          description: Required for candle aggregation
+            pattern: '^[0-9]+[smhd]$'
+            example: '1h'
+          description: 'Candle interval. Common values: 1m, 5m, 15m, 1h, 6h, 1d. Arbitrary intervals (e.g. 30s, 120s, 3h) accepted by venues that support them.'
         - in: query
           name: start
           required: false
@@ -2691,14 +2686,9 @@ components:
       properties:
         resolution:
           type: string
-          enum:
-            - 1m
-            - 5m
-            - 15m
-            - 1h
-            - 6h
-            - 1d
-          description: Optional for backward compatibility
+          pattern: '^[0-9]+[smhd]$'
+          example: '1h'
+          description: 'Candle interval. Common values: 1m, 5m, 15m, 1h, 6h, 1d. Optional for backward compatibility.'
         start:
           type: string
           format: date-time
@@ -2715,14 +2705,9 @@ components:
       properties:
         resolution:
           type: string
-          enum:
-            - 1m
-            - 5m
-            - 15m
-            - 1h
-            - 6h
-            - 1d
-          description: Required for candle aggregation
+          pattern: '^[0-9]+[smhd]$'
+          example: '1h'
+          description: 'Candle interval. Common values: 1m, 5m, 15m, 1h, 6h, 1d. Arbitrary intervals (e.g. 30s, 120s, 3h) accepted by venues that support them.'
         start:
           type: string
           format: date-time

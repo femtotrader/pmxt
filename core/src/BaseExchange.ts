@@ -803,7 +803,7 @@ export abstract class PredictionMarketExchange {
      *
      * @notes **CRITICAL**: Use `outcome.outcomeId` (TS) / `outcome.outcome_id` (Python), not the market ID.
      * @notes Polymarket: outcomeId is the CLOB Token ID. Kalshi: outcomeId is the Market Ticker.
-     * @notes Resolution options: '1m' | '5m' | '15m' | '1h' | '6h' | '1d'
+     * @notes Common resolutions: '1m' | '5m' | '15m' | '1h' | '6h' | '1d'. Arbitrary intervals (e.g. '30s', '120s', '3h') accepted by venues that support them.
      */
     async fetchOHLCV(id: string, params: OHLCVParams): Promise<PriceCandle[]> {
         throw new Error("Method fetchOHLCV not implemented.");

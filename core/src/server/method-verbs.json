@@ -374,7 +374,7 @@
       {
         "name": "params",
         "kind": "object",
-        "optional": false
+        "optional": true
       }
     ]
   },
@@ -384,7 +384,7 @@
       {
         "name": "params",
         "kind": "object",
-        "optional": false
+        "optional": true
       }
     ]
   },
@@ -395,6 +395,36 @@
         "name": "params",
         "kind": "object",
         "optional": false
+      }
+    ]
+  },
+  "fetchRelatedMarkets": {
+    "verb": "get",
+    "args": [
+      {
+        "name": "params",
+        "kind": "object",
+        "optional": false
+      }
+    ]
+  },
+  "fetchMatchedMarkets": {
+    "verb": "get",
+    "args": [
+      {
+        "name": "params",
+        "kind": "object",
+        "optional": true
+      }
+    ]
+  },
+  "fetchMatchedPrices": {
+    "verb": "get",
+    "args": [
+      {
+        "name": "params",
+        "kind": "object",
+        "optional": true
       }
     ]
   },

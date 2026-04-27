@@ -1,6 +1,6 @@
 ---
 title: What is the Router?
-description: "One API key. Every prediction market. Cross-venue search, matching, price comparison, hedging, and arbitrage detection."
+description: "One API key. Every prediction market. Cross-venue search, matching, and price comparison."
 ---
 
 The Router is PMXT's cross-venue intelligence layer. One API key gives
@@ -63,17 +63,17 @@ required for search, matching, or price analysis.
     Side-by-side bid/ask for the same market on every venue. See where
     it's cheapest to buy and where it pays the most to sell.
   </Card>
-  <Card title="Hedge discovery" icon="shield-halved" href="/router/prices#fetchhedges">
+  <Card title="Related markets" icon="shield-halved" href="/router/prices#fetchrelatedmarkets">
     Find markets whose resolution conditions are subsets or supersets of
-    your position — narrower or broader bets you can use to hedge.
+    a target market — narrower or broader markets on other venues.
   </Card>
-  <Card title="Arbitrage detection" icon="arrow-right-arrow-left" href="/router/prices#fetcharbitrage">
-    Scan for cross-venue price spreads. The Router identifies identity
-    matches with divergent pricing, sorted by spread.
+  <Card title="Matched markets" icon="arrow-right-arrow-left" href="/router/prices#fetchmatchedmarkets">
+    Compare prices for the same market across venues. See price
+    differences at a glance.
   </Card>
   <Card title="Compose with venues" icon="puzzle-piece" href="/router/prices#composing-with-venue-exchanges">
-    Discover opportunities with the Router, then execute on venue
-    exchanges. Same SDK, same schema — `marketId` works everywhere.
+    Use the Router for data, venue exchanges for trading. Same SDK,
+    same schema — `marketId` works everywhere.
   </Card>
 </CardGroup>
 
@@ -142,7 +142,6 @@ exchange, so you can pass a `marketId` from the Router straight into
 a venue exchange when you're ready to trade.
 
 <Info>
-  **Order routing is coming.** Today the Router is read-only — it finds
-  opportunities, but you execute trades on venue exchanges. Smart order
+  **Order routing is coming.** Today the Router is read-only. Smart order
   routing (best-execution across venues) is on the roadmap.
 </Info>

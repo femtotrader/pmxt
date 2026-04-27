@@ -53,8 +53,8 @@ the methods and response shapes stay the same.
 #### The Router — cross-venue intelligence
 
 The **[Router](https://pmxt.dev/docs/router/overview)** is PMXT's cross-venue intelligence
-layer. Search, match, compare prices, find hedges, and detect arbitrage
-across every venue — all from a single PMXT API key:
+layer. Search, match, and compare prices across every venue — all from
+a single PMXT API key:
 
 ```python
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
@@ -65,14 +65,14 @@ markets = router.fetch_markets(query="fed rate cut")
 # Find this market on other venues with confidence scores
 matches = router.fetch_market_matches(market_id=markets[0].market_id)
 
-# Scan for cross-venue price spreads
-arb = router.fetch_arbitrage(min_spread=0.03)
+# Compare prices for matched markets across venues
+prices = router.fetch_matched_markets(min_difference=0.03)
 ```
 
 
   - **[Cross-venue search](https://pmxt.dev/docs/router/events)** — One query fans out across every venue. Results in ~10ms from a shared catalog.
   - **[Market matching](https://pmxt.dev/docs/router/matching)** — Find the same or related market on other venues with relation types, confidence, and reasoning.
-  - **[Prices & arbitrage](https://pmxt.dev/docs/router/prices)** — Compare bid/ask across venues, discover hedges, and scan for cross-venue spreads.
+  - **[Price comparison](https://pmxt.dev/docs/router/prices)** — Compare bid/ask across venues and find related markets.
   - **[Compose with venues](https://pmxt.dev/docs/router/prices#composing-with-venue-exchanges)** — Discover with the Router, trade on venue exchanges. Same schema, same `marketId`.
 
 
@@ -203,7 +203,7 @@ search everything.
   The Router is also available as an SDK class — `pmxt.Router(...)` in
   Python and `new pmxt.Router(...)` in TypeScript. Beyond search, it
   supports [cross-venue matching](https://pmxt.dev/docs/router/matching) and
-  [arbitrage detection](https://pmxt.dev/docs/router/prices).
+  [price comparison](https://pmxt.dev/docs/router/prices).
 
 
 #### 4. Go further
@@ -1380,9 +1380,9 @@ required for search, matching, or price analysis.
   - **[Cross-venue search](https://pmxt.dev/docs/router/events)** — Search markets and events across every venue in a single query. Results come from a shared catalog — ~10ms, not 11 sequential API calls.
   - **[Market matching](https://pmxt.dev/docs/router/matching)** — Given a market on any venue, find the same or related market on every other venue. Each match has a relation type, confidence score, and reasoning.
   - **[Price comparison](https://pmxt.dev/docs/router/prices#comparemarketprices)** — Side-by-side bid/ask for the same market on every venue. See where it's cheapest to buy and where it pays the most to sell.
-  - **[Hedge discovery](https://pmxt.dev/docs/router/prices#fetchhedges)** — Find markets whose resolution conditions are subsets or supersets of your position — narrower or broader bets you can use to hedge.
-  - **[Arbitrage detection](https://pmxt.dev/docs/router/prices#fetcharbitrage)** — Scan for cross-venue price spreads. The Router identifies identity matches with divergent pricing, sorted by spread.
-  - **[Compose with venues](https://pmxt.dev/docs/router/prices#composing-with-venue-exchanges)** — Discover opportunities with the Router, then execute on venue exchanges. Same SDK, same schema — `marketId` works everywhere.
+  - **[Related markets](https://pmxt.dev/docs/router/prices#fetchrelatedmarkets)** — Find markets whose resolution conditions are subsets or supersets of a target market — narrower or broader markets on other venues.
+  - **[Matched markets](https://pmxt.dev/docs/router/prices#fetchmatchedmarkets)** — Compare prices for the same market across venues. See price differences at a glance.
+  - **[Compose with venues](https://pmxt.dev/docs/router/prices#composing-with-venue-exchanges)** — Use the Router for data, venue exchanges for trading. Same SDK, same schema — `marketId` works everywhere.
 
 
 #### How it works
@@ -1459,8 +1459,7 @@ a venue exchange when you're ready to trade.
 
 
 > **Note:**
-  **Order routing is coming.** Today the Router is read-only — it finds
-  opportunities, but you execute trades on venue exchanges. Smart order
+  **Order routing is coming.** Today the Router is read-only. Smart order
   routing (best-execution across venues) is on the roadmap.
 
 
@@ -1824,7 +1823,7 @@ Filter to a specific relation with the `relation` parameter:
 # Only identity matches (same market, different venue)
 matches = router.fetch_market_matches(market_id="...", relation="identity")
 
-# Only subset/superset (useful for hedging — see fetchHedges)
+# Only subset/superset (see fetchRelatedMarkets for a dedicated method)
 matches = router.fetch_market_matches(market_id="...", relation="subset")
 ```
 
@@ -1833,7 +1832,7 @@ matches = router.fetch_market_matches(market_id="...", relation="subset")
   To match an entire event and all its child markets at once, see
   [Find Similar Events](https://pmxt.dev/docs/router/event-matching).
 
-### Compare Prices & Arbitrage
+### Compare Prices Across Venues
 
 Source: https://pmxt.dev/docs/router/prices
 
@@ -1901,22 +1900,22 @@ for (const p of prices) {
 }
 ```
 
-#### fetchHedges
+#### fetchRelatedMarkets
 
-Find markets that partially hedge a position — markets whose resolution
-condition is a subset or superset of the target market.
+Find related markets across venues — markets whose resolution condition
+is a subset or superset of the target market.
 
 
   
 **Python:**
 
 ```python
-hedges = router.fetch_hedges(market_id="d35bc8c6-...")
+related = router.fetch_related_markets(market_id="d35bc8c6-...")
 
-for h in hedges:
-    print(f"{h.relation:10s} {h.venue:12s}  {h.market.title}")
-    print(f"           confidence {h.confidence:.0%}  bid {h.best_bid}  ask {h.best_ask}")
-    print(f"           {h.reasoning}")
+for r in related:
+    print(f"{r.relation:10s} {r.venue:12s}  {r.market.title}")
+    print(f"           confidence {r.confidence:.0%}  bid {r.best_bid}  ask {r.best_ask}")
+    print(f"           {r.reasoning}")
 ```
 
 ```
@@ -1932,11 +1931,11 @@ superset   polymarket    Will a Democrat win the popular vote?
 **TypeScript:**
 
 ```typescript
-const hedges = await router.fetchHedges({ marketId: "d35bc8c6-..." });
+const related = await router.fetchRelatedMarkets({ marketId: "d35bc8c6-..." });
 
-for (const h of hedges) {
-  console.log(h.relation, h.venue, h.market.title);
-  console.log(`  confidence: ${h.confidence}  reasoning: ${h.reasoning}`);
+for (const r of related) {
+  console.log(r.relation, r.venue, r.market.title);
+  console.log(`  confidence: ${r.confidence}  reasoning: ${r.reasoning}`);
 }
 ```
   
@@ -1948,52 +1947,50 @@ full taxonomy.
 
 
 > **Note:**
-  `fetchHedges` filters matches to `subset` and `superset` relations
-  only. If you want all relations, use
+  `fetchRelatedMarkets` filters matches to `subset` and `superset`
+  relations only. If you want all relations, use
   [`fetchMarketMatches`](https://pmxt.dev/docs/router/matching#fetchmarketmatches) directly.
 
 
-#### fetchArbitrage
+#### fetchMatchedMarkets
 
-Scan for cross-venue price spreads on identity-matched markets.
-
-The Router fetches markets, finds identity matches on other venues,
-compares bid/ask, and returns every pair where you could theoretically
-buy on one venue and sell on another for a positive spread.
+Returns matched market pairs across venues with live pricing from each.
+The Router finds identity-matched markets on different venues and
+returns each pair with side-by-side data.
 
 
   
 **Python:**
 
 ```python
-opps = router.fetch_arbitrage(min_spread=0.03, category="Politics", limit=20)
+pairs = router.fetch_matched_markets(min_difference=0.03, category="Politics", limit=20)
 
-for o in opps:
-    print(f"spread {o.spread:+.2f}")
-    print(f"  buy  {o.buy_venue:12s} @ {o.buy_price:.2f}  ({o.market_a.title})")
-    print(f"  sell {o.sell_venue:12s} @ {o.sell_price:.2f}  ({o.market_b.title})")
+for p in pairs:
+    print(f"{p.market_a.title}")
+    print(f"  {p.venue_a:12s} @ {p.price_a:.2f}")
+    print(f"  {p.venue_b:12s} @ {p.price_b:.2f}")
 ```
 
 ```
-spread +0.05
-  buy  polymarket   @ 0.58  (Will BTC hit $100k by Dec 31?)
-  sell kalshi       @ 0.63  (Bitcoin above $100k on Dec 31)
+Will BTC hit $100k by Dec 31?
+  polymarket   @ 0.58
+  kalshi       @ 0.63
 ```
   
   
 **TypeScript:**
 
 ```typescript
-const opps = await router.fetchArbitrage({
-  minSpread: 0.03,
+const pairs = await router.fetchMatchedMarkets({
+  minDifference: 0.03,
   category: "Politics",
   limit: 20,
 });
 
-for (const o of opps) {
-  console.log(`spread: +${o.spread.toFixed(2)}`);
-  console.log(`  buy  ${o.buyVenue} @ ${o.buyPrice}  (${o.marketA.title})`);
-  console.log(`  sell ${o.sellVenue} @ ${o.sellPrice}  (${o.marketB.title})`);
+for (const p of pairs) {
+  console.log(p.marketA.title);
+  console.log(`  ${p.venueA} @ ${p.priceA}`);
+  console.log(`  ${p.venueB} @ ${p.priceB}`);
 }
 ```
   
@@ -2001,14 +1998,13 @@ for (const o of opps) {
 
 ##### Parameters
 
-| Parameter   | Type      | Default | Notes                                                  |
-| ----------- | --------- | ------- | ------------------------------------------------------ |
-| `minSpread` | `number`  | `0`     | Only return pairs with spread ≥ this value.            |
-| `category`  | `string`  | —       | Filter source markets by category.                     |
-| `limit`     | `integer` | `50`    | Max source markets to scan for matches.                |
+| Parameter       | Type      | Default | Notes                                                      |
+| --------------- | --------- | ------- | ---------------------------------------------------------- |
+| `minDifference` | `number`  | `0`     | Minimum price difference between venues to include.        |
+| `category`      | `string`  | —       | Filter both sides of the match by category.                |
+| `limit`         | `integer` | `50`    | Maximum number of matched pairs to return.                 |
 
-Results are sorted by spread descending — the biggest opportunities
-first.
+Results are sorted by price difference descending.
 
 ##### Response shape
 
@@ -2016,44 +2012,34 @@ first.
 {
   "marketA": { "marketId": "...", "title": "..." },
   "marketB": { "marketId": "...", "title": "..." },
-  "spread": 0.05,
-  "buyVenue": "polymarket",
-  "sellVenue": "kalshi",
-  "buyPrice": 0.58,
-  "sellPrice": 0.63
+  "priceDifference": 0.05,
+  "venueA": "polymarket",
+  "venueB": "kalshi",
+  "priceA": 0.58,
+  "priceB": 0.63,
+  "reasoning": "Both markets ask whether BTC exceeds $100k by Dec 2026"
 }
 ```
 
-
-> **Warning:**
-  Arbitrage detection shows price discrepancies — it does not execute
-  trades. Order routing is not yet available. Use venue-specific
-  exchanges (`pmxt.Polymarket(...)`, `pmxt.Kalshi(...)`) to place
-  orders on each side.
-
-
 #### Composing with venue exchanges
 
-The Router is read-only — it finds opportunities, but you trade on
-venue exchanges. A typical workflow:
+The Router is read-only. To trade, use venue-specific exchange
+classes with the local SDK. A typical workflow:
 
 ```python
 import pmxt
 
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
-poly   = pmxt.Polymarket(pmxt_api_key="pmxt_live_...", private_key="0x...")
-kalshi = pmxt.Kalshi(pmxt_api_key="pmxt_live_...", api_key="...", private_key="...")
+poly   = pmxt.Polymarket(private_key="0x...")
 
-# 1. Discover an arbitrage opportunity
-opps = router.fetch_arbitrage(min_spread=0.03)
+# 1. Browse matched markets across venues
+pairs = router.fetch_matched_markets(category="Politics")
 
-# 2. Inspect order books on each venue
-book_a = poly.fetch_order_book(market_id=opps[0].market_a.market_id)
-book_b = kalshi.fetch_order_book(market_id=opps[0].market_b.market_id)
+# 2. Inspect the order book on a specific venue
+book = poly.fetch_order_book(market_id=pairs[0].market_a.market_id)
 
-# 3. Execute on each venue (requires venue credentials)
+# 3. Place an order locally (never proxied through PMXT)
 # poly.create_order(...)
-# kalshi.create_order(...)
 ```
 
 Router returns the same [unified schema](https://pmxt.dev/docs/concepts/unified-schema) as
@@ -2184,6 +2170,7 @@ Load and cache all markets from the exchange into `this.markets` and `this.marke
 ```python
 import pmxt
 
+# API key optional — enables faster catalog-backed lookups
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2194,6 +2181,7 @@ result = exchange.load_markets()
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key optional — enables faster catalog-backed lookups
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
@@ -2211,6 +2199,7 @@ Close all WebSocket connections and clean up resources. Call this when you're do
 ```python
 import pmxt
 
+# API key optional — enables faster catalog-backed lookups
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2221,6 +2210,7 @@ result = exchange.close()
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key optional — enables faster catalog-backed lookups
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
@@ -2257,6 +2247,7 @@ Fetch events with optional keyword search. Events group related markets together
 ```python
 import pmxt
 
+# API key optional — enables faster catalog-backed lookups
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2279,6 +2270,7 @@ result = exchange.fetch_events(
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key optional — enables faster catalog-backed lookups
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
@@ -2316,6 +2308,7 @@ Paginated variant of {@link fetchEvents}. On the first call (no `cursor`), all e
 ```python
 import pmxt
 
+# API key optional — enables faster catalog-backed lookups
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2330,6 +2323,7 @@ result = exchange.fetch_events_paginated(
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key optional — enables faster catalog-backed lookups
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
@@ -2367,6 +2361,7 @@ Fetch a single event by lookup parameters. Convenience wrapper around fetchEvent
 ```python
 import pmxt
 
+# API key optional — enables faster catalog-backed lookups
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2377,6 +2372,7 @@ result = exchange.fetch_event(event_id="12345")
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key optional — enables faster catalog-backed lookups
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
@@ -2411,6 +2407,7 @@ Fetch markets with optional filtering, search, or slug lookup. Always hits the e
 ```python
 import pmxt
 
+# API key optional — enables faster catalog-backed lookups
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2434,6 +2431,7 @@ result = exchange.fetch_markets(
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key optional — enables faster catalog-backed lookups
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
@@ -2472,6 +2470,7 @@ Fetch markets with cursor-based pagination backed by a stable in-memory snapshot
 ```python
 import pmxt
 
+# API key optional — enables faster catalog-backed lookups
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2486,6 +2485,7 @@ result = exchange.fetch_markets_paginated(
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key optional — enables faster catalog-backed lookups
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
@@ -2524,6 +2524,7 @@ Fetch a single market by lookup parameters. Convenience wrapper around fetchMark
 ```python
 import pmxt
 
+# API key optional — enables faster catalog-backed lookups
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2534,6 +2535,7 @@ result = exchange.fetch_market(market_id="12345")
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key optional — enables faster catalog-backed lookups
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
@@ -2544,16 +2546,18 @@ const result = await exchange.fetchMarket({ marketId: "12345" });
 
 ## Cross-Venue
 
-### Find Similar Events
+### Event Matches
 
-`GET /api/{exchange}/fetchEventMatches`
+`GET /api/router/fetchEventMatches`
 
-Find the same or related event on other venues. Given an event on one venue, discover semantically equivalent events across every other venue PMXT ingests — including market-level match details for each child market.
+Find the same or related event on other venues. Two modes: **Lookup mode** (eventId/slug provided): Given an event on one venue, discover semantically equivalent events across every other venue PMXT ingests. **Browse mode** (no identifier): Returns all matched event pairs from the catalog. Supports query and category params for filtering.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
+| `query` | string | No | Keyword search across matched event titles. |
+| `category` | string | No | Filter matches by category. |
 | `event` | string | No | Pass a UnifiedEvent directly instead of eventId/slug. |
-| `eventId` | string | No |  |
+| `eventId` | string | No | Lookup a specific event by ID. Omit for browse mode. |
 | `slug` | string | No |  |
 | `relation` | string | No |  |
 | `minConfidence` | number | No |  |
@@ -2566,6 +2570,7 @@ Find the same or related event on other venues. Given an event on one venue, dis
 ```python
 import pmxt
 
+# API key required — queries the cross-venue catalog
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2576,6 +2581,7 @@ result = exchange.fetch_event_matches(event_id="12345")
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key required — queries the cross-venue catalog
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
@@ -2583,22 +2589,26 @@ const result = await exchange.fetchEventMatches({ eventId: "12345" });
 ```
 
 
-### Find Similar Markets
+### Market Matches
 
-`GET /api/{exchange}/fetchMarketMatches`
+`GET /api/router/fetchMarketMatches`
 
-Find the same or related market on other venues. Given a market on one venue, discover semantically equivalent markets across every other venue PMXT ingests — each with a relation type (identity, subset, superset, overlap, disjoint), confidence score, and reasoning.
+Find the same or related market on other venues. Two modes: **Lookup mode** (marketId/slug/url provided): Given a market on one venue, discover semantically equivalent markets across every other venue PMXT ingests. **Browse mode** (no identifier): Returns all matched market pairs from the catalog. Supports query, category, minDifference, and sort params for filtering.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
+| `query` | string | No | Keyword search across matched market titles. |
+| `category` | string | No | Filter matches by category. |
 | `market` | string | No | Pass a UnifiedMarket directly instead of marketId/slug/url. |
-| `marketId` | string | No |  |
+| `marketId` | string | No | Lookup a specific market by ID. Omit for browse mode. |
 | `slug` | string | No |  |
 | `url` | string | No |  |
 | `relation` | string | No |  |
 | `minConfidence` | number | No |  |
 | `limit` | number | No |  |
 | `includePrices` | boolean | No |  |
+| `minDifference` | number | No | Minimum price difference between venues. Browse mode only. |
+| `sort` | string | No | Sort order. Browse mode only. |
 
 **Response:** `{ success: true, data: MatchResult[] }`
 
@@ -2606,6 +2616,7 @@ Find the same or related market on other venues. Given a market on one venue, di
 ```python
 import pmxt
 
+# API key required — queries the cross-venue catalog
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2616,128 +2627,11 @@ result = exchange.fetch_market_matches(market_id="12345")
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key required — queries the cross-venue catalog
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchMarketMatches({ marketId: "12345" });
-```
-
-
-### Compare Prices Across Venues
-
-`POST /api/{exchange}/compareMarketPrices`
-
-Compare live prices for the same market across venues. Finds identity matches and returns side-by-side best bid/ask prices so you can spot price differences at a glance.
-
-**Request body** (`args[0]`):
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `market` | object | No | Pass a UnifiedMarket directly instead of marketId/slug/url. |
-| `marketId` | string | No |  |
-| `slug` | string | No |  |
-| `url` | string | No |  |
-| `relation` | `identity` \| `subset` \| `superset` \| `overlap` \| `disjoint` | No |  |
-| `minConfidence` | number | No |  |
-| `limit` | number | No |  |
-| `includePrices` | boolean | No |  |
-
-**Response:** `{ success: true, data: PriceComparison[] }`
-
-**Python:**
-```python
-import pmxt
-
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.compare_market_prices(market_id="12345")
-```
-
-**TypeScript:**
-```typescript
-import { Router } from "pmxtjs";
-
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.compareMarketPrices({ marketId: "12345" });
-```
-
-
-### Find Hedging Opportunities
-
-`GET /api/{exchange}/fetchHedges`
-
-Find hedging opportunities across venues. Discovers subset/superset market relationships where one market's outcome implies another, enabling cross-venue hedging strategies with live prices.
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `market` | string | No | Pass a UnifiedMarket directly instead of marketId/slug/url. |
-| `marketId` | string | No |  |
-| `slug` | string | No |  |
-| `url` | string | No |  |
-| `relation` | string | No |  |
-| `minConfidence` | number | No |  |
-| `limit` | number | No |  |
-| `includePrices` | boolean | No |  |
-
-**Response:** `{ success: true, data: PriceComparison[] }`
-
-**Python:**
-```python
-import pmxt
-
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.fetch_hedges(market_id="12345")
-```
-
-**TypeScript:**
-```typescript
-import { Router } from "pmxtjs";
-
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.fetchHedges({ marketId: "12345" });
-```
-
-
-### Find Arbitrage Opportunities
-
-`GET /api/{exchange}/fetchArbitrage`
-
-Scan for arbitrage opportunities across venues. Finds identity matches where the same market is priced differently on different venues, returning opportunities sorted by spread size.
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `minSpread` | number | No |  |
-| `category` | string | No |  |
-| `limit` | number | No |  |
-| `relations` | array | No | Comma-separated relation types to include (default: 'identity'). |
-
-**Response:** `{ success: true, data: ArbitrageOpportunity[] }`
-
-**Python:**
-```python
-import pmxt
-
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.fetch_arbitrage(min_spread=0.05)
-```
-
-**TypeScript:**
-```typescript
-import { Router } from "pmxtjs";
-
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.fetchArbitrage({ minSpread: 0.05 });
 ```
 
 
@@ -2764,7 +2658,8 @@ Fetch historical OHLCV (candlestick) price data for a specific market outcome.
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_ohlcv(
@@ -2778,9 +2673,10 @@ result = exchange.fetch_ohlcv(
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchOHLCV({
@@ -2809,7 +2705,8 @@ Fetch the current order book (bids/asks) for a specific outcome. Essential for c
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_order_book(id="12345")
@@ -2817,9 +2714,10 @@ result = exchange.fetch_order_book(id="12345")
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchOrderBook({ id: "12345" });
@@ -2845,7 +2743,8 @@ Fetch raw trade history for a specific outcome.
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_trades(
@@ -2858,9 +2757,10 @@ result = exchange.fetch_trades(
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchTrades({
@@ -2884,6 +2784,7 @@ Calculate the volume-weighted average execution price for a given order size. Re
 ```python
 import pmxt
 
+# API key optional — enables faster catalog-backed lookups
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2898,6 +2799,7 @@ result = exchange.get_execution_price(
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key optional — enables faster catalog-backed lookups
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
@@ -2921,6 +2823,7 @@ Calculate detailed execution price information including partial fill data.
 ```python
 import pmxt
 
+# API key optional — enables faster catalog-backed lookups
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
@@ -2935,6 +2838,7 @@ result = exchange.get_execution_price_detailed(
 ```typescript
 import { Router } from "pmxtjs";
 
+// API key optional — enables faster catalog-backed lookups
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
@@ -2975,8 +2879,10 @@ Place a new order on the exchange.
 ```python
 import pmxt
 
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
+# Runs locally — never proxied through PMXT servers
+exchange = pmxt.Kalshi(
+    api_key="YOUR_API_KEY",
+    private_key="YOUR_PRIVATE_KEY",
 )
 result = exchange.create_order(
     market_id="12345",
@@ -2993,10 +2899,12 @@ result = exchange.create_order(
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
+// Runs locally — never proxied through PMXT servers
+const exchange = new Kalshi({
+  apiKey: "YOUR_API_KEY",
+  privateKey: "YOUR_PRIVATE_KEY",
 });
 const result = await exchange.createOrder({
   marketId: "12345",
@@ -3038,8 +2946,10 @@ Build an order payload without submitting it to the exchange. Returns the exchan
 ```python
 import pmxt
 
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
+# Runs locally — never proxied through PMXT servers
+exchange = pmxt.Kalshi(
+    api_key="YOUR_API_KEY",
+    private_key="YOUR_PRIVATE_KEY",
 )
 result = exchange.build_order(
     market_id="12345",
@@ -3056,10 +2966,12 @@ result = exchange.build_order(
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
+// Runs locally — never proxied through PMXT servers
+const exchange = new Kalshi({
+  apiKey: "YOUR_API_KEY",
+  privateKey: "YOUR_PRIVATE_KEY",
 });
 const result = await exchange.buildOrder({
   marketId: "12345",
@@ -3097,8 +3009,10 @@ Submit a pre-built order returned by buildOrder().
 ```python
 import pmxt
 
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
+# Runs locally — never proxied through PMXT servers
+exchange = pmxt.Kalshi(
+    api_key="YOUR_API_KEY",
+    private_key="YOUR_PRIVATE_KEY",
 )
 built = exchange.build_order(market_id="12345", side="buy", type="limit", amount=10, price=0.55)
 result = exchange.submit_order(built)
@@ -3106,10 +3020,12 @@ result = exchange.submit_order(built)
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
+// Runs locally — never proxied through PMXT servers
+const exchange = new Kalshi({
+  apiKey: "YOUR_API_KEY",
+  privateKey: "YOUR_PRIVATE_KEY",
 });
 const built = await exchange.buildOrder({ marketId: "12345", side: "buy", type: "limit", amount: 10, price: 0.55 });
 const result = await exchange.submitOrder(built);
@@ -3128,18 +3044,22 @@ Cancel an existing open order.
 ```python
 import pmxt
 
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
+# Runs locally — never proxied through PMXT servers
+exchange = pmxt.Kalshi(
+    api_key="YOUR_API_KEY",
+    private_key="YOUR_PRIVATE_KEY",
 )
 result = exchange.cancel_order(order_id="ord-001")
 ```
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
+// Runs locally — never proxied through PMXT servers
+const exchange = new Kalshi({
+  apiKey: "YOUR_API_KEY",
+  privateKey: "YOUR_PRIVATE_KEY",
 });
 const result = await exchange.cancelOrder({ orderId: "ord-001" });
 ```
@@ -3164,7 +3084,8 @@ Fetch a specific order by ID.
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_order(order_id="ord-001")
@@ -3172,9 +3093,10 @@ result = exchange.fetch_order(order_id="ord-001")
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchOrder({ orderId: "ord-001" });
@@ -3197,7 +3119,8 @@ Fetch all open orders, optionally filtered by market.
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_open_orders(market_id="12345")
@@ -3205,9 +3128,10 @@ result = exchange.fetch_open_orders(market_id="12345")
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchOpenOrders({ marketId: "12345" });
@@ -3233,7 +3157,8 @@ const result = await exchange.fetchOpenOrders({ marketId: "12345" });
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_my_trades(
@@ -3248,9 +3173,10 @@ result = exchange.fetch_my_trades(
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchMyTrades({
@@ -3282,7 +3208,8 @@ const result = await exchange.fetchMyTrades({
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_closed_orders(
@@ -3296,9 +3223,10 @@ result = exchange.fetch_closed_orders(
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchClosedOrders({
@@ -3329,7 +3257,8 @@ const result = await exchange.fetchClosedOrders({
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_all_orders(
@@ -3343,9 +3272,10 @@ result = exchange.fetch_all_orders(
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchAllOrders({
@@ -3374,7 +3304,8 @@ Fetch current user positions across all markets.
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_positions(address="0xabc...")
@@ -3382,9 +3313,10 @@ result = exchange.fetch_positions(address="0xabc...")
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchPositions({ address: "0xabc..." });
@@ -3407,7 +3339,8 @@ Fetch account balances.
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_balance(address="0xabc...")
@@ -3415,9 +3348,10 @@ result = exchange.fetch_balance(address="0xabc...")
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchBalance({ address: "0xabc..." });
@@ -3439,7 +3373,8 @@ Watch order book updates in real-time via WebSocket. Returns a promise that reso
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.watch_order_book(id="12345")
@@ -3447,9 +3382,10 @@ result = exchange.watch_order_book(id="12345")
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.watchOrderBook({ id: "12345" });
@@ -3458,7 +3394,7 @@ const result = await exchange.watchOrderBook({ id: "12345" });
 
 ### Unwatch Order Book
 
-`POST /api/{exchange}/unwatchOrderBook`
+`POST /api/polymarket/unwatchOrderBook`
 
 Unsubscribe from a previously watched order book stream.
 
@@ -3466,7 +3402,8 @@ Unsubscribe from a previously watched order book stream.
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Polymarket(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.unwatch_order_book()
@@ -3474,9 +3411,10 @@ result = exchange.unwatch_order_book()
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Polymarket } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Polymarket({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.unwatchOrderBook();
@@ -3495,7 +3433,8 @@ Watch trade executions in real-time via WebSocket. Returns a promise that resolv
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.watch_trades(id="12345")
@@ -3503,9 +3442,10 @@ result = exchange.watch_trades(id="12345")
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.watchTrades({ id: "12345" });
@@ -3524,7 +3464,8 @@ Stream activity for a public wallet address Returns a promise that resolves with
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Polymarket(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.watch_address(address="0xabc...")
@@ -3532,9 +3473,10 @@ result = exchange.watch_address(address="0xabc...")
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Polymarket } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Polymarket({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.watchAddress({ address: "0xabc..." });
@@ -3551,7 +3493,8 @@ Stop watching a previously registered wallet address and release its resource up
 ```python
 import pmxt
 
-exchange = pmxt.Router(
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Polymarket(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.unwatch_address(address="0xabc...")
@@ -3559,9 +3502,10 @@ result = exchange.unwatch_address(address="0xabc...")
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Polymarket } from "pmxtjs";
 
-const exchange = new Router({
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Polymarket({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.unwatchAddress({ address: "0xabc..." });

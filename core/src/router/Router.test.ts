@@ -121,7 +121,7 @@ describe('Router', () => {
         });
     });
 
-    describe('fetchHedges', () => {
+    describe('fetchRelatedMarkets', () => {
         it('returns only subset/superset matches with reasoning', async () => {
             const mockMatches = [
                 {
@@ -145,11 +145,33 @@ describe('Router', () => {
             ];
             clientInstance.getMarketMatches = jest.fn().mockResolvedValue({ matches: mockMatches });
 
-            const result = await router.fetchHedges({ marketId: 'm1' });
+            const result = await router.fetchRelatedMarkets({ marketId: 'm1' });
             expect(result).toHaveLength(2);
             expect(result[0].relation).toBe('subset');
             expect(result[0].reasoning).toBe('Narrower market — nomination implies candidacy.');
             expect(result[1].relation).toBe('superset');
+        });
+    });
+
+    describe('fetchHedges (deprecated)', () => {
+        it('delegates to fetchRelatedMarkets and logs deprecation warning', async () => {
+            const mockMatches = [
+                {
+                    market: { marketId: 'k2', sourceExchange: 'kalshi', bestBid: 0.40, bestAsk: 0.45 },
+                    relation: 'subset',
+                    confidence: 0.8,
+                    reasoning: 'Narrower market.',
+                },
+            ];
+            clientInstance.getMarketMatches = jest.fn().mockResolvedValue({ matches: mockMatches });
+            const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const result = await router.fetchHedges({ marketId: 'm1' });
+            expect(warnSpy).toHaveBeenCalledWith(
+                '[pmxt] fetchHedges is deprecated, use fetchRelatedMarkets instead',
+            );
+            expect(result).toHaveLength(1);
+            warnSpy.mockRestore();
         });
     });
 
@@ -189,6 +211,9 @@ describe('Router', () => {
             expect(router.has.fetchMatches).toBe(true);
             expect(router.has.fetchEventMatches).toBe(true);
             expect(router.has.compareMarketPrices).toBe(true);
+            expect(router.has.fetchRelatedMarkets).toBe(true);
+            expect(router.has.fetchMatchedMarkets).toBe(true);
+            expect(router.has.fetchMatchedPrices).toBe(true);
             expect(router.has.fetchHedges).toBe(true);
             expect(router.has.fetchArbitrage).toBe(true);
         });

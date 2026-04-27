@@ -39,8 +39,8 @@ the methods and response shapes stay the same.
 ## The Router — cross-venue intelligence
 
 The **[Router](/router/overview)** is PMXT's cross-venue intelligence
-layer. Search, match, compare prices, find hedges, and detect arbitrage
-across every venue — all from a single PMXT API key:
+layer. Search, match, and compare prices across every venue — all from
+a single PMXT API key:
 
 ```python
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
@@ -51,8 +51,8 @@ markets = router.fetch_markets(query="fed rate cut")
 # Find this market on other venues with confidence scores
 matches = router.fetch_market_matches(market_id=markets[0].market_id)
 
-# Scan for cross-venue price spreads
-arb = router.fetch_arbitrage(min_spread=0.03)
+# Compare prices for matched markets across venues
+prices = router.fetch_matched_markets(min_difference=0.03)
 ```
 
 <CardGroup cols={2}>
@@ -64,9 +64,8 @@ arb = router.fetch_arbitrage(min_spread=0.03)
     Find the same or related market on other venues with relation
     types, confidence, and reasoning.
   </Card>
-  <Card title="Prices & arbitrage" icon="scale-balanced" href="/router/prices">
-    Compare bid/ask across venues, discover hedges, and scan for
-    cross-venue spreads.
+  <Card title="Price comparison" icon="scale-balanced" href="/router/prices">
+    Compare bid/ask across venues and find related markets.
   </Card>
   <Card title="Compose with venues" icon="puzzle-piece" href="/router/prices#composing-with-venue-exchanges">
     Discover with the Router, trade on venue exchanges. Same schema,

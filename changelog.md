@@ -2,6 +2,60 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.9] - 2026-04-27
+
+### API Naming & Compliance
+
+Renamed cross-venue endpoints to use neutral, industry-standard
+terminology (aligned with DomeAPI, Predexon, PredictionHunt conventions).
+All old method names are preserved as deprecated aliases — no breaking
+changes.
+
+- **`fetchArbitrage`** → deprecated. Use `fetchMarketMatches()` without
+  a `marketId` (browse mode) instead.
+- **`fetchHedges`** → deprecated. Use `fetchRelatedMarkets()` instead.
+- **`fetchMatchedMarkets`** / **`fetchMatchedPrices`** → deprecated.
+  Merged into `fetchMarketMatches()` browse mode.
+- **`compareMarketPrices`** / **`fetchRelatedMarkets`** → still work,
+  hidden from docs (convenience aliases on `fetchMarketMatches`).
+
+Response field renames (new endpoints only, old endpoints unchanged):
+`spread` → `priceDifference`, `buyVenue`/`sellVenue` → `venueA`/`venueB`,
+`buyPrice`/`sellPrice` → `priceA`/`priceB`.
+
+### Browse Mode for Market & Event Matches
+
+`fetchMarketMatches` and `fetchEventMatches` now support **browse mode**:
+call without a `marketId`/`eventId` to search the full match catalog.
+
+- New params: `query` (keyword search), `category`, `minDifference`,
+  `sort` (`confidence` | `volume` | `priceDifference`).
+- Browse results include `sourceMarket` field (both sides of the pair).
+- Same method, same return type — lookup vs browse is determined by
+  whether an identifier is provided.
+
+### SDK: Trade Execution Blocked in Hosted Mode
+
+`createOrder`, `buildOrder`, `submitOrder`, and `cancelOrder` now throw
+`PmxtError` when called in hosted mode (`pmxt_api_key` set). Trade
+execution must run locally via the SDK — PMXT never proxies order flow
+through its servers. Applies to both Python and TypeScript SDKs.
+
+### Docs & OpenAPI Improvements
+
+- **Badges**: Endpoints tagged `[Hosted]` (catalog-only) or
+  `[Local Only]` (trades). Everything else works both ways — no badge.
+- **Auth scoping**: Bearer auth only shown on Hosted endpoints.
+  Non-catalog endpoints show no auth requirement.
+- **Code samples**: Python shown first. Read endpoints show minimal
+  constructor (`pmxt_api_key` only). Write endpoints show full venue
+  credentials. Comment on each: "API key optional," "API key required,"
+  or "Runs locally."
+- **Router paths**: Router-only endpoints now show `/api/router/...`
+  instead of `/api/{exchange}/...` in the docs.
+- Removed all references to arbitrage, hedging, spread scanning, and
+  trade signals from public documentation.
+
 ## [2.35.8] - 2026-04-27
 
 ### Polymarket CLOB V2 Migration

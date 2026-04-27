@@ -90,9 +90,112 @@ function rewriteForHosted(spec, coreVersion) {
     };
     next.components = components;
 
-    next.security = [{ bearerAuth: [] }];
+    // No global security — most endpoints work without an API key
+    // (locally or hosted). Per-operation security is applied by
+    // assignHostedTags() for API-only endpoints.
 
     return next;
+}
+
+// ---------------------------------------------------------------------------
+// Hosted-context tag assignment
+//
+// The hosted Mintlify docs group operations by product category so
+// payment processors (and users) can see what the paid product is
+// (catalog + historical data) vs what's free/open-source (venue
+// pass-through, trading, account).
+// ---------------------------------------------------------------------------
+
+const HOSTED_TAGS = [
+    {
+        name: 'Hosted',
+        description:
+            'Requires a PMXT API key. These endpoints use the cross-venue catalog and have no local equivalent.',
+    },
+    {
+        name: 'Local Only',
+        description:
+            'Executed locally by the SDK against the venue. Never proxied through PMXT servers.',
+    },
+];
+
+// Only endpoints that are exceptions get a tag+badge. Most endpoints
+// work both locally and hosted — they get no badge (less noise).
+const TAG_MAP = {
+    // Hosted only — requires the PMXT catalog, no local equivalent
+    fetchMarketMatches: 'Hosted',
+    fetchEventMatches: 'Hosted',
+    fetchMatchedMarkets: 'Hosted',
+    fetchRelatedMarkets: 'Hosted',
+    compareMarketPrices: 'Hosted',
+    fetchMatchedPrices: 'Hosted',
+    // Local only — executed by the SDK against the venue directly,
+    // never proxied through PMXT servers
+    createOrder: 'Local Only',
+    buildOrder: 'Local Only',
+    submitOrder: 'Local Only',
+    cancelOrder: 'Local Only',
+};
+
+// Badge labels shown in the Mintlify sidebar via x-mint.metadata.tag.
+// Endpoints not in TAG_MAP get no badge.
+const TAG_BADGE_MAP = {
+    'Hosted': 'Hosted',
+    'Local Only': 'Local Only',
+};
+
+/**
+ * Walk every operation in the hosted spec and:
+ *   1. Set `x-mint.metadata.tag` — renders a badge next to the endpoint
+ *      title in the Mintlify sidebar (e.g. "Hosted", "Open Source",
+ *      "Local Only").
+ *   2. Keep the OpenAPI `tags` array for non-sidebar consumers.
+ *
+ * Returns a NEW spec object — the input is never mutated.
+ */
+function assignHostedTags(spec) {
+    const newSpec = { ...spec };
+    newSpec.tags = HOSTED_TAGS;
+
+    const paths = { ...(spec.paths || {}) };
+    for (const [pathKey, methods] of Object.entries(paths)) {
+        const newMethods = {};
+        for (const [method, op] of Object.entries(methods)) {
+            if (!['get', 'post', 'put', 'delete', 'patch'].includes(method)) {
+                newMethods[method] = op;
+                continue;
+            }
+            const tag = TAG_MAP[op.operationId];
+            if (tag) {
+                // Map internal tag names to user-facing badge labels
+                const badgeLabel = TAG_BADGE_MAP[tag] || tag;
+                const enhanced = {
+                    ...op,
+                    tags: [tag],
+                    'x-mint': {
+                        ...(op['x-mint'] || {}),
+                        metadata: {
+                            ...((op['x-mint'] || {}).metadata || {}),
+                            tag: badgeLabel,
+                        },
+                    },
+                };
+                // API-only endpoints require bearer auth; everything
+                // else works without a key (locally or hosted).
+                if (tag === 'Hosted') {
+                    enhanced.security = [{ bearerAuth: [] }];
+                }
+                newMethods[method] = enhanced;
+            } else {
+                // Explicitly mark non-tagged endpoints as no-auth so
+                // Mintlify doesn't inherit a global security requirement.
+                newMethods[method] = { ...op, security: [] };
+            }
+        }
+        paths[pathKey] = newMethods;
+    }
+    newSpec.paths = paths;
+    return newSpec;
 }
 
 // ---------------------------------------------------------------------------
@@ -268,6 +371,9 @@ const PARAM_OVERRIDES = {
     compareMarketPrices: [{ name: 'marketId', value: '12345' }],
     fetchHedges: [{ name: 'marketId', value: '12345' }],
     fetchArbitrage: [{ name: 'minSpread', value: 0.05 }],
+    fetchRelatedMarkets: [{ name: 'marketId', value: '12345' }],
+    fetchMatchedMarkets: [{ name: 'minDifference', value: 0.05 }],
+    fetchMatchedPrices: [{ name: 'minDifference', value: 0.05 }],
 };
 
 const FULL_OVERRIDES = {
@@ -295,32 +401,80 @@ function constructorParamValue(param) {
     return `YOUR_${param.name.toUpperCase()}`;
 }
 
-function buildPyPreamble(exchangeInfo) {
+// ---------------------------------------------------------------------------
+// Constructor preambles for code samples
+//
+// Three patterns based on endpoint type:
+//   Hosted:     API key required + comment explaining why
+//   Local Only: venue credentials only + comment explaining local execution
+//   Default:    API key shown but marked optional (faster catalog lookups)
+// ---------------------------------------------------------------------------
+
+const WRITE_METHODS = new Set([
+    'createOrder', 'buildOrder', 'submitOrder', 'cancelOrder', 'editOrder',
+]);
+
+function buildPyPreamble(exchangeInfo, operationId) {
     const lines = ['import pmxt', ''];
-    if (exchangeInfo.params.length === 0) {
-        lines.push(`exchange = pmxt.${exchangeInfo.className}()`);
-    } else {
-        lines.push(`exchange = pmxt.${exchangeInfo.className}(`);
-        for (const param of exchangeInfo.params) {
-            lines.push(`    ${param.name}=${formatPyValue(constructorParamValue(param))},`);
+    const tag = TAG_MAP[operationId];
+
+    if (tag === 'Local Only') {
+        // Trading: venue credentials, no API key
+        const venueParams = exchangeInfo.params.filter((p) => p.name !== 'pmxt_api_key');
+        lines.push('# Runs locally — never proxied through PMXT servers');
+        if (venueParams.length === 0) {
+            lines.push(`exchange = pmxt.${exchangeInfo.className}()`);
+        } else {
+            lines.push(`exchange = pmxt.${exchangeInfo.className}(`);
+            for (const param of venueParams) {
+                lines.push(`    ${param.name}=${formatPyValue(constructorParamValue(param))},`);
+            }
+            lines.push(')');
         }
+    } else if (tag === 'Hosted') {
+        // Cross-venue catalog: API key required
+        lines.push('# API key required — queries the cross-venue catalog');
+        lines.push(`exchange = pmxt.${exchangeInfo.className}(`);
+        lines.push(`    pmxt_api_key="YOUR_PMXT_API_KEY",`);
+        lines.push(')');
+    } else {
+        // Everything else: API key optional, enables faster lookups
+        lines.push('# API key optional — enables faster catalog-backed lookups');
+        lines.push(`exchange = pmxt.${exchangeInfo.className}(`);
+        lines.push(`    pmxt_api_key="YOUR_PMXT_API_KEY",`);
         lines.push(')');
     }
     return lines;
 }
 
-function buildTsPreamble(exchangeInfo) {
+function buildTsPreamble(exchangeInfo, operationId) {
     const lines = [
         `import { ${exchangeInfo.className} } from "pmxtjs";`,
         '',
     ];
-    if (exchangeInfo.params.length === 0) {
-        lines.push(`const exchange = new ${exchangeInfo.className}();`);
-    } else {
-        lines.push(`const exchange = new ${exchangeInfo.className}({`);
-        for (const param of exchangeInfo.params) {
-            lines.push(`  ${param.tsName || param.name}: ${formatJsValue(constructorParamValue(param))},`);
+    const tag = TAG_MAP[operationId];
+
+    if (tag === 'Local Only') {
+        const venueParams = exchangeInfo.params.filter((p) => p.name !== 'pmxt_api_key');
+        lines.push('// Runs locally — never proxied through PMXT servers');
+        if (venueParams.length === 0) {
+            lines.push(`const exchange = new ${exchangeInfo.className}();`);
+        } else {
+            lines.push(`const exchange = new ${exchangeInfo.className}({`);
+            for (const param of venueParams) {
+                lines.push(`  ${param.tsName || param.name}: ${formatJsValue(constructorParamValue(param))},`);
+            }
+            lines.push('});');
         }
+    } else if (tag === 'Hosted') {
+        lines.push('// API key required — queries the cross-venue catalog');
+        lines.push(`const exchange = new ${exchangeInfo.className}({`);
+        lines.push(`  pmxtApiKey: "YOUR_PMXT_API_KEY",`);
+        lines.push('});');
+    } else {
+        lines.push('// API key optional — enables faster catalog-backed lookups');
+        lines.push(`const exchange = new ${exchangeInfo.className}({`);
+        lines.push(`  pmxtApiKey: "YOUR_PMXT_API_KEY",`);
         lines.push('});');
     }
     return lines;
@@ -381,12 +535,12 @@ function generateCodeSamples(operationId, httpMethod, pathKey, operation, spec) 
         pythonSdkSamples = exchangeEntries.map(([, info]) => ({
             lang: 'python',
             label: info.className,
-            source: [...buildPyPreamble(info), ...ov.pythonBody].join('\n'),
+            source: [...buildPyPreamble(info, operationId), ...ov.pythonBody].join('\n'),
         }));
         tsSdkSamples = exchangeEntries.map(([, info]) => ({
             lang: 'javascript',
             label: info.className,
-            source: [...buildTsPreamble(info), ...ov.typescriptBody].join('\n'),
+            source: [...buildTsPreamble(info, operationId), ...ov.typescriptBody].join('\n'),
         }));
     } else {
         const pyMethod = toSnakeCaseSdk(operationId);
@@ -397,12 +551,12 @@ function generateCodeSamples(operationId, httpMethod, pathKey, operation, spec) 
         pythonSdkSamples = exchangeEntries.map(([, info]) => ({
             lang: 'python',
             label: info.className,
-            source: [...buildPyPreamble(info), ...pyBodyLines].join('\n'),
+            source: [...buildPyPreamble(info, operationId), ...pyBodyLines].join('\n'),
         }));
         tsSdkSamples = exchangeEntries.map(([, info]) => ({
             lang: 'javascript',
             label: info.className,
-            source: [...buildTsPreamble(info), ...tsBodyLines].join('\n'),
+            source: [...buildTsPreamble(info, operationId), ...tsBodyLines].join('\n'),
         }));
     }
 
@@ -571,6 +725,38 @@ function scopeExchangeParams(spec, capMap) {
                 ...(codeSamples ? { 'x-codeSamples': codeSamples } : {}),
             };
         }
+
+        // When every operation under this path supports exactly one
+        // exchange, replace the {exchange} template with the concrete
+        // value (e.g. /api/router/fetchMarketMatches) and drop the
+        // exchange path parameter so the docs show the real URL.
+        if (pathKey.includes('{exchange}')) {
+            const ops = Object.values(newMethods).filter(
+                (o) => typeof o === 'object' && o.operationId
+            );
+            const singleExchange = ops.length > 0 && ops.every((o) => {
+                const supported = capMap[o.operationId];
+                return supported && supported.length === 1;
+            });
+            if (singleExchange) {
+                const exchange = capMap[ops[0].operationId][0];
+                const concretePath = pathKey.replace('{exchange}', exchange);
+                // Remove the exchange path parameter from each operation
+                for (const [m, o] of Object.entries(newMethods)) {
+                    if (typeof o === 'object' && Array.isArray(o.parameters)) {
+                        newMethods[m] = {
+                            ...o,
+                            parameters: o.parameters.filter(
+                                (p) => !(p.in === 'path' && p.name === 'exchange')
+                            ),
+                        };
+                    }
+                }
+                newPaths[concretePath] = newMethods;
+                continue;
+            }
+        }
+
         newPaths[pathKey] = newMethods;
     }
 
@@ -585,7 +771,8 @@ function scopeExchangeParams(spec, capMap) {
 function generateHostedDocsSpec(spec) {
     const coreVersion = readCoreVersion();
     const rewritten = rewriteForHosted(spec, coreVersion);
-    const withSamples = injectCodeSamples(rewritten);
+    const tagged = assignHostedTags(rewritten);
+    const withSamples = injectCodeSamples(tagged);
 
     // Scope exchange params per-operation using the capability system
     const capMap = buildCapabilityMap();
@@ -653,10 +840,14 @@ const TYPE_REF_MAP = {
   FetchMatchesParams: 'FetchMarketMatchesParams',
   FetchEventMatchesParams: 'FetchEventMatchesParams',
   FetchArbitrageParams: 'FetchArbitrageParams',
+  FetchMatchedMarketsParams: 'FetchMatchedMarketsParams',
+  FetchMatchedPricesParams: 'FetchMatchedMarketsParams',
+  MatchedMarketPair: 'MatchedMarketPair',
   MatchResult: 'MatchResult',
   EventMatchResult: 'EventMatchResult',
   PriceComparison: 'PriceComparison',
   ArbitrageOpportunity: 'ArbitrageOpportunity',
+  MatchedPricePair: 'MatchedMarketPair',
   // MatchRelation is a type alias (string union), not an interface.
   // It resolves inline via TYPE_ALIAS_REGISTRY — do NOT add it here.
 };
@@ -832,11 +1023,14 @@ function typeNodeToSchema(node, sourceFile) {
 // ---------------------------------------------------------------------------
 
 const SUMMARY_OVERRIDES = {
-  fetchMarketMatches: 'Find Similar Markets',
-  fetchEventMatches: 'Find Similar Events',
+  fetchMarketMatches: 'Market Matches',
+  fetchEventMatches: 'Event Matches',
   compareMarketPrices: 'Compare Prices Across Venues',
   fetchHedges: 'Find Hedging Opportunities',
   fetchArbitrage: 'Find Arbitrage Opportunities',
+  fetchRelatedMarkets: 'Find Related Markets',
+  fetchMatchedMarkets: 'Matched Markets',
+  fetchMatchedPrices: 'Compare Matched Market Prices',
 };
 
 function camelToTitle(name) {
@@ -1352,6 +1546,8 @@ const GENERATED_SCHEMA_ORDER = [
   'EventMatchResult',
   'PriceComparison',
   'ArbitrageOpportunity',
+  'FetchMatchedMarketsParams',
+  'MatchedMarketPair',
   // Auth
   'ExchangeCredentials',
 ];

@@ -158,10 +158,10 @@ const ENDPOINT_GROUPS = [
     {
         name: 'Cross-Venue',
         match: (opId) =>
-            /^(fetchEventMatches|fetchMarketMatches|compareMarketPrices|fetchHedges|fetchArbitrage)$/.test(
+            /^(fetchEventMatches|fetchMarketMatches)$/.test(
                 opId
             ),
-        order: ['fetchEventMatches', 'fetchMarketMatches', 'compareMarketPrices', 'fetchHedges', 'fetchArbitrage'],
+        order: ['fetchEventMatches', 'fetchMarketMatches'],
     },
     {
         name: 'Order Book & Trades',
@@ -193,7 +193,7 @@ const ENDPOINT_GROUPS = [
 // Operations that exist in the OpenAPI spec but should not appear in the docs
 // sidebar (e.g. SDK-only helpers that are exposed as routes but aren't meant
 // to be called directly by API consumers).
-const HIDDEN_OPERATIONS = new Set(['filterMarkets', 'filterEvents']);
+const HIDDEN_OPERATIONS = new Set(['filterMarkets', 'filterEvents', 'fetchHedges', 'fetchArbitrage', 'fetchMatchedPrices', 'compareMarketPrices', 'fetchRelatedMarkets', 'fetchMatchedMarkets']);
 
 function buildEndpointGroups(spec) {
     const buckets = new Map();

@@ -1505,10 +1505,22 @@ paths:
         connections.
   '/api/{exchange}/fetchMarketMatches':
     get:
-      summary: Find Similar Markets
+      summary: Market Matches
       operationId: fetchMarketMatches
       parameters:
         - $ref: '#/components/parameters/ExchangeParam'
+        - in: query
+          name: query
+          required: false
+          schema:
+            type: string
+          description: Keyword search across matched market titles.
+        - in: query
+          name: category
+          required: false
+          schema:
+            type: string
+          description: Filter matches by category.
         - in: query
           name: market
           required: false
@@ -1521,6 +1533,7 @@ paths:
           required: false
           schema:
             type: string
+          description: Lookup a specific market by ID. Omit for browse mode.
         - in: query
           name: slug
           required: false
@@ -1557,9 +1570,25 @@ paths:
           required: false
           schema:
             type: boolean
+        - in: query
+          name: minDifference
+          required: false
+          schema:
+            type: number
+          description: Minimum price difference between venues. Browse mode only.
+        - in: query
+          name: sort
+          required: false
+          schema:
+            type: string
+            enum:
+              - confidence
+              - volume
+              - priceDifference
+          description: Sort order. Browse mode only.
       responses:
         '200':
-          description: Find Similar Markets response
+          description: Market Matches response
           content:
             application/json:
               schema:
@@ -1572,15 +1601,28 @@ paths:
                         items:
                           $ref: '#/components/schemas/MatchResult'
       description: >-
-        Find the same or related market on other venues. Given a market on one venue, discover semantically equivalent
-        markets across every other venue PMXT ingests — each with a relation type (identity, subset, superset, overlap,
-        disjoint), confidence score, and reasoning.
+        Find the same or related market on other venues. Two modes: **Lookup mode** (marketId/slug/url provided): Given
+        a market on one venue, discover semantically equivalent markets across every other venue PMXT ingests. **Browse
+        mode** (no identifier): Returns all matched market pairs from the catalog. Supports query, category,
+        minDifference, and sort params for filtering.
   '/api/{exchange}/fetchEventMatches':
     get:
-      summary: Find Similar Events
+      summary: Event Matches
       operationId: fetchEventMatches
       parameters:
         - $ref: '#/components/parameters/ExchangeParam'
+        - in: query
+          name: query
+          required: false
+          schema:
+            type: string
+          description: Keyword search across matched event titles.
+        - in: query
+          name: category
+          required: false
+          schema:
+            type: string
+          description: Filter matches by category.
         - in: query
           name: event
           required: false
@@ -1593,6 +1635,7 @@ paths:
           required: false
           schema:
             type: string
+          description: Lookup a specific event by ID. Omit for browse mode.
         - in: query
           name: slug
           required: false
@@ -1626,7 +1669,7 @@ paths:
             type: boolean
       responses:
         '200':
-          description: Find Similar Events response
+          description: Event Matches response
           content:
             application/json:
               schema:
@@ -1639,8 +1682,10 @@ paths:
                         items:
                           $ref: '#/components/schemas/EventMatchResult'
       description: >-
-        Find the same or related event on other venues. Given an event on one venue, discover semantically equivalent
-        events across every other venue PMXT ingests — including market-level match details for each child market.
+        Find the same or related event on other venues. Two modes: **Lookup mode** (eventId/slug provided): Given an
+        event on one venue, discover semantically equivalent events across every other venue PMXT ingests. **Browse
+        mode** (no identifier): Returns all matched event pairs from the catalog. Supports query and category params for
+        filtering.
   '/api/{exchange}/compareMarketPrices':
     post:
       summary: Compare Prices Across Venues
@@ -1681,12 +1726,24 @@ paths:
       description: >-
         Compare live prices for the same market across venues. Finds identity matches and returns side-by-side best
         bid/ask prices so you can spot price differences at a glance.
-  '/api/{exchange}/fetchHedges':
+  '/api/{exchange}/fetchRelatedMarkets':
     get:
-      summary: Find Hedging Opportunities
-      operationId: fetchHedges
+      summary: Find Related Markets
+      operationId: fetchRelatedMarkets
       parameters:
         - $ref: '#/components/parameters/ExchangeParam'
+        - in: query
+          name: query
+          required: false
+          schema:
+            type: string
+          description: Keyword search across matched market titles.
+        - in: query
+          name: category
+          required: false
+          schema:
+            type: string
+          description: Filter matches by category.
         - in: query
           name: market
           required: false
@@ -1699,6 +1756,7 @@ paths:
           required: false
           schema:
             type: string
+          description: Lookup a specific market by ID. Omit for browse mode.
         - in: query
           name: slug
           required: false
@@ -1735,6 +1793,222 @@ paths:
           required: false
           schema:
             type: boolean
+        - in: query
+          name: minDifference
+          required: false
+          schema:
+            type: number
+          description: Minimum price difference between venues. Browse mode only.
+        - in: query
+          name: sort
+          required: false
+          schema:
+            type: string
+            enum:
+              - confidence
+              - volume
+              - priceDifference
+          description: Sort order. Browse mode only.
+      responses:
+        '200':
+          description: Find Related Markets response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PriceComparison'
+      description: >-
+        Find related markets across venues. Discovers subset/superset market relationships where one market's outcome
+        implies another, with live prices.
+  '/api/{exchange}/fetchMatchedMarkets':
+    get:
+      summary: Matched Markets
+      operationId: fetchMatchedMarkets
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+        - in: query
+          name: minDifference
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: category
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: relations
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - identity
+                - subset
+                - superset
+                - overlap
+                - disjoint
+          description: 'Comma-separated relation types to include (default: ''identity'').'
+      responses:
+        '200':
+          description: Matched Markets response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MatchedMarketPair'
+      deprecated: true
+  '/api/{exchange}/fetchMatchedPrices':
+    get:
+      summary: Compare Matched Market Prices
+      operationId: fetchMatchedPrices
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+        - in: query
+          name: minDifference
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: category
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: relations
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - identity
+                - subset
+                - superset
+                - overlap
+                - disjoint
+          description: 'Comma-separated relation types to include (default: ''identity'').'
+      responses:
+        '200':
+          description: Compare Matched Market Prices response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MatchedMarketPair'
+      deprecated: true
+  '/api/{exchange}/fetchHedges':
+    get:
+      summary: Find Hedging Opportunities
+      operationId: fetchHedges
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+        - in: query
+          name: query
+          required: false
+          schema:
+            type: string
+          description: Keyword search across matched market titles.
+        - in: query
+          name: category
+          required: false
+          schema:
+            type: string
+          description: Filter matches by category.
+        - in: query
+          name: market
+          required: false
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/UnifiedMarket'
+          description: Pass a UnifiedMarket directly instead of marketId/slug/url.
+        - in: query
+          name: marketId
+          required: false
+          schema:
+            type: string
+          description: Lookup a specific market by ID. Omit for browse mode.
+        - in: query
+          name: slug
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: url
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: relation
+          required: false
+          schema:
+            type: string
+            enum:
+              - identity
+              - subset
+              - superset
+              - overlap
+              - disjoint
+        - in: query
+          name: minConfidence
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: includePrices
+          required: false
+          schema:
+            type: boolean
+        - in: query
+          name: minDifference
+          required: false
+          schema:
+            type: number
+          description: Minimum price difference between venues. Browse mode only.
+        - in: query
+          name: sort
+          required: false
+          schema:
+            type: string
+            enum:
+              - confidence
+              - volume
+              - priceDifference
+          description: Sort order. Browse mode only.
       responses:
         '200':
           description: Find Hedging Opportunities response
@@ -1749,9 +2023,7 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/PriceComparison'
-      description: >-
-        Find hedging opportunities across venues. Discovers subset/superset market relationships where one market's
-        outcome implies another, enabling cross-venue hedging strategies with live prices.
+      deprecated: true
   '/api/{exchange}/fetchArbitrage':
     get:
       summary: Find Arbitrage Opportunities
@@ -1801,9 +2073,7 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/ArbitrageOpportunity'
-      description: >-
-        Scan for arbitrage opportunities across venues. Finds identity matches where the same market is priced
-        differently on different venues, returning opportunities sorted by spread size.
+      deprecated: true
 components:
   parameters:
     ExchangeParam:
@@ -2740,12 +3010,19 @@ components:
     FetchMarketMatchesParams:
       type: object
       properties:
+        query:
+          type: string
+          description: Keyword search across matched market titles.
+        category:
+          type: string
+          description: Filter matches by category.
         market:
           allOf:
             - $ref: '#/components/schemas/UnifiedMarket'
           description: Pass a UnifiedMarket directly instead of marketId/slug/url.
         marketId:
           type: string
+          description: Lookup a specific market by ID. Omit for browse mode.
         slug:
           type: string
         url:
@@ -2764,15 +3041,32 @@ components:
           type: number
         includePrices:
           type: boolean
+        minDifference:
+          type: number
+          description: Minimum price difference between venues. Browse mode only.
+        sort:
+          type: string
+          enum:
+            - confidence
+            - volume
+            - priceDifference
+          description: Sort order. Browse mode only.
     FetchEventMatchesParams:
       type: object
       properties:
+        query:
+          type: string
+          description: Keyword search across matched event titles.
+        category:
+          type: string
+          description: Filter matches by category.
         event:
           allOf:
             - $ref: '#/components/schemas/UnifiedEvent'
           description: Pass a UnifiedEvent directly instead of eventId/slug.
         eventId:
           type: string
+          description: Lookup a specific event by ID. Omit for browse mode.
         slug:
           type: string
         relation:
@@ -2814,6 +3108,10 @@ components:
       properties:
         market:
           $ref: '#/components/schemas/UnifiedMarket'
+        sourceMarket:
+          allOf:
+            - $ref: '#/components/schemas/UnifiedMarket'
+          description: 'The source market this was matched against. Present in browse mode (no marketId), absent in lookup mode.'
         relation:
           type: string
           enum:
@@ -2929,6 +3227,68 @@ components:
         - sellVenue
         - buyPrice
         - sellPrice
+    FetchMatchedMarketsParams:
+      type: object
+      properties:
+        minDifference:
+          type: number
+        category:
+          type: string
+        limit:
+          type: number
+        relations:
+          type: array
+          items:
+            type: string
+            enum:
+              - identity
+              - subset
+              - superset
+              - overlap
+              - disjoint
+          description: 'Comma-separated relation types to include (default: ''identity'').'
+    MatchedMarketPair:
+      type: object
+      properties:
+        marketA:
+          $ref: '#/components/schemas/UnifiedMarket'
+        marketB:
+          $ref: '#/components/schemas/UnifiedMarket'
+        priceDifference:
+          type: number
+        venueA:
+          type: string
+        venueB:
+          type: string
+        priceA:
+          type: number
+        priceB:
+          type: number
+        relation:
+          type: string
+          enum:
+            - identity
+            - subset
+            - superset
+            - overlap
+            - disjoint
+          description: 'The set-theoretic relation between the two markets (e.g. identity, subset).'
+        confidence:
+          type: number
+          description: Match confidence score (0.0 to 1.0).
+        reasoning:
+          oneOf:
+            - type: string
+            - {}
+          description: Why the two markets were matched.
+      required:
+        - marketA
+        - marketB
+        - priceDifference
+        - venueA
+        - venueB
+        - priceA
+        - priceB
     ExchangeCredentials:
       type: object
       description: Optional authentication credentials for exchange operations.

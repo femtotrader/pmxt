@@ -243,6 +243,33 @@ await exchange.fetchMarketsPaginated({ limit: 10, cursor: "..." })
 
 
 ---
+### `fetchEventsPaginated`
+
+Paginated variant of {@link fetchEvents}.
+
+
+**Signature:**
+
+```typescript
+async fetchEventsPaginated(params?: { limit?: number; cursor?: string; filter?: EventFilterCriteria }): Promise<PaginatedEventsResult>
+```
+
+**Parameters:**
+
+- `params` ({ limit?: number; cursor?: string; filter?: EventFilterCriteria }) - **Optional**: params
+  - `params.limit` - Page size (default: return all events)
+  - `params.cursor` - Opaque cursor returned by a previous call
+
+**Returns:** Promise<[PaginatedEventsResult](#paginatedeventsresult)> - PaginatedEventsResult with data, total, and optional nextCursor
+
+**Example:**
+
+```typescript
+await exchange.fetchEventsPaginated({ limit: 10, cursor: "..." })
+```
+
+
+---
 ### `fetchEvents`
 
 Fetch events with optional keyword search.
@@ -868,6 +895,231 @@ await exchange.close()
 
 
 ---
+### `fetchMarketMatches`
+
+Find the same or related market on other venues. Given a market on one venue, discover semantically equivalent markets across every other venue PMXT ingests — each with a relation type (identity, subset, superset, overlap, disjoint), confidence score, and reasoning.
+
+
+**Signature:**
+
+```typescript
+async fetchMarketMatches(params: FetchMarketMatchesParams): Promise<MatchResult[]>
+```
+
+**Parameters:**
+
+- `params` ([FetchMarketMatchesParams](#fetchmarketmatchesparams)): Match filter parameters (marketId, relation, minConfidence, etc.)
+
+**Returns:** Promise<[MatchResult](#matchresult)[]> - Array of matched markets with relation and confidence
+
+**Example:**
+
+```typescript
+await exchange.fetchMarketMatches()
+```
+
+
+---
+### `fetchMatches`
+
+fetchMatches
+
+
+**Signature:**
+
+```typescript
+async fetchMatches(params: FetchMatchesParams): Promise<MatchResult[]>
+```
+
+**Parameters:**
+
+- `params` (FetchMatchesParams): params
+
+**Returns:** Promise<[MatchResult](#matchresult)[]> - Result
+
+**Example:**
+
+```typescript
+await exchange.fetchMatches()
+```
+
+
+---
+### `fetchEventMatches`
+
+Find the same or related event on other venues. Given an event on one venue, discover semantically equivalent events across every other venue PMXT ingests — including market-level match details for each child market.
+
+
+**Signature:**
+
+```typescript
+async fetchEventMatches(params: FetchEventMatchesParams): Promise<EventMatchResult[]>
+```
+
+**Parameters:**
+
+- `params` ([FetchEventMatchesParams](#fetcheventmatchesparams)): Event match filter parameters (eventId, relation, etc.)
+
+**Returns:** Promise<[EventMatchResult](#eventmatchresult)[]> - Array of matched events with market-level match details
+
+**Example:**
+
+```typescript
+await exchange.fetchEventMatches()
+```
+
+
+---
+### `compareMarketPrices`
+
+Compare live prices for the same market across venues. Finds identity matches and returns side-by-side best bid/ask prices so you can spot price differences at a glance.
+
+
+**Signature:**
+
+```typescript
+async compareMarketPrices(params: FetchMatchesParams): Promise<PriceComparison[]>
+```
+
+**Parameters:**
+
+- `params` (FetchMatchesParams): Match filter parameters (uses relation: 'identity' internally)
+
+**Returns:** Promise<[PriceComparison](#pricecomparison)[]> - Array of price comparisons across venues
+
+**Example:**
+
+```typescript
+await exchange.compareMarketPrices()
+```
+
+
+---
+### `fetchRelatedMarkets`
+
+Find related markets across venues. Discovers subset/superset market relationships
+
+
+**Signature:**
+
+```typescript
+async fetchRelatedMarkets(params: FetchMatchesParams): Promise<PriceComparison[]>
+```
+
+**Parameters:**
+
+- `params` (FetchMatchesParams): Match filter parameters
+
+**Returns:** Promise<[PriceComparison](#pricecomparison)[]> - Array of subset/superset matches with live prices
+
+**Example:**
+
+```typescript
+await exchange.fetchRelatedMarkets()
+```
+
+
+---
+### `fetchMatchedMarkets`
+
+Fetch matched markets across venues. Finds markets listed on multiple venues
+
+
+**Signature:**
+
+```typescript
+async fetchMatchedMarkets(params?: FetchMatchedMarketsParams): Promise<MatchedMarketPair[]>
+```
+
+**Parameters:**
+
+- `params` ([FetchMatchedMarketsParams](#fetchmatchedmarketsparams)) - **Optional**: Matched market parameters (minDifference, category, limit)
+
+**Returns:** Promise<[MatchedMarketPair](#matchedmarketpair)[]> - Array of matched market pairs with prices from each venue
+
+**Example:**
+
+```typescript
+await exchange.fetchMatchedMarkets()
+```
+
+
+---
+### `fetchMatchedPrices`
+
+fetchMatchedPrices
+
+
+**Signature:**
+
+```typescript
+async fetchMatchedPrices(params?: FetchMatchedPricesParams): Promise<MatchedPricePair[]>
+```
+
+**Parameters:**
+
+- `params` (FetchMatchedPricesParams) - **Optional**: Price comparison parameters (minDifference, category, limit)
+
+**Returns:** Promise<MatchedPricePair[]> - Array of matched market pairs with prices from each venue
+
+**Example:**
+
+```typescript
+await exchange.fetchMatchedPrices()
+```
+
+
+---
+### `fetchHedges`
+
+fetchHedges
+
+
+**Signature:**
+
+```typescript
+async fetchHedges(params: FetchMatchesParams): Promise<PriceComparison[]>
+```
+
+**Parameters:**
+
+- `params` (FetchMatchesParams): Match filter parameters
+
+**Returns:** Promise<[PriceComparison](#pricecomparison)[]> - Array of subset/superset matches with live prices
+
+**Example:**
+
+```typescript
+await exchange.fetchHedges()
+```
+
+
+---
+### `fetchArbitrage`
+
+fetchArbitrage
+
+
+**Signature:**
+
+```typescript
+async fetchArbitrage(params?: FetchArbitrageParams): Promise<ArbitrageOpportunity[]>
+```
+
+**Parameters:**
+
+- `params` ([FetchArbitrageParams](#fetcharbitrageparams)) - **Optional**: Arbitrage scan parameters (minSpread, category, limit)
+
+**Returns:** Promise<[ArbitrageOpportunity](#arbitrageopportunity)[]> - Array of arbitrage opportunities sorted by spread
+
+**Example:**
+
+```typescript
+await exchange.fetchArbitrage()
+```
+
+
+---
 ### `watchPrices`
 
 Watch AMM price updates for a market address (Limitless only).
@@ -1136,6 +1388,7 @@ tags: string[]; // Optional list of tags associated with the market.
 tickSize: number; // Minimum price increment (e.g., 0.01, 0.001)
 status: string; // Venue-native lifecycle status (e.g. 'active', 'closed', 'archived').
 contractAddress: string; // On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.).
+sourceExchange: string; // The exchange/venue this market originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router.
 yes: any; // Convenience accessor for the YES outcome on a binary market.
 no: any; // Convenience accessor for the NO outcome on a binary market.
 up: any; // Convenience accessor for the UP outcome on a binary market.
@@ -1177,6 +1430,7 @@ url: string; // Canonical URL to view the event on the venue.
 image: string; // Optional image URL for the event.
 category: string; // Optional category label (e.g., "Politics", "Sports").
 tags: string[]; // Optional list of tags associated with the event.
+sourceExchange: string; // The exchange/venue this event originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router.
 }
 ```
 
@@ -1335,6 +1589,19 @@ nextCursor: string; // Cursor to pass to the next call, or undefined if this is 
 ```
 
 ---
+### `PaginatedEventsResult`
+
+Shape returned by fetchEventsPaginated
+
+```typescript
+interface PaginatedEventsResult {
+data: UnifiedEvent[]; // The page of unified events
+total: number; // Total number of events in the snapshot
+nextCursor: string; // Cursor to pass to the next call, or undefined if this is the last page
+}
+```
+
+---
 ### `BuiltOrder`
 
 
@@ -1383,6 +1650,90 @@ category: string; //
 tags: string[]; // Match events that have any of these tags
 marketCount: object; // 
 totalVolume: object; // Sum of market volumes
+}
+```
+
+---
+### `MatchResult`
+
+
+
+```typescript
+interface MatchResult {
+market: UnifiedMarket; // 
+relation: string; // 
+confidence: number; // 
+reasoning: any; // 
+bestBid: any; // 
+bestAsk: any; // 
+}
+```
+
+---
+### `EventMatchResult`
+
+
+
+```typescript
+interface EventMatchResult {
+event: UnifiedEvent; // 
+marketMatches: MatchResult[]; // 
+}
+```
+
+---
+### `PriceComparison`
+
+
+
+```typescript
+interface PriceComparison {
+market: UnifiedMarket; // 
+relation: string; // 
+confidence: number; // 
+reasoning: any; // 
+bestBid: any; // 
+bestAsk: any; // 
+venue: string; // 
+}
+```
+
+---
+### `ArbitrageOpportunity`
+
+
+
+```typescript
+interface ArbitrageOpportunity {
+marketA: UnifiedMarket; // 
+marketB: UnifiedMarket; // 
+spread: number; // 
+buyVenue: string; // 
+sellVenue: string; // 
+buyPrice: number; // 
+sellPrice: number; // 
+relation: string; // The set-theoretic relation between the two markets (e.g. identity, subset).
+confidence: number; // Match confidence score (0.0 to 1.0).
+}
+```
+
+---
+### `MatchedMarketPair`
+
+
+
+```typescript
+interface MatchedMarketPair {
+marketA: UnifiedMarket; // 
+marketB: UnifiedMarket; // 
+priceDifference: number; // 
+venueA: string; // 
+venueB: string; // 
+priceA: number; // 
+priceB: number; // 
+relation: string; // The set-theoretic relation between the two markets (e.g. identity, subset).
+confidence: number; // Match confidence score (0.0 to 1.0).
+reasoning: any; // Why the two markets were matched.
 }
 ```
 
@@ -1548,6 +1899,69 @@ since?: string; // Only return records after this date
 until?: string; // Only return records before this date
 limit?: number; // Maximum number of results to return
 cursor?: string; // Opaque pagination cursor from a previous response
+}
+```
+
+---
+### `FetchMarketMatchesParams`
+
+
+
+```typescript
+interface FetchMarketMatchesParams {
+market?: any; // Pass a UnifiedMarket directly instead of marketId/slug/url.
+marketId?: string; // 
+slug?: string; // 
+url?: string; // 
+relation?: string; // 
+minConfidence?: number; // 
+limit?: number; // 
+includePrices?: boolean; // 
+}
+```
+
+---
+### `FetchEventMatchesParams`
+
+
+
+```typescript
+interface FetchEventMatchesParams {
+event?: any; // Pass a UnifiedEvent directly instead of eventId/slug.
+eventId?: string; // 
+slug?: string; // 
+relation?: string; // 
+minConfidence?: number; // 
+limit?: number; // 
+includePrices?: boolean; // 
+}
+```
+
+---
+### `FetchArbitrageParams`
+
+
+
+```typescript
+interface FetchArbitrageParams {
+minSpread?: number; // 
+category?: string; // 
+limit?: number; // 
+relations?: string[]; // Comma-separated relation types to include (default: 'identity').
+}
+```
+
+---
+### `FetchMatchedMarketsParams`
+
+
+
+```typescript
+interface FetchMatchedMarketsParams {
+minDifference?: number; // 
+category?: string; // 
+limit?: number; // 
+relations?: string[]; // Comma-separated relation types to include (default: 'identity').
 }
 ```
 

@@ -12,10 +12,14 @@ import type {
     EventMatchResult,
     PriceComparison,
     ArbitrageOpportunity,
+    MatchedMarketPair,
+    MatchedPricePair,
     FetchMarketMatchesParams,
     FetchMatchesParams,
     FetchEventMatchesParams,
     FetchArbitrageParams,
+    FetchMatchedMarketsParams,
+    FetchMatchedPricesParams,
 } from './types';
 
 export class Router extends PredictionMarketExchange {
@@ -60,10 +64,19 @@ export class Router extends PredictionMarketExchange {
     // Cross-exchange market matches
     // -----------------------------------------------------------------------
 
-    async fetchMarketMatches(params: FetchMarketMatchesParams): Promise<MatchResult[]> {
+    async fetchMarketMatches(params: FetchMarketMatchesParams = {}): Promise<MatchResult[]> {
         if (params.market && !params.marketId) {
             params = { ...params, marketId: params.market.marketId };
         }
+
+        // Browse mode: no specific market identifier → return all matches
+        // from the catalog, with both sides of each pair.
+        const hasIdentifier = params.marketId || params.slug || params.url;
+        if (!hasIdentifier) {
+            return this.fetchMarketMatchesBrowse(params);
+        }
+
+        // Lookup mode: find matches for a specific market.
         const response = await this.client.getMarketMatches(params);
         const matches = response.matches ?? [];
         return matches.map((m: any) => ({
@@ -73,6 +86,31 @@ export class Router extends PredictionMarketExchange {
             reasoning: m.reasoning ?? null,
             bestBid: m.market?.bestBid ?? null,
             bestAsk: m.market?.bestAsk ?? null,
+        }));
+    }
+
+    /**
+     * Browse mode: fetch all matched market pairs from the catalog.
+     * Each result includes sourceMarket (one side) and market (the other).
+     */
+    private async fetchMarketMatchesBrowse(params: FetchMarketMatchesParams): Promise<MatchResult[]> {
+        const bulkParams: FetchArbitrageParams = {
+            minSpread: params.minDifference,
+            category: params.category,
+            limit: params.limit,
+            relations: params.relation ? [params.relation] : undefined,
+        };
+
+        const pairs = await this.fetchArbitrageInternal(bulkParams);
+
+        return pairs.map((opp) => ({
+            sourceMarket: opp.marketA,
+            market: opp.marketB,
+            relation: opp.relation ?? 'identity',
+            confidence: opp.confidence ?? 0,
+            reasoning: (opp as any).reasoning ?? null,
+            bestBid: opp.sellPrice ?? null,
+            bestAsk: null,
         }));
     }
 
@@ -86,7 +124,7 @@ export class Router extends PredictionMarketExchange {
     // Cross-exchange event matches
     // -----------------------------------------------------------------------
 
-    async fetchEventMatches(params: FetchEventMatchesParams): Promise<EventMatchResult[]> {
+    async fetchEventMatches(params: FetchEventMatchesParams = {}): Promise<EventMatchResult[]> {
         if (params.event && !params.eventId) {
             params = { ...params, eventId: params.event.id };
         }
@@ -120,10 +158,10 @@ export class Router extends PredictionMarketExchange {
     }
 
     // -----------------------------------------------------------------------
-    // Hedging: subset/superset matches with live prices
+    // Related markets: subset/superset matches with live prices
     // -----------------------------------------------------------------------
 
-    async fetchHedges(params: FetchMarketMatchesParams): Promise<PriceComparison[]> {
+    async fetchRelatedMarkets(params: FetchMarketMatchesParams): Promise<PriceComparison[]> {
         if (params.market && !params.marketId) {
             params = { ...params, marketId: params.market.marketId };
         }
@@ -145,11 +183,58 @@ export class Router extends PredictionMarketExchange {
             }));
     }
 
+    /** @deprecated Use {@link fetchRelatedMarkets} instead. */
+    async fetchHedges(params: FetchMarketMatchesParams): Promise<PriceComparison[]> {
+        console.warn('[pmxt] fetchHedges is deprecated, use fetchRelatedMarkets instead');
+        return this.fetchRelatedMarkets(params);
+    }
+
     // -----------------------------------------------------------------------
-    // Arbitrage: scan matches for price spreads
+    // Matched markets (deprecated — use fetchMarketMatches without a
+    // marketId for browse mode instead)
     // -----------------------------------------------------------------------
 
+    /** @deprecated Use {@link fetchMarketMatches} without a marketId instead. */
+    async fetchMatchedMarkets(params?: FetchMatchedMarketsParams): Promise<MatchedMarketPair[]> {
+        // Convert params: minDifference -> minSpread for internal use
+        const legacyParams: FetchArbitrageParams | undefined = params
+            ? {
+                  minSpread: params.minDifference,
+                  category: params.category,
+                  limit: params.limit,
+                  relations: params.relations,
+              }
+            : undefined;
+
+        const legacy = await this.fetchArbitrageInternal(legacyParams);
+
+        return legacy.map((opp) => ({
+            marketA: opp.marketA,
+            marketB: opp.marketB,
+            priceDifference: opp.spread,
+            venueA: opp.buyVenue,
+            venueB: opp.sellVenue,
+            priceA: opp.buyPrice,
+            priceB: opp.sellPrice,
+            relation: opp.relation,
+            confidence: opp.confidence,
+            reasoning: (opp as any).reasoning ?? null,
+        }));
+    }
+
+    /** @deprecated Use {@link fetchMatchedMarkets} instead. */
+    async fetchMatchedPrices(params?: FetchMatchedPricesParams): Promise<MatchedPricePair[]> {
+        console.warn('[pmxt] fetchMatchedPrices is deprecated, use fetchMatchedMarkets instead');
+        return this.fetchMatchedMarkets(params);
+    }
+
+    /** @deprecated Use {@link fetchMatchedMarkets} instead. */
     async fetchArbitrage(params?: FetchArbitrageParams): Promise<ArbitrageOpportunity[]> {
+        console.warn('[pmxt] fetchArbitrage is deprecated, use fetchMatchedPrices instead');
+        return this.fetchArbitrageInternal(params);
+    }
+
+    private async fetchArbitrageInternal(params?: FetchArbitrageParams): Promise<ArbitrageOpportunity[]> {
         // Try the dedicated bulk endpoint first (single DB query).
         try {
             return await this.fetchArbitrageBulk(params);

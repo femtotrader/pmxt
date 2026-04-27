@@ -21,6 +21,8 @@ export interface RouterOptions {
 
 export interface MatchResult {
     market: UnifiedMarket;
+    /** The source market this was matched against. Present in browse mode (no marketId), absent in lookup mode. */
+    sourceMarket?: UnifiedMarket;
     relation: MatchRelation;
     confidence: number;
     reasoning: string | null;
@@ -62,8 +64,13 @@ export interface ArbitrageOpportunity {
 // ---------------------------------------------------------------------------
 
 export interface FetchMarketMatchesParams {
+    /** Keyword search across matched market titles. */
+    query?: string;
+    /** Filter matches by category. */
+    category?: string;
     /** Pass a UnifiedMarket directly instead of marketId/slug/url. */
     market?: UnifiedMarket;
+    /** Lookup a specific market by ID. Omit for browse mode. */
     marketId?: string;
     slug?: string;
     url?: string;
@@ -71,14 +78,23 @@ export interface FetchMarketMatchesParams {
     minConfidence?: number;
     limit?: number;
     includePrices?: boolean;
+    /** Minimum price difference between venues. Browse mode only. */
+    minDifference?: number;
+    /** Sort order. Browse mode only. */
+    sort?: 'confidence' | 'volume' | 'priceDifference';
 }
 
 /** @deprecated Use {@link FetchMarketMatchesParams} instead. */
 export type FetchMatchesParams = FetchMarketMatchesParams;
 
 export interface FetchEventMatchesParams {
+    /** Keyword search across matched event titles. */
+    query?: string;
+    /** Filter matches by category. */
+    category?: string;
     /** Pass a UnifiedEvent directly instead of eventId/slug. */
     event?: UnifiedEvent;
+    /** Lookup a specific event by ID. Omit for browse mode. */
     eventId?: string;
     slug?: string;
     relation?: MatchRelation;
@@ -94,6 +110,36 @@ export interface FetchArbitrageParams {
     /** Comma-separated relation types to include (default: 'identity'). */
     relations?: MatchRelation[];
 }
+
+export interface MatchedMarketPair {
+    marketA: UnifiedMarket;
+    marketB: UnifiedMarket;
+    priceDifference: number;
+    venueA: string;
+    venueB: string;
+    priceA: number;
+    priceB: number;
+    /** The set-theoretic relation between the two markets (e.g. identity, subset). */
+    relation?: MatchRelation;
+    /** Match confidence score (0.0 to 1.0). */
+    confidence?: number;
+    /** Why the two markets were matched. */
+    reasoning?: string | null;
+}
+
+/** @deprecated Use {@link MatchedMarketPair} instead. */
+export type MatchedPricePair = MatchedMarketPair;
+
+export interface FetchMatchedMarketsParams {
+    minDifference?: number;
+    category?: string;
+    limit?: number;
+    /** Comma-separated relation types to include (default: 'identity'). */
+    relations?: MatchRelation[];
+}
+
+/** @deprecated Use {@link FetchMatchedMarketsParams} instead. */
+export type FetchMatchedPricesParams = FetchMatchedMarketsParams;
 
 export interface RouterMarketSearchParams {
     query?: string;

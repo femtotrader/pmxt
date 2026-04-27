@@ -95,7 +95,7 @@ Filter to a specific relation with the `relation` parameter:
 # Only identity matches (same market, different venue)
 matches = router.fetch_market_matches(market_id="...", relation="identity")
 
-# Only subset/superset (useful for hedging — see fetchHedges)
+# Only subset/superset (see fetchRelatedMarkets for a dedicated method)
 matches = router.fetch_market_matches(market_id="...", relation="subset")
 ```
 

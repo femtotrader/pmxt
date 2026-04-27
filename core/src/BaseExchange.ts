@@ -22,10 +22,14 @@ import type {
     FetchMatchesParams,
     FetchEventMatchesParams,
     FetchArbitrageParams,
+    FetchMatchedMarketsParams,
+    FetchMatchedPricesParams,
     MatchResult,
     EventMatchResult,
     PriceComparison,
     ArbitrageOpportunity,
+    MatchedMarketPair,
+    MatchedPricePair,
 } from './router/types';
 
 // ----------------------------------------------------------------------------
@@ -288,9 +292,15 @@ export interface ExchangeHas {
     fetchEventMatches: ExchangeCapability;
     /** Whether this exchange supports comparing prices across venues. */
     compareMarketPrices: ExchangeCapability;
-    /** Whether this exchange supports finding hedging opportunities across venues. */
+    /** Whether this exchange supports finding related markets across venues. */
+    fetchRelatedMarkets: ExchangeCapability;
+    /** Whether this exchange supports fetching matched markets across venues. */
+    fetchMatchedMarkets: ExchangeCapability;
+    /** @deprecated Use {@link fetchMatchedMarkets} instead. */
+    fetchMatchedPrices: ExchangeCapability;
+    /** @deprecated Use {@link fetchRelatedMarkets} instead. */
     fetchHedges: ExchangeCapability;
-    /** Whether this exchange supports scanning for arbitrage opportunities. */
+    /** @deprecated Use {@link fetchMatchedMarkets} instead. */
     fetchArbitrage: ExchangeCapability;
 }
 
@@ -1287,12 +1297,18 @@ export abstract class PredictionMarketExchange {
     // ----------------------------------------------------------------------------
 
     /**
-     * Find the same or related market on other venues. Given a market on one venue, discover semantically equivalent markets across every other venue PMXT ingests — each with a relation type (identity, subset, superset, overlap, disjoint), confidence score, and reasoning.
+     * Find the same or related market on other venues. Two modes:
      *
-     * @param params - Match filter parameters (marketId, relation, minConfidence, etc.)
+     * **Lookup mode** (marketId/slug/url provided): Given a market on one venue, discover
+     * semantically equivalent markets across every other venue PMXT ingests.
+     *
+     * **Browse mode** (no identifier): Returns all matched market pairs from the catalog.
+     * Supports query, category, minDifference, and sort params for filtering.
+     *
+     * @param params - Match filter parameters
      * @returns Array of matched markets with relation and confidence
      */
-    async fetchMarketMatches(params: FetchMarketMatchesParams): Promise<MatchResult[]> {
+    async fetchMarketMatches(params?: FetchMarketMatchesParams): Promise<MatchResult[]> {
         throw new Error("Method fetchMarketMatches not implemented.");
     }
 
@@ -1305,12 +1321,18 @@ export abstract class PredictionMarketExchange {
     }
 
     /**
-     * Find the same or related event on other venues. Given an event on one venue, discover semantically equivalent events across every other venue PMXT ingests — including market-level match details for each child market.
+     * Find the same or related event on other venues. Two modes:
      *
-     * @param params - Event match filter parameters (eventId, relation, etc.)
+     * **Lookup mode** (eventId/slug provided): Given an event on one venue, discover
+     * semantically equivalent events across every other venue PMXT ingests.
+     *
+     * **Browse mode** (no identifier): Returns all matched event pairs from the catalog.
+     * Supports query and category params for filtering.
+     *
+     * @param params - Event match filter parameters
      * @returns Array of matched events with market-level match details
      */
-    async fetchEventMatches(params: FetchEventMatchesParams): Promise<EventMatchResult[]> {
+    async fetchEventMatches(params?: FetchEventMatchesParams): Promise<EventMatchResult[]> {
         throw new Error("Method fetchEventMatches not implemented.");
     }
 
@@ -1325,7 +1347,37 @@ export abstract class PredictionMarketExchange {
     }
 
     /**
-     * Find hedging opportunities across venues. Discovers subset/superset market relationships where one market's outcome implies another, enabling cross-venue hedging strategies with live prices.
+     * Find related markets across venues. Discovers subset/superset market relationships
+     * where one market's outcome implies another, with live prices.
+     *
+     * @param params - Match filter parameters
+     * @returns Array of subset/superset matches with live prices
+     */
+    async fetchRelatedMarkets(params: FetchMatchesParams): Promise<PriceComparison[]> {
+        throw new Error("Method fetchRelatedMarkets not implemented.");
+    }
+
+    /**
+     * @deprecated Use {@link fetchMarketMatches} without a marketId instead.
+     * Fetch matched markets across venues.
+     */
+    async fetchMatchedMarkets(params?: FetchMatchedMarketsParams): Promise<MatchedMarketPair[]> {
+        throw new Error("Method fetchMatchedMarkets not implemented.");
+    }
+
+    /**
+     * @deprecated Use {@link fetchMatchedMarkets} instead. Compare matched market prices across venues. Finds markets listed on multiple venues
+     * and returns side-by-side pricing data.
+     *
+     * @param params - Price comparison parameters (minDifference, category, limit)
+     * @returns Array of matched market pairs with prices from each venue
+     */
+    async fetchMatchedPrices(params?: FetchMatchedPricesParams): Promise<MatchedPricePair[]> {
+        throw new Error("Method fetchMatchedPrices not implemented.");
+    }
+
+    /**
+     * @deprecated Use {@link fetchRelatedMarkets} instead. Find hedging opportunities across venues. Discovers subset/superset market relationships where one market's outcome implies another, enabling cross-venue hedging strategies with live prices.
      *
      * @param params - Match filter parameters
      * @returns Array of subset/superset matches with live prices
@@ -1335,7 +1387,7 @@ export abstract class PredictionMarketExchange {
     }
 
     /**
-     * Scan for arbitrage opportunities across venues. Finds identity matches where the same market is priced differently on different venues, returning opportunities sorted by spread size.
+     * @deprecated Use {@link fetchMatchedPrices} instead. Scan for arbitrage opportunities across venues. Finds identity matches where the same market is priced differently on different venues, returning opportunities sorted by spread size.
      *
      * @param params - Arbitrage scan parameters (minSpread, category, limit)
      * @returns Array of arbitrage opportunities sorted by spread
@@ -1490,7 +1542,7 @@ export abstract class PredictionMarketExchange {
         'unwatchOrderBook', 'watchTrades', 'fetchMyTrades',
         'fetchClosedOrders', 'fetchAllOrders', 'buildOrder', 'submitOrder',
         'fetchMarketMatches', 'fetchMatches', 'fetchEventMatches', 'compareMarketPrices',
-        'fetchHedges', 'fetchArbitrage',
+        'fetchRelatedMarkets', 'fetchMatchedMarkets', 'fetchMatchedPrices', 'fetchHedges', 'fetchArbitrage',
     ];
 
     // Compile-time exhaustiveness check: fails tsc if a key exists in
@@ -1504,7 +1556,7 @@ export abstract class PredictionMarketExchange {
         watchTrades: true, fetchMyTrades: true, fetchClosedOrders: true,
         fetchAllOrders: true, buildOrder: true, submitOrder: true,
         fetchMarketMatches: true, fetchMatches: true, fetchEventMatches: true, compareMarketPrices: true,
-        fetchHedges: true, fetchArbitrage: true,
+        fetchRelatedMarkets: true, fetchMatchedMarkets: true, fetchMatchedPrices: true, fetchHedges: true, fetchArbitrage: true,
     };
 
     /**
@@ -1517,6 +1569,9 @@ export abstract class PredictionMarketExchange {
         fetchMarkets: 'fetchMarketsImpl',
         fetchEvents: 'fetchEventsImpl',
         fetchMatches: 'fetchMarketMatches',
+        fetchHedges: 'fetchRelatedMarkets',
+        fetchMatchedPrices: 'fetchMatchedMarkets',
+        fetchArbitrage: 'fetchMatchedMarkets',
     };
 
     /**

@@ -847,6 +847,13 @@ export abstract class Exchange {
     }
 
     async submitOrder(built: BuiltOrder): Promise<Order> {
+        if (this.isHosted) {
+            throw new PmxtError(
+                "Trade execution is not available through the hosted API. " +
+                "Use the local PMXT SDK with your venue credentials instead. " +
+                "See https://pmxt.dev/docs/quickstart for setup instructions."
+            );
+        }
         await this.initPromise;
         try {
             const args: any[] = [];
@@ -873,6 +880,13 @@ export abstract class Exchange {
     }
 
     async cancelOrder(orderId: string): Promise<Order> {
+        if (this.isHosted) {
+            throw new PmxtError(
+                "Trade execution is not available through the hosted API. " +
+                "Use the local PMXT SDK with your venue credentials instead. " +
+                "See https://pmxt.dev/docs/quickstart for setup instructions."
+            );
+        }
         await this.initPromise;
         try {
             const args: any[] = [];
@@ -1591,6 +1605,13 @@ export abstract class Exchange {
      * ```
      */
     async buildOrder(params: CreateOrderParams & { outcome?: MarketOutcome }): Promise<BuiltOrder> {
+        if (this.isHosted) {
+            throw new PmxtError(
+                "Trade execution is not available through the hosted API. " +
+                "Use the local PMXT SDK with your venue credentials instead. " +
+                "See https://pmxt.dev/docs/quickstart for setup instructions."
+            );
+        }
         await this.initPromise;
         try {
             let marketId = params.marketId;
@@ -1666,6 +1687,13 @@ export abstract class Exchange {
      * ```
      */
     async createOrder(params: any): Promise<Order> {
+        if (this.isHosted) {
+            throw new PmxtError(
+                "Trade execution is not available through the hosted API. " +
+                "Use the local PMXT SDK with your venue credentials instead. " +
+                "See https://pmxt.dev/docs/quickstart for setup instructions."
+            );
+        }
         await this.initPromise;
         try {
             // Resolve outcome shorthand: extract marketId/outcomeId from outcome object

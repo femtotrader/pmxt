@@ -240,6 +240,33 @@ exchange.fetch_markets_paginated(limit=10, cursor="...")
 
 
 ---
+### `fetch_events_paginated`
+
+Paginated variant of {@link fetchEvents}.
+
+
+**Signature:**
+
+```python
+def fetch_events_paginated(params: Optional[{ limit?: number; cursor?: string; filter?: EventFilterCriteria }] = None) -> PaginatedEventsResult:
+```
+
+**Parameters:**
+
+- `params` ({ limit?: number; cursor?: string; filter?: EventFilterCriteria }) - **Optional**: params
+  - `params.limit` - Page size (default: return all events)
+  - `params.cursor` - Opaque cursor returned by a previous call
+
+**Returns:** [PaginatedEventsResult](#paginatedeventsresult) - PaginatedEventsResult with data, total, and optional nextCursor
+
+**Example:**
+
+```python
+exchange.fetch_events_paginated(limit=10, cursor="...")
+```
+
+
+---
 ### `fetch_events`
 
 Fetch events with optional keyword search.
@@ -865,6 +892,231 @@ exchange.close()
 
 
 ---
+### `fetch_market_matches`
+
+Find the same or related market on other venues. Given a market on one venue, discover semantically equivalent markets across every other venue PMXT ingests — each with a relation type (identity, subset, superset, overlap, disjoint), confidence score, and reasoning.
+
+
+**Signature:**
+
+```python
+def fetch_market_matches(params: FetchMarketMatchesParams) -> List[MatchResult]:
+```
+
+**Parameters:**
+
+- `params` ([FetchMarketMatchesParams](#fetchmarketmatchesparams)): Match filter parameters (marketId, relation, minConfidence, etc.)
+
+**Returns:** List[[MatchResult](#matchresult)] - Array of matched markets with relation and confidence
+
+**Example:**
+
+```python
+exchange.fetch_market_matches()
+```
+
+
+---
+### `fetch_matches`
+
+fetchMatches
+
+
+**Signature:**
+
+```python
+def fetch_matches(params: FetchMatchesParams) -> List[MatchResult]:
+```
+
+**Parameters:**
+
+- `params` (FetchMatchesParams): params
+
+**Returns:** List[[MatchResult](#matchresult)] - Result
+
+**Example:**
+
+```python
+exchange.fetch_matches()
+```
+
+
+---
+### `fetch_event_matches`
+
+Find the same or related event on other venues. Given an event on one venue, discover semantically equivalent events across every other venue PMXT ingests — including market-level match details for each child market.
+
+
+**Signature:**
+
+```python
+def fetch_event_matches(params: FetchEventMatchesParams) -> List[EventMatchResult]:
+```
+
+**Parameters:**
+
+- `params` ([FetchEventMatchesParams](#fetcheventmatchesparams)): Event match filter parameters (eventId, relation, etc.)
+
+**Returns:** List[[EventMatchResult](#eventmatchresult)] - Array of matched events with market-level match details
+
+**Example:**
+
+```python
+exchange.fetch_event_matches()
+```
+
+
+---
+### `compare_market_prices`
+
+Compare live prices for the same market across venues. Finds identity matches and returns side-by-side best bid/ask prices so you can spot price differences at a glance.
+
+
+**Signature:**
+
+```python
+def compare_market_prices(params: FetchMatchesParams) -> List[PriceComparison]:
+```
+
+**Parameters:**
+
+- `params` (FetchMatchesParams): Match filter parameters (uses relation: 'identity' internally)
+
+**Returns:** List[[PriceComparison](#pricecomparison)] - Array of price comparisons across venues
+
+**Example:**
+
+```python
+exchange.compare_market_prices()
+```
+
+
+---
+### `fetch_related_markets`
+
+Find related markets across venues. Discovers subset/superset market relationships
+
+
+**Signature:**
+
+```python
+def fetch_related_markets(params: FetchMatchesParams) -> List[PriceComparison]:
+```
+
+**Parameters:**
+
+- `params` (FetchMatchesParams): Match filter parameters
+
+**Returns:** List[[PriceComparison](#pricecomparison)] - Array of subset/superset matches with live prices
+
+**Example:**
+
+```python
+exchange.fetch_related_markets()
+```
+
+
+---
+### `fetch_matched_markets`
+
+Fetch matched markets across venues. Finds markets listed on multiple venues
+
+
+**Signature:**
+
+```python
+def fetch_matched_markets(params: Optional[FetchMatchedMarketsParams] = None) -> List[MatchedMarketPair]:
+```
+
+**Parameters:**
+
+- `params` ([FetchMatchedMarketsParams](#fetchmatchedmarketsparams)) - **Optional**: Matched market parameters (minDifference, category, limit)
+
+**Returns:** List[[MatchedMarketPair](#matchedmarketpair)] - Array of matched market pairs with prices from each venue
+
+**Example:**
+
+```python
+exchange.fetch_matched_markets()
+```
+
+
+---
+### `fetch_matched_prices`
+
+fetchMatchedPrices
+
+
+**Signature:**
+
+```python
+def fetch_matched_prices(params: Optional[FetchMatchedPricesParams] = None) -> List[MatchedPricePair]:
+```
+
+**Parameters:**
+
+- `params` (FetchMatchedPricesParams) - **Optional**: Price comparison parameters (minDifference, category, limit)
+
+**Returns:** List[MatchedPricePair] - Array of matched market pairs with prices from each venue
+
+**Example:**
+
+```python
+exchange.fetch_matched_prices()
+```
+
+
+---
+### `fetch_hedges`
+
+fetchHedges
+
+
+**Signature:**
+
+```python
+def fetch_hedges(params: FetchMatchesParams) -> List[PriceComparison]:
+```
+
+**Parameters:**
+
+- `params` (FetchMatchesParams): Match filter parameters
+
+**Returns:** List[[PriceComparison](#pricecomparison)] - Array of subset/superset matches with live prices
+
+**Example:**
+
+```python
+exchange.fetch_hedges()
+```
+
+
+---
+### `fetch_arbitrage`
+
+fetchArbitrage
+
+
+**Signature:**
+
+```python
+def fetch_arbitrage(params: Optional[FetchArbitrageParams] = None) -> List[ArbitrageOpportunity]:
+```
+
+**Parameters:**
+
+- `params` ([FetchArbitrageParams](#fetcharbitrageparams)) - **Optional**: Arbitrage scan parameters (minSpread, category, limit)
+
+**Returns:** List[[ArbitrageOpportunity](#arbitrageopportunity)] - Array of arbitrage opportunities sorted by spread
+
+**Example:**
+
+```python
+exchange.fetch_arbitrage()
+```
+
+
+---
 ### `watch_prices`
 
 Watch AMM price updates for a market address (Limitless only).
@@ -1136,6 +1388,7 @@ tags: List[string] # Optional list of tags associated with the market.
 tick_size: float # Minimum price increment (e.g., 0.01, 0.001)
 status: str # Venue-native lifecycle status (e.g. 'active', 'closed', 'archived').
 contract_address: str # On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.).
+source_exchange: str # The exchange/venue this market originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router.
 yes: Any # Convenience accessor for the YES outcome on a binary market.
 no: Any # Convenience accessor for the NO outcome on a binary market.
 up: Any # Convenience accessor for the UP outcome on a binary market.
@@ -1177,6 +1430,7 @@ url: str # Canonical URL to view the event on the venue.
 image: str # Optional image URL for the event.
 category: str # Optional category label (e.g., "Politics", "Sports").
 tags: List[string] # Optional list of tags associated with the event.
+source_exchange: str # The exchange/venue this event originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router.
 ```
 
 ---
@@ -1334,6 +1588,19 @@ next_cursor: str # Cursor to pass to the next call, or undefined if this is the 
 ```
 
 ---
+### `PaginatedEventsResult`
+
+Shape returned by fetchEventsPaginated
+
+```python
+@dataclass
+class PaginatedEventsResult:
+data: List[UnifiedEvent] # The page of unified events
+total: float # Total number of events in the snapshot
+next_cursor: str # Cursor to pass to the next call, or undefined if this is the last page
+```
+
+---
 ### `BuiltOrder`
 
 
@@ -1383,6 +1650,90 @@ category: str #
 tags: List[string] # Match events that have any of these tags
 market_count: object # 
 total_volume: object # Sum of market volumes
+```
+
+---
+### `MatchResult`
+
+
+
+```python
+@dataclass
+class MatchResult:
+market: UnifiedMarket # 
+relation: str # 
+confidence: float # 
+reasoning: Any # 
+best_bid: Any # 
+best_ask: Any # 
+```
+
+---
+### `EventMatchResult`
+
+
+
+```python
+@dataclass
+class EventMatchResult:
+event: UnifiedEvent # 
+market_matches: List[MatchResult] # 
+```
+
+---
+### `PriceComparison`
+
+
+
+```python
+@dataclass
+class PriceComparison:
+market: UnifiedMarket # 
+relation: str # 
+confidence: float # 
+reasoning: Any # 
+best_bid: Any # 
+best_ask: Any # 
+venue: str # 
+```
+
+---
+### `ArbitrageOpportunity`
+
+
+
+```python
+@dataclass
+class ArbitrageOpportunity:
+market_a: UnifiedMarket # 
+market_b: UnifiedMarket # 
+spread: float # 
+buy_venue: str # 
+sell_venue: str # 
+buy_price: float # 
+sell_price: float # 
+relation: str # The set-theoretic relation between the two markets (e.g. identity, subset).
+confidence: float # Match confidence score (0.0 to 1.0).
+```
+
+---
+### `MatchedMarketPair`
+
+
+
+```python
+@dataclass
+class MatchedMarketPair:
+market_a: UnifiedMarket # 
+market_b: UnifiedMarket # 
+price_difference: float # 
+venue_a: str # 
+venue_b: str # 
+price_a: float # 
+price_b: float # 
+relation: str # The set-theoretic relation between the two markets (e.g. identity, subset).
+confidence: float # Match confidence score (0.0 to 1.0).
+reasoning: Any # Why the two markets were matched.
 ```
 
 ---
@@ -1548,6 +1899,69 @@ since: str # Only return records after this date
 until: str # Only return records before this date
 limit: float # Maximum number of results to return
 cursor: str # Opaque pagination cursor from a previous response
+```
+
+---
+### `FetchMarketMatchesParams`
+
+
+
+```python
+@dataclass
+class FetchMarketMatchesParams:
+market: Any # Pass a UnifiedMarket directly instead of marketId/slug/url.
+market_id: str # 
+slug: str # 
+url: str # 
+relation: str # 
+min_confidence: float # 
+limit: float # 
+include_prices: bool # 
+```
+
+---
+### `FetchEventMatchesParams`
+
+
+
+```python
+@dataclass
+class FetchEventMatchesParams:
+event: Any # Pass a UnifiedEvent directly instead of eventId/slug.
+event_id: str # 
+slug: str # 
+relation: str # 
+min_confidence: float # 
+limit: float # 
+include_prices: bool # 
+```
+
+---
+### `FetchArbitrageParams`
+
+
+
+```python
+@dataclass
+class FetchArbitrageParams:
+min_spread: float # 
+category: str # 
+limit: float # 
+relations: List[string] # Comma-separated relation types to include (default: 'identity').
+```
+
+---
+### `FetchMatchedMarketsParams`
+
+
+
+```python
+@dataclass
+class FetchMatchedMarketsParams:
+min_difference: float # 
+category: str # 
+limit: float # 
+relations: List[string] # Comma-separated relation types to include (default: 'identity').
 ```
 
 ---

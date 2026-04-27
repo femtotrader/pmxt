@@ -901,6 +901,12 @@ class Exchange(ABC):
             raise self._parse_api_exception(e) from None
 
     def cancel_order(self, order_id: str) -> Order:
+        if self.is_hosted:
+            raise PmxtError(
+                "Trade execution is not available through the hosted API. "
+                "Use the local PMXT SDK with your venue credentials instead. "
+                "See https://pmxt.dev/docs/quickstart for setup instructions."
+            )
         try:
             args = []
             args.append(order_id)
@@ -1954,6 +1960,8 @@ class Exchange(ABC):
         """
         Create a new order.
 
+        Not available through the hosted API — trades execute locally.
+
         You can specify the market either with explicit market_id/outcome_id,
         or by passing an outcome object directly (e.g., market.yes).
 
@@ -1989,6 +1997,12 @@ class Exchange(ABC):
             ...     amount=10,
             ... )
         """
+        if self.is_hosted:
+            raise PmxtError(
+                "Trade execution is not available through the hosted API. "
+                "Use the local PMXT SDK with your venue credentials instead. "
+                "See https://pmxt.dev/docs/quickstart for setup instructions."
+            )
         try:
             # Resolve outcome shorthand
             if outcome is not None:
@@ -2099,6 +2113,12 @@ class Exchange(ABC):
             ...     amount=10
             ... )
         """
+        if self.is_hosted:
+            raise PmxtError(
+                "Trade execution is not available through the hosted API. "
+                "Use the local PMXT SDK with your venue credentials instead. "
+                "See https://pmxt.dev/docs/quickstart for setup instructions."
+            )
         try:
             # Resolve outcome shorthand
             if outcome is not None:
@@ -2175,6 +2195,12 @@ class Exchange(ABC):
             >>> order = exchange.submit_order(built)
             >>> print(order.id, order.status)
         """
+        if self.is_hosted:
+            raise PmxtError(
+                "Trade execution is not available through the hosted API. "
+                "Use the local PMXT SDK with your venue credentials instead. "
+                "See https://pmxt.dev/docs/quickstart for setup instructions."
+            )
         try:
             built_dict = {
                 "exchange": built.exchange,

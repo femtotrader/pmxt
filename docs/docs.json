@@ -15,9 +15,9 @@
   "api": {
     "examples": {
       "languages": [
-        "curl",
         "python",
         "javascript",
+        "curl",
         "go",
         "java"
       ]
@@ -138,11 +138,8 @@
             "group": "Cross-Venue",
             "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /api/{exchange}/fetchEventMatches",
-              "GET /api/{exchange}/fetchMarketMatches",
-              "POST /api/{exchange}/compareMarketPrices",
-              "GET /api/{exchange}/fetchHedges",
-              "GET /api/{exchange}/fetchArbitrage"
+              "GET /api/router/fetchEventMatches",
+              "GET /api/router/fetchMarketMatches"
             ]
           },
           {
@@ -184,7 +181,7 @@
             "openapi": "api-reference/openapi.json",
             "pages": [
               "POST /api/{exchange}/watchOrderBook",
-              "POST /api/{exchange}/unwatchOrderBook",
+              "POST /api/polymarket/unwatchOrderBook",
               "POST /api/{exchange}/watchTrades",
               "POST /api/{exchange}/watchAddress",
               "POST /api/{exchange}/unwatchAddress"

@@ -1,6 +1,6 @@
 ---
-title: Compare Prices & Arbitrage
-description: "Compare prices across venues, find hedges, and scan for arbitrage."
+title: Compare Prices Across Venues
+description: "Compare prices across venues and find related markets."
 ---
 
 Three methods build on [matching](/router/matching) to answer pricing
@@ -63,20 +63,20 @@ and `includePrices: true`, then maps the results to a flat comparison.
 }
 ```
 
-## fetchHedges
+## fetchRelatedMarkets
 
-Find markets that partially hedge a position — markets whose resolution
-condition is a subset or superset of the target market.
+Find related markets across venues — markets whose resolution condition
+is a subset or superset of the target market.
 
 <Tabs>
   <Tab title="Python">
     ```python
-    hedges = router.fetch_hedges(market_id="d35bc8c6-...")
+    related = router.fetch_related_markets(market_id="d35bc8c6-...")
 
-    for h in hedges:
-        print(f"{h.relation:10s} {h.venue:12s}  {h.market.title}")
-        print(f"           confidence {h.confidence:.0%}  bid {h.best_bid}  ask {h.best_ask}")
-        print(f"           {h.reasoning}")
+    for r in related:
+        print(f"{r.relation:10s} {r.venue:12s}  {r.market.title}")
+        print(f"           confidence {r.confidence:.0%}  bid {r.best_bid}  ask {r.best_ask}")
+        print(f"           {r.reasoning}")
     ```
 
     ```
@@ -90,11 +90,11 @@ condition is a subset or superset of the target market.
   </Tab>
   <Tab title="TypeScript">
     ```typescript
-    const hedges = await router.fetchHedges({ marketId: "d35bc8c6-..." });
+    const related = await router.fetchRelatedMarkets({ marketId: "d35bc8c6-..." });
 
-    for (const h of hedges) {
-      console.log(h.relation, h.venue, h.market.title);
-      console.log(`  confidence: ${h.confidence}  reasoning: ${h.reasoning}`);
+    for (const r of related) {
+      console.log(r.relation, r.venue, r.market.title);
+      console.log(`  confidence: ${r.confidence}  reasoning: ${r.reasoning}`);
     }
     ```
   </Tab>
@@ -105,48 +105,46 @@ reverse. See [relation types](/router/matching#relation-types) for the
 full taxonomy.
 
 <Info>
-  `fetchHedges` filters matches to `subset` and `superset` relations
-  only. If you want all relations, use
+  `fetchRelatedMarkets` filters matches to `subset` and `superset`
+  relations only. If you want all relations, use
   [`fetchMarketMatches`](/router/matching#fetchmarketmatches) directly.
 </Info>
 
-## fetchArbitrage
+## fetchMatchedMarkets
 
-Scan for cross-venue price spreads on identity-matched markets.
-
-The Router fetches markets, finds identity matches on other venues,
-compares bid/ask, and returns every pair where you could theoretically
-buy on one venue and sell on another for a positive spread.
+Returns matched market pairs across venues with live pricing from each.
+The Router finds identity-matched markets on different venues and
+returns each pair with side-by-side data.
 
 <Tabs>
   <Tab title="Python">
     ```python
-    opps = router.fetch_arbitrage(min_spread=0.03, category="Politics", limit=20)
+    pairs = router.fetch_matched_markets(min_difference=0.03, category="Politics", limit=20)
 
-    for o in opps:
-        print(f"spread {o.spread:+.2f}")
-        print(f"  buy  {o.buy_venue:12s} @ {o.buy_price:.2f}  ({o.market_a.title})")
-        print(f"  sell {o.sell_venue:12s} @ {o.sell_price:.2f}  ({o.market_b.title})")
+    for p in pairs:
+        print(f"{p.market_a.title}")
+        print(f"  {p.venue_a:12s} @ {p.price_a:.2f}")
+        print(f"  {p.venue_b:12s} @ {p.price_b:.2f}")
     ```
 
     ```
-    spread +0.05
-      buy  polymarket   @ 0.58  (Will BTC hit $100k by Dec 31?)
-      sell kalshi       @ 0.63  (Bitcoin above $100k on Dec 31)
+    Will BTC hit $100k by Dec 31?
+      polymarket   @ 0.58
+      kalshi       @ 0.63
     ```
   </Tab>
   <Tab title="TypeScript">
     ```typescript
-    const opps = await router.fetchArbitrage({
-      minSpread: 0.03,
+    const pairs = await router.fetchMatchedMarkets({
+      minDifference: 0.03,
       category: "Politics",
       limit: 20,
     });
 
-    for (const o of opps) {
-      console.log(`spread: +${o.spread.toFixed(2)}`);
-      console.log(`  buy  ${o.buyVenue} @ ${o.buyPrice}  (${o.marketA.title})`);
-      console.log(`  sell ${o.sellVenue} @ ${o.sellPrice}  (${o.marketB.title})`);
+    for (const p of pairs) {
+      console.log(p.marketA.title);
+      console.log(`  ${p.venueA} @ ${p.priceA}`);
+      console.log(`  ${p.venueB} @ ${p.priceB}`);
     }
     ```
   </Tab>
@@ -154,14 +152,13 @@ buy on one venue and sell on another for a positive spread.
 
 ### Parameters
 
-| Parameter   | Type      | Default | Notes                                                  |
-| ----------- | --------- | ------- | ------------------------------------------------------ |
-| `minSpread` | `number`  | `0`     | Only return pairs with spread ≥ this value.            |
-| `category`  | `string`  | —       | Filter source markets by category.                     |
-| `limit`     | `integer` | `50`    | Max source markets to scan for matches.                |
+| Parameter       | Type      | Default | Notes                                                      |
+| --------------- | --------- | ------- | ---------------------------------------------------------- |
+| `minDifference` | `number`  | `0`     | Minimum price difference between venues to include.        |
+| `category`      | `string`  | —       | Filter both sides of the match by category.                |
+| `limit`         | `integer` | `50`    | Maximum number of matched pairs to return.                 |
 
-Results are sorted by spread descending — the biggest opportunities
-first.
+Results are sorted by price difference descending.
 
 ### Response shape
 
@@ -169,43 +166,34 @@ first.
 {
   "marketA": { "marketId": "...", "title": "..." },
   "marketB": { "marketId": "...", "title": "..." },
-  "spread": 0.05,
-  "buyVenue": "polymarket",
-  "sellVenue": "kalshi",
-  "buyPrice": 0.58,
-  "sellPrice": 0.63
+  "priceDifference": 0.05,
+  "venueA": "polymarket",
+  "venueB": "kalshi",
+  "priceA": 0.58,
+  "priceB": 0.63,
+  "reasoning": "Both markets ask whether BTC exceeds $100k by Dec 2026"
 }
 ```
 
-<Warning>
-  Arbitrage detection shows price discrepancies — it does not execute
-  trades. Order routing is not yet available. Use venue-specific
-  exchanges (`pmxt.Polymarket(...)`, `pmxt.Kalshi(...)`) to place
-  orders on each side.
-</Warning>
-
 ## Composing with venue exchanges
 
-The Router is read-only — it finds opportunities, but you trade on
-venue exchanges. A typical workflow:
+The Router is read-only. To trade, use venue-specific exchange
+classes with the local SDK. A typical workflow:
 
 ```python
 import pmxt
 
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
-poly   = pmxt.Polymarket(pmxt_api_key="pmxt_live_...", private_key="0x...")
-kalshi = pmxt.Kalshi(pmxt_api_key="pmxt_live_...", api_key="...", private_key="...")
+poly   = pmxt.Polymarket(private_key="0x...")
 
-# 1. Discover an arbitrage opportunity
-opps = router.fetch_arbitrage(min_spread=0.03)
+# 1. Browse matched markets across venues
+pairs = router.fetch_matched_markets(category="Politics")
 
-# 2. Inspect order books on each venue
-book_a = poly.fetch_order_book(market_id=opps[0].market_a.market_id)
-book_b = kalshi.fetch_order_book(market_id=opps[0].market_b.market_id)
+# 2. Inspect the order book on a specific venue
+book = poly.fetch_order_book(market_id=pairs[0].market_a.market_id)
 
-# 3. Execute on each venue (requires venue credentials)
+# 3. Place an order locally (never proxied through PMXT)
 # poly.create_order(...)
-# kalshi.create_order(...)
 ```
 
 Router returns the same [unified schema](/concepts/unified-schema) as

@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.10] - 2026-04-27
+
+### Bug Fix: Python SDK Hosted Mode Detection
+
+- **`base_url` default fix**: Generated exchange classes in
+  `_exchanges.py` hardcoded `base_url="http://localhost:3847"` which
+  overrode `resolve_pmxt_base_url` when `pmxt_api_key` was provided.
+  Changed default to `None` so the URL resolver correctly detects
+  hosted mode. Without this fix, `is_hosted` was always `False` for
+  exchange classes like `Polymarket(pmxt_api_key=...)`, and the trade
+  execution guards (added in 2.35.9) never fired.
+
+- **TypeScript SDK dist rebuild**: Rebuilt `dist/` to include the
+  trade execution guards from 2.35.9.
+
 ## [2.35.9] - 2026-04-27
 
 ### API Naming & Compliance

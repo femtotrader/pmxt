@@ -140,7 +140,7 @@ function generateClass(exchange) {
         constructorParams.push(`signature_type: Optional[Any] = ${defaultVal}`);
         superArgs.push('signature_type=signature_type');
     }
-    constructorParams.push('base_url: str = "http://localhost:3847"');
+    constructorParams.push('base_url: Optional[str] = None');
     constructorParams.push('auto_start_server: bool = True');
     constructorParams.push('pmxt_api_key: Optional[str] = None');
     superArgs.push('base_url=base_url');

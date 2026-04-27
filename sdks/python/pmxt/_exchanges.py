@@ -18,7 +18,7 @@ class Polymarket(Exchange):
         private_key: Optional[str] = None,
         proxy_address: Optional[str] = None,
         signature_type: Optional[Any] = "gnosis-safe",
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):
@@ -68,7 +68,7 @@ class Limitless(Exchange):
         api_secret: Optional[str] = None,
         passphrase: Optional[str] = None,
         private_key: Optional[str] = None,
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):
@@ -112,7 +112,7 @@ class Kalshi(Exchange):
         self,
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):
@@ -143,7 +143,7 @@ class KalshiDemo(Exchange):
         self,
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):
@@ -176,7 +176,7 @@ class Probable(Exchange):
         api_secret: Optional[str] = None,
         passphrase: Optional[str] = None,
         private_key: Optional[str] = None,
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):
@@ -219,7 +219,7 @@ class Baozi(Exchange):
     def __init__(
         self,
         private_key: Optional[str] = None,
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):
@@ -248,7 +248,7 @@ class Myriad(Exchange):
         self,
         api_key: Optional[str] = None,
         wallet_address: Optional[str] = None,
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):
@@ -280,7 +280,7 @@ class Opinion(Exchange):
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
         proxy_address: Optional[str] = None,
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):
@@ -312,7 +312,7 @@ class Metaculus(Exchange):
     def __init__(
         self,
         api_token: Optional[str] = None,
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):
@@ -341,7 +341,7 @@ class Smarkets(Exchange):
         self,
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):
@@ -372,7 +372,7 @@ class Polymarket_us(Exchange):
         self,
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):
@@ -401,7 +401,7 @@ class Router(Exchange):
 
     def __init__(
         self,
-        base_url: str = "http://localhost:3847",
+        base_url: Optional[str] = None,
         auto_start_server: bool = True,
         pmxt_api_key: Optional[str] = None,
     ):

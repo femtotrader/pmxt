@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.8] - 2026-04-27
+
+### Polymarket CLOB V2 Migration
+
+- **SDK upgrade**: Replaced `@polymarket/clob-client` (V1) with
+  `@polymarket/clob-client-v2`. The V2 SDK auto-detects the backend
+  version via `GET /version` and creates V1 or V2 order structs
+  accordingly — no flag or config needed.
+
+- **ClobClient constructor**: Migrated both L1 and L2 client
+  initialization from positional arguments to the V2 options object
+  (`{ host, chain, signer, creds, signatureType, funderAddress }`).
+
+- **Order building**: Removed `feeRateBps` from order args. Fees are
+  now protocol-determined at match time in V2.
+
+- **SignedOrder type**: Replaced the `@polymarket/order-utils` import
+  with `SignedOrder` from the V2 SDK (a `SignedOrderV1 | SignedOrderV2`
+  union that works against both backends).
+
+- **On-chain balance**: Switched the on-chain balance fallback from
+  USDC.e (`0x2791Bca1...`) to pUSD (`0xC011a7E1...`), the V2 trading
+  collateral.
+
+- **Error handling**: Updated the Polymarket error mapper for V2
+  response format (`{ error: string }` instead of `{ errorMsg }`),
+  added HTTP 425 (matching engine restarting) mapping, and expanded
+  pattern matching for V2-specific errors (trading disabled, cancel-only
+  mode, address banned, post-only, FOK/FAK, duplicate, size/expiration).
+
 ## [2.35.7] - 2026-04-26
 
 ### Improvements

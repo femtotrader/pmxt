@@ -364,7 +364,22 @@ describe('ErrorMapper', () => {
 describe('PolymarketErrorMapper', () => {
     const mapper = new PolymarketErrorMapper();
 
-    it('should extract errorMsg field', () => {
+    // -- extractErrorMessage --
+
+    it('should extract V2 error field (string)', () => {
+        const error = {
+            isAxiosError: true,
+            response: {
+                data: {
+                    error: 'Price breaks minimum tick size rule'
+                }
+            }
+        } as any;
+        const message = mapper['extractErrorMessage'](error);
+        expect(message).toBe('Price breaks minimum tick size rule');
+    });
+
+    it('should extract legacy errorMsg field', () => {
         const error = {
             isAxiosError: true,
             response: {
@@ -377,6 +392,30 @@ describe('PolymarketErrorMapper', () => {
         expect(message).toBe('Polymarket error');
     });
 
+    it('should prefer V2 error field over legacy errorMsg', () => {
+        const error = {
+            isAxiosError: true,
+            response: {
+                data: {
+                    error: 'v2 message',
+                    errorMsg: 'legacy message'
+                }
+            }
+        } as any;
+        const message = mapper['extractErrorMessage'](error);
+        expect(message).toBe('v2 message');
+    });
+
+    // -- mapByStatusCode (425 Too Early) --
+
+    it('should map 425 to ExchangeNotAvailable', () => {
+        const error = mapper['mapByStatusCode'](425, 'Too Early', {});
+        expect(error).toBeInstanceOf(ExchangeNotAvailable);
+        expect(error.retryable).toBe(true);
+    });
+
+    // -- mapBadRequestError: authentication --
+
     it('should detect API key errors as authentication errors', () => {
         const error = mapper['mapBadRequestError']('Invalid API key', {});
         expect(error).toBeInstanceOf(AuthenticationError);
@@ -387,8 +426,77 @@ describe('PolymarketErrorMapper', () => {
         expect(error).toBeInstanceOf(AuthenticationError);
     });
 
+    it('should detect L1 request header errors as authentication errors', () => {
+        const error = mapper['mapBadRequestError']('Invalid L1 Request headers', {});
+        expect(error).toBeInstanceOf(AuthenticationError);
+    });
+
+    // -- mapBadRequestError: exchange unavailability --
+
+    it('should detect trading disabled as ExchangeNotAvailable', () => {
+        const error = mapper['mapBadRequestError'](
+            'Trading is currently disabled. Check polymarket.com for updates', {}
+        );
+        expect(error).toBeInstanceOf(ExchangeNotAvailable);
+    });
+
+    it('should detect cancel-only mode as ExchangeNotAvailable', () => {
+        const error = mapper['mapBadRequestError'](
+            'Trading is currently cancel-only. New orders are not accepted', {}
+        );
+        expect(error).toBeInstanceOf(ExchangeNotAvailable);
+    });
+
+    // -- mapBadRequestError: permission denied --
+
+    it('should detect address banned as PermissionDenied', () => {
+        const error = mapper['mapBadRequestError']("'0xabc' address banned", {});
+        expect(error).toBeInstanceOf(PermissionDenied);
+    });
+
+    it('should detect closed-only mode as PermissionDenied', () => {
+        const error = mapper['mapBadRequestError']("'0xabc' address in closed only mode", {});
+        expect(error).toBeInstanceOf(PermissionDenied);
+    });
+
+    // -- mapBadRequestError: invalid order --
+
     it('should detect tick size as invalid order', () => {
         const error = mapper['mapBadRequestError']('Invalid tick size', {});
+        expect(error).toBeInstanceOf(InvalidOrder);
+    });
+
+    it('should detect post-only crossing as invalid order', () => {
+        const error = mapper['mapBadRequestError']('invalid post-only order: order crosses book', {});
+        expect(error).toBeInstanceOf(InvalidOrder);
+    });
+
+    it('should detect duplicate order as invalid order', () => {
+        const error = mapper['mapBadRequestError']('order abc is invalid. Duplicated.', {});
+        expect(error).toBeInstanceOf(InvalidOrder);
+    });
+
+    it('should detect FOK failure as invalid order', () => {
+        const error = mapper['mapBadRequestError'](
+            "order couldn't be fully filled. FOK orders are fully filled or cancelled", {}
+        );
+        expect(error).toBeInstanceOf(InvalidOrder);
+    });
+
+    it('should detect FAK failure as invalid order', () => {
+        const error = mapper['mapBadRequestError'](
+            'no orders found to match with FAK order', {}
+        );
+        expect(error).toBeInstanceOf(InvalidOrder);
+    });
+
+    it('should detect size too small as invalid order', () => {
+        const error = mapper['mapBadRequestError']('Size lower than the minimum', {});
+        expect(error).toBeInstanceOf(InvalidOrder);
+    });
+
+    it('should detect invalid expiration as invalid order', () => {
+        const error = mapper['mapBadRequestError']('invalid expiration', {});
         expect(error).toBeInstanceOf(InvalidOrder);
     });
 });

@@ -1,5 +1,5 @@
-import { ClobClient } from '@polymarket/clob-client';
-import type { ApiKeyCreds } from '@polymarket/clob-client';
+import { ClobClient } from '@polymarket/clob-client-v2';
+import type { ApiKeyCreds } from '@polymarket/clob-client-v2';
 import { Wallet } from 'ethers';
 import axios from 'axios';
 import { ExchangeCredentials } from '../../BaseExchange';
@@ -77,11 +77,11 @@ export class PolymarketAuth {
         }
 
         // Otherwise, derive/create them using L1 auth
-        const l1Client = new ClobClient(
-            POLYMARKET_HOST,
-            POLYGON_CHAIN_ID,
-            this.signer
-        );
+        const l1Client = new ClobClient({
+            host: POLYMARKET_HOST,
+            chain: POLYGON_CHAIN_ID,
+            signer: this.signer,
+        });
 
         // Robust derivation strategy:
         // 1. Try to DERIVE existing credentials first (most common case).
@@ -247,14 +247,14 @@ export class PolymarketAuth {
         // Create L2-authenticated client
         // console.log(`[PolymarketAuth] Initializing ClobClient | Signer: ${signerAddress} | Funder: ${finalProxyAddress} | SigType: ${finalSignatureType}`);
 
-        this.clobClient = new ClobClient(
-            POLYMARKET_HOST,
-            POLYGON_CHAIN_ID,
-            this.signer,
-            apiCreds,
-            finalSignatureType,
-            finalProxyAddress
-        );
+        this.clobClient = new ClobClient({
+            host: POLYMARKET_HOST,
+            chain: POLYGON_CHAIN_ID,
+            signer: this.signer,
+            creds: apiCreds,
+            signatureType: finalSignatureType,
+            funderAddress: finalProxyAddress,
+        });
 
         return this.clobClient;
     }

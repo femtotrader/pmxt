@@ -1,5 +1,5 @@
-import { AssetType, Side } from '@polymarket/clob-client';
-import type { SignedOrder } from '@polymarket/order-utils';
+import { AssetType, Side } from '@polymarket/clob-client-v2';
+import type { SignedOrder } from '@polymarket/clob-client-v2';
 import { createHmac } from 'crypto';
 import {
     EventFetchParams,
@@ -214,7 +214,6 @@ export class PolymarketExchange extends PredictionMarketExchange {
                 side,
                 size: params.amount,
             };
-            if (params.fee != null) orderArgs.feeRateBps = params.fee;
 
             const options: any = {};
             if (tickSize) options.tickSize = tickSize;
@@ -629,7 +628,7 @@ export class PolymarketExchange extends PredictionMarketExchange {
         return this.auth;
     }
 
-    /** Fetch on-chain USDC balance on Polygon for any address without requiring credentials. */
+    /** Fetch on-chain pUSD balance on Polygon for any address without requiring credentials. */
     private async getAddressOnChainBalance(address: string): Promise<Balance[]> {
         const { ethers } = require('ethers');
 
@@ -642,14 +641,14 @@ export class PolymarketExchange extends PredictionMarketExchange {
             chainId: 137,
             name: 'matic',
         });
-        const usdcAddress = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'; // USDC.e (Bridged)
-        const usdcAbi = [
+        const pusdAddress = '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB'; // pUSD (Polymarket USD)
+        const erc20Abi = [
             'function balanceOf(address) view returns (uint256)',
             'function decimals() view returns (uint8)',
         ];
-        const usdcContract = new ethers.Contract(usdcAddress, usdcAbi, provider);
-        const rawBalance = await usdcContract.balanceOf(address);
-        const decimals = await usdcContract.decimals();
+        const pusdContract = new ethers.Contract(pusdAddress, erc20Abi, provider);
+        const rawBalance = await pusdContract.balanceOf(address);
+        const decimals = await pusdContract.decimals();
         const total = parseFloat(ethers.utils.formatUnits(rawBalance, decimals));
         return [{ currency: 'USDC', total, available: total, locked: 0 }];
     }

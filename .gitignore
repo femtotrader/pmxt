@@ -184,3 +184,4 @@ sdks/python/pmxt/_server/bin/
 sdks/python/pmxt/_server/package.json
 /core/docs/fallback-audit
 docs/guides/router-guide.md
+fifa.py

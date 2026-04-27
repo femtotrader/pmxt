@@ -42,12 +42,27 @@ export function parseOpenApiSpec(spec: any, baseUrl?: string): ApiDescriptor {
     const topLevelSecurity = !!(spec.security && spec.security.length > 0);
 
     const paths = spec.paths || {};
-    for (const [path, methods] of Object.entries<any>(paths)) {
-        for (const [httpMethod, operation] of Object.entries<any>(methods)) {
-            // Skip non-HTTP-method keys like "parameters"
+    for (const [path, pathItem] of Object.entries<any>(paths)) {
+        if (!pathItem || typeof pathItem !== 'object') {
+            continue;
+        }
+        const pathServerUrl = Array.isArray(pathItem.servers) && pathItem.servers[0]?.url
+            ? String(pathItem.servers[0].url).replace(/\/$/, '')
+            : undefined;
+
+        for (const [httpMethod, operation] of Object.entries<any>(pathItem)) {
+            // Skip non-HTTP-method keys like "parameters", "servers"
             if (!['get', 'post', 'put', 'patch', 'delete'].includes(httpMethod.toLowerCase())) {
                 continue;
             }
+            if (!operation || typeof operation !== 'object') {
+                continue;
+            }
+
+            const opServerUrl = Array.isArray(operation.servers) && operation.servers[0]?.url
+                ? String(operation.servers[0].url).replace(/\/$/, '')
+                : undefined;
+            const endpointBaseUrl = opServerUrl || pathServerUrl;
 
             const name = operation.operationId || generateMethodName(httpMethod, path);
             const isPrivate = operation.security !== undefined
@@ -59,6 +74,7 @@ export function parseOpenApiSpec(spec: any, baseUrl?: string): ApiDescriptor {
                 path,
                 isPrivate,
                 operationId: operation.operationId,
+                ...(endpointBaseUrl ? { baseUrl: endpointBaseUrl } : {}),
             };
         }
     }

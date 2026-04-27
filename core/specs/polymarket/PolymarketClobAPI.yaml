@@ -954,6 +954,7 @@ paths:
   # ----------------------------------------------------------------------------
   /geoblock:
     get:
+      operationId: getGeoblock
       summary: Check Geoblock Status
       description: Check the geographic eligibility of the requesting IP address.
       tags: [System]

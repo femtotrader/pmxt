@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.7] - 2026-04-26
+
+### Improvements
+
+- **Custom `llms.txt` and `llms-full.txt` for the docs site**: Replaced
+  Mintlify's auto-generated LLM context files with a custom generator
+  (`scripts/generate-llms.js`) that produces high-quality output for
+  AI-assisted development. Key fixes:
+
+  - **Ordering**: Introduction and Quickstart now appear at the top of
+    `llms-full.txt` (line 16), not buried after 700+ lines of empty API
+    stubs.
+  - **API reference**: All 38 endpoints now include method, URL,
+    parameters table, response type, and Python + TypeScript code
+    samples inline — previously they were one-line stubs with no args
+    shape or response example.
+  - **JSX stripped**: `<Tabs>`, `<Card>`, `<Info>`, `<Warning>`, and
+    `theme={null}` noise removed; Cards converted to bulleted links,
+    Tabs to `**Python:**` / `**TypeScript:**` subheadings.
+  - **Heading hierarchy**: Code-fragment headings no longer promoted to
+    H1; clean H1→H4 nesting throughout.
+  - **Absolute links**: All relative `](/path)` links converted to
+    `https://pmxt.dev/docs/...`.
+  - **Error codes**: Full error code table with HTTP status, retryable
+    flag, and description added to the Reference section.
+  - **End-to-end recipe**: Inline place-order → poll-until-filled
+    example added.
+
+- **CI integration for `llms.txt`**: The generator now runs in three
+  pipelines to prevent drift:
+  - `publish.yml` — on every release, regenerates and commits alongside
+    other docs.
+  - `docs-sync-check.yml` — on PRs touching core types, docs, or the
+    generator itself, fails CI if `llms.txt` / `llms-full.txt` are
+    stale.
+  - `sync-docs-to-pmxt.yml` (hosted-pmxt) — after applying hosted
+    endpoint manifests, regenerates llms files in the same auto-PR.
+
 ## [2.35.6] - 2026-04-26
 
 ### Fixes

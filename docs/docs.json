@@ -58,7 +58,8 @@
               "authentication",
               "mcp",
               "security",
-              "rate-limits"
+              "rate-limits",
+              "sql"
             ]
           },
           {

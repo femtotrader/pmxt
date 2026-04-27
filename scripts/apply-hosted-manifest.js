@@ -287,10 +287,14 @@ function updateDocsNavigation(openApiPaths) {
     return;
   }
 
+  // Static guide pages that always appear at the top of the Enterprise
+  // group, before the auto-generated OpenAPI endpoint pages.
+  const ENTERPRISE_GUIDE_PAGES = ['sql'];
+
   const newGroup = {
     group: 'Enterprise',
     openapi: 'api-reference/openapi-hosted.json',
-    pages: navPages,
+    pages: [...ENTERPRISE_GUIDE_PAGES, ...navPages],
   };
 
   // Remove any existing groups that point at the hosted spec (regardless of

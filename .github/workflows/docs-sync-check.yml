@@ -8,6 +8,7 @@ on:
       - 'core/src/server/app.ts'
       - 'core/scripts/generate-openapi.js'
       - 'scripts/generate-mintlify-docs.js'
+      - 'scripts/generate-llms.js'
       - 'docs/**'
 
 jobs:
@@ -30,11 +31,14 @@ jobs:
       - name: Generate Mintlify docs (venues + navigation)
         run: npm run generate:mintlify --workspace=pmxt-core
 
+      - name: Generate llms.txt
+        run: npm run docs:llms
+
       - name: Check for uncommitted docs changes
         run: |
           # Exclude hosted-owned files — those are managed by hosted-pmxt's sync workflow.
           if ! git diff --exit-code -- docs/ ':!docs/api-reference/openapi-hosted.json'; then
-            echo "::error::Docs are out of sync with core. Run 'npm run generate:openapi --workspace=pmxt-core && npm run generate:mintlify --workspace=pmxt-core' and commit the result."
+            echo "::error::Docs are out of sync with core. Run 'npm run generate:openapi --workspace=pmxt-core && npm run generate:mintlify --workspace=pmxt-core && npm run docs:llms' and commit the result."
             exit 1
           fi
           echo "Docs are in sync."

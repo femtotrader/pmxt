@@ -73,16 +73,19 @@ jobs:
       - name: Generate Mintlify docs
         run: npm run generate:mintlify --workspace=pmxt-core
 
+      - name: Generate llms.txt
+        run: npm run docs:llms
+
       - name: Commit updated docs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/docs.json docs/api-reference/openapi.json docs/concepts/venues.mdx
+          git add docs/docs.json docs/api-reference/openapi.json docs/concepts/venues.mdx docs/llms.txt docs/llms-full.txt
           if ! git diff --cached --quiet; then
             git stash --include-untracked
             git pull --rebase origin main
             git stash pop
-            git add docs/docs.json docs/api-reference/openapi.json docs/concepts/venues.mdx
+            git add docs/docs.json docs/api-reference/openapi.json docs/concepts/venues.mdx docs/llms.txt docs/llms-full.txt
             git commit -m "docs: auto-update for v${{ steps.get_version.outputs.version }}"
             git push origin HEAD:main
           fi

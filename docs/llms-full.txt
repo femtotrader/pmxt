@@ -1,0 +1,3668 @@
+# PMXT — Full Documentation
+
+> One API for every prediction market. Unified data, cross-venue search, and trading across Polymarket, Kalshi, Limitless, Smarkets, and 8 more venues.
+
+Docs: https://pmxt.dev/docs
+API Base: https://api.pmxt.dev
+
+
+---
+
+# Documentation
+
+
+## Get Started
+
+### Introduction
+
+Source: https://pmxt.dev/docs/introduction
+
+PMXT is a unified API for every major prediction market — Polymarket,
+Kalshi, Limitless, Smarkets, and [8 more venues](https://pmxt.dev/docs/concepts/venues). Same
+SDK methods, same response shape, regardless of which venue you're
+talking to.
+
+It runs two ways:
+
+- **Locally** — the open-source [pmxt](https://github.com/pmxt-dev/pmxt)
+  sidecar runs on your machine. No API key, no external dependency. Your
+  requests go directly to the venues.
+- **Hosted** — `api.pmxt.dev` adds a shared catalog, cross-venue search,
+  and you skip running infrastructure. Set an API key and the SDK
+  switches automatically.
+
+The code is identical either way:
+
+```python
+import pmxt
+
+# Local: talks directly to Polymarket
+poly = pmxt.Polymarket()
+
+# Hosted: talks to api.pmxt.dev (add an API key and that's it)
+poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
+
+markets = poly.fetch_markets(query="fed rate cut", limit=5)
+for m in markets:
+print(m.title, m.outcomes[0].price)
+```
+
+Swap the venue class — `pmxt.Kalshi(...)`, `pmxt.Limitless(...)` — and
+the methods and response shapes stay the same.
+
+#### The Router — cross-venue intelligence
+
+The **[Router](https://pmxt.dev/docs/router/overview)** is PMXT's cross-venue intelligence
+layer. Search, match, compare prices, find hedges, and detect arbitrage
+across every venue — all from a single PMXT API key:
+
+```python
+router = pmxt.Router(pmxt_api_key="pmxt_live_...")
+
+# Search every venue at once
+markets = router.fetch_markets(query="fed rate cut")
+
+# Find this market on other venues with confidence scores
+matches = router.fetch_market_matches(market_id=markets[0].market_id)
+
+# Scan for cross-venue price spreads
+arb = router.fetch_arbitrage(min_spread=0.03)
+```
+
+
+  - **[Cross-venue search](https://pmxt.dev/docs/router/events)** — One query fans out across every venue. Results in ~10ms from a shared catalog.
+  - **[Market matching](https://pmxt.dev/docs/router/matching)** — Find the same or related market on other venues with relation types, confidence, and reasoning.
+  - **[Prices & arbitrage](https://pmxt.dev/docs/router/prices)** — Compare bid/ask across venues, discover hedges, and scan for cross-venue spreads.
+  - **[Compose with venues](https://pmxt.dev/docs/router/prices#composing-with-venue-exchanges)** — Discover with the Router, trade on venue exchanges. Same schema, same `marketId`.
+
+
+#### Unified venue interface
+
+Same methods, same response shape, every venue. `fetch_markets`,
+`create_order`, `fetch_positions` work identically whether you're on
+Polymarket or Kalshi.
+
+
+  - **[Unified schema](https://pmxt.dev/docs/concepts/unified-schema)** — `Event` / `Market` / `Outcome` — the shape that works everywhere.
+  - **[Same SDK, local or hosted](https://pmxt.dev/docs/quickstart)** — The `pmxt` (Python) and `pmxtjs` (TypeScript) SDKs work identically against localhost or the hosted API. Set one env var to switch.
+
+
+#### What you'd build yourself
+
+Without PMXT, getting cross-venue prediction market data means:
+
+- **11 venue integrations** — each with its own auth, pagination, field
+  names, and rate limits. Polymarket uses CLOB token IDs. Kalshi uses
+  tickers. Smarkets uses contract IDs. You normalize all of it.
+- **A data pipeline** — to ingest, deduplicate, and keep fresh as markets
+  open, resolve, and re-price across every venue.
+- **A search layer** — because querying 11 APIs sequentially is slow.
+- **Ongoing maintenance** — every time a venue changes a field name or
+  ships a new endpoint, your integration breaks.
+
+PMXT handles all of that. You write `fetch_markets(query="...")` and get
+back clean, unified data.
+
+#### Get started
+
+
+  - **[Quickstart](https://pmxt.dev/docs/quickstart)** — API key to working code in 30 seconds.
+  - **[Router](https://pmxt.dev/docs/router/events)** — Cross-venue search and the beginning of smart order routing.
+  - **[Unified schema](https://pmxt.dev/docs/concepts/unified-schema)** — The data shape that works everywhere.
+  - **[API reference](https://pmxt.dev/docs/api-reference/overview)** — Every method, with interactive try-it-out.
+
+### Quickstart
+
+Source: https://pmxt.dev/docs/quickstart
+
+#### 1. Get an API key
+
+Go to [pmxt.dev/dashboard](https://pmxt.dev/dashboard) and create a key.
+It starts with `pmxt_live_` and works immediately.
+
+#### 2. Query a venue
+
+Pick a venue and start pulling data. The SDK gives you a unified
+interface — same methods, same response shape, regardless of which venue
+you're talking to.
+
+
+  
+**Python:**
+
+```bash
+pip install pmxt
+```
+
+```python
+import pmxt
+
+poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
+markets = poly.fetch_markets(query="election", limit=3)
+
+for m in markets:
+    print(m.title, m.outcomes[0].price)
+```
+  
+  
+**TypeScript:**
+
+```bash
+npm install pmxtjs
+```
+
+```typescript
+import pmxt from "pmxtjs";
+
+const poly = new pmxt.Polymarket({ pmxtApiKey: "pmxt_live_..." });
+const markets = await poly.fetchMarkets({ query: "election", limit: 3 });
+
+markets.forEach((m) => console.log(m.title, m.outcomes[0].price));
+```
+  
+
+
+Switch venues by swapping the class — `pmxt.Kalshi(...)`, `pmxt.Limitless(...)`,
+etc. The methods and response shapes are identical.
+
+#### 3. Search across every venue
+
+The **Router** is PMXT's cross-venue search layer — and the foundation
+for a full smart order router for prediction markets. One query fans out
+across every venue PMXT ingests and returns ranked, unified results.
+
+```bash
+curl "https://api.pmxt.dev/v0/markets?query=election&limit=3" \
+  -H "Authorization: Bearer pmxt_live_..."
+```
+
+```json
+{
+  "data": [
+{
+  "marketId": "d35bc8c6-5602-477d-af21-e9513af9d696",
+  "title": "US forces enter Iran by April 30?",
+  "volume24h": 89757605.08,
+  "outcomes": [
+    { "outcomeId": "...", "label": "April 30",     "price": 0.9985 },
+    { "outcomeId": "...", "label": "Not April 30", "price": 0.0015 }
+  ]
+}
+  ],
+  "meta": { "count": 3, "limit": 3, "offset": 0 }
+}
+```
+
+The same `marketId`, `title`, `outcomes` shape whether the row came from
+Polymarket, Kalshi, Limitless, or anywhere else. Filter by venue with
+`&exchange=kalshi`, by category with `&category=Politics`, or just
+search everything.
+
+
+> **Note:**
+  The Router is also available as an SDK class — `pmxt.Router(...)` in
+  Python and `new pmxt.Router(...)` in TypeScript. Beyond search, it
+  supports [cross-venue matching](https://pmxt.dev/docs/router/matching) and
+  [arbitrage detection](https://pmxt.dev/docs/router/prices).
+
+
+#### 4. Go further
+
+
+  - **[Router](https://pmxt.dev/docs/router/events)** — `/v0/events` and `/v0/markets` — cross-venue search and the beginning of a smart order router for prediction markets.
+  - **[Full venue API](https://pmxt.dev/docs/api-reference/overview)** — Order books, trades, OHLCV, positions, balances, and trading — all via `POST /api/:exchange/:method`.
+  - **[Unified schema](https://pmxt.dev/docs/concepts/unified-schema)** — `Event` / `Market` / `Outcome` — the shape that works everywhere.
+  - **[Supported venues](https://pmxt.dev/docs/concepts/venues)** — Every venue PMXT speaks, and what each supports.
+
+### Authentication
+
+Source: https://pmxt.dev/docs/authentication
+
+#### API key
+
+Every request to `https://api.pmxt.dev` needs a Bearer token. Get one
+from [pmxt.dev/dashboard](https://pmxt.dev/dashboard) — it works
+immediately.
+
+```http
+Authorization: Bearer pmxt_live_...
+```
+
+`X-Api-Key: pmxt_live_...` also works as a fallback, but Bearer is
+canonical and what every SDK sends.
+
+#### SDK setup
+
+Set `PMXT_API_KEY` and the SDK automatically routes to the hosted
+endpoint. No code changes versus local development.
+
+
+  
+**Python:**
+
+```python
+import os, pmxt
+os.environ["PMXT_API_KEY"] = "pmxt_live_..."
+
+poly = pmxt.Polymarket()   # -> https://api.pmxt.dev
+```
+
+Or pass it directly:
+
+```python
+poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
+```
+  
+  
+**TypeScript:**
+
+```typescript
+import pmxt from "pmxtjs";
+process.env.PMXT_API_KEY = "pmxt_live_...";
+
+const poly = new pmxt.Polymarket({});  // -> https://api.pmxt.dev
+```
+
+Or pass it directly:
+
+```typescript
+const poly = new pmxt.Polymarket({ pmxtApiKey: "pmxt_live_..." });
+```
+  
+
+
+Explicit argument takes precedence over the environment variable.
+
+#### Venue credentials
+
+Your PMXT API key authenticates you to **PMXT**. Venue credentials
+(Polymarket private key, Kalshi API key, etc.) authenticate you to the
+**venue** and are passed in the request body for calls that need them:
+
+```python
+order = poly.create_order(
+outcome=market.yes,
+side="buy",
+type="limit",
+price=0.42,
+amount=100,
+)
+```
+
+PMXT never stores venue credentials. They are forwarded to the venue
+and dropped when the call completes.
+
+
+> **Note:**
+Some venues (Polymarket, Limitless, Probable, Opinion, Baozi) require
+raw wallet private keys with full fund control. **Use a dedicated
+trading wallet** and read [Security & Credential Handling](https://pmxt.dev/docs/security)
+before passing private keys to the hosted API.
+
+
+#### Rotating keys
+
+
+> **Warning:**
+Rotate immediately if you suspect a key is exposed. Old keys are revoked
+atomically — in-flight requests with the old key are rejected within 60
+seconds.
+
+
+1. **Create** a new key from the [dashboard](https://pmxt.dev/dashboard).
+2. **Deploy** the new key to your application.
+3. **Revoke** the old key once traffic has drained.
+
+All revocations are logged under **Settings > Audit Log**.
+
+#### Errors
+
+| Status | Body                                     | Meaning                                   |
+| ------ | ---------------------------------------- | ----------------------------------------- |
+| `401`  | `{"error": "missing api key"}`           | No `Authorization` header on the request. |
+| `401`  | `{"error": "invalid api key"}`           | Key unknown, revoked, or expired.         |
+| `429`  | `{"error": "rate_limit_exceeded", ... }` | See [Plans & Limits](https://pmxt.dev/docs/rate-limits).       |
+
+### MCP Server
+
+Source: https://pmxt.dev/docs/mcp
+
+PMXT provides a hosted **Streamable HTTP MCP server** at `https://api.pmxt.dev/mcp`.
+Any MCP-compatible client — Claude Code, Cursor, Windsurf, or your own agent — can
+connect and use the full PMXT tool surface through natural language.
+
+No installation required. Just add the config and your API key.
+
+#### Setup
+
+
+  
+**Get an API key**
+
+Go to [pmxt.dev/dashboard](https://pmxt.dev/dashboard) and create a key.
+It starts with `pmxt_live_` and works immediately.
+  
+  
+**Add the MCP config to your editor**
+
+Add the following to your editor's MCP configuration file.
+
+
+  
+**Claude Code:**
+
+    Add to `~/.claude.json` (global) or `.mcp.json` (per-project):
+
+    ```json
+    {
+      "mcpServers": {
+        "pmxt": {
+          "type": "streamableHttp",
+          "url": "https://api.pmxt.dev/mcp",
+          "headers": {
+            "Authorization": "Bearer pmxt_live_..."
+          }
+        }
+      }
+    }
+    ```
+  
+  
+**Cursor:**
+
+    Add to your Cursor MCP settings:
+
+    ```json
+    {
+      "mcpServers": {
+        "pmxt": {
+          "type": "streamableHttp",
+          "url": "https://api.pmxt.dev/mcp",
+          "headers": {
+            "Authorization": "Bearer pmxt_live_..."
+          }
+        }
+      }
+    }
+    ```
+  
+  
+**Custom client:**
+
+    Connect to the endpoint using any MCP SDK:
+
+    ```typescript
+    import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+    import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+
+    const transport = new StreamableHTTPClientTransport(
+      new URL("https://api.pmxt.dev/mcp"),
+      {
+        requestInit: {
+          headers: {
+            Authorization: "Bearer pmxt_live_...",
+          },
+        },
+      }
+    );
+
+    const client = new Client({ name: "my-app", version: "1.0.0" });
+    await client.connect(transport);
+
+    const tools = await client.listTools();
+    ```
+  
+
+  
+  
+**Start using it**
+
+Ask your AI assistant something like:
+
+- *"What are the top Polymarket markets right now?"*
+- *"Show me the orderbook for the presidential election market on Kalshi"*
+- *"What's the best execution price for a $50 YES buy on this market?"*
+  
+
+
+#### Authentication
+
+The MCP server uses the same API key as the REST API. Pass it as a `Bearer` token
+in the `Authorization` header.
+
+Every tool call the AI makes is proxied through the authenticated API, so your
+usage limits and quotas apply as normal.
+
+#### Available tools
+
+The MCP server exposes the same tools as the PMXT REST API. Every tool requires
+an `exchange` parameter (e.g., `polymarket`, `kalshi`, `limitless`).
+
+##### Read-only (safe to call freely)
+
+| Tool | Description |
+|------|-------------|
+| `fetchMarkets` | Search and list markets |
+| `fetchEvents` | Search and list events |
+| `fetchMarketsPaginated` | Paginated market listing |
+| `fetchMarket` | Get a single market by ID |
+| `fetchEvent` | Get a single event by ID |
+| `fetchOrderBook` | Get the current orderbook |
+| `fetchTrades` | Get recent trades |
+| `fetchOHLCV` | Get candlestick/OHLCV data |
+| `getExecutionPrice` | Quote a trade |
+| `getExecutionPriceDetailed` | Detailed execution breakdown |
+| `fetchOrder` | Get a specific order |
+| `fetchOpenOrders` | List open orders |
+| `fetchClosedOrders` | List closed orders |
+| `fetchAllOrders` | List all orders |
+| `fetchMyTrades` | List your trades |
+| `fetchPositions` | List your positions |
+| `fetchBalance` | Get account balance |
+| `loadMarkets` | Initialize market data |
+
+##### Trading (requires user confirmation)
+
+| Tool | Description |
+|------|-------------|
+| `buildOrder` | Preview an order without placing it |
+| `submitOrder` | Execute a previously built order |
+| `createOrder` | Build and submit in one step |
+| `cancelOrder` | Cancel an open order |
+
+
+> **Warning:**
+  The MCP server instructs the AI to **always ask for explicit confirmation**
+  before calling trading tools. These operations spend real money.
+
+
+#### How it works
+
+The hosted MCP server uses the **Streamable HTTP** transport — every request is a
+stateless `POST` to `https://api.pmxt.dev/mcp`. There are no sessions, no
+WebSocket upgrades, and no local processes.
+
+Each tool call is proxied back to the PMXT REST API using your Bearer token,
+so all authentication, rate limiting, and usage tracking works identically
+to direct API calls.
+
+#### Differences from the npm package
+
+PMXT also publishes `@pmxt/mcp` on npm for running a local MCP server.
+The hosted version is functionally identical but:
+
+- **No install** — zero dependencies, zero setup
+- **Always up to date** — new tools are available as soon as they ship
+- **Runs anywhere** — works in cloud-hosted editors and remote environments
+
+Use the npm package if you need to run the server locally or want to
+customize tool behavior.
+
+### Security & Credential Handling
+
+Source: https://pmxt.dev/docs/security
+
+#### How credentials flow
+
+When you make a trading call through the hosted API, your venue credentials
+follow this path:
+
+```
+Your app  ──HTTPS──>  api.pmxt.dev  ──signs locally──>  venue API
+                  (TLS terminates)   (in memory)       (HTTPS)
+```
+
+1. Your credentials travel **encrypted over TLS** to our Cloud Run container.
+2. pmxt-core's `sign()` method runs **inside the container** — it signs the
+   request using your key and sends only the **signature** to the venue.
+3. Your credentials are **garbage collected** after the request completes.
+
+**We never store, log, cache, or persist your venue credentials.** They exist
+in process memory only for the duration of the request.
+
+#### What venues require
+
+Not all venues are equal. Some accept scoped API keys; others require raw
+wallet private keys with full fund control.
+
+| Venue | Credential type | Controls funds? |
+| ------------- | --------------------------------- | --------------- |
+| Polymarket | EVM private key | **Yes** |
+| Limitless | EVM private key | **Yes** |
+| Probable | EVM private key | **Yes** |
+| Opinion | EVM private key | **Yes** |
+| Baozi | Solana keypair | **Yes** |
+| Kalshi | RSA key pair (API-scoped) | No |
+| Smarkets | Email + password (session-scoped) | No |
+| Myriad | API key (read-scoped) | No |
+
+For on-chain venues (Polymarket, Limitless, Probable, Opinion, Baozi), there
+is no "scoped API key" option — the protocol requires a private key to sign
+transactions. This is the same for every trading bot, aggregator, and SDK
+that interacts with these venues.
+
+#### Recommendations
+
+
+> **Warning:**
+**Use a dedicated trading wallet.** Do not use your primary wallet or a
+wallet holding funds beyond what you intend to trade. Create a separate
+wallet, fund it with only what you need, and use that wallet's private key
+with PMXT.
+
+
+> **Warning:**
+**For maximum security, run pmxt locally.** The hosted API exists for
+convenience. If you are not comfortable sending your private key to a
+third-party server — even over HTTPS — you can run pmxt-core locally and
+retain full custody of your credentials. They will never leave your machine.
+
+```bash
+npm install pmxt-core
+# or
+pip install pmxt
+```
+
+See the [quickstart](https://pmxt.dev/docs/quickstart) for local setup.
+
+
+##### Best practices
+
+- **Rotate credentials regularly.** If a venue supports key rotation (Kalshi,
+  Polymarket L2 API keys), rotate on a schedule.
+- **Monitor your positions.** Set up alerts on your venue accounts for
+  unexpected trades or withdrawals.
+- **Limit wallet balances.** Keep only active trading capital in the wallet
+  you use with PMXT.
+- **Revoke unused PMXT API keys.** If you stop using the hosted API, revoke
+  your key from the [dashboard](https://pmxt.dev/dashboard) so it cannot be
+  used to make calls on your behalf.
+
+#### Disclaimer
+
+**PMXT is provided "as is" without warranty of any kind.** By using the hosted
+API with venue credentials that control funds, you acknowledge and accept the
+following:
+
+- **You are solely responsible for the security of your credentials.** PMXT
+  processes your credentials ephemerally and does not store them, but you are
+  choosing to transmit them to a third-party service.
+- **PMXT is not responsible for any lost, stolen, or mismanaged funds.**
+  This includes but is not limited to losses arising from unauthorized
+  trades, venue API changes, software bugs, service outages, or security
+  incidents.
+- **On-chain transactions are irreversible.** Unlike traditional financial
+  systems, blockchain transactions cannot be reversed or charged back.
+  Funds sent or traded through on-chain venues are final.
+- **You should only risk what you can afford to lose.** Prediction markets
+  carry inherent financial risk independent of the software used to access
+  them.
+
+For users who require full custody and zero third-party trust, we strongly
+recommend the [local pmxt installation](https://pmxt.dev/docs/quickstart) over the hosted API.
+
+### Rate Limits
+
+Source: https://pmxt.dev/docs/rate-limits
+
+Every API key includes the full surface — cross-venue search, unified
+schema, and the complete venue pass-through.
+
+#### Limits
+
+
+| Endpoint | Per-minute | Per-month |
+| -------- | ---------- | --------- |
+| `/v0/*` | 60 | 25,000 |
+| `/api/*` | 60 | 25,000 |
+
+
+Every request to `/v0/*` or `/api/*` counts as **1 request**, regardless
+of how much data it returns. Health checks are free.
+
+#### Rate limit responses
+
+When you hit a limit, the API returns `429 Too Many Requests` with the
+window and retry timing. The SDKs handle short bursts automatically with
+exponential backoff.
+
+
+  
+**Per-minute:**
+
+```json
+{
+  "error": "rate_limit_exceeded",
+  "plan": "free",
+  "limit": 60,
+  "used": 60,
+  "window": "1 minute"
+}
+```
+  
+  
+**Per-month:**
+
+```json
+{
+  "error": "monthly_quota_exceeded",
+  "plan": "free",
+  "limit": 25000,
+  "used": 25000
+}
+```
+  
+
+
+#### Usage dashboard
+
+Every request shows up under **Usage > Request Log** with endpoint,
+status, and latency. The same counts power the quotas — what you see
+is what's being counted.
+
+#### Need more?
+
+- **[Contact us](https://pmxt.dev/dashboard)** — Reach out from the dashboard if you need higher limits.
+
+### SQL
+
+Source: https://pmxt.dev/docs/sql
+
+The `/v0/sql` endpoint exposes a read-only SQL interface over PMXT's
+historical orderbook data. Currently this covers **Polymarket** tick data
+(BBO updates, trades, and full book snapshots) stored in ClickHouse.
+
+
+> **Note:**SQL access requires an Enterprise plan.
+
+#### Connecting IDs
+
+PMXT markets carry two fields that map directly to the orderbook history:
+
+| PMXT field | SQL column | What it is |
+| --- | --- | --- |
+| `market.contractAddress` | `market` | Polymarket condition ID (hex) |
+| `outcome.outcomeId` | `JSON: asset_id` | Polymarket CLOB token ID |
+
+Grab them from any PMXT market response:
+
+
+  
+**Python:**
+
+```python
+import pmxt
+
+poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
+markets = poly.fetch_markets(query="bitcoin", limit=1)
+
+m = markets[0]
+condition_id = m.contract_address       # "0xa0f4c492..."
+yes_token    = m.yes.outcome_id         # "1391568931..."
+```
+  
+  
+**curl:**
+
+```bash
+curl -s "https://api.pmxt.dev/api/polymarket/fetchMarkets" \
+  -H "Authorization: Bearer pmxt_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"args": [{"query": "bitcoin", "limit": 1}]}'
+```
+
+In the response, read `data[0].contractAddress` and
+`data[0].yes.outcomeId`.
+  
+
+
+#### Table schema
+
+```
+polymarket_orderbook_rust
+├── timestamp           DateTime64(3)   — event timestamp
+├── timestamp_received  DateTime64(3)   — ingestion timestamp
+├── market              String          — condition ID (primary key)
+├── event_type          String          — "price_change" | "book" | "last_trade_price"
+└── data                String (JSON)   — full event payload
+```
+
+**Always filter by `market`** — it is the primary key. Queries without a
+`market` filter will time out.
+
+#### 1. Candlestick (OHLCV)
+
+Build price candles at any interval from `price_change` events. Filter by
+`asset_id` to get a specific outcome (Yes or No).
+
+```sql
+SELECT
+  toStartOfHour(timestamp)                                          AS hour,
+  argMin(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS open,
+  argMax(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS close,
+  min(toFloat64OrZero(JSONExtractString(data, 'best_bid')))         AS low,
+  max(toFloat64OrZero(JSONExtractString(data, 'best_bid')))         AS high,
+  count()                                                           AS ticks
+FROM polymarket_orderbook_rust
+WHERE market = '{contractAddress}'
+  AND event_type = 'price_change'
+  AND JSONExtractString(data, 'asset_id') = '{outcomeId}'
+  AND timestamp >= now() - INTERVAL 7 DAY
+GROUP BY hour
+ORDER BY hour
+```
+
+Change `toStartOfHour` to `toStartOfMinute`, `toStartOfFiveMinutes`,
+or `toStartOfDay` for different granularities.
+
+
+  
+**Python:**
+
+```python
+import requests
+
+resp = requests.post(
+    "https://api.pmxt.dev/v0/sql",
+    headers={"Authorization": "Bearer pmxt_live_..."},
+    json={"query": f"""
+        SELECT
+          toStartOfHour(timestamp) AS hour,
+          argMin(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS open,
+          argMax(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS close,
+          min(toFloat64OrZero(JSONExtractString(data, 'best_bid'))) AS low,
+          max(toFloat64OrZero(JSONExtractString(data, 'best_bid'))) AS high,
+          count() AS ticks
+        FROM polymarket_orderbook_rust
+        WHERE market = '{condition_id}'
+          AND event_type = 'price_change'
+          AND JSONExtractString(data, 'asset_id') = '{yes_token}'
+          AND timestamp >= now() - INTERVAL 7 DAY
+        GROUP BY hour ORDER BY hour
+    """},
+)
+candles = resp.json()["data"]
+```
+  
+  
+**curl:**
+
+```bash
+curl "https://api.pmxt.dev/v0/sql" \
+  -H "Authorization: Bearer pmxt_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"query": "SELECT toStartOfHour(timestamp) AS hour, argMin(...) AS open, argMax(...) AS close, min(...) AS low, max(...) AS high, count() AS ticks FROM polymarket_orderbook_rust WHERE market = '\''YOUR_CONDITION_ID'\'' AND event_type = '\''price_change'\'' AND JSONExtractString(data, '\''asset_id'\'') = '\''YOUR_OUTCOME_ID'\'' AND timestamp >= now() - INTERVAL 7 DAY GROUP BY hour ORDER BY hour"}'
+```
+  
+
+
+#### 2. Historical orderbook snapshots
+
+Full book snapshots are stored as `book` events. Each contains the
+complete `bids` and `asks` arrays at that point in time.
+
+```sql
+SELECT
+  timestamp,
+  JSONExtractString(data, 'asset_id')      AS token,
+  JSONExtractRaw(data, 'bids')             AS bids,
+  JSONExtractRaw(data, 'asks')             AS asks
+FROM polymarket_orderbook_rust
+WHERE market = '{contractAddress}'
+  AND event_type = 'book'
+  AND JSONExtractString(data, 'asset_id') = '{outcomeId}'
+ORDER BY timestamp DESC
+LIMIT 10
+```
+
+Each level in `bids` / `asks` is a `[price, size]` pair.
+
+To get just the depth count over time:
+
+```sql
+SELECT
+  timestamp,
+  JSONLength(JSONExtractRaw(data, 'bids')) AS bid_levels,
+  JSONLength(JSONExtractRaw(data, 'asks')) AS ask_levels
+FROM polymarket_orderbook_rust
+WHERE market = '{contractAddress}'
+  AND event_type = 'book'
+ORDER BY timestamp DESC
+LIMIT 50
+```
+
+#### Response shape
+
+Every query returns:
+
+```json
+{
+  "data": [
+{ "hour": "2026-04-24 17:00:00", "open": 0.37, "close": 0.39, "low": 0.34, "high": 0.39, "ticks": 3788 },
+{ "hour": "2026-04-24 18:00:00", "open": 0.39, "close": 0.36, "low": 0.33, "high": 0.40, "ticks": 4386 },
+{ "hour": "2026-04-24 19:00:00", "open": 0.36, "close": 0.39, "low": 0.33, "high": 0.40, "ticks": 4776 }
+  ],
+  "meta": {
+"columns": [
+  { "name": "hour", "type": "DateTime" },
+  { "name": "open", "type": "Float64" },
+  { "name": "close", "type": "Float64" },
+  { "name": "low", "type": "Float64" },
+  { "name": "high", "type": "Float64" },
+  { "name": "ticks", "type": "UInt64" }
+],
+"rows": 168,
+"statistics": { "elapsed": 0.44, "rows_read": 18192766 }
+  }
+}
+```
+
+#### Limits
+
+- **5-second query timeout** — always scope queries to a single market.
+- **10,000 row cap** — use `LIMIT` or time filters to stay under.
+- **Read-only** — only `SELECT`, `WITH`, `SHOW`, `DESCRIBE`, and `EXPLAIN`.
+
+
+## Concepts
+
+### Unified Schema
+
+Source: https://pmxt.dev/docs/concepts/unified-schema
+
+PMXT normalizes every supported venue to the same three-level shape:
+
+```
+Event  (a topic, like "2028 US Presidential Election")
+  └─ Market  (a concrete question, like "Will Gavin Newsom win?")
+   └─ Outcome  (a tradable side, like "Yes" @ 0.31)
+```
+
+Every response — from the local sidecar, from the hosted Router, or from
+a hosted venue pass-through — uses the same field names. Write your client
+once, switch venues with a config change.
+
+#### UnifiedMarket
+
+| Field             | Type              | Notes                                                     |
+| ----------------- | ----------------- | --------------------------------------------------------- |
+| `marketId`        | `string`          | Stable PMXT id (UUID).                                    |
+| `eventId`         | `string \| null`  | Parent event, if any.                                     |
+| `title`           | `string`          | Human-readable market question.                           |
+| `slug`            | `string \| null`  | Venue-native slug, when available.                        |
+| `description`     | `string \| null`  | Long-form resolution criteria.                            |
+| `url`             | `string \| null`  | Canonical venue URL for the market.                       |
+| `image`           | `string \| null`  | Venue-hosted image.                                       |
+| `category`        | `string \| null`  | Normalized category (e.g. `Sports`, `Politics`).          |
+| `tags`            | `string[] \| null`| Free-form tags from the venue.                            |
+| `volume`          | `number`          | All-time volume, in USD (or venue base unit).             |
+| `volume24h`       | `number`          | Trailing-24h volume.                                      |
+| `liquidity`       | `number`          | Depth metric — venue-specific, compared like-for-like.    |
+| `resolutionDate`  | `string \| null`  | ISO 8601, UTC.                                            |
+| `tickSize`        | `number \| null`  | Minimum price increment, when the venue exposes one.      |
+| `status`          | `string \| null`  | Venue status — `active`, `closed`, `resolved`, ...        |
+| `contractAddress` | `string \| null`  | On-chain address, when the venue is on-chain.             |
+| `outcomes`        | `UnifiedOutcome[]`| See below.                                                |
+
+#### UnifiedOutcome
+
+| Field             | Type               | Notes                                                     |
+| ----------------- | ------------------ | --------------------------------------------------------- |
+| `outcomeId`       | `string`           | Venue-native outcome id (token id, side id, ...).         |
+| `marketId`        | `string`           | Back-reference to the parent market.                      |
+| `label`           | `string`           | Display label (e.g. `Yes`, `No`, `Donald Trump`).         |
+| `price`           | `number`           | Last price, 0–1 for binary venues.                        |
+| `priceChange24h`  | `number`           | Absolute change vs 24h ago.                               |
+| `metadata`        | `object`           | Venue-specific fields (e.g. `clobTokenId`).               |
+
+#### UnifiedEvent
+
+| Field          | Type              | Notes                                                        |
+| -------------- | ----------------- | ------------------------------------------------------------ |
+| `eventId`      | `string`          | Stable PMXT id.                                              |
+| `title`        | `string`          | Event title.                                                 |
+| `slug`         | `string \| null`  |                                                              |
+| `description`  | `string \| null`  |                                                              |
+| `category`     | `string \| null`  |                                                              |
+| `tags`         | `string[] \| null`|                                                              |
+| `volume`       | `number`          |                                                              |
+| `volume24h`    | `number`          |                                                              |
+| `url`          | `string \| null`  |                                                              |
+| `image`        | `string \| null`  |                                                              |
+| `markets`      | `UnifiedMarket[]` | Child markets. Nested on every event response — no second fetch needed. |
+
+
+> **Note:**
+  Fields that a specific venue doesn't expose come back as `null`. That's
+  intentional — `null` always means "venue has no value for this field",
+  never "PMXT failed to populate it".
+
+
+#### Where the shape is defined
+
+The canonical definition lives in
+[`core/src/types.ts`](https://github.com/pmxt-dev/pmxt/blob/main/core/src/types.ts)
+in the `pmxt` repo, and every SDK client (TypeScript and Python) mirrors
+it. The [OpenAPI reference](https://pmxt.dev/docs/api-reference/overview) is generated from
+the same source on every `pmxt-core` release.
+
+### Catalog vs Live
+
+Source: https://pmxt.dev/docs/concepts/catalog-vs-live
+
+PMXT Hosted serves two kinds of traffic through the same Bearer-authed
+surface:
+
+1. **Catalog reads** — answered from a continuously-ingested Postgres
+   catalog in ~10&nbsp;ms per request.
+2. **Live pass-through** — proxied straight to the underlying venue
+   when the catalog can't safely answer.
+
+Which path a request takes is decided **per-call**, transparently, so the
+client code is identical either way.
+
+#### The decision tree
+
+```
+POST /api/:exchange/:method
+    │
+    ▼
+ is :method one of
+ fetchMarkets, fetchEvents,
+ fetchMarket, fetchEvent?
+    │
+    ├── no ──────────────────────► live venue (pmxt-core)
+    │
+    ▼ yes
+ does req.body.credentials
+ exist? (user-scoped view)
+    │
+    ├── yes ─────────────────────► live venue (pmxt-core)
+    │
+    ▼ no
+ are all params in the
+ catalog-safe allowlist?
+ (query, limit, offset, category, ...)
+    │
+    ├── no ──────────────────────► live venue (pmxt-core)
+    │
+    ▼ yes
+ run catalog SQL against
+ prediction_markets.* with
+ source_exchange = :exchange
+    │
+    ├── error ───────────────────► live venue (pmxt-core)
+    │
+    ▼ success, rows > 0
+ return { success: true, data }
+```
+
+The envelope is identical either way (`{success, data}`), so SDK clients
+cannot tell the difference.
+
+#### What the catalog contains
+
+The catalog is three tables in the `prediction_markets` schema:
+
+- `events` — one row per event per venue, with a `source_exchange` tag.
+- `markets` — one row per market per venue, foreign-keyed to `events`.
+- `outcomes` — one row per outcome per market.
+
+Every row carries a `source_exchange` column and every table has an index
+on it. Venue-scoped reads are a single indexed SQL round-trip.
+
+A continuously-running ingest worker keeps the catalog fresh — typical
+lag from a venue update to the catalog is under 30&nbsp;seconds.
+
+#### Why fall through on credentials?
+
+If a request carries `credentials` in the body, the caller is asking
+for a user-scoped view (e.g. "markets I hold positions in", or a
+balance-dependent price). The catalog only has the public, shared view
+of the venue, so we let pmxt-core proxy the call live. The catalog is a
+best-effort optimization — never a dependency.
+
+#### Why fall through on a DB error?
+
+Catalog is an optimization, not a dependency. If the DB is slow, under
+migration, or has stale data, the intercept swallows the error, logs it,
+and lets pmxt-core answer from the venue directly. Customers see a
+correct response either way; they just pay a ~500&nbsp;ms latency
+penalty on the affected calls.
+
+#### Router vs pass-through
+
+The hosted [Router](https://pmxt.dev/docs/router/events) (`/v0/events`, `/v0/markets`) is
+**always** served from the catalog. It's designed for cross-venue
+search and listings, where a live fan-out to every venue would be
+prohibitively slow. The Router has no "fall through to live" path
+because there is no single venue to fall through to.
+
+### Supported Venues
+
+Source: https://pmxt.dev/docs/concepts/venues
+
+PMXT Hosted currently supports the following venues. The **wire key** is
+the value you pass in the URL — e.g. `POST /api/polymarket/fetchMarkets`
+or `new pmxt.Polymarket({})` from the SDKs.
+
+| Venue | Wire Key | Pass-Through Base |
+| ----- | -------- | ----------------- |
+| Polymarket | `polymarket` | `POST /api/polymarket/:method` |
+| Kalshi | `kalshi` | `POST /api/kalshi/:method` |
+| Kalshi (Demo) | `kalshi-demo` | `POST /api/kalshi-demo/:method` |
+| Limitless | `limitless` | `POST /api/limitless/:method` |
+| Probable | `probable` | `POST /api/probable/:method` |
+| Baozi | `baozi` | `POST /api/baozi/:method` |
+| Myriad | `myriad` | `POST /api/myriad/:method` |
+| Opinion | `opinion` | `POST /api/opinion/:method` |
+| Metaculus | `metaculus` | `POST /api/metaculus/:method` |
+| Smarkets | `smarkets` | `POST /api/smarkets/:method` |
+| Polymarket US | `polymarket_us` | `POST /api/polymarket_us/:method` |
+| Router | `router` | `POST /api/router/:method` |
+
+
+> **Note:**
+  This list is regenerated automatically from the `ExchangeParam` enum
+  in pmxt-core's OpenAPI spec on every `pmxt-core` upgrade. If a venue
+  is missing here, it's not yet wired through pmxt-core.
+
+
+#### Catalog Venues
+
+The hosted catalog currently ingests the following venues:
+
+| Venue | Wire Key | Ingestion |
+| ----- | -------- | --------- |
+| Polymarket | `polymarket` | polling |
+| Kalshi | `kalshi` | polling |
+| Opinion | `opinion` | polling |
+| Limitless | `limitless` | polling |
+| Smarkets | `smarkets` | polling |
+| Probable | `probable` | polling |
+| Myriad | `myriad` | polling |
+
+
+#### Feature support
+
+Not every venue supports every method. Broadly:
+
+- **Catalog reads** (`fetchMarkets`, `fetchEvents`, `fetchMarket`,
+  `fetchEvent`) — supported on every venue that the catalog ingests.
+- **Live reads** (`fetchOrderBook`, `fetchOHLCV`, `fetchTrades`) —
+  supported where the venue exposes the data.
+- **Writes** (`createOrder`, `cancelOrder`, `fetchBalance`,
+  `fetchPositions`) — supported where the venue has a trading API.
+
+See the [API Reference](https://pmxt.dev/docs/api-reference/overview) for the per-method
+matrix (inferred from the OpenAPI `operationId`s).
+
+
+## SDK
+
+### Server Management
+
+Source: https://pmxt.dev/docs/sdk/server
+
+The PMXT SDKs manage a local sidecar server automatically. When you
+create an exchange instance without a hosted API key, the SDK spawns a
+sidecar process, waits for it to become healthy, and routes every
+request through it.
+
+The `server` namespace gives you explicit control over that sidecar
+lifecycle.
+
+#### Quick reference
+
+| Method | Description |
+|--------|-------------|
+| `server.start()` | Start the sidecar if it is not already running (idempotent). |
+| `server.stop()` | Stop the running sidecar (SIGTERM + lock file cleanup). |
+| `server.restart()` | Stop then start. |
+| `server.status()` | Structured snapshot: running, pid, port, version, uptime. |
+| `server.health()` | `true`/`True` if `/health` responds OK, `false`/`False` otherwise. |
+| `server.logs(n)` | Last _n_ lines from `~/.pmxt/server.log` (default 50). |
+
+#### Start
+
+Idempotent. If the sidecar is already running and healthy, returns
+immediately. Otherwise spawns `pmxt-ensure-server` and waits for the
+health check.
+
+
+  
+**Python:**
+
+```python
+import pmxt
+
+pmxt.server.start()
+```
+  
+  
+**TypeScript:**
+
+```typescript
+import pmxt from "pmxtjs";
+
+await pmxt.server.start();
+```
+  
+
+
+> **Note:**
+  You rarely need to call `start()` yourself — creating an exchange
+  instance (e.g. `pmxt.Polymarket()`) calls it automatically.
+
+
+#### Stop
+
+Reads the lock file at `~/.pmxt/server.lock`, sends SIGTERM to the
+sidecar process, and removes the lock file.
+
+
+  
+**Python:**
+
+```python
+pmxt.server.stop()
+```
+  
+  
+**TypeScript:**
+
+```typescript
+await pmxt.server.stop();
+```
+  
+
+
+#### Restart
+
+Equivalent to `stop()` followed by `start()`.
+
+
+  
+**Python:**
+
+```python
+pmxt.server.restart()
+```
+  
+  
+**TypeScript:**
+
+```typescript
+await pmxt.server.restart();
+```
+  
+
+
+#### Status
+
+Returns a structured snapshot of the sidecar state. A new object is
+returned on every call (no shared mutable references).
+
+
+  
+**Python:**
+
+```python
+info = pmxt.server.status()
+print(info)
+# {
+#   "running": True,
+#   "pid": 4242,
+#   "port": 3847,
+#   "version": "2.30.9",
+#   "uptime_seconds": 3612.5,
+#   "lock_file": "/Users/you/.pmxt/server.lock"
+# }
+```
+  
+  
+**TypeScript:**
+
+```typescript
+const info = await pmxt.server.status();
+console.log(info);
+// {
+//   running: true,
+//   pid: 4242,
+//   port: 3847,
+//   version: "2.30.9",
+//   uptimeSeconds: 3612.5,
+//   lockFile: "/Users/you/.pmxt/server.lock"
+// }
+```
+  
+
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `running` | `bool` | Whether the sidecar is alive and responding to `/health`. |
+| `pid` | `int \| null` | Process ID from the lock file. |
+| `port` | `int \| null` | Port the sidecar is listening on (default `3847`). |
+| `version` | `string \| null` | Server version from the lock file. |
+| `uptime_seconds` / `uptimeSeconds` | `float \| null` | Seconds since the lock file was written. |
+| `lock_file` / `lockFile` | `string` | Absolute path to `~/.pmxt/server.lock`. |
+
+#### Health
+
+Returns `true`/`True` if the sidecar's `/health` endpoint responds with
+`{"status": "ok"}`, `false`/`False` otherwise.
+
+
+  
+**Python:**
+
+```python
+if pmxt.server.health():
+    print("sidecar is up")
+```
+  
+  
+**TypeScript:**
+
+```typescript
+if (await pmxt.server.health()) {
+  console.log("sidecar is up");
+}
+```
+  
+
+
+#### Logs
+
+Returns the last _n_ lines from `~/.pmxt/server.log`. Defaults to 50.
+Returns an empty list/array if the log file does not exist.
+
+
+  
+**Python:**
+
+```python
+for line in pmxt.server.logs(20):
+    print(line)
+```
+  
+  
+**TypeScript:**
+
+```typescript
+pmxt.server.logs(20).forEach((line) => console.log(line));
+```
+  
+
+
+#### Deprecated aliases
+
+The top-level `stop_server()` / `stopServer()` and `restart_server()` /
+`restartServer()` functions still work but emit deprecation warnings. Use
+the `server` namespace instead.
+
+```python
+# Old (deprecated)
+pmxt.stop_server()
+
+# New
+pmxt.server.stop()
+```
+
+#### Environment variables
+
+| Variable | Effect |
+|----------|--------|
+| `PMXT_ALWAYS_RESTART=1` | Force-restart the sidecar on every `ensure_server_running` / `ensureServerRunning` call (useful during development). |
+
+
+---
+
+# Router
+
+
+## Overview
+
+### What is the Router?
+
+Source: https://pmxt.dev/docs/router/overview
+
+The Router is PMXT's cross-venue intelligence layer. One API key gives
+you a unified view of every prediction market — Polymarket, Kalshi,
+Limitless, and [8 more venues](https://pmxt.dev/docs/concepts/venues) — through a single
+interface.
+
+
+  
+**Python:**
+
+```python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="pmxt_live_...")
+
+# Search every venue at once
+markets = router.fetch_markets(query="fed rate cut", limit=5)
+
+# Find the same market on other venues
+matches = router.fetch_market_matches(market_id=markets[0].market_id)
+
+# Compare prices across venues
+prices = router.compare_market_prices(market_id=markets[0].market_id)
+```
+  
+  
+**TypeScript:**
+
+```typescript
+import pmxt from "pmxtjs";
+
+const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
+
+// Search every venue at once
+const markets = await router.fetchMarkets({ query: "fed rate cut", limit: 5 });
+
+// Find the same market on other venues
+const matches = await router.fetchMarketMatches({ marketId: markets[0].marketId });
+
+// Compare prices across venues
+const prices = await router.compareMarketPrices({ marketId: markets[0].marketId });
+```
+  
+
+
+The Router only needs a PMXT API key — venue credentials are not
+required for search, matching, or price analysis.
+
+#### What you can do
+
+
+  - **[Cross-venue search](https://pmxt.dev/docs/router/events)** — Search markets and events across every venue in a single query. Results come from a shared catalog — ~10ms, not 11 sequential API calls.
+  - **[Market matching](https://pmxt.dev/docs/router/matching)** — Given a market on any venue, find the same or related market on every other venue. Each match has a relation type, confidence score, and reasoning.
+  - **[Price comparison](https://pmxt.dev/docs/router/prices#comparemarketprices)** — Side-by-side bid/ask for the same market on every venue. See where it's cheapest to buy and where it pays the most to sell.
+  - **[Hedge discovery](https://pmxt.dev/docs/router/prices#fetchhedges)** — Find markets whose resolution conditions are subsets or supersets of your position — narrower or broader bets you can use to hedge.
+  - **[Arbitrage detection](https://pmxt.dev/docs/router/prices#fetcharbitrage)** — Scan for cross-venue price spreads. The Router identifies identity matches with divergent pricing, sorted by spread.
+  - **[Compose with venues](https://pmxt.dev/docs/router/prices#composing-with-venue-exchanges)** — Discover opportunities with the Router, then execute on venue exchanges. Same SDK, same schema — `marketId` works everywhere.
+
+
+#### How it works
+
+The Router is backed by a continuously-updated Postgres catalog that
+ingests markets, events, and outcomes from every venue PMXT supports.
+When you search or match, you're querying this catalog — not fanning
+out to 11 different APIs.
+
+Matching uses embedding-based similarity and LLM-verified relation
+classification to find semantically equivalent markets across venues,
+even when venues use different titles, different bracket ranges, or
+different framing.
+
+| Venue A (Polymarket)              | Venue B (Kalshi)                    | Relation   |
+| --------------------------------- | ----------------------------------- | ---------- |
+| "Will BTC exceed $100k by Dec?"   | "Bitcoin above $100,000 on Dec 31"  | identity   |
+| "Democrats win presidency"        | "Democratic nominee wins popular vote" | subset  |
+| "Fed cuts rates in 2025"          | "Fed cuts rates in June"            | superset   |
+
+#### Get started
+
+1. **Get an API key** at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
+   It starts with `pmxt_live_` and works immediately.
+
+2. **Install the SDK:**
+
+
+  
+**Python:**
+
+```bash
+pip install pmxt
+```
+  
+  
+**TypeScript:**
+
+```bash
+npm install pmxtjs
+```
+  
+
+
+3. **Create a Router and start querying:**
+
+
+  
+**Python:**
+
+```python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="pmxt_live_...")
+markets = router.fetch_markets(query="election")
+```
+  
+  
+**TypeScript:**
+
+```typescript
+import pmxt from "pmxtjs";
+
+const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
+const markets = await router.fetchMarkets({ query: "election" });
+```
+  
+
+
+That's it. Everything the Router returns uses the same
+[unified schema](https://pmxt.dev/docs/concepts/unified-schema) as every other PMXT
+exchange, so you can pass a `marketId` from the Router straight into
+a venue exchange when you're ready to trade.
+
+
+> **Note:**
+  **Order routing is coming.** Today the Router is read-only — it finds
+  opportunities, but you execute trades on venue exchanges. Smart order
+  routing (best-execution across venues) is on the roadmap.
+
+
+## Search
+
+### Search Events
+
+Source: https://pmxt.dev/docs/router/events
+
+The **Router** is a catalog-backed, cross-venue search surface. It fans
+a single query across every venue PMXT ingests and returns a unified
+list of events, sorted by 24h volume.
+
+Unlike the venue pass-through (`POST /api/:exchange/:method`), the
+Router is `GET`-based, browser-friendly, and never falls through to a
+live venue call. It is always served from the Postgres catalog.
+
+#### Endpoint
+
+```http
+GET https://api.pmxt.dev/v0/events
+Authorization: Bearer pmxt_live_...
+```
+
+#### Query parameters
+
+| Parameter     | Type      | Default | Notes                                                    |
+| ------------- | --------- | ------- | -------------------------------------------------------- |
+| `query`       | `string`  | —       | Full-text ILIKE over event title and slug.               |
+| `limit`       | `integer` | `50`    | Max rows, capped at `500`.                               |
+| `offset`      | `integer` | `0`     | Standard pagination offset.                              |
+| `closed`      | `boolean` | `false` | Include events whose `closes_at` has passed.             |
+| `category`    | `string`  | —       | Exact match on normalized category.                      |
+| `exchange`    | `string`  | —       | Filter to a single venue (`polymarket`, `kalshi`, ...).  |
+
+#### Example
+
+```bash
+curl "https://api.pmxt.dev/v0/events?query=election&limit=2" \
+  -H "Authorization: Bearer pmxt_live_..."
+```
+
+```json
+{
+  "data": [
+{
+  "eventId": "e344d660-5e22-411f-b516-ea37a0d9c3cb",
+  "title": "2028 US Presidential Election",
+  "volume24h": 12345678.9,
+  "markets": [
+    {
+      "marketId": "…",
+      "title": "Will Gavin Newsom win?",
+      "outcomes": [
+        { "label": "Yes", "price": 0.31, "priceChange24h":  0.02 },
+        { "label": "No",  "price": 0.69, "priceChange24h": -0.02 }
+      ]
+    }
+  ]
+}
+  ],
+  "meta": { "count": 2, "limit": 2, "offset": 0 }
+}
+```
+
+Every event comes back with its child markets **and** each market's
+outcomes, nested inline — no second fetch. Exactly the same shape as
+[`UnifiedEvent`](https://pmxt.dev/docs/concepts/unified-schema#unifiedevent).
+
+#### Latency
+
+Typical p95 on a warm catalog: **~10 ms per request**, regardless of
+venue. Cross-venue fan-out that would take 2–5 seconds live is served
+by a single indexed SQL query against `prediction_markets.events` +
+`prediction_markets.markets` + `prediction_markets.outcomes`.
+
+See [Catalog vs Live](https://pmxt.dev/docs/concepts/catalog-vs-live) for the full rationale.
+
+### Search Markets
+
+Source: https://pmxt.dev/docs/router/markets
+
+`GET /v0/markets` is the flat, per-market counterpart to
+[`/v0/events`](https://pmxt.dev/docs/router/events). Same catalog, same filters, but returns
+individual markets (with their outcomes) rather than events with nested
+markets. Use it when you want to rank or compare markets directly —
+for example, "the top 50 highest-volume markets on any venue mentioning
+'election'".
+
+#### Endpoint
+
+```http
+GET https://api.pmxt.dev/v0/markets
+Authorization: Bearer pmxt_live_...
+```
+
+#### Query parameters
+
+| Parameter     | Type      | Default | Notes                                                    |
+| ------------- | --------- | ------- | -------------------------------------------------------- |
+| `query`       | `string`  | —       | Full-text ILIKE over market title and slug.              |
+| `limit`       | `integer` | `50`    | Max rows, capped at `500`.                               |
+| `offset`      | `integer` | `0`     | Standard pagination offset.                              |
+| `closed`      | `boolean` | `false` | Include markets in `closed` / `resolved` status.         |
+| `category`    | `string`  | —       | Exact match on normalized category.                      |
+| `exchange`    | `string`  | —       | Filter to a single venue (`polymarket`, `kalshi`, ...).  |
+
+#### Example
+
+```bash
+curl "https://api.pmxt.dev/v0/markets?query=election&limit=3" \
+  -H "Authorization: Bearer pmxt_live_..."
+```
+
+```json
+{
+  "data": [
+{
+  "marketId": "d35bc8c6-5602-477d-af21-e9513af9d696",
+  "eventId":  "3b6432b6-c956-446e-a7a6-abda14e97aba",
+  "title":    "US forces enter Iran by April 30?",
+  "volume24h": 89757605.08,
+  "outcomes": [
+    { "outcomeId": "…", "label": "April 30",     "price": 0.9985, "priceChange24h":  0.002 },
+    { "outcomeId": "…", "label": "Not April 30", "price": 0.0015, "priceChange24h":  0.000 }
+  ]
+}
+  ],
+  "meta": { "count": 3, "limit": 3, "offset": 0 }
+}
+```
+
+#### Events vs markets
+
+| You want…                                       | Use                          |
+| ----------------------------------------------- | ---------------------------- |
+| A single answer for a topic with many questions | [`GET /v0/events`](https://pmxt.dev/docs/router/events) |
+| A flat list ranked across all events            | `GET /v0/markets`            |
+| The full venue surface (writes, OHLCV, ...)     | [`POST /api/:exchange/:method`](https://pmxt.dev/docs/api-reference/overview) |
+
+All three return the same [unified shape](https://pmxt.dev/docs/concepts/unified-schema), so
+moving between them is a routing decision — not a data-mapping one.
+
+
+## Analyze
+
+### Find Similar Events
+
+Source: https://pmxt.dev/docs/router/event-matching
+
+Given an event on any venue, find the corresponding event on every
+other venue and map all child markets across them. Instead of matching
+one market at a time, this returns the full cross-venue mapping in a
+single call.
+
+An [Event](https://pmxt.dev/docs/concepts/unified-schema) is the parent container — it holds
+multiple Markets, each with their own Outcomes. Event matching maps the
+entire tree across venues.
+
+#### fetchEventMatches
+
+
+  
+**Python:**
+
+```python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="pmxt_live_...")
+
+event_matches = router.fetch_event_matches(event_id="e344d660-...")
+
+for em in event_matches:
+    print(em.event.title)
+    for mm in em.market_matches:
+        print(f"  {mm.relation} ({mm.confidence}): {mm.market.title}")
+```
+  
+  
+**TypeScript:**
+
+```typescript
+import pmxt from "pmxtjs";
+
+const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
+
+const eventMatches = await router.fetchEventMatches({
+  eventId: "e344d660-...",
+});
+
+for (const em of eventMatches) {
+  console.log(em.event.title);
+  for (const mm of em.marketMatches) {
+    console.log(`  ${mm.relation} (${mm.confidence}): ${mm.market.title}`);
+  }
+}
+```
+  
+  
+**curl:**
+
+```bash
+curl "https://api.pmxt.dev/v0/events/e344d660-.../matches" \
+  -H "Authorization: Bearer pmxt_live_..."
+```
+  
+
+
+##### Parameters
+
+| Parameter       | Type      | Default | Notes                                             |
+| --------------- | --------- | ------- | ------------------------------------------------- |
+| `eventId`       | `string`  | —       | Internal PMXT event ID.                           |
+| `slug`          | `string`  | —       | Event slug (alternative to `eventId`).            |
+| `relation`      | `string`  | —       | Filter market matches to a specific [relation type](https://pmxt.dev/docs/router/matching#relation-types). |
+| `minConfidence` | `number`  | —       | Only return matches above this threshold (0–1).   |
+| `limit`         | `integer` | —       | Max event matches to return.                      |
+| `includePrices` | `boolean` | `false` | Attach live prices to each market match.          |
+
+##### Response shape
+
+```json
+[
+  {
+"event": {
+  "eventId": "...",
+  "title": "2028 US Presidential Election"
+},
+"marketMatches": [
+  {
+    "market": { "marketId": "...", "title": "Will Newsom win?" },
+    "relation": "identity",
+    "confidence": 0.92,
+    "reasoning": "Same candidate, same office, same election cycle."
+  },
+  {
+    "market": { "marketId": "...", "title": "Will DeSantis win?" },
+    "relation": "identity",
+    "confidence": 0.89,
+    "reasoning": "Same candidate — different bracket formatting on Kalshi."
+  }
+]
+  }
+]
+```
+
+Each matched event contains its full list of cross-venue market matches.
+Markets that exist on one venue but not the other are omitted from the
+response — only matched pairs appear.
+
+##### When to use event matching vs market matching
+
+| You have…                | Use                                        |
+| ------------------------ | ------------------------------------------ |
+| A single market question | [Find Similar Markets](https://pmxt.dev/docs/router/matching)   |
+| An event with many child markets | **Find Similar Events** (this page) |
+
+Event matching is more efficient when you care about the full picture —
+it maps all child markets in one call instead of N separate market
+match calls.
+
+### Find Similar Markets
+
+Source: https://pmxt.dev/docs/router/matching
+
+Given a market on any venue, find semantically equivalent or related
+markets on every other venue PMXT ingests. Each match comes with a
+relation type, confidence score, and reasoning.
+
+#### fetchMarketMatches
+
+
+  
+**Python:**
+
+```python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="pmxt_live_...")
+
+matches = router.fetch_market_matches(market_id="d35bc8c6-...", min_confidence=0.8)
+
+for m in matches:
+    print(m.relation, m.confidence, m.market.title)
+    print(f"  best bid: {m.best_bid}  best ask: {m.best_ask}")
+```
+  
+  
+**TypeScript:**
+
+```typescript
+import pmxt from "pmxtjs";
+
+const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
+
+const matches = await router.fetchMarketMatches({
+  marketId: "d35bc8c6-...",
+  minConfidence: 0.8,
+});
+
+for (const m of matches) {
+  console.log(m.relation, m.confidence, m.market.title);
+  console.log(`  best bid: ${m.bestBid}  best ask: ${m.bestAsk}`);
+}
+```
+  
+  
+**curl:**
+
+```bash
+curl "https://api.pmxt.dev/v0/markets/d35bc8c6-.../matches?minConfidence=0.8" \
+  -H "Authorization: Bearer pmxt_live_..."
+```
+  
+
+
+##### Parameters
+
+| Parameter       | Type      | Default | Notes                                                         |
+| --------------- | --------- | ------- | ------------------------------------------------------------- |
+| `marketId`      | `string`  | —       | Internal PMXT market ID.                                      |
+| `slug`          | `string`  | —       | Market slug (alternative to `marketId`).                      |
+| `url`           | `string`  | —       | Market URL on the source venue (alternative to `marketId`).   |
+| `relation`      | `string`  | —       | Filter to a specific relation type (see below).               |
+| `minConfidence` | `number`  | —       | Only return matches above this threshold (0–1).               |
+| `limit`         | `integer` | —       | Max matches to return.                                        |
+| `includePrices` | `boolean` | `false` | Attach live `bestBid` / `bestAsk` to each match.             |
+
+Provide one of `marketId`, `slug`, or `url`. The Router resolves the
+market and searches every other venue for matches.
+
+##### Response shape
+
+```json
+{
+  "market": { "marketId": "...", "title": "...", "outcomes": [...] },
+  "relation": "identity",
+  "confidence": 0.95,
+  "reasoning": "Same resolution condition: will BTC exceed $100k by Dec 31.",
+  "bestBid": 0.60,
+  "bestAsk": 0.65
+}
+```
+
+#### Relation types
+
+Every match is classified into one of five set-theoretic relations
+describing how two markets' resolution conditions relate:
+
+| Relation      | Meaning                                            | Example                                                                  |
+| ------------- | -------------------------------------------------- | ------------------------------------------------------------------------ |
+| **identity**  | Same resolution condition.                         | "BTC > $100k by Dec 31" on Polymarket and Kalshi.                        |
+| **subset**    | A resolving YES implies B resolves YES, not vice versa. | "Democrats win presidency" (A) ⊂ "Democrats win popular vote" (B).  |
+| **superset**  | B resolving YES implies A resolves YES, not vice versa. | "Anyone wins popular vote" (A) ⊃ "Democrats win popular vote" (B).  |
+| **overlap**   | Related, but neither implies the other.            | "Fed cuts in June" vs "Fed cuts in 2025" — June is a subset of 2025, but a cut in September would satisfy B without A. |
+| **disjoint**  | Cannot both resolve YES.                           | "Democrats win" vs "Republicans win" the same election.                  |
+
+Filter to a specific relation with the `relation` parameter:
+
+```python
+# Only identity matches (same market, different venue)
+matches = router.fetch_market_matches(market_id="...", relation="identity")
+
+# Only subset/superset (useful for hedging — see fetchHedges)
+matches = router.fetch_market_matches(market_id="...", relation="subset")
+```
+
+
+> **Note:**
+  To match an entire event and all its child markets at once, see
+  [Find Similar Events](https://pmxt.dev/docs/router/event-matching).
+
+### Compare Prices & Arbitrage
+
+Source: https://pmxt.dev/docs/router/prices
+
+Three methods build on [matching](https://pmxt.dev/docs/router/matching) to answer pricing
+questions across venues.
+
+#### compareMarketPrices
+
+Side-by-side bid/ask for the same market on every venue.
+
+Under the hood this calls `fetchMarketMatches` with `relation: "identity"`
+and `includePrices: true`, then maps the results to a flat comparison.
+
+
+  
+**Python:**
+
+```python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="pmxt_live_...")
+
+prices = router.compare_market_prices(market_id="d35bc8c6-...")
+
+for p in prices:
+    print(f"{p.venue:12s}  bid {p.best_bid:.2f}  ask {p.best_ask:.2f}")
+```
+
+```
+polymarket    bid 0.60  ask 0.65
+kalshi        bid 0.58  ask 0.63
+limitless     bid 0.61  ask 0.66
+```
+  
+  
+**TypeScript:**
+
+```typescript
+import pmxt from "pmxtjs";
+
+const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
+
+const prices = await router.compareMarketPrices({
+  marketId: "d35bc8c6-...",
+});
+
+for (const p of prices) {
+  console.log(`${p.venue.padEnd(12)}  bid ${p.bestBid}  ask ${p.bestAsk}`);
+}
+```
+  
+
+
+##### Response shape
+
+```json
+{
+  "market": { "marketId": "...", "title": "..." },
+  "relation": "identity",
+  "confidence": 0.95,
+  "reasoning": "Same resolution condition.",
+  "bestBid": 0.60,
+  "bestAsk": 0.65,
+  "venue": "kalshi"
+}
+```
+
+#### fetchHedges
+
+Find markets that partially hedge a position — markets whose resolution
+condition is a subset or superset of the target market.
+
+
+  
+**Python:**
+
+```python
+hedges = router.fetch_hedges(market_id="d35bc8c6-...")
+
+for h in hedges:
+    print(f"{h.relation:10s} {h.venue:12s}  {h.market.title}")
+    print(f"           confidence {h.confidence:.0%}  bid {h.best_bid}  ask {h.best_ask}")
+    print(f"           {h.reasoning}")
+```
+
+```
+subset     kalshi        Will the nominee be from California?
+           confidence 85%  bid 0.40  ask 0.45
+           Narrower market — California origin implies Democratic candidacy.
+superset   polymarket    Will a Democrat win the popular vote?
+           confidence 72%  bid 0.70  ask 0.73
+           Broader — popular vote does not guarantee election win.
+```
+  
+  
+**TypeScript:**
+
+```typescript
+const hedges = await router.fetchHedges({ marketId: "d35bc8c6-..." });
+
+for (const h of hedges) {
+  console.log(h.relation, h.venue, h.market.title);
+  console.log(`  confidence: ${h.confidence}  reasoning: ${h.reasoning}`);
+}
+```
+  
+
+
+Subset means A=YES implies B=YES but not vice versa. Superset is the
+reverse. See [relation types](https://pmxt.dev/docs/router/matching#relation-types) for the
+full taxonomy.
+
+
+> **Note:**
+  `fetchHedges` filters matches to `subset` and `superset` relations
+  only. If you want all relations, use
+  [`fetchMarketMatches`](https://pmxt.dev/docs/router/matching#fetchmarketmatches) directly.
+
+
+#### fetchArbitrage
+
+Scan for cross-venue price spreads on identity-matched markets.
+
+The Router fetches markets, finds identity matches on other venues,
+compares bid/ask, and returns every pair where you could theoretically
+buy on one venue and sell on another for a positive spread.
+
+
+  
+**Python:**
+
+```python
+opps = router.fetch_arbitrage(min_spread=0.03, category="Politics", limit=20)
+
+for o in opps:
+    print(f"spread {o.spread:+.2f}")
+    print(f"  buy  {o.buy_venue:12s} @ {o.buy_price:.2f}  ({o.market_a.title})")
+    print(f"  sell {o.sell_venue:12s} @ {o.sell_price:.2f}  ({o.market_b.title})")
+```
+
+```
+spread +0.05
+  buy  polymarket   @ 0.58  (Will BTC hit $100k by Dec 31?)
+  sell kalshi       @ 0.63  (Bitcoin above $100k on Dec 31)
+```
+  
+  
+**TypeScript:**
+
+```typescript
+const opps = await router.fetchArbitrage({
+  minSpread: 0.03,
+  category: "Politics",
+  limit: 20,
+});
+
+for (const o of opps) {
+  console.log(`spread: +${o.spread.toFixed(2)}`);
+  console.log(`  buy  ${o.buyVenue} @ ${o.buyPrice}  (${o.marketA.title})`);
+  console.log(`  sell ${o.sellVenue} @ ${o.sellPrice}  (${o.marketB.title})`);
+}
+```
+  
+
+
+##### Parameters
+
+| Parameter   | Type      | Default | Notes                                                  |
+| ----------- | --------- | ------- | ------------------------------------------------------ |
+| `minSpread` | `number`  | `0`     | Only return pairs with spread ≥ this value.            |
+| `category`  | `string`  | —       | Filter source markets by category.                     |
+| `limit`     | `integer` | `50`    | Max source markets to scan for matches.                |
+
+Results are sorted by spread descending — the biggest opportunities
+first.
+
+##### Response shape
+
+```json
+{
+  "marketA": { "marketId": "...", "title": "..." },
+  "marketB": { "marketId": "...", "title": "..." },
+  "spread": 0.05,
+  "buyVenue": "polymarket",
+  "sellVenue": "kalshi",
+  "buyPrice": 0.58,
+  "sellPrice": 0.63
+}
+```
+
+
+> **Warning:**
+  Arbitrage detection shows price discrepancies — it does not execute
+  trades. Order routing is not yet available. Use venue-specific
+  exchanges (`pmxt.Polymarket(...)`, `pmxt.Kalshi(...)`) to place
+  orders on each side.
+
+
+#### Composing with venue exchanges
+
+The Router is read-only — it finds opportunities, but you trade on
+venue exchanges. A typical workflow:
+
+```python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="pmxt_live_...")
+poly   = pmxt.Polymarket(pmxt_api_key="pmxt_live_...", private_key="0x...")
+kalshi = pmxt.Kalshi(pmxt_api_key="pmxt_live_...", api_key="...", private_key="...")
+
+# 1. Discover an arbitrage opportunity
+opps = router.fetch_arbitrage(min_spread=0.03)
+
+# 2. Inspect order books on each venue
+book_a = poly.fetch_order_book(market_id=opps[0].market_a.market_id)
+book_b = kalshi.fetch_order_book(market_id=opps[0].market_b.market_id)
+
+# 3. Execute on each venue (requires venue credentials)
+# poly.create_order(...)
+# kalshi.create_order(...)
+```
+
+Router returns the same [unified schema](https://pmxt.dev/docs/concepts/unified-schema) as
+every other exchange, so `marketId`, `outcomes`, and all other fields
+work interchangeably.
+
+
+---
+
+# API Reference
+
+
+## Overview
+
+### Overview
+
+Source: https://pmxt.dev/docs/api-reference/overview
+
+Every endpoint in the **Endpoints** section of this sidebar is generated
+automatically from the `pmxt-core` package's OpenAPI specification. This
+page is the hand-written preface; everything else under
+**API Reference → Endpoints** is rendered directly from the spec.
+
+#### How this works
+
+PMXT Hosted mounts `pmxt-core`'s HTTP surface under
+`POST /api/:exchange/:method`. That surface is the same one the local
+sidecar exposes, and it's described by a single OpenAPI 3 document
+([`openapi.yaml`](https://github.com/pmxt-dev/pmxt/blob/main/core/src/server/openapi.yaml))
+generated from the TypeScript source of
+[`BaseExchange.ts`](https://github.com/pmxt-dev/pmxt/blob/main/core/src/exchanges/BaseExchange.ts)
+on every `pmxt-core` build.
+
+The spec ships inside the `pmxt-core` npm package at
+`node_modules/pmxt-core/dist/server/openapi.yaml`. On every `npm install`,
+hosted-pmxt's `postinstall` hook runs `scripts/sync-docs.js`, which:
+
+1. Copies the spec into `docs/api-reference/openapi.yaml`.
+2. Rewrites `servers` to point at `https://api.pmxt.dev`.
+3. Adds a `bearerAuth` security scheme so every endpoint in this
+   reference shows the correct `Authorization: Bearer …` requirement.
+4. Regenerates [`concepts/venues`](https://pmxt.dev/docs/concepts/venues) from the
+   `ExchangeParam` enum.
+
+When `pmxt-core` publishes a new version, the immediate watcher in
+hosted-pmxt opens a PR that bumps the dependency — `npm install` inside
+that PR re-runs the sync, and the refreshed spec lands in the same
+commit. **There is no separate docs build, no drift, and no manual
+step.** If you see a method documented here, it exists in the hosted
+surface at exactly that path.
+
+#### Request shape
+
+Every venue pass-through call has the same wire shape:
+
+```http
+POST /api/:exchange/:method
+Authorization: Bearer pmxt_live_...
+Content-Type: application/json
+
+{
+  "args": [ /* positional arguments to the SDK method, in order */ ],
+  "credentials": { /* optional — venue-scoped credentials */ }
+}
+```
+
+The `args` array is the positional signature of the underlying SDK
+method, which is why each generated endpoint page lists its arguments in
+order. For example, `fetchMarkets({ query, limit })` becomes:
+
+```json
+{ "args": [{ "query": "election", "limit": 5 }] }
+```
+
+When the SDK supports keyword arguments, pass an object as the first
+element of `args`. When it supports positional arguments, pass them
+inline.
+
+#### Response envelope
+
+Every pass-through response is wrapped in the same envelope:
+
+```json
+{ "success": true, "data": /* method-specific payload */ }
+```
+
+On error:
+
+```json
+{
+  "success": false,
+  "error": {
+"message": "…",
+"code": "AUTHENTICATION_ERROR",
+"retryable": false,
+"exchange": "Polymarket"
+  }
+}
+```
+
+The envelope is identical whether a call was served from the
+[catalog](https://pmxt.dev/docs/concepts/catalog-vs-live) or forwarded live to the venue —
+clients cannot tell the difference.
+
+#### Interactive try-it-out
+
+Every generated endpoint page in this reference has a **"Try It"** panel
+on the right — paste your API key once at the top of the page and every
+request runs against `https://api.pmxt.dev` with Bearer auth attached.
+
+
+## System
+
+### Server Health Check
+
+`GET /health`
+
+
+### Load Markets
+
+`POST /api/{exchange}/loadMarkets`
+
+Load and cache all markets from the exchange into `this.markets` and `this.marketsBySlug`. Subsequent calls return the cached result without hitting the API again. This is the correct way to paginate or iterate over markets without drift. Because `fetchMarkets()` always hits the API, repeated calls with different `offset` values may return inconsistent results if the exchange reorders or adds markets between requests. Use `loadMarkets()` once to get a stable snapshot, then paginate over `Object.values(exchange.markets)` locally.
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.load_markets()
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.loadMarkets();
+```
+
+
+### Close
+
+`POST /api/{exchange}/close`
+
+Close all WebSocket connections and clean up resources. Call this when you're done streaming to properly release connections.
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.close()
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.close();
+```
+
+
+
+## Events & Markets
+
+### Fetch Events
+
+`GET /api/{exchange}/fetchEvents`
+
+Fetch events with optional keyword search. Events group related markets together (e.g., "Who will be Fed Chair?" contains multiple candidate markets).
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `query` | string | No | For keyword search |
+| `limit` | number | No | Maximum number of results to return |
+| `offset` | number | No | Pagination offset — number of results to skip |
+| `sort` | string | No | Sort order for results |
+| `status` | string | No | Filter by event status (default: 'active', 'inactive' and 'closed' are interchangeable) |
+| `searchIn` | string | No | Where to search (default: 'title') |
+| `eventId` | string | No | Direct lookup by event ID |
+| `slug` | string | No | Lookup by event slug |
+| `filter` | string | No | Optional client-side filter applied after fetching |
+| `category` | string | No | Shorthand for filter.category -- merged into filter (takes precedence) |
+| `tags` | array | No | Shorthand for filter.tags -- merged into filter (takes precedence) |
+
+**Response:** `{ success: true, data: UnifiedEvent[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_events(
+    query="election",
+    limit=10,
+    offset=0,
+    sort="volume",
+    status="active",
+    search_in="title",
+    event_id="12345",
+    slug="BTC-USD",
+    filter="value",
+    category="value",
+    tags=[],
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchEvents({
+  query: "election",
+  limit: 10,
+  offset: 0,
+  sort: "volume",
+  status: "active",
+  searchIn: "title",
+  eventId: "12345",
+  slug: "BTC-USD",
+  filter: "value",
+  category: "value",
+  tags: [],
+});
+```
+
+
+### Fetch Events Paginated
+
+`GET /api/{exchange}/fetchEventsPaginated`
+
+Paginated variant of {@link fetchEvents}. On the first call (no `cursor`), all events are fetched from the exchange and cached in an in-memory snapshot. A cursor is returned along with the first page. Subsequent calls with that cursor serve additional pages directly from the cached snapshot -- no additional API calls are made. The snapshot is invalidated after `snapshotTTL` ms (configured via `ExchangeOptions` in the constructor). A request using a cursor from an expired snapshot throws `'Cursor has expired'`.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `limit` | number | No |  |
+| `cursor` | string | No |  |
+| `filter` | string | No |  |
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_events_paginated(
+    limit=10,
+    cursor="abc123",
+    filter="value",
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchEventsPaginated({
+  limit: 10,
+  cursor: "abc123",
+  filter: "value",
+});
+```
+
+
+### Fetch Event
+
+`GET /api/{exchange}/fetchEvent`
+
+Fetch a single event by lookup parameters. Convenience wrapper around fetchEvents() that returns a single result or throws EventNotFound.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `query` | string | No | For keyword search |
+| `limit` | number | No | Maximum number of results to return |
+| `offset` | number | No | Pagination offset — number of results to skip |
+| `sort` | string | No | Sort order for results |
+| `status` | string | No | Filter by event status (default: 'active', 'inactive' and 'closed' are interchangeable) |
+| `searchIn` | string | No | Where to search (default: 'title') |
+| `eventId` | string | No | Direct lookup by event ID |
+| `slug` | string | No | Lookup by event slug |
+| `filter` | string | No | Optional client-side filter applied after fetching |
+| `category` | string | No | Shorthand for filter.category -- merged into filter (takes precedence) |
+| `tags` | array | No | Shorthand for filter.tags -- merged into filter (takes precedence) |
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_event(event_id="12345")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchEvent({ eventId: "12345" });
+```
+
+
+### Fetch Markets
+
+`GET /api/{exchange}/fetchMarkets`
+
+Fetch markets with optional filtering, search, or slug lookup. Always hits the exchange API — results reflect the live state at the time of the call.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `limit` | number | No | Maximum number of results to return |
+| `offset` | number | No | Pagination offset — number of results to skip |
+| `sort` | string | No | Sort order for results |
+| `status` | string | No | Filter by market status (default: 'active', 'inactive' and 'closed' are interchangeable) |
+| `searchIn` | string | No | Where to search (default: 'title') |
+| `query` | string | No | For keyword search |
+| `slug` | string | No | For slug/ticker lookup |
+| `marketId` | string | No | Direct lookup by market ID |
+| `outcomeId` | string | No | Reverse lookup -- find market containing this outcome |
+| `eventId` | string | No | Find markets belonging to an event |
+| `page` | number | No | For pagination (used by Limitless) |
+| `similarityThreshold` | number | No | For semantic search (used by Limitless) |
+
+**Response:** `{ success: true, data: UnifiedMarket[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_markets(
+    limit=10,
+    offset=0,
+    sort="volume",
+    status="active",
+    search_in="title",
+    query="election",
+    slug="BTC-USD",
+    market_id="12345",
+    outcome_id="67890",
+    event_id="12345",
+    page=1,
+    similarity_threshold=1,
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchMarkets({
+  limit: 10,
+  offset: 0,
+  sort: "volume",
+  status: "active",
+  searchIn: "title",
+  query: "election",
+  slug: "BTC-USD",
+  marketId: "12345",
+  outcomeId: "67890",
+  eventId: "12345",
+  page: 1,
+  similarityThreshold: 1,
+});
+```
+
+
+### Fetch Markets Paginated
+
+`GET /api/{exchange}/fetchMarketsPaginated`
+
+Fetch markets with cursor-based pagination backed by a stable in-memory snapshot. On the first call (or when no cursor is supplied), fetches all markets once and caches them. Subsequent calls with a cursor returned from a previous call slice directly from the cached snapshot — no additional API calls are made. The snapshot is invalidated after `snapshotTTL` ms (configured via `ExchangeOptions` in the constructor). A request using a cursor from an expired snapshot throws `'Cursor has expired'`.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `limit` | number | No |  |
+| `cursor` | string | No |  |
+| `filter` | string | No |  |
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_markets_paginated(
+    limit=10,
+    cursor="abc123",
+    filter="value",
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchMarketsPaginated({
+  limit: 10,
+  cursor: "abc123",
+  filter: "value",
+});
+```
+
+
+### Fetch Market
+
+`GET /api/{exchange}/fetchMarket`
+
+Fetch a single market by lookup parameters. Convenience wrapper around fetchMarkets() that returns a single result or throws MarketNotFound.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `limit` | number | No | Maximum number of results to return |
+| `offset` | number | No | Pagination offset — number of results to skip |
+| `sort` | string | No | Sort order for results |
+| `status` | string | No | Filter by market status (default: 'active', 'inactive' and 'closed' are interchangeable) |
+| `searchIn` | string | No | Where to search (default: 'title') |
+| `query` | string | No | For keyword search |
+| `slug` | string | No | For slug/ticker lookup |
+| `marketId` | string | No | Direct lookup by market ID |
+| `outcomeId` | string | No | Reverse lookup -- find market containing this outcome |
+| `eventId` | string | No | Find markets belonging to an event |
+| `page` | number | No | For pagination (used by Limitless) |
+| `similarityThreshold` | number | No | For semantic search (used by Limitless) |
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_market(market_id="12345")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchMarket({ marketId: "12345" });
+```
+
+
+
+## Cross-Venue
+
+### Find Similar Events
+
+`GET /api/{exchange}/fetchEventMatches`
+
+Find the same or related event on other venues. Given an event on one venue, discover semantically equivalent events across every other venue PMXT ingests — including market-level match details for each child market.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `event` | string | No | Pass a UnifiedEvent directly instead of eventId/slug. |
+| `eventId` | string | No |  |
+| `slug` | string | No |  |
+| `relation` | string | No |  |
+| `minConfidence` | number | No |  |
+| `limit` | number | No |  |
+| `includePrices` | boolean | No |  |
+
+**Response:** `{ success: true, data: EventMatchResult[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_event_matches(event_id="12345")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchEventMatches({ eventId: "12345" });
+```
+
+
+### Find Similar Markets
+
+`GET /api/{exchange}/fetchMarketMatches`
+
+Find the same or related market on other venues. Given a market on one venue, discover semantically equivalent markets across every other venue PMXT ingests — each with a relation type (identity, subset, superset, overlap, disjoint), confidence score, and reasoning.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `market` | string | No | Pass a UnifiedMarket directly instead of marketId/slug/url. |
+| `marketId` | string | No |  |
+| `slug` | string | No |  |
+| `url` | string | No |  |
+| `relation` | string | No |  |
+| `minConfidence` | number | No |  |
+| `limit` | number | No |  |
+| `includePrices` | boolean | No |  |
+
+**Response:** `{ success: true, data: MatchResult[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_market_matches(market_id="12345")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchMarketMatches({ marketId: "12345" });
+```
+
+
+### Compare Prices Across Venues
+
+`POST /api/{exchange}/compareMarketPrices`
+
+Compare live prices for the same market across venues. Finds identity matches and returns side-by-side best bid/ask prices so you can spot price differences at a glance.
+
+**Request body** (`args[0]`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `market` | object | No | Pass a UnifiedMarket directly instead of marketId/slug/url. |
+| `marketId` | string | No |  |
+| `slug` | string | No |  |
+| `url` | string | No |  |
+| `relation` | `identity` \| `subset` \| `superset` \| `overlap` \| `disjoint` | No |  |
+| `minConfidence` | number | No |  |
+| `limit` | number | No |  |
+| `includePrices` | boolean | No |  |
+
+**Response:** `{ success: true, data: PriceComparison[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.compare_market_prices(market_id="12345")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.compareMarketPrices({ marketId: "12345" });
+```
+
+
+### Find Hedging Opportunities
+
+`GET /api/{exchange}/fetchHedges`
+
+Find hedging opportunities across venues. Discovers subset/superset market relationships where one market's outcome implies another, enabling cross-venue hedging strategies with live prices.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `market` | string | No | Pass a UnifiedMarket directly instead of marketId/slug/url. |
+| `marketId` | string | No |  |
+| `slug` | string | No |  |
+| `url` | string | No |  |
+| `relation` | string | No |  |
+| `minConfidence` | number | No |  |
+| `limit` | number | No |  |
+| `includePrices` | boolean | No |  |
+
+**Response:** `{ success: true, data: PriceComparison[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_hedges(market_id="12345")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchHedges({ marketId: "12345" });
+```
+
+
+### Find Arbitrage Opportunities
+
+`GET /api/{exchange}/fetchArbitrage`
+
+Scan for arbitrage opportunities across venues. Finds identity matches where the same market is priced differently on different venues, returning opportunities sorted by spread size.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `minSpread` | number | No |  |
+| `category` | string | No |  |
+| `limit` | number | No |  |
+| `relations` | array | No | Comma-separated relation types to include (default: 'identity'). |
+
+**Response:** `{ success: true, data: ArbitrageOpportunity[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_arbitrage(min_spread=0.05)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchArbitrage({ minSpread: 0.05 });
+```
+
+
+
+## Order Book & Trades
+
+### Fetch OHLCV
+
+`GET /api/{exchange}/fetchOHLCV`
+
+Fetch historical OHLCV (candlestick) price data for a specific market outcome.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes |  |
+| `resolution` | string | No | Required for candle aggregation |
+| `start` | string | No | Start of the time range |
+| `end` | string | No | End of the time range |
+| `limit` | number | No | Maximum number of results to return |
+
+**Response:** `{ success: true, data: PriceCandle[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_ohlcv(
+    id="12345",
+    resolution="1h",
+    start="value",
+    end="value",
+    limit=10,
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchOHLCV({
+  id: "12345",
+  resolution: "1h",
+  start: "value",
+  end: "value",
+  limit: 10,
+});
+```
+
+
+### Fetch Order Book
+
+`GET /api/{exchange}/fetchOrderBook`
+
+Fetch the current order book (bids/asks) for a specific outcome. Essential for calculating spread, depth, and execution prices.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes |  |
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_order_book(id="12345")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchOrderBook({ id: "12345" });
+```
+
+
+### Fetch Trades
+
+`GET /api/{exchange}/fetchTrades`
+
+Fetch raw trade history for a specific outcome.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes |  |
+| `start` | string | No | Start of the time range |
+| `end` | string | No | End of the time range |
+| `limit` | number | No | Maximum number of results to return |
+
+**Response:** `{ success: true, data: Trade[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_trades(
+    id="12345",
+    start="value",
+    end="value",
+    limit=10,
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchTrades({
+  id: "12345",
+  start: "value",
+  end: "value",
+  limit: 10,
+});
+```
+
+
+### Get Execution Price
+
+`POST /api/{exchange}/getExecutionPrice`
+
+Calculate the volume-weighted average execution price for a given order size. Returns 0 if the order cannot be fully filled.
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.get_execution_price(
+    order_book="orderBook",
+    side="buy",
+    amount=10,
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.getExecutionPrice({
+  orderBook: "orderBook",
+  side: "buy",
+  amount: 10,
+});
+```
+
+
+### Get Execution Price Detailed
+
+`POST /api/{exchange}/getExecutionPriceDetailed`
+
+Calculate detailed execution price information including partial fill data.
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.get_execution_price_detailed(
+    order_book="orderBook",
+    side="buy",
+    amount=10,
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.getExecutionPriceDetailed({
+  orderBook: "orderBook",
+  side: "buy",
+  amount: 10,
+});
+```
+
+
+
+## Trading
+
+### Create Order
+
+`POST /api/{exchange}/createOrder`
+
+Place a new order on the exchange.
+
+**Request body** (`args[0]`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `marketId` | string | Yes | The market to trade on. |
+| `outcomeId` | string | Yes | The outcome to trade. |
+| `side` | `buy` \| `sell` | Yes | Order side: buy or sell. |
+| `type` | `market` \| `limit` | Yes | Order type: market (execute immediately) or limit (resting at a price). |
+| `amount` | number | Yes | Size of the order in contracts/shares. |
+| `price` | number | No | Required for limit orders |
+| `fee` | number | No | Optional fee rate (e.g., 1000 for 0.1%) |
+| `tickSize` | number | No | Optional override for Limitless/Polymarket |
+| `negRisk` | boolean | No | Optional override to skip neg-risk lookup (Polymarket) |
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.create_order(
+    market_id="12345",
+    outcome_id="67890",
+    side="buy",
+    type="limit",
+    amount=10,
+    price=0.55,
+    fee=1,
+    tick_size=1,
+    neg_risk=True,
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.createOrder({
+  marketId: "12345",
+  outcomeId: "67890",
+  side: "buy",
+  type: "limit",
+  amount: 10,
+  price: 0.55,
+  fee: 1,
+  tickSize: 1,
+  negRisk: true,
+});
+```
+
+
+### Build Order
+
+`POST /api/{exchange}/buildOrder`
+
+Build an order payload without submitting it to the exchange. Returns the exchange-native signed order or request body for inspection, forwarding through a middleware layer, or deferred submission via submitOrder().
+
+**Request body** (`args[0]`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `marketId` | string | Yes | The market to trade on. |
+| `outcomeId` | string | Yes | The outcome to trade. |
+| `side` | `buy` \| `sell` | Yes | Order side: buy or sell. |
+| `type` | `market` \| `limit` | Yes | Order type: market (execute immediately) or limit (resting at a price). |
+| `amount` | number | Yes | Size of the order in contracts/shares. |
+| `price` | number | No | Required for limit orders |
+| `fee` | number | No | Optional fee rate (e.g., 1000 for 0.1%) |
+| `tickSize` | number | No | Optional override for Limitless/Polymarket |
+| `negRisk` | boolean | No | Optional override to skip neg-risk lookup (Polymarket) |
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.build_order(
+    market_id="12345",
+    outcome_id="67890",
+    side="buy",
+    type="limit",
+    amount=10,
+    price=0.55,
+    fee=1,
+    tick_size=1,
+    neg_risk=True,
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.buildOrder({
+  marketId: "12345",
+  outcomeId: "67890",
+  side: "buy",
+  type: "limit",
+  amount: 10,
+  price: 0.55,
+  fee: 1,
+  tickSize: 1,
+  negRisk: true,
+});
+```
+
+
+### Submit Order
+
+`POST /api/{exchange}/submitOrder`
+
+Submit a pre-built order returned by buildOrder().
+
+**Request body** (`args[0]`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `exchange` | string | Yes | The exchange name this order was built for. |
+| `params` | object | Yes | The original params used to build this order. |
+| `signedOrder` | object | No | For CLOB exchanges (Polymarket): the EIP-712 signed order ready to POST to the exchange's order endpoint. |
+| `tx` | object | No | For on-chain AMM exchanges: the EVM transaction payload. Reserved for future exchanges; no current exchange populates this. |
+| `raw` | object | Yes | The raw, exchange-native payload. Always present. |
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+built = exchange.build_order(market_id="12345", side="buy", type="limit", amount=10, price=0.55)
+result = exchange.submit_order(built)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const built = await exchange.buildOrder({ marketId: "12345", side: "buy", type: "limit", amount: 10, price: 0.55 });
+const result = await exchange.submitOrder(built);
+```
+
+
+### Cancel Order
+
+`POST /api/{exchange}/cancelOrder`
+
+Cancel an existing open order.
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.cancel_order(order_id="ord-001")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.cancelOrder({ orderId: "ord-001" });
+```
+
+
+
+## Orders & Positions
+
+### Fetch Order
+
+`GET /api/{exchange}/fetchOrder`
+
+Fetch a specific order by ID.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `orderId` | string | Yes |  |
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_order(order_id="ord-001")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchOrder({ orderId: "ord-001" });
+```
+
+
+### Fetch Open Orders
+
+`GET /api/{exchange}/fetchOpenOrders`
+
+Fetch all open orders, optionally filtered by market.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `marketId` | string | No |  |
+
+**Response:** `{ success: true, data: Order[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_open_orders(market_id="12345")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchOpenOrders({ marketId: "12345" });
+```
+
+
+### Fetch My Trades
+
+`GET /api/{exchange}/fetchMyTrades`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `outcomeId` | string | No | filter to specific outcome/ticker |
+| `marketId` | string | No | filter to specific market |
+| `since` | string | No | Only return records after this date |
+| `until` | string | No | Only return records before this date |
+| `limit` | number | No | Maximum number of results to return |
+| `cursor` | string | No | for Kalshi cursor pagination |
+
+**Response:** `{ success: true, data: UserTrade[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_my_trades(
+    outcome_id="67890",
+    market_id="12345",
+    since="value",
+    until="value",
+    limit=10,
+    cursor="abc123",
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchMyTrades({
+  outcomeId: "67890",
+  marketId: "12345",
+  since: "value",
+  until: "value",
+  limit: 10,
+  cursor: "abc123",
+});
+```
+
+
+### Fetch Closed Orders
+
+`GET /api/{exchange}/fetchClosedOrders`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `marketId` | string | No | required for Limitless (slug) |
+| `since` | string | No | Only return records after this date |
+| `until` | string | No | Only return records before this date |
+| `limit` | number | No | Maximum number of results to return |
+| `cursor` | string | No | Opaque pagination cursor from a previous response |
+
+**Response:** `{ success: true, data: Order[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_closed_orders(
+    market_id="12345",
+    since="value",
+    until="value",
+    limit=10,
+    cursor="abc123",
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchClosedOrders({
+  marketId: "12345",
+  since: "value",
+  until: "value",
+  limit: 10,
+  cursor: "abc123",
+});
+```
+
+
+### Fetch All Orders
+
+`GET /api/{exchange}/fetchAllOrders`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `marketId` | string | No | required for Limitless (slug) |
+| `since` | string | No | Only return records after this date |
+| `until` | string | No | Only return records before this date |
+| `limit` | number | No | Maximum number of results to return |
+| `cursor` | string | No | Opaque pagination cursor from a previous response |
+
+**Response:** `{ success: true, data: Order[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_all_orders(
+    market_id="12345",
+    since="value",
+    until="value",
+    limit=10,
+    cursor="abc123",
+)
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchAllOrders({
+  marketId: "12345",
+  since: "value",
+  until: "value",
+  limit: 10,
+  cursor: "abc123",
+});
+```
+
+
+### Fetch Positions
+
+`GET /api/{exchange}/fetchPositions`
+
+Fetch current user positions across all markets.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `address` | string | No |  |
+
+**Response:** `{ success: true, data: Position[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_positions(address="0xabc...")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchPositions({ address: "0xabc..." });
+```
+
+
+### Fetch Balance
+
+`GET /api/{exchange}/fetchBalance`
+
+Fetch account balances.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `address` | string | No |  |
+
+**Response:** `{ success: true, data: Balance[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.fetch_balance(address="0xabc...")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.fetchBalance({ address: "0xabc..." });
+```
+
+
+
+## Realtime
+
+### Watch Order Book
+
+`POST /api/{exchange}/watchOrderBook`
+
+Watch order book updates in real-time via WebSocket. Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.watch_order_book(id="12345")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.watchOrderBook({ id: "12345" });
+```
+
+
+### Unwatch Order Book
+
+`POST /api/{exchange}/unwatchOrderBook`
+
+Unsubscribe from a previously watched order book stream.
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.unwatch_order_book()
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.unwatchOrderBook();
+```
+
+
+### Watch Trades
+
+`POST /api/{exchange}/watchTrades`
+
+Watch trade executions in real-time via WebSocket. Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+
+**Response:** `{ success: true, data: Trade[] }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.watch_trades(id="12345")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.watchTrades({ id: "12345" });
+```
+
+
+### Watch Address
+
+`POST /api/{exchange}/watchAddress`
+
+Stream activity for a public wallet address Returns a promise that resolves with the next activity snapshot whenever a change is detected. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.watch_address(address="0xabc...")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.watchAddress({ address: "0xabc..." });
+```
+
+
+### Unwatch Address
+
+`POST /api/{exchange}/unwatchAddress`
+
+Stop watching a previously registered wallet address and release its resource updates.
+
+**Python:**
+```python
+import pmxt
+
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.unwatch_address(address="0xabc...")
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.unwatchAddress({ address: "0xabc..." });
+```
+
+
+
+## Enterprise
+
+### Execute a read-only SQL query against ClickHouse
+
+`POST /v0/sql`
+
+**Response:** `{ success: true, data: object[] }`
+
+
+
+---
+
+# Reference
+
+## Error Codes
+
+Every error response follows the same envelope:
+
+```json
+{
+  "success": false,
+  "error": {
+    "message": "Human-readable description",
+    "code": "ERROR_CODE",
+    "retryable": false,
+    "exchange": "polymarket"
+  }
+}
+```
+
+| Code | HTTP Status | Retryable | Description |
+| --- | --- | --- | --- |
+| `AUTHENTICATION_ERROR` | 401 | No | Missing or invalid API key. |
+| `INVALID_API_KEY` | 401 | No | Key unknown, revoked, or expired. |
+| `RATE_LIMIT_EXCEEDED` | 429 | Yes | Per-minute rate limit hit. Retry after the window resets. |
+| `MONTHLY_QUOTA_EXCEEDED` | 429 | No | Monthly request quota exhausted. |
+| `EXCHANGE_ERROR` | 502 | Yes | Upstream venue returned an error. Check `error.message` for details. |
+| `EXCHANGE_TIMEOUT` | 504 | Yes | Upstream venue did not respond in time. |
+| `MARKET_NOT_FOUND` | 404 | No | The requested marketId/slug does not exist on this venue. |
+| `EVENT_NOT_FOUND` | 404 | No | The requested eventId/slug does not exist on this venue. |
+| `ORDER_NOT_FOUND` | 404 | No | The requested orderId does not exist. |
+| `INSUFFICIENT_BALANCE` | 400 | No | Not enough funds to place the order. |
+| `INVALID_ORDER` | 400 | No | Order parameters are invalid (bad price, amount, etc.). |
+| `VALIDATION_ERROR` | 400 | No | Request body failed schema validation. |
+
+## Rate Limits
+
+| Endpoint | Per-minute | Per-month |
+| --- | --- | --- |
+| `/v0/*` (Router) | 60 | 25,000 |
+| `/api/*` (Venue pass-through) | 60 | 25,000 |
+
+## End-to-End Recipe: Place a Limit Order and Poll Until Filled
+
+```python
+import pmxt, time
+
+poly = pmxt.Polymarket(
+    pmxt_api_key="pmxt_live_...",
+    private_key="0x...",
+    proxy_address="0x...",
+    signature_type="gnosis-safe",
+)
+
+# 1. Find the market
+markets = poly.fetch_markets(query="bitcoin 100k", limit=1)
+market = markets[0]
+
+# 2. Check execution price before placing
+quote = poly.get_execution_price(
+    market_id=market.market_id,
+    outcome_id=market.yes.outcome_id,
+    side="buy",
+    amount=50,
+)
+print(f"Expected fill: {quote.price:.4f}, fully filled: {quote.fully_filled}")
+
+# 3. Place a limit order
+order = poly.create_order(
+    market_id=market.market_id,
+    outcome_id=market.yes.outcome_id,
+    side="buy",
+    type="limit",
+    price=0.55,
+    amount=50,
+)
+print(f"Order placed: {order.id}, status: {order.status}")
+
+# 4. Poll until filled or cancelled
+while order.status in ("pending", "open"):
+    time.sleep(5)
+    order = poly.fetch_order(order_id=order.id)
+    print(f"  status: {order.status}, filled: {order.filled}/{order.amount}")
+
+print(f"Final: {order.status}")
+```
+

@@ -13,7 +13,8 @@
         "server": "npm run server --workspace=pmxt-core",
         "generate": "npm run generate:sdk:all --workspace=pmxt-core",
         "test": "./scripts/verify-all.sh",
-        "docs:apply-hosted": "node scripts/apply-hosted-manifest.js"
+        "docs:apply-hosted": "node scripts/apply-hosted-manifest.js",
+        "docs:llms": "node scripts/generate-llms.js"
     },
     "devDependencies": {
         "concurrently": "^9.2.1"

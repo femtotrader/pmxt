@@ -1,0 +1,69 @@
+# PMXT
+
+> One API for every prediction market. Unified data, cross-venue search, and trading across Polymarket, Kalshi, Limitless, Smarkets, and 8 more venues.
+
+Docs: https://pmxt.dev/docs
+API Base: https://api.pmxt.dev
+Dashboard: https://pmxt.dev/dashboard
+GitHub: https://github.com/pmxt-dev/pmxt
+
+## Pages
+
+- [Introduction](https://pmxt.dev/docs/introduction): One API for every prediction market. Unified data, cross-venue search, and trading.
+- [Quickstart](https://pmxt.dev/docs/quickstart): API key to working code in 30 seconds.
+- [Authentication](https://pmxt.dev/docs/authentication): API keys, SDK setup, and venue credentials.
+- [MCP Server](https://pmxt.dev/docs/mcp): Give AI assistants access to prediction markets via the Model Context Protocol.
+- [Security & Credential Handling](https://pmxt.dev/docs/security): How PMXT handles your venue credentials, what risks to understand, and how to protect yourself.
+- [Rate Limits](https://pmxt.dev/docs/rate-limits): How much traffic your API key gives you.
+- [SQL](https://pmxt.dev/docs/sql): Query raw tick-level orderbook history with SQL.
+- [Unified Schema](https://pmxt.dev/docs/concepts/unified-schema): One shape for events, markets, and outcomes — across every venue.
+- [Catalog vs Live](https://pmxt.dev/docs/concepts/catalog-vs-live): Reads from Postgres, writes to the venue. How the hosted backend chooses.
+- [Supported Venues](https://pmxt.dev/docs/concepts/venues): Every venue PMXT currently speaks.
+- [Server Management](https://pmxt.dev/docs/sdk/server): Start, stop, restart, and inspect the PMXT sidecar from your SDK code.
+- [What is the Router?](https://pmxt.dev/docs/router/overview): One API key. Every prediction market. Cross-venue search, matching, price comparison, hedging, and arbitrage detection.
+- [Search Events](https://pmxt.dev/docs/router/events): Search events across every venue in a single query.
+- [Search Markets](https://pmxt.dev/docs/router/markets): Search markets across every venue in a single query.
+- [Find Similar Events](https://pmxt.dev/docs/router/event-matching): Match an entire event across venues — all child markets mapped in a single call.
+- [Find Similar Markets](https://pmxt.dev/docs/router/matching): Find the same or related market on other venues, with relation types, confidence scores, and reasoning.
+- [Compare Prices & Arbitrage](https://pmxt.dev/docs/router/prices): Compare prices across venues, find hedges, and scan for arbitrage.
+- [Overview](https://pmxt.dev/docs/api-reference/overview): The full venue pass-through surface — auto-generated from pmxt-core.
+- [Server Health Check](https://pmxt.dev/docs/api-reference/healthCheck)
+- [Load Markets](https://pmxt.dev/docs/api-reference/loadMarkets): Load and cache all markets from the exchange into `this.markets` and `this.marketsBySlug`. Subsequent calls return the cached result without hitting the API again. This is the correct way to paginate or iterate over markets without drift. Because `fetchMarkets()` always hits the API, repeated calls with different `offset` values may return inconsistent results if the exchange reorders or adds markets between requests. Use `loadMarkets()` once to get a stable snapshot, then paginate over `Object.values(exchange.markets)` locally.
+- [Close](https://pmxt.dev/docs/api-reference/close): Close all WebSocket connections and clean up resources. Call this when you're done streaming to properly release connections.
+- [Fetch Events](https://pmxt.dev/docs/api-reference/fetchEvents): Fetch events with optional keyword search. Events group related markets together (e.g., "Who will be Fed Chair?" contains multiple candidate markets).
+- [Fetch Events Paginated](https://pmxt.dev/docs/api-reference/fetchEventsPaginated): Paginated variant of {@link fetchEvents}. On the first call (no `cursor`), all events are fetched from the exchange and cached in an in-memory snapshot. A cursor is returned along with the first page. Subsequent calls with that cursor serve additional pages directly from the cached snapshot -- no additional API calls are made. The snapshot is invalidated after `snapshotTTL` ms (configured via `ExchangeOptions` in the constructor). A request using a cursor from an expired snapshot throws `'Cursor has expired'`.
+- [Fetch Event](https://pmxt.dev/docs/api-reference/fetchEvent): Fetch a single event by lookup parameters. Convenience wrapper around fetchEvents() that returns a single result or throws EventNotFound.
+- [Fetch Markets](https://pmxt.dev/docs/api-reference/fetchMarkets): Fetch markets with optional filtering, search, or slug lookup. Always hits the exchange API — results reflect the live state at the time of the call.
+- [Fetch Markets Paginated](https://pmxt.dev/docs/api-reference/fetchMarketsPaginated): Fetch markets with cursor-based pagination backed by a stable in-memory snapshot. On the first call (or when no cursor is supplied), fetches all markets once and caches them. Subsequent calls with a cursor returned from a previous call slice directly from the cached snapshot — no additional API calls are made. The snapshot is invalidated after `snapshotTTL` ms (configured via `ExchangeOptions` in the constructor). A request using a cursor from an expired snapshot throws `'Cursor has expired'`.
+- [Fetch Market](https://pmxt.dev/docs/api-reference/fetchMarket): Fetch a single market by lookup parameters. Convenience wrapper around fetchMarkets() that returns a single result or throws MarketNotFound.
+- [Find Similar Events](https://pmxt.dev/docs/api-reference/fetchEventMatches): Find the same or related event on other venues. Given an event on one venue, discover semantically equivalent events across every other venue PMXT ingests — including market-level match details for each child market.
+- [Find Similar Markets](https://pmxt.dev/docs/api-reference/fetchMarketMatches): Find the same or related market on other venues. Given a market on one venue, discover semantically equivalent markets across every other venue PMXT ingests — each with a relation type (identity, subset, superset, overlap, disjoint), confidence score, and reasoning.
+- [Compare Prices Across Venues](https://pmxt.dev/docs/api-reference/compareMarketPrices): Compare live prices for the same market across venues. Finds identity matches and returns side-by-side best bid/ask prices so you can spot price differences at a glance.
+- [Find Hedging Opportunities](https://pmxt.dev/docs/api-reference/fetchHedges): Find hedging opportunities across venues. Discovers subset/superset market relationships where one market's outcome implies another, enabling cross-venue hedging strategies with live prices.
+- [Find Arbitrage Opportunities](https://pmxt.dev/docs/api-reference/fetchArbitrage): Scan for arbitrage opportunities across venues. Finds identity matches where the same market is priced differently on different venues, returning opportunities sorted by spread size.
+- [Fetch OHLCV](https://pmxt.dev/docs/api-reference/fetchOHLCV): Fetch historical OHLCV (candlestick) price data for a specific market outcome.
+- [Fetch Order Book](https://pmxt.dev/docs/api-reference/fetchOrderBook): Fetch the current order book (bids/asks) for a specific outcome. Essential for calculating spread, depth, and execution prices.
+- [Fetch Trades](https://pmxt.dev/docs/api-reference/fetchTrades): Fetch raw trade history for a specific outcome.
+- [Get Execution Price](https://pmxt.dev/docs/api-reference/getExecutionPrice): Calculate the volume-weighted average execution price for a given order size. Returns 0 if the order cannot be fully filled.
+- [Get Execution Price Detailed](https://pmxt.dev/docs/api-reference/getExecutionPriceDetailed): Calculate detailed execution price information including partial fill data.
+- [Create Order](https://pmxt.dev/docs/api-reference/createOrder): Place a new order on the exchange.
+- [Build Order](https://pmxt.dev/docs/api-reference/buildOrder): Build an order payload without submitting it to the exchange. Returns the exchange-native signed order or request body for inspection, forwarding through a middleware layer, or deferred submission via submitOrder().
+- [Submit Order](https://pmxt.dev/docs/api-reference/submitOrder): Submit a pre-built order returned by buildOrder().
+- [Cancel Order](https://pmxt.dev/docs/api-reference/cancelOrder): Cancel an existing open order.
+- [Fetch Order](https://pmxt.dev/docs/api-reference/fetchOrder): Fetch a specific order by ID.
+- [Fetch Open Orders](https://pmxt.dev/docs/api-reference/fetchOpenOrders): Fetch all open orders, optionally filtered by market.
+- [Fetch My Trades](https://pmxt.dev/docs/api-reference/fetchMyTrades)
+- [Fetch Closed Orders](https://pmxt.dev/docs/api-reference/fetchClosedOrders)
+- [Fetch All Orders](https://pmxt.dev/docs/api-reference/fetchAllOrders)
+- [Fetch Positions](https://pmxt.dev/docs/api-reference/fetchPositions): Fetch current user positions across all markets.
+- [Fetch Balance](https://pmxt.dev/docs/api-reference/fetchBalance): Fetch account balances.
+- [Watch Order Book](https://pmxt.dev/docs/api-reference/watchOrderBook): Watch order book updates in real-time via WebSocket. Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+- [Unwatch Order Book](https://pmxt.dev/docs/api-reference/unwatchOrderBook): Unsubscribe from a previously watched order book stream.
+- [Watch Trades](https://pmxt.dev/docs/api-reference/watchTrades): Watch trade executions in real-time via WebSocket. Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+- [Watch Address](https://pmxt.dev/docs/api-reference/watchAddress): Stream activity for a public wallet address Returns a promise that resolves with the next activity snapshot whenever a change is detected. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+- [Unwatch Address](https://pmxt.dev/docs/api-reference/unwatchAddress): Stop watching a previously registered wallet address and release its resource updates.
+- [Execute a read-only SQL query against ClickHouse](https://pmxt.dev/docs/api-reference/postV0Sql)
+
+## Full documentation
+
+See [llms-full.txt](https://pmxt.dev/docs/llms-full.txt) for the complete documentation.

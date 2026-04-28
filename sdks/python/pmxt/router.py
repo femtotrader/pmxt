@@ -120,7 +120,10 @@ class Router(Exchange):
             List of MatchResult with relation, confidence, and reasoning.
         """
         if market is not None and market_id is None:
-            market_id = market.market_id
+            if hasattr(market, "slug") and market.slug:
+                slug = slug or market.slug
+            else:
+                market_id = market.market_id
         params: Dict[str, Any] = {}
         if market_id is not None:
             params["marketId"] = market_id
@@ -200,7 +203,10 @@ class Router(Exchange):
             List of EventMatchResult with nested market matches.
         """
         if event is not None and event_id is None:
-            event_id = event.id
+            if hasattr(event, "slug") and event.slug:
+                slug = slug or event.slug
+            else:
+                event_id = event.id
         params: Dict[str, Any] = {}
         if event_id is not None:
             params["eventId"] = event_id
@@ -256,7 +262,10 @@ class Router(Exchange):
             List of PriceComparison with venue, bestBid, bestAsk.
         """
         if market is not None and market_id is None:
-            market_id = market.market_id
+            if hasattr(market, "slug") and market.slug:
+                slug = slug or market.slug
+            else:
+                market_id = market.market_id
         params: Dict[str, Any] = {}
         if market_id is not None:
             params["marketId"] = market_id
@@ -309,7 +318,10 @@ class Router(Exchange):
             List of PriceComparison with subset/superset relations.
         """
         if market is not None and market_id is None:
-            market_id = market.market_id
+            if hasattr(market, "slug") and market.slug:
+                slug = slug or market.slug
+            else:
+                market_id = market.market_id
         params: Dict[str, Any] = {}
         if market_id is not None:
             params["marketId"] = market_id

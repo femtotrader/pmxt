@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.19] - 2026-04-28
+
+### Fix: Router matching fails when passing venue-fetched event/market objects
+
+- `fetch_event_matches(event=event)` and `fetch_market_matches(market=market)`
+  extracted the venue-native ID (e.g. Polymarket Gamma numeric ID `31552`)
+  and sent it to the hosted Router catalog, which only recognizes PMXT
+  catalog UUIDs. Result: "event not found" / "market not found".
+- The Router SDK now prefers the slug (which the catalog can resolve)
+  over the venue-native ID when extracting from a full object. Falls
+  back to the ID only when no slug is available.
+- Same fix applied to `fetch_matches`, `compare_market_prices`, and
+  `fetch_hedges`.
+
 ## [2.35.18] - 2026-04-28
 
 ### Fix: Polymarket market slug lookup broken without API key

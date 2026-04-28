@@ -10,6 +10,7 @@ import { OPINION_API_URL, OPINION_MAX_PAGE_SIZE } from './config';
 export interface OpinionRawMarket {
     marketId: number;
     marketTitle: string;
+    slug?: string;
     status: number;        // 1=Created, 2=Activated, 3=Resolving, 4=Resolved, 5=Failed, 6=Deleted
     statusEnum: string;
     marketType: number;    // 0=Binary, 1=Categorical
@@ -37,6 +38,7 @@ export interface OpinionRawMarket {
 export interface OpinionRawChildMarket {
     marketId: number;
     marketTitle: string;
+    slug?: string;
     status: number;
     statusEnum: string;
     yesLabel: string;

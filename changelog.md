@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.14] - 2026-04-28
+
+### Fix: Opinion Trade URLs use slug instead of numeric ID
+
+- Opinion market, event, and child-market URLs now use the venue-native
+  `slug` field (e.g. `https://www.opinion.trade/market/democratic-presidential-nominee-2028`)
+  instead of the numeric `marketId` (`https://opinion.trade/market/380`).
+  Falls back to `marketId` when the API omits the slug.
+- Fixed missing `www.` subdomain in all Opinion URLs.
+- Added `slug` to `OpinionRawMarket` and `OpinionRawChildMarket` types.
+  ([#118](https://github.com/pmxt-dev/pmxt/issues/118))
+
 ## [2.35.13] - 2026-04-28
 
 ### Fix: Kalshi markets returning price 0 despite active orderbooks

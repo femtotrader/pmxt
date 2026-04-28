@@ -92,11 +92,11 @@ export class OpinionNormalizer implements IExchangeNormalizer<OpinionRawMarket, 
             id: String(raw.marketId),
             title: raw.marketTitle || '',
             description: raw.rules || '',
-            slug: String(raw.marketId),
+            slug: raw.slug || String(raw.marketId),
             markets,
             volume24h,
             volume: totalVolume,
-            url: `https://opinion.trade/market/${raw.marketId}`,
+            url: `https://www.opinion.trade/market/${raw.slug || raw.marketId}`,
         };
     }
 
@@ -316,7 +316,7 @@ export class OpinionNormalizer implements IExchangeNormalizer<OpinionRawMarket, 
             volume24h: parseNumStr(raw.volume24h),
             volume: parseNumStr(raw.volume),
             liquidity: 0,
-            url: `https://opinion.trade/market/${raw.marketId}`,
+            url: `https://www.opinion.trade/market/${raw.slug || raw.marketId}`,
         };
 
         addBinaryOutcomes(market);
@@ -363,7 +363,7 @@ export class OpinionNormalizer implements IExchangeNormalizer<OpinionRawMarket, 
             volume24h,
             volume: parseNumStr(child.volume),
             liquidity: 0,
-            url: `https://opinion.trade/market/${child.marketId}`,
+            url: `https://www.opinion.trade/market/${child.slug || child.marketId}`,
         };
 
         addBinaryOutcomes(market);

@@ -239,9 +239,18 @@ describe('OpinionNormalizer.normalizeMarket', () => {
         expect(market!.resolutionDate.getTime()).toBe(1798761600 * 1000);
     });
 
-    test('should set url', () => {
+    test('should set url with marketId fallback when no slug', () => {
         const market = normalizer.normalizeMarket(RAW_BINARY_MARKET);
-        expect(market!.url).toBe('https://opinion.trade/market/100');
+        expect(market!.url).toBe('https://www.opinion.trade/market/100');
+    });
+
+    test('should set url using slug when available', () => {
+        const withSlug: OpinionRawMarket = {
+            ...RAW_BINARY_MARKET,
+            slug: 'btc-100k-2026',
+        };
+        const market = normalizer.normalizeMarket(withSlug);
+        expect(market!.url).toBe('https://www.opinion.trade/market/btc-100k-2026');
     });
 
     test('should return null for null input', () => {
@@ -385,7 +394,7 @@ describe('OpinionNormalizer.normalizeEvent', () => {
         expect(event!.id).toBe('100');
         expect(event!.title).toBe('Will BTC hit 100k by end of 2026?');
         expect(event!.markets).toHaveLength(1);
-        expect(event!.url).toBe('https://opinion.trade/market/100');
+        expect(event!.url).toBe('https://www.opinion.trade/market/100');
     });
 
     test('should normalize categorical market into event with child markets', () => {
@@ -410,9 +419,17 @@ describe('OpinionNormalizer.normalizeEvent', () => {
         expect(typeof event!.volume24h).toBe('number');
     });
 
-    test('should set slug as string marketId', () => {
+    test('should set slug from raw slug field, falling back to marketId', () => {
         const event = normalizer.normalizeEvent(RAW_BINARY_MARKET);
-        expect(event!.slug).toBe('100');
+        expect(event!.slug).toBe('100'); // no slug on fixture, falls back to marketId
+
+        const withSlug: OpinionRawMarket = {
+            ...RAW_BINARY_MARKET,
+            slug: 'btc-100k-2026',
+        };
+        const eventWithSlug = normalizer.normalizeEvent(withSlug);
+        expect(eventWithSlug!.slug).toBe('btc-100k-2026');
+        expect(eventWithSlug!.url).toBe('https://www.opinion.trade/market/btc-100k-2026');
     });
 
     test('should return null for null input', () => {

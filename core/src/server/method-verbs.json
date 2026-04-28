@@ -364,16 +364,6 @@
       }
     ]
   },
-  "testDummyMethod": {
-    "verb": "post",
-    "args": [
-      {
-        "name": "param",
-        "kind": "string",
-        "optional": true
-      }
-    ]
-  },
   "close": {
     "verb": "post",
     "args": []

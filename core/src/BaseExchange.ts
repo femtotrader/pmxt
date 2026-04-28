@@ -86,9 +86,9 @@ export interface MarketFilterParams {
 export interface MarketFetchParams extends MarketFilterParams {
     /** Optional client-side filter applied after fetching */
     filter?: MarketFilterCriteria;
-    /** Shorthand for filter.category -- merged into filter (takes precedence) */
+    /** Shorthand for filter.category -- merged into filter (takes precedence). Common values: "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). */
     category?: string;
-    /** Shorthand for filter.tags -- merged into filter (takes precedence) */
+    /** Shorthand for filter.tags -- merged into filter (takes precedence). Matches markets with ANY of the given tags. Examples: ["Crypto"], ["Politics", "Elections"], ["Sports", "FIFA World Cup"]. */
     tags?: string[];
 }
 
@@ -107,9 +107,9 @@ export interface EventFetchParams {
     slug?: string;       // Lookup by event slug
     /** Optional client-side filter applied after fetching */
     filter?: EventFilterCriteria;
-    /** Shorthand for filter.category -- merged into filter (takes precedence) */
+    /** Shorthand for filter.category -- merged into filter (takes precedence). Common values: "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). */
     category?: string;
-    /** Shorthand for filter.tags -- merged into filter (takes precedence) */
+    /** Shorthand for filter.tags -- merged into filter (takes precedence). Matches events with ANY of the given tags. Examples: ["Crypto"], ["Politics", "Geopolitics"], ["Sports", "FIFA World Cup"]. */
     tags?: string[];
 }
 
@@ -198,8 +198,10 @@ export interface MarketFilterCriteria {
     };
 
     // Category/tag filters
+    /** Filter by category. Common values: "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). */
     category?: string;
-    tags?: string[]; // Match if market has ANY of these tags
+    /** Match markets that have ANY of these tags. Examples: ["Crypto", "Crypto Prices"], ["Politics", "Elections"], ["Sports", "FIFA World Cup"]. */
+    tags?: string[];
 
     // Price filters (for binary markets)
     price?: {
@@ -224,8 +226,9 @@ export interface EventFilterCriteria {
     searchIn?: ('title' | 'description' | 'category' | 'tags')[]; // Default: ['title']
 
     // Category/tag filters
+    /** Filter by category. Common values: "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). */
     category?: string;
-    /** Match events that have any of these tags */
+    /** Match events that have ANY of these tags. Examples: ["Crypto"], ["Politics", "Geopolitics", "Middle East"], ["Sports", "FIFA World Cup"]. */
     tags?: string[];
 
     // Filter by contained markets

@@ -1005,7 +1005,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Shorthand for filter.category -- merged into filter (takes precedence)"
+            "description": "Shorthand for filter.category -- merged into filter (takes precedence). Common values: \"Sports\", \"Politics\", \"Crypto\", \"Bitcoin\", \"Soccer\", \"Economic Policy\" (Polymarket) or \"Sports\", \"Mentions\" (Kalshi)."
           },
           {
             "in": "query",
@@ -1017,7 +1017,7 @@
                 "type": "string"
               }
             },
-            "description": "Shorthand for filter.tags -- merged into filter (takes precedence)"
+            "description": "Shorthand for filter.tags -- merged into filter (takes precedence). Matches events with ANY of the given tags. Examples: [\"Crypto\"], [\"Politics\", \"Geopolitics\"], [\"Sports\", \"FIFA World Cup\"]."
           }
         ],
         "responses": {
@@ -1578,7 +1578,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Shorthand for filter.category -- merged into filter (takes precedence)"
+            "description": "Shorthand for filter.category -- merged into filter (takes precedence). Common values: \"Sports\", \"Politics\", \"Crypto\", \"Bitcoin\", \"Soccer\", \"Economic Policy\" (Polymarket) or \"Sports\", \"Mentions\" (Kalshi)."
           },
           {
             "in": "query",
@@ -1590,7 +1590,7 @@
                 "type": "string"
               }
             },
-            "description": "Shorthand for filter.tags -- merged into filter (takes precedence)"
+            "description": "Shorthand for filter.tags -- merged into filter (takes precedence). Matches events with ANY of the given tags. Examples: [\"Crypto\"], [\"Politics\", \"Geopolitics\"], [\"Sports\", \"FIFA World Cup\"]."
           }
         ],
         "responses": {
@@ -7494,14 +7494,14 @@
           },
           "category": {
             "type": "string",
-            "description": "Optional category label (e.g., \"Politics\", \"Crypto\")."
+            "description": "Optional category label. Venue-defined — common values include \"Sports\", \"Politics\", \"Crypto\", \"Economics\", \"Science\", \"Culture\". Polymarket uses finer-grained categories like \"Bitcoin\", \"Soccer\", \"Economic Policy\"; Kalshi uses broader ones like \"Sports\" or \"Mentions\"."
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Optional list of tags associated with the market."
+            "description": "Optional list of tags. More granular than category — e.g. [\"Crypto\", \"Crypto Prices\", \"Bitcoin\"] or [\"Politics\", \"Elections\", \"Trump\"]. Tags vary by venue: Polymarket markets carry several, Kalshi typically one."
           },
           "tickSize": {
             "type": "number",
@@ -7643,14 +7643,14 @@
           },
           "category": {
             "type": "string",
-            "description": "Optional category label (e.g., \"Politics\", \"Sports\")."
+            "description": "Optional category label. Venue-defined — common values include \"Sports\", \"Politics\", \"Crypto\", \"Economics\", \"Science\", \"Culture\". Polymarket uses finer-grained categories like \"Bitcoin\", \"Soccer\", \"Economic Policy\"; Kalshi uses broader ones like \"Sports\" or \"Mentions\"."
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Optional list of tags associated with the event."
+            "description": "Optional list of tags. More granular than category — e.g. [\"Sports\", \"FIFA World Cup\", \"2026 FIFA World Cup\"] or [\"Politics\", \"Geopolitics\", \"Middle East\"]. Tags vary by venue: Polymarket markets carry several, Kalshi typically one."
           },
           "sourceExchange": {
             "type": "string",
@@ -8185,14 +8185,14 @@
           },
           "category": {
             "type": "string",
-            "description": "Shorthand for filter.category -- merged into filter (takes precedence)"
+            "description": "Shorthand for filter.category -- merged into filter (takes precedence). Common values: \"Sports\", \"Politics\", \"Crypto\", \"Bitcoin\", \"Soccer\", \"Economic Policy\" (Polymarket) or \"Sports\", \"Mentions\" (Kalshi)."
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Shorthand for filter.tags -- merged into filter (takes precedence)"
+            "description": "Shorthand for filter.tags -- merged into filter (takes precedence). Matches events with ANY of the given tags. Examples: [\"Crypto\"], [\"Politics\", \"Geopolitics\"], [\"Sports\", \"FIFA World Cup\"]."
           }
         }
       },
@@ -8515,14 +8515,15 @@
             }
           },
           "category": {
-            "type": "string"
+            "type": "string",
+            "description": "Filter by category. Common values: \"Sports\", \"Politics\", \"Crypto\", \"Bitcoin\", \"Soccer\", \"Economic Policy\" (Polymarket) or \"Sports\", \"Mentions\" (Kalshi)."
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Match if market has ANY of these tags"
+            "description": "Match markets that have ANY of these tags. Examples: [\"Crypto\", \"Crypto Prices\"], [\"Politics\", \"Elections\"], [\"Sports\", \"FIFA World Cup\"]."
           },
           "price": {
             "type": "object",
@@ -8592,14 +8593,15 @@
             "description": "Default: ['title']"
           },
           "category": {
-            "type": "string"
+            "type": "string",
+            "description": "Filter by category. Common values: \"Sports\", \"Politics\", \"Crypto\", \"Bitcoin\", \"Soccer\", \"Economic Policy\" (Polymarket) or \"Sports\", \"Mentions\" (Kalshi)."
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Match events that have any of these tags"
+            "description": "Match events that have ANY of these tags. Examples: [\"Crypto\"], [\"Politics\", \"Geopolitics\", \"Middle East\"], [\"Sports\", \"FIFA World Cup\"]."
           },
           "marketCount": {
             "type": "object",

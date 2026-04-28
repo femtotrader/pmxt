@@ -41,9 +41,9 @@ export interface UnifiedEvent {
     /** Optional image URL for the event. */
     image?: string;
 
-    /** Optional category label (e.g., "Politics", "Sports"). */
+    /** Optional category label. Venue-defined — common values include "Sports", "Politics", "Crypto", "Economics", "Science", "Culture". Polymarket uses finer-grained categories like "Bitcoin", "Soccer", "Economic Policy"; Kalshi uses broader ones like "Sports" or "Mentions". */
     category?: string;
-    /** Optional list of tags associated with the event. */
+    /** Optional list of tags. More granular than category — e.g. ["Sports", "FIFA World Cup", "2026 FIFA World Cup"] or ["Politics", "Geopolitics", "Middle East"]. Tags vary by venue: Polymarket markets carry several, Kalshi typically one. */
     tags?: string[];
 
     /** The exchange/venue this event originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router. */
@@ -79,9 +79,9 @@ export interface UnifiedMarket {
     /** Optional image URL for the market. */
     image?: string;
 
-    /** Optional category label (e.g., "Politics", "Crypto"). */
+    /** Optional category label. Venue-defined — common values include "Sports", "Politics", "Crypto", "Economics", "Science", "Culture". Polymarket uses finer-grained categories like "Bitcoin", "Soccer", "Economic Policy"; Kalshi uses broader ones like "Sports" or "Mentions". */
     category?: string;
-    /** Optional list of tags associated with the market. */
+    /** Optional list of tags. More granular than category — e.g. ["Crypto", "Crypto Prices", "Bitcoin"] or ["Politics", "Elections", "Trump"]. Tags vary by venue: Polymarket markets carry several, Kalshi typically one. */
     tags?: string[];
     tickSize?: number; // Minimum price increment (e.g., 0.01, 0.001)
 

@@ -33,6 +33,63 @@ describe('KalshiNormalizer outcome labels', () => {
     });
 });
 
+describe('KalshiNormalizer market prices', () => {
+    test('uses _dollars fields when deprecated cent fields are absent', () => {
+        const event: KalshiRawEvent = {
+            event_ticker: 'KXEUROVISION-26',
+            title: 'Eurovision Winner 2026?',
+            markets: [
+                makeMarket({
+                    ticker: 'KXEUROVISION-26-FIN',
+                    yes_sub_title: 'Finland',
+                    last_price_dollars: '0.3700',
+                    yes_ask_dollars: '0.3800',
+                    yes_bid_dollars: '0.3700',
+                }),
+            ],
+        };
+
+        const market = normalizer.normalizeMarketsFromEvent(event)[0];
+        expect(market.outcomes[0].price).toBe(0.37);
+        expect(market.outcomes[1].price).toBeCloseTo(0.63);
+    });
+
+    test('falls back to cent fields when _dollars fields are absent', () => {
+        const event: KalshiRawEvent = {
+            event_ticker: 'KXLEGACY',
+            title: 'Legacy market',
+            markets: [
+                makeMarket({
+                    ticker: 'KXLEGACY-A',
+                    yes_sub_title: 'Option A',
+                    last_price: 55,
+                }),
+            ],
+        };
+
+        const market = normalizer.normalizeMarketsFromEvent(event)[0];
+        expect(market.outcomes[0].price).toBe(0.55);
+    });
+
+    test('uses bid/ask midpoint from _dollars when last_price_dollars is absent', () => {
+        const event: KalshiRawEvent = {
+            event_ticker: 'KXMID',
+            title: 'Midpoint test',
+            markets: [
+                makeMarket({
+                    ticker: 'KXMID-A',
+                    yes_sub_title: 'Option A',
+                    yes_ask_dollars: '0.4000',
+                    yes_bid_dollars: '0.3600',
+                }),
+            ],
+        };
+
+        const market = normalizer.normalizeMarketsFromEvent(event)[0];
+        expect(market.outcomes[0].price).toBeCloseTo(0.38);
+    });
+});
+
 describe('KalshiNormalizer event description', () => {
     test('uses dominant template and avoids malformed suffix truncation', () => {
         const event: KalshiRawEvent = {

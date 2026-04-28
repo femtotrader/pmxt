@@ -68,6 +68,8 @@ def _convert_outcome(raw: Dict[str, Any]) -> MarketOutcome:
         price_change_24h=raw.get("priceChange24h"),
         metadata=raw.get("metadata"),
         market_id=raw.get("marketId"),
+        best_bid=raw.get("bestBid"),
+        best_ask=raw.get("bestAsk"),
     )
 
 

@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.16] - 2026-04-28
+
+### Fix: Sidecar 401 Unauthorized when orphan occupies default port
+
+- The launcher and `ServerManager` hardcoded `DEFAULT_PORT` (3847) for
+  health checks. An orphaned sidecar on that port would pass the check,
+  causing the client to connect with the wrong access token.
+- Launcher now waits for the lock file to appear and health-checks the
+  actual port the new sidecar bound (`waitForLockAndHealth`).
+- `ServerManager._wait_for_health()` reads the port from the lock file
+  on each poll iteration instead of using the default.
+- New `_kill_orphan_sidecars()` kills all stale pmxt sidecar processes
+  before spawning so the new sidecar always gets the default port.
+  ([#119](https://github.com/pmxt-dev/pmxt/issues/119))
+
+### Feat: `best_bid` / `best_ask` on Python SDK `MarketOutcome`
+
+- `MarketOutcome` now exposes `best_bid` and `best_ask` fields from
+  the API response (populated when `include_prices=True`).
+
 ## [2.35.15] - 2026-04-28
 
 ### Fix: Generic Yes/No outcome labels break cross-venue price comparison

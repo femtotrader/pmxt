@@ -45,6 +45,12 @@ class MarketOutcome:
     market_id: Optional[str] = None
     """The market this outcome belongs to (set automatically)."""
 
+    best_bid: Optional[float] = None
+    """Best bid price from the order book (when includePrices=True)."""
+
+    best_ask: Optional[float] = None
+    """Best ask price from the order book (when includePrices=True)."""
+
 
 @dataclass
 class UnifiedMarket:

@@ -107,10 +107,13 @@ class ServerManager:
                 else:
                     return
 
-            # Step 3: Start server via launcher
+            # Step 3: Kill orphan sidecars so the new one can bind the default port
+            self._kill_orphan_sidecars()
+
+            # Step 4: Start server via launcher
             self._start_server_via_launcher()
 
-            # Step 4: Wait for health check
+            # Step 5: Wait for health check
             self._wait_for_health()
 
     def _is_version_mismatch(self) -> bool:
@@ -252,6 +255,47 @@ class ServerManager:
             return []
         tail = lines[-n:] if len(lines) > n else list(lines)
         return [line.rstrip('\n') for line in tail]
+
+    def _kill_orphan_sidecars(self) -> None:
+        """Kill any orphaned pmxt sidecar processes.
+
+        Orphans accumulate when Python processes exit without stopping their
+        detached sidecar.  They occupy ports and can confuse the health check.
+        Called before spawning a new sidecar so it can bind the default port.
+        """
+        import signal as _signal
+
+        try:
+            if os.name == 'nt':
+                result = subprocess.run(
+                    ['wmic', 'process', 'where',
+                     "commandline like '%pmxt%bundled.js%'",
+                     'get', 'processid'],
+                    capture_output=True, text=True, timeout=5,
+                )
+                for line in result.stdout.strip().splitlines():
+                    line = line.strip()
+                    if line.isdigit():
+                        subprocess.run(
+                            ['taskkill', '/PID', line, '/F'],
+                            capture_output=True, timeout=5,
+                        )
+            else:
+                result = subprocess.run(
+                    ['pgrep', '-f', 'pmxt.*bundled[.]js'],
+                    capture_output=True, text=True, timeout=5,
+                )
+                for line in result.stdout.strip().splitlines():
+                    pid = int(line.strip())
+                    try:
+                        os.kill(pid, _signal.SIGTERM)
+                    except (OSError, ProcessLookupError):
+                        pass
+
+                if result.stdout.strip():
+                    time.sleep(0.5)
+        except Exception:
+            pass
 
     def _kill_old_server(self) -> None:
         """Kill the currently running server (Internal)."""
@@ -416,20 +460,23 @@ class ServerManager:
     def _wait_for_health(self) -> None:
         """
         Wait for the server to respond to health checks.
-        
-        Universal pattern: Poll /health endpoint until it responds or timeout.
+
+        Reads the port from the lock file on each iteration so that we
+        health-check the actual sidecar, not a stale orphan on the default
+        port.  Falls back to ``self._port`` when the lock file is absent.
         """
         start_time = time.time()
-        
+
         while time.time() - start_time < self.HEALTH_CHECK_TIMEOUT:
             try:
-                if self._check_health(self._port):
+                port = self.get_running_port()
+                if self._check_health(port):
                     return
             except:
                 pass
-            
+
             time.sleep(self.HEALTH_CHECK_INTERVAL)
-        
+
         raise Exception(
             f"Server failed to become healthy within {self.HEALTH_CHECK_TIMEOUT}s"
         )

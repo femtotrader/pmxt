@@ -136,9 +136,10 @@
           },
           {
             "group": "Cross-Venue",
+            "openapi": "api-reference/openapi.json",
             "pages": [
-              "api-reference/fetch-event-matches",
-              "api-reference/fetch-market-matches"
+              "GET /api/router/fetchEventMatches",
+              "GET /api/router/fetchMarketMatches"
             ]
           },
           {

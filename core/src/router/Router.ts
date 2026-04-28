@@ -66,7 +66,11 @@ export class Router extends PredictionMarketExchange {
 
     async fetchMarketMatches(params: FetchMarketMatchesParams = {}): Promise<MatchResult[]> {
         if (params.market && !params.marketId) {
-            params = { ...params, marketId: params.market.marketId };
+            if (params.market.slug && !params.slug) {
+                params = { ...params, slug: params.market.slug };
+            } else {
+                params = { ...params, marketId: params.market.marketId };
+            }
         }
 
         // Browse mode: no specific market identifier → return all matches
@@ -94,24 +98,8 @@ export class Router extends PredictionMarketExchange {
      * Each result includes sourceMarket (one side) and market (the other).
      */
     private async fetchMarketMatchesBrowse(params: FetchMarketMatchesParams): Promise<MatchResult[]> {
-        const bulkParams: FetchArbitrageParams = {
-            minSpread: params.minDifference,
-            category: params.category,
-            limit: params.limit,
-            relations: params.relation ? [params.relation] : undefined,
-        };
-
-        const pairs = await this.fetchArbitrageInternal(bulkParams);
-
-        return pairs.map((opp) => ({
-            sourceMarket: opp.marketA,
-            market: opp.marketB,
-            relation: opp.relation ?? 'identity',
-            confidence: opp.confidence ?? 0,
-            reasoning: (opp as any).reasoning ?? null,
-            bestBid: opp.sellPrice ?? null,
-            bestAsk: null,
-        }));
+        const results = await this.client.browseMarketMatches(params);
+        return Array.isArray(results) ? results : [];
     }
 
     /** @deprecated Use {@link fetchMarketMatches} instead. */
@@ -126,7 +114,11 @@ export class Router extends PredictionMarketExchange {
 
     async fetchEventMatches(params: FetchEventMatchesParams = {}): Promise<EventMatchResult[]> {
         if (params.event && !params.eventId) {
-            params = { ...params, eventId: params.event.id };
+            if (params.event.slug && !params.slug) {
+                params = { ...params, slug: params.event.slug };
+            } else {
+                params = { ...params, eventId: params.event.id };
+            }
         }
 
         // Browse mode: no specific event identifier → return all matches

@@ -9,6 +9,7 @@ import {
 } from '../errors';
 import type {
     FetchMatchesParams,
+    FetchMarketMatchesParams,
     FetchEventMatchesParams,
     RouterMarketSearchParams,
     RouterEventSearchParams,
@@ -56,6 +57,28 @@ export class PmxtApiClient {
 
         const res = await this.request('GET', `/v0/events/${encodeURIComponent(id)}/matches`, query);
         return res.data;
+    }
+
+    async browseMarketMatches(params: FetchMarketMatchesParams): Promise<any> {
+        const query: Record<string, string> = {};
+        if (params.query) query.query = params.query;
+        if (params.category) query.category = params.category;
+        if (params.relation) query.relation = params.relation;
+        if (params.minConfidence !== undefined) query.minConfidence = String(params.minConfidence);
+        if (params.limit !== undefined) query.limit = String(params.limit);
+
+        const res = await this.request('GET', '/v0/matched-markets', query);
+        // Reshape { marketA, marketB, ... } pairs into MatchResult shape
+        const pairs: any[] = Array.isArray(res.data) ? res.data : [];
+        return pairs.map((pair: any) => ({
+            sourceMarket: pair.marketA,
+            market: pair.marketB,
+            relation: pair.relation || 'identity',
+            confidence: pair.confidence || 0,
+            reasoning: pair.reasoning || null,
+            bestBid: null,
+            bestAsk: null,
+        }));
     }
 
     async browseEventMatches(params: FetchEventMatchesParams): Promise<any> {

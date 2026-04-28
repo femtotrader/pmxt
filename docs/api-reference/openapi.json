@@ -3,7 +3,7 @@
   "info": {
     "title": "PMXT Hosted API",
     "description": "One API for every prediction market. Cross-venue search in under 10ms, a single unified schema, and the complete venue surface from reads to trades.",
-    "version": "2.35.12"
+    "version": "2.35.13"
   },
   "servers": [
     {
@@ -1746,15 +1746,7 @@
             "name": "resolution",
             "required": false,
             "schema": {
-              "type": "string",
-              "enum": [
-                "1m",
-                "5m",
-                "15m",
-                "1h",
-                "6h",
-                "1d"
-              ]
+              "type": "string"
             },
             "description": "Required for candle aggregation"
           },
@@ -8189,14 +8181,6 @@
         "properties": {
           "resolution": {
             "type": "string",
-            "enum": [
-              "1m",
-              "5m",
-              "15m",
-              "1h",
-              "6h",
-              "1d"
-            ],
             "description": "Optional for backward compatibility"
           },
           "start": {
@@ -8220,14 +8204,6 @@
         "properties": {
           "resolution": {
             "type": "string",
-            "enum": [
-              "1m",
-              "5m",
-              "15m",
-              "1h",
-              "6h",
-              "1d"
-            ],
             "description": "Required for candle aggregation"
           },
           "start": {

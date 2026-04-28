@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.15] - 2026-04-28
+
+### Fix: Generic Yes/No outcome labels break cross-venue price comparison
+
+- Opinion and Limitless markets use the candidate name as the market
+  title but leave outcome labels as generic "YES"/"Yes". Polymarket and
+  Kalshi put the candidate name on the outcome label. When comparing
+  prices across venues by `yes.label`, Opinion and Limitless markets
+  all collapsed under the key "YES"/"Yes" instead of matching the
+  correct candidate.
+- `addBinaryOutcomes()` now promotes the market title into `yes.label`
+  when the label is a bare "yes" (case-insensitive), and sets `no.label`
+  to `"Not {title}"`. Labels like "up"/"down"/"over"/"under" are left
+  unchanged since they carry meaning for financial markets.
+
 ## [2.35.14] - 2026-04-28
 
 ### Fix: Opinion Trade URLs use slug instead of numeric ID

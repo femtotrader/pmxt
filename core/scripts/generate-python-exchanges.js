@@ -141,7 +141,7 @@ function generateClass(exchange) {
         superArgs.push('signature_type=signature_type');
     }
     constructorParams.push('base_url: Optional[str] = None');
-    constructorParams.push('auto_start_server: bool = True');
+    constructorParams.push('auto_start_server: Optional[bool] = None');
     constructorParams.push('pmxt_api_key: Optional[str] = None');
     superArgs.push('base_url=base_url');
     superArgs.push('auto_start_server=auto_start_server');

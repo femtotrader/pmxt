@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.25] - 2026-04-28
+
+### Fix: `auto_start_server` fix lost on publish
+
+- The `generate-python-exchanges.js` script hardcoded
+  `auto_start_server: bool = True`, overwriting the 2.35.24 fix on
+  every publish. Changed the generator to emit
+  `auto_start_server: Optional[bool] = None` so the fix survives
+  regeneration.
+
 ## [2.35.24] - 2026-04-28
 
 ### Fix: Hosted mode ignored when `pmxt_api_key` is set on exchange classes

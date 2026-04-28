@@ -37,6 +37,22 @@ export function addBinaryOutcomes(market: UnifiedMarket): void {
         market.no = o2;
     }
 
+    // When the Yes outcome has a bare "yes"/"no" label but the market title
+    // carries the real option name (e.g. "Gavin Newsom"), promote the title
+    // into the outcome label so cross-venue comparisons can match by label.
+    // Venues like Polymarket and Kalshi already set the candidate name on the
+    // outcome; Opinion and Limitless leave it generic.
+    // Only replace "yes"/"no" — leave "up"/"down"/"over"/"under" alone since
+    // those are meaningful labels for financial markets.
+    const yesLabel = market.yes?.label.toLowerCase();
+    const noLabel = market.no?.label.toLowerCase();
+    if (market.title && yesLabel === 'yes') {
+        market.yes!.label = market.title;
+    }
+    if (market.title && noLabel === 'no') {
+        market.no!.label = `Not ${market.title}`;
+    }
+
     market.up = market.yes;
     market.down = market.no;
 }

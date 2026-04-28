@@ -21,12 +21,12 @@ describe('addBinaryOutcomes', () => {
         } as UnifiedMarket;
     };
 
-    test('should map explicit Yes/No outcomes', () => {
+    test('should promote market title when outcomes have generic Yes/No labels', () => {
         const market = createMockMarket(['Yes', 'No']);
         addBinaryOutcomes(market);
 
-        expect(market.yes?.label).toBe('Yes');
-        expect(market.no?.label).toBe('No');
+        expect(market.yes?.label).toBe('Test Market');
+        expect(market.no?.label).toBe('Not Test Market');
     });
 
     test('should map explicit Up/Down outcomes', () => {
@@ -47,12 +47,12 @@ describe('addBinaryOutcomes', () => {
         expect(market.no?.label).toBe('Not Kevin Warsh');
     });
 
-    test('should handle reversed order correctly', () => {
+    test('should handle reversed order and still promote title', () => {
         const market = createMockMarket(['No', 'Yes']);
         addBinaryOutcomes(market);
 
-        expect(market.yes?.label).toBe('Yes');
-        expect(market.no?.label).toBe('No');
+        expect(market.yes?.label).toBe('Test Market');
+        expect(market.no?.label).toBe('Not Test Market');
     });
 
     test('should handle reversed "Not" order correctly', () => {

@@ -86,9 +86,9 @@ export interface MarketFilterParams {
 export interface MarketFetchParams extends MarketFilterParams {
     /** Optional client-side filter applied after fetching */
     filter?: MarketFilterCriteria;
-    /** Shorthand for filter.category -- merged into filter (takes precedence). Common values: "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). */
+    /** Filter by category. Each market belongs to a venue-assigned category such as "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). */
     category?: string;
-    /** Shorthand for filter.tags -- merged into filter (takes precedence). Matches markets with ANY of the given tags. Examples: ["Crypto"], ["Politics", "Elections"], ["Sports", "FIFA World Cup"]. */
+    /** Filter by tags. Returns markets matching ANY of the provided tags. Tags are more specific than categories -- for example a "Sports" market might carry tags ["Sports", "FIFA World Cup", "2026 FIFA World Cup"]. Common tags include "Crypto", "Politics", "Elections", "Geopolitics", "Fed Rates", "Trump". */
     tags?: string[];
 }
 
@@ -107,9 +107,9 @@ export interface EventFetchParams {
     slug?: string;       // Lookup by event slug
     /** Optional client-side filter applied after fetching */
     filter?: EventFilterCriteria;
-    /** Shorthand for filter.category -- merged into filter (takes precedence). Common values: "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). */
+    /** Filter by category. Each event belongs to a venue-assigned category such as "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). */
     category?: string;
-    /** Shorthand for filter.tags -- merged into filter (takes precedence). Matches events with ANY of the given tags. Examples: ["Crypto"], ["Politics", "Geopolitics"], ["Sports", "FIFA World Cup"]. */
+    /** Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories -- for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump". */
     tags?: string[];
 }
 

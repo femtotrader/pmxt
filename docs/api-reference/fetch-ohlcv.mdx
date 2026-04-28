@@ -21,7 +21,7 @@ market = api.fetch_market(slug="will-alexandria-ocasio-cortez-win-the-2028-us-pr
 
 candles = api.fetch_ohlcv(market.yes, resolution="1h", limit=100)
 for c in candles:
-    print(f"{c.open:.2f}  {c.high:.2f}  {c.low:.2f}  {c.close:.2f}")
+    print(f"{c.open:.2f}  {c.high:.2f}  {c.low:.2f}  {c.close:.2f}  V:{c.volume}")
 ```
 
 ```javascript JavaScript
@@ -32,7 +32,7 @@ const api = new Polymarket();
 const market = await api.fetchMarket({ slug: "will-alexandria-ocasio-cortez-win-the-2028-us-presidential-election" });
 
 const candles = await api.fetchOHLCV(market.yes, { resolution: "1h", limit: 100 });
-candles.forEach((c) => console.log(`${c.open}  ${c.high}  ${c.low}  ${c.close}`));
+candles.forEach((c) => console.log(`${c.open}  ${c.high}  ${c.low}  ${c.close}  V:${c.volume}`));
 ```
 
 ```bash curl

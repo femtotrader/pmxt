@@ -1,0 +1,113 @@
+---
+title: Event Matches
+openapi: GET /api/router/fetchEventMatches
+---
+
+## Use cases
+
+### Find the same event on other venues
+
+Fetch an event from Polymarket, then find it on every other venue:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+# Step 1: Get an event from any venue
+poly = pmxt.Polymarket()
+event = poly.fetch_event(slug="presidential-election-winner-2028")
+
+# Step 2: Find matches across all other venues (requires API key)
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_event_matches(event=event)
+
+for match in matches:
+    print(f"{match.event.source_exchange}: {match.event.title} ({len(match.market_matches)} market matches)")
+```
+
+```javascript JavaScript
+import { Polymarket, Router } from "pmxtjs";
+
+// Step 1: Get an event from any venue
+const poly = new Polymarket();
+const event = await poly.fetchEvent({ slug: "presidential-election-winner-2028" });
+
+// Step 2: Find matches across all other venues (requires API key)
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchEventMatches({ event });
+
+for (const match of matches) {
+  console.log(`${match.event.sourceExchange}: ${match.event.title} (${match.marketMatches.length} market matches)`);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchEventMatches?slug=presidential-election-winner-2028" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Look up by event ID
+
+If you already have an event ID, pass it directly:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_event_matches(event_id="a49db286-39ca-4119-9de5-1335a92ef92a")
+
+for match in matches:
+    print(f"{match.event.source_exchange}: {match.event.title}")
+```
+
+```javascript JavaScript
+import { Router } from "pmxtjs";
+
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchEventMatches({ eventId: "a49db286-39ca-4119-9de5-1335a92ef92a" });
+
+for (const match of matches) {
+  console.log(`${match.event.sourceExchange}: ${match.event.title}`);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchEventMatches?eventId=a49db286-39ca-4119-9de5-1335a92ef92a" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Browse all matched events
+
+Omit the event identifier to browse all cross-venue event pairs from the catalog:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_event_matches(query="bitcoin", limit=5)
+
+for match in matches:
+    print(f"{match.event.source_exchange}: {match.event.title} ({len(match.market_matches)} market matches)")
+```
+
+```javascript JavaScript
+import { Router } from "pmxtjs";
+
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchEventMatches({ query: "bitcoin", limit: 5 });
+
+for (const match of matches) {
+  console.log(`${match.event.sourceExchange}: ${match.event.title} (${match.marketMatches.length} market matches)`);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchEventMatches?query=bitcoin&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+

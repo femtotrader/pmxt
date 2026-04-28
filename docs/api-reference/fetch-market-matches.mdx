@@ -1,0 +1,112 @@
+---
+title: Market Matches
+openapi: GET /api/router/fetchMarketMatches
+---
+
+## Use cases
+
+### Find the same market on other venues
+
+Fetch a market from Polymarket, then find it on every other venue:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+# Step 1: Get a market from any venue
+poly = pmxt.Polymarket()
+market = poly.fetch_market(slug="will-gavin-newsom-win-the-2028-us-presidential-election")
+
+# Step 2: Find matches across all other venues (requires API key)
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_market_matches(market=market)
+
+for match in matches:
+    print(f"{match.market.source_exchange}: {match.market.title} ({match.relation}, {match.confidence:.0%})")
+```
+
+```javascript JavaScript
+import { Polymarket, Router } from "pmxtjs";
+
+// Step 1: Get a market from any venue
+const poly = new Polymarket();
+const market = await poly.fetchMarket({ slug: "will-gavin-newsom-win-the-2028-us-presidential-election" });
+
+// Step 2: Find matches across all other venues (requires API key)
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchMarketMatches({ market });
+
+for (const match of matches) {
+  console.log(`${match.market.sourceExchange}: ${match.market.title} (${match.relation}, ${(match.confidence * 100).toFixed(0)}%)`);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchMarketMatches?slug=will-gavin-newsom-win-the-2028-us-presidential-election" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Look up by market ID
+
+If you already have a market ID, pass it directly:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_market_matches(market_id="46ac6f9c-c66a-48a5-8f12-beefd6e06221")
+
+for match in matches:
+    print(match.market.source_exchange, match.market.title)
+```
+
+```javascript JavaScript
+import { Router } from "pmxtjs";
+
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchMarketMatches({ marketId: "46ac6f9c-c66a-48a5-8f12-beefd6e06221" });
+
+for (const match of matches) {
+  console.log(match.market.sourceExchange, match.market.title);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchMarketMatches?marketId=46ac6f9c-c66a-48a5-8f12-beefd6e06221" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Browse all matched markets
+
+Omit the market identifier to browse all matched pairs from the catalog:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_market_matches(query="trump", limit=5)
+
+for match in matches:
+    print(f"{match.market.source_exchange}: {match.market.title} ({match.relation})")
+```
+
+```javascript JavaScript
+import { Router } from "pmxtjs";
+
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchMarketMatches({ query: "trump", limit: 5 });
+
+for (const match of matches) {
+  console.log(`${match.market.sourceExchange}: ${match.market.title} (${match.relation})`);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchMarketMatches?query=trump&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>

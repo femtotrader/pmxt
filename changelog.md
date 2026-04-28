@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.22] - 2026-04-28
+
+### Docs: Use-case examples on cross-venue matching endpoints
+
+- `fetchEventMatches` and `fetchMarketMatches` API reference pages now
+  include Python, JavaScript, and curl examples for lookup mode (pass
+  an event/market object or ID), and browse mode (search the catalog by
+  keyword).
+
+### Fix: TS Router prefer slug over venue-native ID for matching
+
+- `fetchEventMatches({ event })` and `fetchMarketMatches({ market })`
+  in the core Router now prefer the slug when extracting from a full
+  object, matching the Python SDK fix from 2.35.19.
+
+### Fix: Market matches browse mode uses `/v0/matched-markets`
+
+- `fetchMarketMatches` browse mode (no identifier) previously routed
+  through the arbitrage endpoint, which dropped the `query` param and
+  had compliance issues. Now routes through `/v0/matched-markets` with
+  full query/category support.
+
 ## [2.35.21] - 2026-04-28
 
 ### Feat: Browse mode for `fetchEventMatches`

@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.24] - 2026-04-28
+
+### Fix: Hosted mode ignored when `pmxt_api_key` is set on exchange classes
+
+- Every exchange class (`Polymarket`, `Kalshi`, `Limitless`, etc.)
+  defaulted `auto_start_server=True`, which always started the local
+  sidecar and overrode the hosted URL with `localhost`. The parent
+  `Exchange.__init__` had correct hosted-mode logic (`auto_start_server
+  = not is_hosted`) but it only triggered when `None` was passed.
+- All exchange classes now default `auto_start_server=None`, letting
+  the parent decide: True for local, False for hosted.
+- Also fixed `_resolve_sidecar_host` to skip the lock file in hosted
+  mode, preventing stale sidecar processes from hijacking hosted
+  requests.
+- Effect: `pmxt.Polymarket(pmxt_api_key="...")` now correctly routes
+  to `api.pmxt.dev`, enabling OHLCV volume data and deep history via
+  pmxt-ohlc.
+
 ## [2.35.23] - 2026-04-28
 
 ### Docs: Use-case example on fetchOHLCV endpoint

@@ -19,7 +19,7 @@ class Polymarket(Exchange):
         proxy_address: Optional[str] = None,
         signature_type: Optional[Any] = "gnosis-safe",
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """
@@ -69,7 +69,7 @@ class Limitless(Exchange):
         passphrase: Optional[str] = None,
         private_key: Optional[str] = None,
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """
@@ -113,7 +113,7 @@ class Kalshi(Exchange):
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """
@@ -144,7 +144,7 @@ class KalshiDemo(Exchange):
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """
@@ -177,7 +177,7 @@ class Probable(Exchange):
         passphrase: Optional[str] = None,
         private_key: Optional[str] = None,
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """
@@ -220,7 +220,7 @@ class Baozi(Exchange):
         self,
         private_key: Optional[str] = None,
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """
@@ -249,7 +249,7 @@ class Myriad(Exchange):
         api_key: Optional[str] = None,
         wallet_address: Optional[str] = None,
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """
@@ -281,7 +281,7 @@ class Opinion(Exchange):
         private_key: Optional[str] = None,
         proxy_address: Optional[str] = None,
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """
@@ -313,7 +313,7 @@ class Metaculus(Exchange):
         self,
         api_token: Optional[str] = None,
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """
@@ -342,7 +342,7 @@ class Smarkets(Exchange):
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """
@@ -373,7 +373,7 @@ class Polymarket_us(Exchange):
         api_key: Optional[str] = None,
         private_key: Optional[str] = None,
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """
@@ -402,7 +402,7 @@ class Router(Exchange):
     def __init__(
         self,
         base_url: Optional[str] = None,
-        auto_start_server: bool = True,
+        auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
     ):
         """

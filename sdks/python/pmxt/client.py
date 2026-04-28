@@ -59,17 +59,31 @@ def _resolve_outcome_id(value: Union[str, "MarketOutcome"]) -> str:
     return value.outcome_id
 
 
+def _display_price(
+    last_price: Optional[float],
+    best_bid: Optional[float],
+    best_ask: Optional[float],
+) -> Optional[float]:
+    """Mid-price when spread < $0.10, last trade otherwise (Polymarket convention)."""
+    if best_bid is not None and best_ask is not None and (best_ask - best_bid) < 0.10:
+        return (best_bid + best_ask) / 2
+    return last_price
+
+
 def _convert_outcome(raw: Dict[str, Any]) -> MarketOutcome:
     """Convert raw API response to MarketOutcome."""
+    best_bid = raw.get("bestBid")
+    best_ask = raw.get("bestAsk")
+    last_price = raw.get("price")
     return MarketOutcome(
         outcome_id=raw.get("outcomeId"),
         label=raw.get("label"),
-        price=raw.get("price"),
+        price=_display_price(last_price, best_bid, best_ask),
         price_change_24h=raw.get("priceChange24h"),
         metadata=raw.get("metadata"),
         market_id=raw.get("marketId"),
-        best_bid=raw.get("bestBid"),
-        best_ask=raw.get("bestAsk"),
+        best_bid=best_bid,
+        best_ask=best_ask,
     )
 
 
@@ -442,6 +456,8 @@ class Exchange(ABC):
         remote URL, the server manager has no lock file and we fall
         back to the configured host.
         """
+        if self.is_hosted:
+            return self._api_client.configuration.host
         server_info = self._server_manager.get_server_info()
         if server_info and 'port' in server_info:
             return f"http://localhost:{server_info['port']}"

@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.18] - 2026-04-28
+
+### Fix: Polymarket market slug lookup broken without API key
+
+- `fetchMarket({ slug: "..." })` on Polymarket was querying the Gamma
+  `/events` endpoint, which only recognizes event-level slugs. Market
+  slugs (e.g. `will-gavin-newsom-win-the-2028-us-presidential-election`)
+  returned "Market not found".
+- Now queries the correct Gamma endpoint (`/markets/slug/{slug}`),
+  matching the behavior of the catalog-backed path.
+- Event slug lookups (`fetchEvent`) are unaffected — they use a
+  separate code path.
+
+### Docs: Real-world examples on category and tag fields
+
+- `category` and `tags` descriptions on `fetchEvents`, `fetchMarkets`,
+  `fetchEvent`, `fetchMarket`, and their `filter` counterparts now list
+  real venue values (e.g. "Sports", "Bitcoin", "Economic Policy" for
+  Polymarket; "Sports", "Mentions" for Kalshi) instead of
+  implementation jargon.
+
 ## [2.35.17] - 2026-04-28
 
 ### Docs: Catalog speed notice on discovery endpoints

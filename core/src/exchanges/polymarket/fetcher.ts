@@ -316,10 +316,13 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
     }
 
     private async fetchRawMarketsBySlug(slug: string): Promise<PolymarketRawEvent[]> {
-        const response = await this.http.get(GAMMA_API_URL, {
-            params: { slug },
-        });
-        return response.data || [];
+        const response = await this.http.get(`${GAMMA_MARKETS_URL}/slug/${slug}`);
+        const market = response.data;
+        if (!market) return [];
+
+        // Wrap in event-like shape for consistent normalizer input
+        const event = market.events?.[0] || market;
+        return [{ ...event, markets: [market] }];
     }
 
     private async fetchRawMarketsSearch(params: MarketFilterParams): Promise<PolymarketRawEvent[]> {

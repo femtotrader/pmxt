@@ -128,6 +128,15 @@ export class Router extends PredictionMarketExchange {
         if (params.event && !params.eventId) {
             params = { ...params, eventId: params.event.id };
         }
+
+        // Browse mode: no specific event identifier → return all matches
+        const hasIdentifier = params.eventId || params.slug;
+        if (!hasIdentifier) {
+            const results = await this.client.browseEventMatches(params);
+            return Array.isArray(results) ? results : [];
+        }
+
+        // Lookup mode: find matches for a specific event.
         const response = await this.client.getEventMatches(params);
         return response.matches ?? [];
     }

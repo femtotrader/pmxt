@@ -58,6 +58,18 @@ export class PmxtApiClient {
         return res.data;
     }
 
+    async browseEventMatches(params: FetchEventMatchesParams): Promise<any> {
+        const query: Record<string, string> = {};
+        if (params.query) query.query = params.query;
+        if (params.category) query.category = params.category;
+        if (params.relation) query.relation = params.relation;
+        if (params.minConfidence !== undefined) query.minConfidence = String(params.minConfidence);
+        if (params.limit !== undefined) query.limit = String(params.limit);
+
+        const res = await this.request('GET', '/v0/events/matches', query);
+        return res.data;
+    }
+
     async searchMarkets(params?: RouterMarketSearchParams): Promise<any> {
         const query: Record<string, string> = {};
         if (params?.query) query.q = params.query;

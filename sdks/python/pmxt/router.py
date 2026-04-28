@@ -101,6 +101,8 @@ class Router(Exchange):
         market_id: Optional[str] = None,
         slug: Optional[str] = None,
         url: Optional[str] = None,
+        query: Optional[str] = None,
+        category: Optional[str] = None,
         relation: Optional[MatchRelation] = None,
         min_confidence: Optional[float] = None,
         limit: Optional[int] = None,
@@ -133,6 +135,10 @@ class Router(Exchange):
             params["slug"] = slug
         if url is not None:
             params["url"] = url
+        if query is not None:
+            params["query"] = query
+        if category is not None:
+            params["category"] = category
         if relation is not None:
             params["relation"] = relation
         if min_confidence is not None:
@@ -154,6 +160,8 @@ class Router(Exchange):
         market_id: Optional[str] = None,
         slug: Optional[str] = None,
         url: Optional[str] = None,
+        query: Optional[str] = None,
+        category: Optional[str] = None,
         relation: Optional[MatchRelation] = None,
         min_confidence: Optional[float] = None,
         limit: Optional[int] = None,
@@ -170,6 +178,8 @@ class Router(Exchange):
             market_id=market_id,
             slug=slug,
             url=url,
+            query=query,
+            category=category,
             relation=relation,
             min_confidence=min_confidence,
             limit=limit,
@@ -182,6 +192,8 @@ class Router(Exchange):
         *,
         event_id: Optional[str] = None,
         slug: Optional[str] = None,
+        query: Optional[str] = None,
+        category: Optional[str] = None,
         relation: Optional[MatchRelation] = None,
         min_confidence: Optional[float] = None,
         limit: Optional[int] = None,
@@ -214,6 +226,10 @@ class Router(Exchange):
             params["eventId"] = event_id
         if slug is not None:
             params["slug"] = slug
+        if query is not None:
+            params["query"] = query
+        if category is not None:
+            params["category"] = category
         if relation is not None:
             params["relation"] = relation
         if min_confidence is not None:

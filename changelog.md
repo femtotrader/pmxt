@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.21] - 2026-04-28
+
+### Feat: Browse mode for `fetchEventMatches`
+
+- `fetchEventMatches` now supports browse mode — omit the event
+  identifier and pass `query`, `category`, or `limit` to browse all
+  cross-venue event match pairs from the catalog. Same pattern as
+  `fetchMarketMatches` already supported.
+- Python SDK: added `query` and `category` params to
+  `fetch_event_matches`, `fetch_market_matches`, and `fetch_matches`.
+- Core Router: browse path calls new hosted `/v0/events/matches`
+  endpoint instead of requiring an event ID.
+
 ## [2.35.20] - 2026-04-28
 
 ### Fix: `sourceMarket` missing from `MatchResult` in both SDKs

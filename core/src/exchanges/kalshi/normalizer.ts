@@ -26,8 +26,16 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
     normalizeRawMarket(event: KalshiRawEvent, market: KalshiRawMarket): UnifiedMarket | null {
         if (!market) return null;
 
+        // Kalshi API v2 migrated from cent integers to FixedPointDollars strings.
+        // Prefer the _dollars fields; fall back to deprecated cent fields.
         let price = 0;
-        if (market.last_price) {
+        if (market.last_price_dollars != null) {
+            price = parseFloat(market.last_price_dollars);
+        } else if (market.yes_ask_dollars != null && market.yes_bid_dollars != null) {
+            price = (parseFloat(market.yes_ask_dollars) + parseFloat(market.yes_bid_dollars)) / 2;
+        } else if (market.yes_ask_dollars != null) {
+            price = parseFloat(market.yes_ask_dollars);
+        } else if (market.last_price) {
             price = fromKalshiCents(market.last_price);
         } else if (market.yes_ask && market.yes_bid) {
             price = (fromKalshiCents(market.yes_ask) + fromKalshiCents(market.yes_bid)) / 2;
@@ -38,8 +46,8 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
         const candidateName = this.deriveOutcomeLabel(market);
 
         let priceChange = 0;
-        if (market.previous_price_dollars !== undefined && market.last_price_dollars !== undefined) {
-            priceChange = (market.last_price_dollars as number) - (market.previous_price_dollars as number);
+        if (market.previous_price_dollars != null && market.last_price_dollars != null) {
+            priceChange = parseFloat(market.last_price_dollars) - parseFloat(market.previous_price_dollars);
         }
 
         const outcomes: MarketOutcome[] = [

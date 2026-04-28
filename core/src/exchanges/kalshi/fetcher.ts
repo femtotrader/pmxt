@@ -16,8 +16,10 @@ export interface KalshiRawMarket {
     yes_bid?: number;
     subtitle?: string;
     yes_sub_title?: string;
-    previous_price_dollars?: number;
-    last_price_dollars?: number;
+    previous_price_dollars?: string;
+    last_price_dollars?: string;
+    yes_ask_dollars?: string;
+    yes_bid_dollars?: string;
     rules_primary?: string;
     rules_secondary?: string;
     expiration_time: string;

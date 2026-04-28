@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.17] - 2026-04-28
+
+### Docs: Catalog speed notice on discovery endpoints
+
+- API reference pages for catalog-backed endpoints now show an `<Info>`
+  callout explaining that passing a PMXT API key serves the request from
+  the indexed catalog (~10 ms) instead of proxying to the venue (~500 ms).
+  Applies to: `fetchMarkets`, `fetchEvents`, `fetchMarket`, `fetchEvent`,
+  `fetchMarketsPaginated`, `fetchEventsPaginated`, `loadMarkets`.
+- Uses Mintlify's `x-mint.content` extension so the notice renders as a
+  proper info box rather than a plain blockquote.
+
+### Fix: `unwatchOrderBook` doc page 404
+
+- The OpenAPI generator collapsed single-exchange paths (e.g.
+  `/api/{exchange}/unwatchOrderBook` to `/api/polymarket/unwatchOrderBook`)
+  which broke the `docs.json` navigation reference. Path collapsing is
+  now limited to Router-only endpoints, which are architecturally
+  permanent. Methods that happen to have one implementation today keep
+  the `{exchange}` template so the docs stay stable as venues add support.
+
 ## [2.35.16] - 2026-04-28
 
 ### Fix: Sidecar 401 Unauthorized when orphan occupies default port

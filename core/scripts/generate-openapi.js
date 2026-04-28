@@ -144,6 +144,72 @@ const TAG_BADGE_MAP = {
     'Local Only': 'Local Only',
 };
 
+// ---------------------------------------------------------------------------
+// Catalog-backed notice
+//
+// These endpoints are transparently served from the hosted Postgres catalog
+// (~10ms) instead of proxying to the venue (~500ms) when the caller passes
+// a PMXT API key and does not include venue credentials.  The notice is
+// prepended to the operation description in the hosted docs spec so users
+// know the hosted path is dramatically faster.
+// ---------------------------------------------------------------------------
+
+const CATALOG_BACKED_METHODS = new Set([
+    'fetchMarkets',
+    'fetchEvents',
+    'fetchMarket',
+    'fetchEvent',
+    'fetchMarketsPaginated',
+    'fetchEventsPaginated',
+    'loadMarkets',
+]);
+
+const CATALOG_NOTICE =
+    '<Info>\n' +
+    '**Faster with an API key** — With a PMXT API key this endpoint ' +
+    'is served from an indexed catalog (~10 ms) instead of proxying to ' +
+    'the venue (~500 ms). No code changes required — same request, same ' +
+    'response, just faster. ' +
+    '[Learn more](/concepts/catalog-vs-live).\n' +
+    '</Info>';
+
+/**
+ * Add a catalog-speed notice via x-mint.content on every operation
+ * whose operationId is in CATALOG_BACKED_METHODS.  Uses x-mint.content
+ * instead of the description field so Mintlify renders it as a proper
+ * <Info> callout box rather than a plain blockquote.
+ * Returns a NEW spec object — the input is never mutated.
+ */
+function injectCatalogNotices(spec) {
+    const paths = { ...(spec.paths || {}) };
+    for (const [pathKey, methods] of Object.entries(paths)) {
+        const newMethods = {};
+        for (const [method, op] of Object.entries(methods)) {
+            if (!['get', 'post', 'put', 'delete', 'patch'].includes(method)) {
+                newMethods[method] = op;
+                continue;
+            }
+            if (CATALOG_BACKED_METHODS.has(op.operationId)) {
+                const existing = (op['x-mint'] || {}).content || '';
+                const content = existing
+                    ? CATALOG_NOTICE + '\n\n' + existing
+                    : CATALOG_NOTICE;
+                newMethods[method] = {
+                    ...op,
+                    'x-mint': {
+                        ...(op['x-mint'] || {}),
+                        content,
+                    },
+                };
+            } else {
+                newMethods[method] = op;
+            }
+        }
+        paths[pathKey] = newMethods;
+    }
+    return { ...spec, paths };
+}
+
 /**
  * Walk every operation in the hosted spec and:
  *   1. Set `x-mint.metadata.tag` — renders a badge next to the endpoint
@@ -741,10 +807,13 @@ function scopeExchangeParams(spec, capMap) {
             };
         }
 
-        // When every operation under this path supports exactly one
-        // exchange, replace the {exchange} template with the concrete
-        // value (e.g. /api/router/fetchMarketMatches) and drop the
-        // exchange path parameter so the docs show the real URL.
+        // When every operation under this path is Router-only, replace
+        // the {exchange} template with "router" so the docs show the
+        // real URL (e.g. /api/router/fetchMarketMatches).  We only
+        // collapse for Router because those endpoints are architecturally
+        // permanent.  Other single-exchange methods (e.g. unwatchOrderBook
+        // on Polymarket today) will gain more venues over time, so
+        // collapsing them would break docs.json references.
         if (pathKey.includes('{exchange}')) {
             const ops = Object.values(newMethods).filter(
                 (o) => typeof o === 'object' && o.operationId
@@ -753,7 +822,9 @@ function scopeExchangeParams(spec, capMap) {
                 const supported = capMap[o.operationId];
                 return supported && supported.length === 1;
             });
-            if (singleExchange) {
+            const isRouterOnly = singleExchange &&
+                capMap[ops[0].operationId][0] === 'router';
+            if (isRouterOnly) {
                 const exchange = capMap[ops[0].operationId][0];
                 const concretePath = pathKey.replace('{exchange}', exchange);
                 // Remove the exchange path parameter from each operation
@@ -787,7 +858,8 @@ function generateHostedDocsSpec(spec) {
     const coreVersion = readCoreVersion();
     const rewritten = rewriteForHosted(spec, coreVersion);
     const tagged = assignHostedTags(rewritten);
-    const withSamples = injectCodeSamples(tagged);
+    const withNotices = injectCatalogNotices(tagged);
+    const withSamples = injectCodeSamples(withNotices);
 
     // Scope exchange params per-operation using the capability system
     const capMap = buildCapabilityMap();

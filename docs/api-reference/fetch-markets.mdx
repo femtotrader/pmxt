@@ -1,0 +1,126 @@
+---
+title: Fetch Markets
+openapi: GET /api/{exchange}/fetchMarkets
+---
+
+<Info>
+**Faster with an API key** — With a PMXT API key this endpoint is served from an indexed catalog (~10 ms) instead of proxying to the venue (~500 ms). No code changes required — same request, same response, just faster. [Learn more](/concepts/catalog-vs-live).
+</Info>
+
+## Use cases
+
+### Search by keyword
+
+Find all markets mentioning "bitcoin" on Polymarket:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+# Optional: pass pmxt_api_key for ~100x faster catalog-backed lookups
+api = pmxt.Polymarket()
+markets = api.fetch_markets(query="bitcoin", limit=5)
+for market in markets:
+    print(market.title, market.yes.price)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+// Optional: pass pmxtApiKey for ~100x faster catalog-backed lookups
+const api = new Polymarket();
+const markets = await api.fetchMarkets({ query: "bitcoin", limit: 5 });
+markets.forEach((m) => console.log(m.title, m.yes.price));
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchMarkets?query=bitcoin&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Filter by category
+
+Get all sports markets on Kalshi:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Kalshi()
+markets = api.fetch_markets(category="Sports", limit=5)
+```
+
+```javascript JavaScript
+import { Kalshi } from "pmxtjs";
+
+const api = new Kalshi();
+const markets = await api.fetchMarkets({ category: "Sports", limit: 5 });
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/kalshi/fetchMarkets?category=Sports&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Filter by tags
+
+Get markets tagged with elections and Trump:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+markets = api.fetch_markets(tags=["Elections", "Trump"], limit=5)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+const api = new Polymarket();
+const markets = await api.fetchMarkets({
+  tags: ["Elections", "Trump"],
+  limit: 5,
+});
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchMarkets?tags=Elections&tags=Trump&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Sort by volume
+
+Find the highest-volume active markets on Limitless:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Limitless()
+markets = api.fetch_markets(
+    sort="volume",
+    status="active",
+    limit=5,
+)
+```
+
+```javascript JavaScript
+import { Limitless } from "pmxtjs";
+
+const api = new Limitless();
+const markets = await api.fetchMarkets({
+  sort: "volume",
+  status: "active",
+  limit: 5,
+});
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/limitless/fetchMarkets?sort=volume&status=active&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>

@@ -1,0 +1,128 @@
+---
+title: Fetch Events
+openapi: GET /api/{exchange}/fetchEvents
+---
+
+<Info>
+**Faster with an API key** — With a PMXT API key this endpoint is served from an indexed catalog (~10 ms) instead of proxying to the venue (~500 ms). No code changes required — same request, same response, just faster. [Learn more](/concepts/catalog-vs-live).
+</Info>
+
+## Use cases
+
+### Search by keyword
+
+Find all events mentioning "Trump" on Polymarket:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+# Optional: pass pmxt_api_key for ~100x faster catalog-backed lookups
+api = pmxt.Polymarket()
+events = api.fetch_events(query="trump", limit=5)
+for event in events:
+    print(event.title, event.url)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+// Optional: pass pmxtApiKey for ~100x faster catalog-backed lookups
+const api = new Polymarket();
+const events = await api.fetchEvents({ query: "trump", limit: 5 });
+events.forEach((e) => console.log(e.title, e.url));
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchEvents?query=trump&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Filter by category
+
+Get all crypto-related events on Kalshi:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Limitless()
+events = api.fetch_events(category="Crypto", limit=5)
+```
+
+```javascript JavaScript
+import { Limitless } from "pmxtjs";
+
+const api = new Limitless();
+const events = await api.fetchEvents({ category: "Crypto", limit: 5 });
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/limitless/fetchEvents?category=Crypto&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Filter by tags
+
+Get events tagged with geopolitics:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+events = api.fetch_events(tags=["Geopolitics", "Middle East"], limit=5)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+const api = new Polymarket();
+const events = await api.fetchEvents({
+  tags: ["Geopolitics", "Middle East"],
+  limit: 5,
+});
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchEvents?tags=Geopolitics&tags=Middle+East&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Sort by volume
+
+Find the highest-volume active sports events:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+events = api.fetch_events(
+    category="Sports",
+    sort="volume",
+    status="active",
+    limit=5,
+)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+const api = new Polymarket();
+const events = await api.fetchEvents({
+  category: "Sports",
+  sort: "volume",
+  status: "active",
+  limit: 5,
+});
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchEvents?category=Sports&sort=volume&status=active&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>

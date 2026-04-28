@@ -1,0 +1,104 @@
+---
+title: Fetch Market
+openapi: GET /api/{exchange}/fetchMarket
+---
+
+<Info>
+**Faster with an API key** — With a PMXT API key this endpoint is served from an indexed catalog (~10 ms) instead of proxying to the venue (~500 ms). No code changes required — same request, same response, just faster. [Learn more](/concepts/catalog-vs-live).
+</Info>
+
+## Use cases
+
+### Look up by slug
+
+Slugs are stable, human-readable identifiers that make your code self-documenting and resilient to ID changes. Use them whenever possible.
+
+<CodeGroup>
+```python Python
+import pmxt
+
+# Optional: pass pmxt_api_key for ~100x faster catalog-backed lookups
+api = pmxt.Polymarket()
+market = api.fetch_market(slug="will-gavin-newsom-win-the-2028-us-presidential-election")
+print(market.title, market.status)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+// Optional: pass pmxtApiKey for ~100x faster catalog-backed lookups
+const api = new Polymarket();
+const market = await api.fetchMarket({ slug: "will-gavin-newsom-win-the-2028-us-presidential-election" });
+console.log(market.title, market.status);
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchMarket?slug=will-gavin-newsom-win-the-2028-us-presidential-election" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Look up by market ID
+
+When you already have a venue-native market ID (e.g. from a trade confirmation or webhook), pass it directly:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+market = api.fetch_market(market_id="46ac6f9c-c66a-48a5-8f12-beefd6e06221")
+print(market.title, market.volume)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+const api = new Polymarket();
+const market = await api.fetchMarket({ marketId: "46ac6f9c-c66a-48a5-8f12-beefd6e06221" });
+console.log(market.title, market.volume);
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchMarket?marketId=46ac6f9c-c66a-48a5-8f12-beefd6e06221" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Read outcomes and prices
+
+Every market carries an `outcomes` array and, for binary markets, `yes` / `no` convenience accessors with live prices:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+market = api.fetch_market(slug="will-gavin-newsom-win-the-2028-us-presidential-election")
+
+# Binary shorthand
+print(f"Yes {market.yes.price}  No {market.no.price}")
+
+# Full outcomes list (works for multi-outcome markets too)
+for outcome in market.outcomes:
+    print(f"  {outcome.label}: {outcome.price}")
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+const api = new Polymarket();
+const market = await api.fetchMarket({ slug: "will-gavin-newsom-win-the-2028-us-presidential-election" });
+
+// Binary shorthand
+console.log(`Yes ${market.yes.price}  No ${market.no.price}`);
+
+// Full outcomes list (works for multi-outcome markets too)
+market.outcomes.forEach((o) => console.log(`  ${o.label}: ${o.price}`));
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchMarket?slug=will-gavin-newsom-win-the-2028-us-presidential-election" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>

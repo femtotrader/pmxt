@@ -126,12 +126,12 @@
             "group": "Events & Markets",
             "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /api/{exchange}/fetchEvents",
+              "api-reference/fetch-events",
               "GET /api/{exchange}/fetchEventsPaginated",
-              "GET /api/{exchange}/fetchEvent",
-              "GET /api/{exchange}/fetchMarkets",
+              "api-reference/fetch-event",
+              "api-reference/fetch-markets",
               "GET /api/{exchange}/fetchMarketsPaginated",
-              "GET /api/{exchange}/fetchMarket"
+              "api-reference/fetch-market"
             ]
           },
           {

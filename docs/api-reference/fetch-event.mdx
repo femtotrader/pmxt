@@ -1,0 +1,98 @@
+---
+title: Fetch Event
+openapi: GET /api/{exchange}/fetchEvent
+---
+
+<Info>
+**Faster with an API key** — With a PMXT API key this endpoint is served from an indexed catalog (~10 ms) instead of proxying to the venue (~500 ms). No code changes required — same request, same response, just faster. [Learn more](/concepts/catalog-vs-live).
+</Info>
+
+## Use cases
+
+### Look up by slug
+
+Slugs are the most reliable way to look up a specific event — they are human-readable, stable, and easy to share or store in config:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+# Optional: pass pmxt_api_key for ~100x faster catalog-backed lookups
+api = pmxt.Polymarket()
+event = api.fetch_event(slug="presidential-election-winner-2028")
+print(event.title, event.volume_24h)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+// Optional: pass pmxtApiKey for ~100x faster catalog-backed lookups
+const api = new Polymarket();
+const event = await api.fetchEvent({ slug: "presidential-election-winner-2028" });
+console.log(event.title, event.volume24h);
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchEvent?slug=presidential-election-winner-2028" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Look up by event ID
+
+When you already have an event ID from a previous API call or webhook, use `eventId` for a direct lookup:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+event = api.fetch_event(event_id="a49db286-39ca-4119-9de5-1335a92ef92a")
+print(event.title, event.url)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+const api = new Polymarket();
+const event = await api.fetchEvent({ eventId: "a49db286-39ca-4119-9de5-1335a92ef92a" });
+console.log(event.title, event.url);
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchEvent?eventId=a49db286-39ca-4119-9de5-1335a92ef92a" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+### Access markets within an event
+
+Each event contains a `markets` array with full market details including outcomes and prices. This is useful for building dashboards or comparing outcomes across an event's markets:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Limitless()
+event = api.fetch_event(slug="presidential-election-winner-2028-1769010522121")
+
+for market in event.markets:
+    print(f"{market.title}: {market.outcomes[1].price:.0%}")
+```
+
+```javascript JavaScript
+import { Limitless } from "pmxtjs";
+
+const api = new Limitless();
+const event = await api.fetchEvent({ slug: "presidential-election-winner-2028-1769010522121" });
+
+for (const market of event.markets) {
+  console.log(`${market.title}: ${(market.outcomes[1].price * 100).toFixed(0)}%`);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/limitless/fetchEvent?slug=presidential-election-winner-2028-1769010522121" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>

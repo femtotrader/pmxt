@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.13] - 2026-04-28
+
+### Fix: Kalshi markets returning price 0 despite active orderbooks
+
+- The normalizer only read Kalshi's deprecated cent-integer fields
+  (`last_price`, `yes_ask`, `yes_bid`) which Kalshi has stopped
+  populating for many markets. Now prefers the FixedPointDollars string
+  fields (`last_price_dollars`, `yes_ask_dollars`, `yes_bid_dollars`)
+  with a fallback to the legacy fields.
+  ([#117](https://github.com/pmxt-dev/pmxt/issues/117))
+- Fixed `priceChange24h` computation that cast FixedPointDollars strings
+  as numbers instead of parsing them.
+- Removed dead `mapMarketToUnified` from `kalshi/utils.ts`.
+
+### Feat: Arbitrary CandleInterval values
+
+- `CandleInterval` relaxed from a fixed 6-value union to `string`. The
+  common values (`1m`, `5m`, `15m`, `1h`, `6h`, `1d`) remain documented,
+  but arbitrary intervals matching `^[0-9]+[smhd]$` (e.g. `30s`, `120s`,
+  `3h`) are now accepted by venues that support them. Updated core type,
+  both SDK types, OpenAPI spec, and JSDoc.
+
 ## [2.35.12] - 2026-04-27
 
 ### Fix: Router-only path rewriting survives CI

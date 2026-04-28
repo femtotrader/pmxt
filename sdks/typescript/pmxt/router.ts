@@ -90,6 +90,7 @@ function parseMatchResult(raw: any): MatchResult {
         reasoning: raw.reasoning,
         bestBid: raw.bestBid ?? marketData.bestBid,
         bestAsk: raw.bestAsk ?? marketData.bestAsk,
+        sourceMarket: raw.sourceMarket ? convertMarket(raw.sourceMarket) : undefined,
     };
 }
 

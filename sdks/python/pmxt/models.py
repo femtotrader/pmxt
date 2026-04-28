@@ -596,6 +596,9 @@ class MatchResult:
     best_ask: Optional[float] = None
     """Best ask price on the matched venue (when includePrices=True)."""
 
+    source_market: Optional[UnifiedMarket] = None
+    """The source market this was matched against. Present in browse mode, absent in lookup mode."""
+
     def __getattr__(self, name: str) -> Any:
         return getattr(self.market, name)
 

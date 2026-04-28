@@ -41,6 +41,7 @@ def _parse_event(raw: Any) -> UnifiedEvent:
 def _parse_match_result(raw: Dict[str, Any]) -> MatchResult:
     """Parse a raw match dict into a MatchResult."""
     market_data = raw.get("market", {})
+    source_raw = raw.get("sourceMarket")
     return MatchResult(
         market=_parse_market(market_data),
         relation=raw.get("relation", "identity"),
@@ -48,6 +49,7 @@ def _parse_match_result(raw: Dict[str, Any]) -> MatchResult:
         reasoning=raw.get("reasoning"),
         best_bid=raw.get("bestBid") or market_data.get("bestBid"),
         best_ask=raw.get("bestAsk") or market_data.get("bestAsk"),
+        source_market=_parse_market(source_raw) if source_raw else None,
     )
 
 

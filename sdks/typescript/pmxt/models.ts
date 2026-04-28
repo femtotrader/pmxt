@@ -719,6 +719,9 @@ export interface MatchResult extends Readonly<UnifiedMarket> {
 
     /** Best ask price on the matched venue (when includePrices=true). */
     bestAsk?: number;
+
+    /** The source market this was matched against. Present in browse mode, absent in lookup mode. */
+    sourceMarket?: UnifiedMarket;
 }
 
 /** A cross-venue event match with constituent market matches.

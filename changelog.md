@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.20] - 2026-04-28
+
+### Fix: `sourceMarket` missing from `MatchResult` in both SDKs
+
+- The OpenAPI spec and core Router correctly return `sourceMarket` on
+  `MatchResult` in browse mode (when no specific market is given to
+  `fetchMarketMatches`), but both hand-written SDK models silently
+  dropped the field.
+- Python: added `source_market: Optional[UnifiedMarket]` to
+  `MatchResult` dataclass and parser.
+- TypeScript: added `sourceMarket?: UnifiedMarket` to `MatchResult`
+  interface and parser.
+
 ## [2.35.19] - 2026-04-28
 
 ### Fix: Router matching fails when passing venue-fetched event/market objects

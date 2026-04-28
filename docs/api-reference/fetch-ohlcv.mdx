@@ -1,0 +1,43 @@
+---
+title: Fetch OHLCV
+openapi: GET /api/{exchange}/fetchOHLCV
+---
+
+<Info>
+**More data with an API key** — Without an API key, OHLCV is limited to Polymarket's native API: short history windows, no volume, and venue-specific rate limits. With a PMXT API key you get volume, 1+ years of history, and normalized candles across venues. Kalshi, Limitless, and more are coming soon. [Get your API key](/dashboard).
+</Info>
+
+## Use cases
+
+### Get hourly candles for a market
+
+<CodeGroup>
+```python Python
+import pmxt
+
+# Pass pmxt_api_key for volume data and deeper history
+api = pmxt.Polymarket()
+market = api.fetch_market(slug="will-alexandria-ocasio-cortez-win-the-2028-us-presidential-election")
+
+candles = api.fetch_ohlcv(market.yes, resolution="1h", limit=100)
+for c in candles:
+    print(f"{c.open:.2f}  {c.high:.2f}  {c.low:.2f}  {c.close:.2f}")
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+// Pass pmxtApiKey for volume data and deeper history
+const api = new Polymarket();
+const market = await api.fetchMarket({ slug: "will-alexandria-ocasio-cortez-win-the-2028-us-presidential-election" });
+
+const candles = await api.fetchOHLCV(market.yes, { resolution: "1h", limit: 100 });
+candles.forEach((c) => console.log(`${c.open}  ${c.high}  ${c.low}  ${c.close}`));
+```
+
+```bash curl
+# First get the outcome ID from a market, then pass it as the id parameter
+curl "https://api.pmxt.dev/api/polymarket/fetchOHLCV?id=YOUR_OUTCOME_ID&resolution=1h&limit=100" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>

@@ -146,7 +146,7 @@
             "group": "Order Book & Trades",
             "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /api/{exchange}/fetchOHLCV",
+              "api-reference/fetch-ohlcv",
               "GET /api/{exchange}/fetchOrderBook",
               "GET /api/{exchange}/fetchTrades",
               "POST /api/{exchange}/getExecutionPrice",

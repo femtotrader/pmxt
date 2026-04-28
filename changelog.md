@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.23] - 2026-04-28
+
+### Docs: Use-case example on fetchOHLCV endpoint
+
+- `fetchOHLCV` API reference page now includes a Python, JavaScript,
+  and curl example showing how to fetch hourly candles for a market.
+- Added info box explaining that a PMXT API key unlocks volume data
+  and deeper history (via pmxt-ohlc) compared to Polymarket's native
+  API which has short history windows and no volume.
+
 ## [2.35.22] - 2026-04-28
 
 ### Docs: Use-case examples on cross-venue matching endpoints

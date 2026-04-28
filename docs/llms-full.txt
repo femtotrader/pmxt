@@ -2238,8 +2238,8 @@ Fetch events with optional keyword search. Events group related markets together
 | `eventId` | string | No | Direct lookup by event ID |
 | `slug` | string | No | Lookup by event slug |
 | `filter` | string | No | Optional client-side filter applied after fetching |
-| `category` | string | No | Shorthand for filter.category -- merged into filter (takes precedence) |
-| `tags` | array | No | Shorthand for filter.tags -- merged into filter (takes precedence) |
+| `category` | string | No | Filter by category. Each event belongs to a venue-assigned category such as "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). |
+| `tags` | array | No | Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories -- for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump". |
 
 **Response:** `{ success: true, data: UnifiedEvent[] }`
 
@@ -2352,8 +2352,8 @@ Fetch a single event by lookup parameters. Convenience wrapper around fetchEvent
 | `eventId` | string | No | Direct lookup by event ID |
 | `slug` | string | No | Lookup by event slug |
 | `filter` | string | No | Optional client-side filter applied after fetching |
-| `category` | string | No | Shorthand for filter.category -- merged into filter (takes precedence) |
-| `tags` | array | No | Shorthand for filter.tags -- merged into filter (takes precedence) |
+| `category` | string | No | Filter by category. Each event belongs to a venue-assigned category such as "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). |
+| `tags` | array | No | Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories -- for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump". |
 
 **Response:** `{ success: true, data: ... }`
 

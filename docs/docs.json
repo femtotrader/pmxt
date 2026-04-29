@@ -126,27 +126,26 @@
             "group": "Events & Markets",
             "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /api/{exchange}/fetchEvents",
+              "api-reference/fetch-events",
               "GET /api/{exchange}/fetchEventsPaginated",
-              "GET /api/{exchange}/fetchEvent",
-              "GET /api/{exchange}/fetchMarkets",
+              "api-reference/fetch-event",
+              "api-reference/fetch-markets",
               "GET /api/{exchange}/fetchMarketsPaginated",
-              "GET /api/{exchange}/fetchMarket"
+              "api-reference/fetch-market"
             ]
           },
           {
             "group": "Cross-Venue",
-            "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /api/router/fetchEventMatches",
-              "GET /api/router/fetchMarketMatches"
+              "api-reference/fetch-event-matches",
+              "api-reference/fetch-market-matches"
             ]
           },
           {
             "group": "Order Book & Trades",
             "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /api/{exchange}/fetchOHLCV",
+              "api-reference/fetch-ohlcv",
               "GET /api/{exchange}/fetchOrderBook",
               "GET /api/{exchange}/fetchTrades",
               "POST /api/{exchange}/getExecutionPrice",

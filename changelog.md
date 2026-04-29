@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.26] - 2026-04-29
+
+### Fix: docs.json MDX overrides lost during rebase
+
+- `docs.json` was reverted to auto-generated OpenAPI paths during a
+  rebase conflict resolution, removing all custom MDX page overrides.
+  Restored references for `fetchEvents`, `fetchEvent`, `fetchMarkets`,
+  `fetchMarket`, `fetchEventMatches`, `fetchMarketMatches`, and
+  `fetchOHLCV` so use-case examples render on the production docs site.
+
 ## [2.35.25] - 2026-04-28
 
 ### Fix: `auto_start_server` fix lost on publish

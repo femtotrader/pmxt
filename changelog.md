@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.27] - 2026-04-29
+
+### Fix: "Hosted" tag missing on cross-venue MDX pages
+
+- Removing the `openapi` field from the Cross-Venue group in
+  `docs.json` (to fix extra dropdowns) also dropped the "Hosted" tag.
+  Added `tag: Hosted` frontmatter to `fetchEventMatches` and
+  `fetchMarketMatches` MDX pages.
+
 ## [2.35.26] - 2026-04-29
 
 ### Fix: docs.json MDX overrides lost during rebase

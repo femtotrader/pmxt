@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.29] - 2026-04-30
+
+### Fix: cross-venue docs examples lost on regeneration
+
+- `generate-mintlify-docs.js` always emitted OpenAPI path refs for
+  every endpoint in `docs.json`. Mintlify routed tagged operations
+  (like `fetchEventMatches`) to a tag-derived URL (`hosted/event-matches`)
+  that didn't match the MDX file at `fetch-event-matches.mdx`, silently
+  dropping the hand-written examples.
+- The generator now checks for an existing MDX file per operationId
+  (camelCase to kebab-case convention). When one exists, it emits a
+  file-path ref instead of an OpenAPI path ref, so Mintlify loads the
+  MDX body content alongside the spec. Groups where every page is an
+  MDX file omit the `openapi` key entirely.
+- Fixed the sort comparator to track operationIds alongside refs, so
+  the `order` array in `ENDPOINT_GROUPS` works regardless of ref format.
+
 ## [2.35.28] - 2026-04-30
 
 ### Fix: `fetchTrades` crashes with `start`/`end` params on Polymarket

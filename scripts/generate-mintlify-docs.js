@@ -195,7 +195,19 @@ const ENDPOINT_GROUPS = [
 // to be called directly by API consumers).
 const HIDDEN_OPERATIONS = new Set(['filterMarkets', 'filterEvents', 'fetchHedges', 'fetchArbitrage', 'fetchMatchedPrices', 'compareMarketPrices', 'fetchRelatedMarkets', 'fetchMatchedMarkets']);
 
+// Convert an operationId to its expected MDX file path (docs-relative,
+// no extension).  fetchEventMatches -> api-reference/fetch-event-matches
+function operationIdToMdxPath(operationId) {
+    const kebab = operationId
+        .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+        .toLowerCase();
+    return `api-reference/${kebab}`;
+}
+
 function buildEndpointGroups(spec) {
+    // Each bucket entry is { ref, opId } so the sort comparator can
+    // match against the order array regardless of ref format.
     const buckets = new Map();
     for (const group of ENDPOINT_GROUPS) buckets.set(group.name, []);
     buckets.set('Other', []);
@@ -207,38 +219,53 @@ function buildEndpointGroups(spec) {
             }
             const opId = op.operationId || '';
             if (HIDDEN_OPERATIONS.has(opId)) continue;
-            const ref = `${method.toUpperCase()} ${pathKey}`;
+
+            // When an MDX file exists for this operation, reference it by
+            // file path so Mintlify renders the hand-written body content
+            // (examples, use-cases) alongside the OpenAPI spec.  Without
+            // this, Mintlify auto-generates the page URL from the spec
+            // (potentially under a tag-derived subdirectory like hosted/)
+            // and the MDX body content is silently ignored.
+            const mdxPath = operationIdToMdxPath(opId);
+            const mdxFullPath = path.join(ROOT, 'docs', mdxPath + '.mdx');
+            const ref = fs.existsSync(mdxFullPath)
+                ? mdxPath
+                : `${method.toUpperCase()} ${pathKey}`;
 
             let placed = false;
             for (const group of ENDPOINT_GROUPS) {
                 if (group.match(opId)) {
-                    buckets.get(group.name).push(ref);
+                    buckets.get(group.name).push({ ref, opId });
                     placed = true;
                     break;
                 }
             }
-            if (!placed) buckets.get('Other').push(ref);
+            if (!placed) buckets.get('Other').push({ ref, opId });
         }
     }
 
     const groups = [];
-    for (const [name, refs] of buckets.entries()) {
-        if (refs.length === 0) continue;
+    for (const [name, entries] of buckets.entries()) {
+        if (entries.length === 0) continue;
         const groupDef = ENDPOINT_GROUPS.find((g) => g.name === name);
         const sorted = groupDef?.order
-            ? refs.sort((a, b) => {
-                  const opA = ENDPOINT_GROUPS.length && a.split('/').pop();
-                  const opB = ENDPOINT_GROUPS.length && b.split('/').pop();
-                  const idxA = groupDef.order.indexOf(opA);
-                  const idxB = groupDef.order.indexOf(opB);
+            ? entries.sort((a, b) => {
+                  const idxA = groupDef.order.indexOf(a.opId);
+                  const idxB = groupDef.order.indexOf(b.opId);
                   return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
               })
-            : refs;
-        groups.push({
-            group: name,
-            openapi: 'api-reference/openapi.json',
-            pages: sorted,
-        });
+            : entries;
+        const refs = sorted.map((e) => e.ref);
+        // Only include the openapi key when the group has OpenAPI path
+        // refs (e.g. "GET /api/{exchange}/fetchMarkets").  Groups where
+        // every page is an MDX file path don't need it — the openapi
+        // frontmatter in each MDX file handles the spec binding.
+        const hasOpenApiRefs = refs.some(
+            (r) => /^(GET|POST|PUT|DELETE|PATCH) /.test(r)
+        );
+        const group = { group: name, pages: refs };
+        if (hasOpenApiRefs) group.openapi = 'api-reference/openapi.json';
+        groups.push(group);
     }
     return groups;
 }

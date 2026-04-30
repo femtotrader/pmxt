@@ -115,57 +115,55 @@
           },
           {
             "group": "System",
-            "openapi": "api-reference/openapi.json",
             "pages": [
               "GET /health",
               "POST /api/{exchange}/loadMarkets",
               "POST /api/{exchange}/close"
-            ]
+            ],
+            "openapi": "api-reference/openapi.json"
           },
           {
             "group": "Events & Markets",
-            "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /api/{exchange}/fetchEvents",
+              "api-reference/fetch-events",
               "GET /api/{exchange}/fetchEventsPaginated",
-              "GET /api/{exchange}/fetchEvent",
-              "GET /api/{exchange}/fetchMarkets",
+              "api-reference/fetch-event",
+              "api-reference/fetch-markets",
               "GET /api/{exchange}/fetchMarketsPaginated",
-              "GET /api/{exchange}/fetchMarket"
-            ]
+              "api-reference/fetch-market"
+            ],
+            "openapi": "api-reference/openapi.json"
           },
           {
             "group": "Cross-Venue",
-            "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /api/router/fetchEventMatches",
-              "GET /api/router/fetchMarketMatches"
+              "api-reference/fetch-event-matches",
+              "api-reference/fetch-market-matches"
             ]
           },
           {
             "group": "Order Book & Trades",
-            "openapi": "api-reference/openapi.json",
             "pages": [
-              "GET /api/{exchange}/fetchOHLCV",
+              "api-reference/fetch-ohlcv",
               "GET /api/{exchange}/fetchOrderBook",
               "GET /api/{exchange}/fetchTrades",
               "POST /api/{exchange}/getExecutionPrice",
               "POST /api/{exchange}/getExecutionPriceDetailed"
-            ]
+            ],
+            "openapi": "api-reference/openapi.json"
           },
           {
             "group": "Trading",
-            "openapi": "api-reference/openapi.json",
             "pages": [
               "POST /api/{exchange}/createOrder",
               "POST /api/{exchange}/buildOrder",
               "POST /api/{exchange}/submitOrder",
               "POST /api/{exchange}/cancelOrder"
-            ]
+            ],
+            "openapi": "api-reference/openapi.json"
           },
           {
             "group": "Orders & Positions",
-            "openapi": "api-reference/openapi.json",
             "pages": [
               "GET /api/{exchange}/fetchOrder",
               "GET /api/{exchange}/fetchOpenOrders",
@@ -174,18 +172,19 @@
               "GET /api/{exchange}/fetchAllOrders",
               "GET /api/{exchange}/fetchPositions",
               "GET /api/{exchange}/fetchBalance"
-            ]
+            ],
+            "openapi": "api-reference/openapi.json"
           },
           {
             "group": "Realtime",
-            "openapi": "api-reference/openapi.json",
             "pages": [
               "POST /api/{exchange}/watchOrderBook",
               "POST /api/{exchange}/unwatchOrderBook",
               "POST /api/{exchange}/watchTrades",
               "POST /api/{exchange}/watchAddress",
               "POST /api/{exchange}/unwatchAddress"
-            ]
+            ],
+            "openapi": "api-reference/openapi.json"
           },
           {
             "group": "Enterprise",

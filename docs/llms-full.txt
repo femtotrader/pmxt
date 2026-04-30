@@ -2223,72 +2223,131 @@ const result = await exchange.close();
 
 ### Fetch Events
 
-`GET /api/{exchange}/fetchEvents`
+Source: https://pmxt.dev/docs/api-reference/fetch-events
 
-Fetch events with optional keyword search. Events group related markets together (e.g., "Who will be Fed Chair?" contains multiple candidate markets).
+> **Note:**
+**Faster with an API key** — With a PMXT API key this endpoint is served from an indexed catalog (~10 ms) instead of proxying to the venue (~500 ms). No code changes required — same request, same response, just faster. [Learn more](https://pmxt.dev/docs/concepts/catalog-vs-live).
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `query` | string | No | For keyword search |
-| `limit` | number | No | Maximum number of results to return |
-| `offset` | number | No | Pagination offset — number of results to skip |
-| `sort` | string | No | Sort order for results |
-| `status` | string | No | Filter by event status (default: 'active', 'inactive' and 'closed' are interchangeable) |
-| `searchIn` | string | No | Where to search (default: 'title') |
-| `eventId` | string | No | Direct lookup by event ID |
-| `slug` | string | No | Lookup by event slug |
-| `filter` | string | No | Optional client-side filter applied after fetching |
-| `category` | string | No | Filter by category. Each event belongs to a venue-assigned category such as "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). |
-| `tags` | array | No | Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories -- for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump". |
 
-**Response:** `{ success: true, data: UnifiedEvent[] }`
+#### Use cases
 
-**Python:**
-```python
+##### Search by keyword
+
+Find all events mentioning "Trump" on Polymarket:
+
+<CodeGroup>
+```python Python
 import pmxt
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.fetch_events(
-    query="election",
-    limit=10,
-    offset=0,
-    sort="volume",
-    status="active",
-    search_in="title",
-    event_id="12345",
-    slug="BTC-USD",
-    filter="value",
-    category="value",
-    tags=[],
+# Optional: pass pmxt_api_key for ~100x faster catalog-backed lookups
+api = pmxt.Polymarket()
+events = api.fetch_events(query="trump", limit=5)
+for event in events:
+print(event.title, event.url)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+// Optional: pass pmxtApiKey for ~100x faster catalog-backed lookups
+const api = new Polymarket();
+const events = await api.fetchEvents({ query: "trump", limit: 5 });
+events.forEach((e) => console.log(e.title, e.url));
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchEvents?query=trump&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Filter by category
+
+Get all crypto-related events on Kalshi:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Limitless()
+events = api.fetch_events(category="Crypto", limit=5)
+```
+
+```javascript JavaScript
+import { Limitless } from "pmxtjs";
+
+const api = new Limitless();
+const events = await api.fetchEvents({ category: "Crypto", limit: 5 });
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/limitless/fetchEvents?category=Crypto&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Filter by tags
+
+Get events tagged with geopolitics:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+events = api.fetch_events(tags=["Geopolitics", "Middle East"], limit=5)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+const api = new Polymarket();
+const events = await api.fetchEvents({
+  tags: ["Geopolitics", "Middle East"],
+  limit: 5,
+});
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchEvents?tags=Geopolitics&tags=Middle+East&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Sort by volume
+
+Find the highest-volume active sports events:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+events = api.fetch_events(
+category="Sports",
+sort="volume",
+status="active",
+limit=5,
 )
 ```
 
-**TypeScript:**
-```typescript
-import { Router } from "pmxtjs";
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.fetchEvents({
-  query: "election",
-  limit: 10,
-  offset: 0,
+const api = new Polymarket();
+const events = await api.fetchEvents({
+  category: "Sports",
   sort: "volume",
   status: "active",
-  searchIn: "title",
-  eventId: "12345",
-  slug: "BTC-USD",
-  filter: "value",
-  category: "value",
-  tags: [],
+  limit: 5,
 });
 ```
 
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchEvents?category=Sports&sort=volume&status=active&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
 
 ### Fetch Events Paginated
 
@@ -2337,120 +2396,227 @@ const result = await exchange.fetchEventsPaginated({
 
 ### Fetch Event
 
-`GET /api/{exchange}/fetchEvent`
+Source: https://pmxt.dev/docs/api-reference/fetch-event
 
-Fetch a single event by lookup parameters. Convenience wrapper around fetchEvents() that returns a single result or throws EventNotFound.
+> **Note:**
+**Faster with an API key** — With a PMXT API key this endpoint is served from an indexed catalog (~10 ms) instead of proxying to the venue (~500 ms). No code changes required — same request, same response, just faster. [Learn more](https://pmxt.dev/docs/concepts/catalog-vs-live).
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `query` | string | No | For keyword search |
-| `limit` | number | No | Maximum number of results to return |
-| `offset` | number | No | Pagination offset — number of results to skip |
-| `sort` | string | No | Sort order for results |
-| `status` | string | No | Filter by event status (default: 'active', 'inactive' and 'closed' are interchangeable) |
-| `searchIn` | string | No | Where to search (default: 'title') |
-| `eventId` | string | No | Direct lookup by event ID |
-| `slug` | string | No | Lookup by event slug |
-| `filter` | string | No | Optional client-side filter applied after fetching |
-| `category` | string | No | Filter by category. Each event belongs to a venue-assigned category such as "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). |
-| `tags` | array | No | Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories -- for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump". |
 
-**Response:** `{ success: true, data: ... }`
+#### Use cases
 
-**Python:**
-```python
+##### Look up by slug
+
+Slugs are the most reliable way to look up a specific event — they are human-readable, stable, and easy to share or store in config:
+
+<CodeGroup>
+```python Python
 import pmxt
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.fetch_event(event_id="12345")
+# Optional: pass pmxt_api_key for ~100x faster catalog-backed lookups
+api = pmxt.Polymarket()
+event = api.fetch_event(slug="presidential-election-winner-2028")
+print(event.title, event.volume_24h)
 ```
 
-**TypeScript:**
-```typescript
-import { Router } from "pmxtjs";
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.fetchEvent({ eventId: "12345" });
+// Optional: pass pmxtApiKey for ~100x faster catalog-backed lookups
+const api = new Polymarket();
+const event = await api.fetchEvent({ slug: "presidential-election-winner-2028" });
+console.log(event.title, event.volume24h);
 ```
 
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchEvent?slug=presidential-election-winner-2028" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Look up by event ID
+
+When you already have an event ID from a previous API call or webhook, use `eventId` for a direct lookup:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+event = api.fetch_event(event_id="a49db286-39ca-4119-9de5-1335a92ef92a")
+print(event.title, event.url)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+const api = new Polymarket();
+const event = await api.fetchEvent({ eventId: "a49db286-39ca-4119-9de5-1335a92ef92a" });
+console.log(event.title, event.url);
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchEvent?eventId=a49db286-39ca-4119-9de5-1335a92ef92a" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Access markets within an event
+
+Each event contains a `markets` array with full market details including outcomes and prices. This is useful for building dashboards or comparing outcomes across an event's markets:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Limitless()
+event = api.fetch_event(slug="presidential-election-winner-2028-1769010522121")
+
+for market in event.markets:
+print(f"{market.title}: {market.outcomes[1].price:.0%}")
+```
+
+```javascript JavaScript
+import { Limitless } from "pmxtjs";
+
+const api = new Limitless();
+const event = await api.fetchEvent({ slug: "presidential-election-winner-2028-1769010522121" });
+
+for (const market of event.markets) {
+  console.log(`${market.title}: ${(market.outcomes[1].price * 100).toFixed(0)}%`);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/limitless/fetchEvent?slug=presidential-election-winner-2028-1769010522121" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
 
 ### Fetch Markets
 
-`GET /api/{exchange}/fetchMarkets`
+Source: https://pmxt.dev/docs/api-reference/fetch-markets
 
-Fetch markets with optional filtering, search, or slug lookup. Always hits the exchange API — results reflect the live state at the time of the call.
+> **Note:**
+**Faster with an API key** — With a PMXT API key this endpoint is served from an indexed catalog (~10 ms) instead of proxying to the venue (~500 ms). No code changes required — same request, same response, just faster. [Learn more](https://pmxt.dev/docs/concepts/catalog-vs-live).
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `limit` | number | No | Maximum number of results to return |
-| `offset` | number | No | Pagination offset — number of results to skip |
-| `sort` | string | No | Sort order for results |
-| `status` | string | No | Filter by market status (default: 'active', 'inactive' and 'closed' are interchangeable) |
-| `searchIn` | string | No | Where to search (default: 'title') |
-| `query` | string | No | For keyword search |
-| `slug` | string | No | For slug/ticker lookup |
-| `marketId` | string | No | Direct lookup by market ID |
-| `outcomeId` | string | No | Reverse lookup -- find market containing this outcome |
-| `eventId` | string | No | Find markets belonging to an event |
-| `page` | number | No | For pagination (used by Limitless) |
-| `similarityThreshold` | number | No | For semantic search (used by Limitless) |
 
-**Response:** `{ success: true, data: UnifiedMarket[] }`
+#### Use cases
 
-**Python:**
-```python
+##### Search by keyword
+
+Find all markets mentioning "bitcoin" on Polymarket:
+
+<CodeGroup>
+```python Python
 import pmxt
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.fetch_markets(
-    limit=10,
-    offset=0,
-    sort="volume",
-    status="active",
-    search_in="title",
-    query="election",
-    slug="BTC-USD",
-    market_id="12345",
-    outcome_id="67890",
-    event_id="12345",
-    page=1,
-    similarity_threshold=1,
+# Optional: pass pmxt_api_key for ~100x faster catalog-backed lookups
+api = pmxt.Polymarket()
+markets = api.fetch_markets(query="bitcoin", limit=5)
+for market in markets:
+print(market.title, market.yes.price)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+// Optional: pass pmxtApiKey for ~100x faster catalog-backed lookups
+const api = new Polymarket();
+const markets = await api.fetchMarkets({ query: "bitcoin", limit: 5 });
+markets.forEach((m) => console.log(m.title, m.yes.price));
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchMarkets?query=bitcoin&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Filter by category
+
+Get all sports markets on Kalshi:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Kalshi()
+markets = api.fetch_markets(category="Sports", limit=5)
+```
+
+```javascript JavaScript
+import { Kalshi } from "pmxtjs";
+
+const api = new Kalshi();
+const markets = await api.fetchMarkets({ category: "Sports", limit: 5 });
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/kalshi/fetchMarkets?category=Sports&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Filter by tags
+
+Get markets tagged with elections and Trump:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+markets = api.fetch_markets(tags=["Elections", "Trump"], limit=5)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+const api = new Polymarket();
+const markets = await api.fetchMarkets({
+  tags: ["Elections", "Trump"],
+  limit: 5,
+});
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchMarkets?tags=Elections&tags=Trump&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Sort by volume
+
+Find the highest-volume active markets on Limitless:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Limitless()
+markets = api.fetch_markets(
+sort="volume",
+status="active",
+limit=5,
 )
 ```
 
-**TypeScript:**
-```typescript
-import { Router } from "pmxtjs";
+```javascript JavaScript
+import { Limitless } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.fetchMarkets({
-  limit: 10,
-  offset: 0,
+const api = new Limitless();
+const markets = await api.fetchMarkets({
   sort: "volume",
   status: "active",
-  searchIn: "title",
-  query: "election",
-  slug: "BTC-USD",
-  marketId: "12345",
-  outcomeId: "67890",
-  eventId: "12345",
-  page: 1,
-  similarityThreshold: 1,
+  limit: 5,
 });
 ```
 
+```bash curl
+curl "https://api.pmxt.dev/api/limitless/fetchMarkets?sort=volume&status=active&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
 
 ### Fetch Markets Paginated
 
@@ -2499,195 +2665,380 @@ const result = await exchange.fetchMarketsPaginated({
 
 ### Fetch Market
 
-`GET /api/{exchange}/fetchMarket`
+Source: https://pmxt.dev/docs/api-reference/fetch-market
 
-Fetch a single market by lookup parameters. Convenience wrapper around fetchMarkets() that returns a single result or throws MarketNotFound.
+> **Note:**
+**Faster with an API key** — With a PMXT API key this endpoint is served from an indexed catalog (~10 ms) instead of proxying to the venue (~500 ms). No code changes required — same request, same response, just faster. [Learn more](https://pmxt.dev/docs/concepts/catalog-vs-live).
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `limit` | number | No | Maximum number of results to return |
-| `offset` | number | No | Pagination offset — number of results to skip |
-| `sort` | string | No | Sort order for results |
-| `status` | string | No | Filter by market status (default: 'active', 'inactive' and 'closed' are interchangeable) |
-| `searchIn` | string | No | Where to search (default: 'title') |
-| `query` | string | No | For keyword search |
-| `slug` | string | No | For slug/ticker lookup |
-| `marketId` | string | No | Direct lookup by market ID |
-| `outcomeId` | string | No | Reverse lookup -- find market containing this outcome |
-| `eventId` | string | No | Find markets belonging to an event |
-| `page` | number | No | For pagination (used by Limitless) |
-| `similarityThreshold` | number | No | For semantic search (used by Limitless) |
 
-**Response:** `{ success: true, data: ... }`
+#### Use cases
 
-**Python:**
-```python
+##### Look up by slug
+
+Slugs are stable, human-readable identifiers that make your code self-documenting and resilient to ID changes. Use them whenever possible.
+
+<CodeGroup>
+```python Python
 import pmxt
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.fetch_market(market_id="12345")
+# Optional: pass pmxt_api_key for ~100x faster catalog-backed lookups
+api = pmxt.Polymarket()
+market = api.fetch_market(slug="will-gavin-newsom-win-the-2028-us-presidential-election")
+print(market.title, market.status)
 ```
 
-**TypeScript:**
-```typescript
-import { Router } from "pmxtjs";
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.fetchMarket({ marketId: "12345" });
+// Optional: pass pmxtApiKey for ~100x faster catalog-backed lookups
+const api = new Polymarket();
+const market = await api.fetchMarket({ slug: "will-gavin-newsom-win-the-2028-us-presidential-election" });
+console.log(market.title, market.status);
 ```
 
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchMarket?slug=will-gavin-newsom-win-the-2028-us-presidential-election" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Look up by market ID
+
+When you already have a venue-native market ID (e.g. from a trade confirmation or webhook), pass it directly:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+market = api.fetch_market(market_id="46ac6f9c-c66a-48a5-8f12-beefd6e06221")
+print(market.title, market.volume)
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+const api = new Polymarket();
+const market = await api.fetchMarket({ marketId: "46ac6f9c-c66a-48a5-8f12-beefd6e06221" });
+console.log(market.title, market.volume);
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchMarket?marketId=46ac6f9c-c66a-48a5-8f12-beefd6e06221" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Read outcomes and prices
+
+Every market carries an `outcomes` array and, for binary markets, `yes` / `no` convenience accessors with live prices:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+api = pmxt.Polymarket()
+market = api.fetch_market(slug="will-gavin-newsom-win-the-2028-us-presidential-election")
+
+# Binary shorthand
+print(f"Yes {market.yes.price}  No {market.no.price}")
+
+# Full outcomes list (works for multi-outcome markets too)
+for outcome in market.outcomes:
+print(f"  {outcome.label}: {outcome.price}")
+```
+
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
+
+const api = new Polymarket();
+const market = await api.fetchMarket({ slug: "will-gavin-newsom-win-the-2028-us-presidential-election" });
+
+// Binary shorthand
+console.log(`Yes ${market.yes.price}  No ${market.no.price}`);
+
+// Full outcomes list (works for multi-outcome markets too)
+market.outcomes.forEach((o) => console.log(`  ${o.label}: ${o.price}`));
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/polymarket/fetchMarket?slug=will-gavin-newsom-win-the-2028-us-presidential-election" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
 
 
 ## Cross-Venue
 
 ### Event Matches
 
-`GET /api/router/fetchEventMatches`
+Source: https://pmxt.dev/docs/api-reference/fetch-event-matches
 
-Find the same or related event on other venues. Two modes: **Lookup mode** (eventId/slug provided): Given an event on one venue, discover semantically equivalent events across every other venue PMXT ingests. **Browse mode** (no identifier): Returns all matched event pairs from the catalog. Supports query and category params for filtering.
+#### Use cases
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `query` | string | No | Keyword search across matched event titles. |
-| `category` | string | No | Filter matches by category. |
-| `event` | string | No | Pass a UnifiedEvent directly instead of eventId/slug. |
-| `eventId` | string | No | Lookup a specific event by ID. Omit for browse mode. |
-| `slug` | string | No |  |
-| `relation` | string | No |  |
-| `minConfidence` | number | No |  |
-| `limit` | number | No |  |
-| `includePrices` | boolean | No |  |
+##### Find the same event on other venues
 
-**Response:** `{ success: true, data: EventMatchResult[] }`
+Fetch an event from Polymarket, then find it on every other venue:
 
-**Python:**
-```python
+<CodeGroup>
+```python Python
 import pmxt
 
-# API key required — queries the cross-venue catalog
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.fetch_event_matches(event_id="12345")
+# Step 1: Get an event from any venue
+poly = pmxt.Polymarket()
+event = poly.fetch_event(slug="presidential-election-winner-2028")
+
+# Step 2: Find matches across all other venues (requires API key)
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_event_matches(event=event)
+
+for match in matches:
+print(f"{match.event.source_exchange}: {match.event.title} ({len(match.market_matches)} market matches)")
 ```
 
-**TypeScript:**
-```typescript
+```javascript JavaScript
+import { Polymarket, Router } from "pmxtjs";
+
+// Step 1: Get an event from any venue
+const poly = new Polymarket();
+const event = await poly.fetchEvent({ slug: "presidential-election-winner-2028" });
+
+// Step 2: Find matches across all other venues (requires API key)
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchEventMatches({ event });
+
+for (const match of matches) {
+  console.log(`${match.event.sourceExchange}: ${match.event.title} (${match.marketMatches.length} market matches)`);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchEventMatches?slug=presidential-election-winner-2028" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Look up by event ID
+
+If you already have an event ID, pass it directly:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_event_matches(event_id="a49db286-39ca-4119-9de5-1335a92ef92a")
+
+for match in matches:
+print(f"{match.event.source_exchange}: {match.event.title}")
+```
+
+```javascript JavaScript
 import { Router } from "pmxtjs";
 
-// API key required — queries the cross-venue catalog
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.fetchEventMatches({ eventId: "12345" });
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchEventMatches({ eventId: "a49db286-39ca-4119-9de5-1335a92ef92a" });
+
+for (const match of matches) {
+  console.log(`${match.event.sourceExchange}: ${match.event.title}`);
+}
 ```
 
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchEventMatches?eventId=a49db286-39ca-4119-9de5-1335a92ef92a" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Browse all matched events
+
+Omit the event identifier to browse all cross-venue event pairs from the catalog:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_event_matches(query="bitcoin", limit=5)
+
+for match in matches:
+print(f"{match.event.source_exchange}: {match.event.title} ({len(match.market_matches)} market matches)")
+```
+
+```javascript JavaScript
+import { Router } from "pmxtjs";
+
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchEventMatches({ query: "bitcoin", limit: 5 });
+
+for (const match of matches) {
+  console.log(`${match.event.sourceExchange}: ${match.event.title} (${match.marketMatches.length} market matches)`);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchEventMatches?query=bitcoin&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
 
 ### Market Matches
 
-`GET /api/router/fetchMarketMatches`
+Source: https://pmxt.dev/docs/api-reference/fetch-market-matches
 
-Find the same or related market on other venues. Two modes: **Lookup mode** (marketId/slug/url provided): Given a market on one venue, discover semantically equivalent markets across every other venue PMXT ingests. **Browse mode** (no identifier): Returns all matched market pairs from the catalog. Supports query, category, minDifference, and sort params for filtering.
+#### Use cases
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `query` | string | No | Keyword search across matched market titles. |
-| `category` | string | No | Filter matches by category. |
-| `market` | string | No | Pass a UnifiedMarket directly instead of marketId/slug/url. |
-| `marketId` | string | No | Lookup a specific market by ID. Omit for browse mode. |
-| `slug` | string | No |  |
-| `url` | string | No |  |
-| `relation` | string | No |  |
-| `minConfidence` | number | No |  |
-| `limit` | number | No |  |
-| `includePrices` | boolean | No |  |
-| `minDifference` | number | No | Minimum price difference between venues. Browse mode only. |
-| `sort` | string | No | Sort order. Browse mode only. |
+##### Find the same market on other venues
 
-**Response:** `{ success: true, data: MatchResult[] }`
+Fetch a market from Polymarket, then find it on every other venue:
 
-**Python:**
-```python
+<CodeGroup>
+```python Python
 import pmxt
 
-# API key required — queries the cross-venue catalog
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.fetch_market_matches(market_id="12345")
+# Step 1: Get a market from any venue
+poly = pmxt.Polymarket()
+market = poly.fetch_market(slug="will-gavin-newsom-win-the-2028-us-presidential-election")
+
+# Step 2: Find matches across all other venues (requires API key)
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_market_matches(market=market)
+
+for match in matches:
+print(f"{match.market.source_exchange}: {match.market.title} ({match.relation}, {match.confidence:.0%})")
 ```
 
-**TypeScript:**
-```typescript
+```javascript JavaScript
+import { Polymarket, Router } from "pmxtjs";
+
+// Step 1: Get a market from any venue
+const poly = new Polymarket();
+const market = await poly.fetchMarket({ slug: "will-gavin-newsom-win-the-2028-us-presidential-election" });
+
+// Step 2: Find matches across all other venues (requires API key)
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchMarketMatches({ market });
+
+for (const match of matches) {
+  console.log(`${match.market.sourceExchange}: ${match.market.title} (${match.relation}, ${(match.confidence * 100).toFixed(0)}%)`);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchMarketMatches?slug=will-gavin-newsom-win-the-2028-us-presidential-election" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Look up by market ID
+
+If you already have a market ID, pass it directly:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_market_matches(market_id="46ac6f9c-c66a-48a5-8f12-beefd6e06221")
+
+for match in matches:
+print(match.market.source_exchange, match.market.title)
+```
+
+```javascript JavaScript
 import { Router } from "pmxtjs";
 
-// API key required — queries the cross-venue catalog
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.fetchMarketMatches({ marketId: "12345" });
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchMarketMatches({ marketId: "46ac6f9c-c66a-48a5-8f12-beefd6e06221" });
+
+for (const match of matches) {
+  console.log(match.market.sourceExchange, match.market.title);
+}
 ```
 
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchMarketMatches?marketId=46ac6f9c-c66a-48a5-8f12-beefd6e06221" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
+
+##### Browse all matched markets
+
+Omit the market identifier to browse all matched pairs from the catalog:
+
+<CodeGroup>
+```python Python
+import pmxt
+
+router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
+matches = router.fetch_market_matches(query="trump", limit=5)
+
+for match in matches:
+print(f"{match.market.source_exchange}: {match.market.title} ({match.relation})")
+```
+
+```javascript JavaScript
+import { Router } from "pmxtjs";
+
+const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const matches = await router.fetchMarketMatches({ query: "trump", limit: 5 });
+
+for (const match of matches) {
+  console.log(`${match.market.sourceExchange}: ${match.market.title} (${match.relation})`);
+}
+```
+
+```bash curl
+curl "https://api.pmxt.dev/api/router/fetchMarketMatches?query=trump&limit=5" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
 
 
 ## Order Book & Trades
 
 ### Fetch OHLCV
 
-`GET /api/{exchange}/fetchOHLCV`
+Source: https://pmxt.dev/docs/api-reference/fetch-ohlcv
 
-Fetch historical OHLCV (candlestick) price data for a specific market outcome.
+> **Note:**
+**More data with an API key** — Without an API key, OHLCV is limited to Polymarket's native API: short history windows, no volume, and venue-specific rate limits. With a PMXT API key you get volume, 1+ years of history, and normalized candles across venues. Kalshi, Limitless, and more are coming soon. [Get your API key](https://pmxt.dev/docs/dashboard).
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `id` | string | Yes |  |
-| `resolution` | string | No | Required for candle aggregation |
-| `start` | string | No | Start of the time range |
-| `end` | string | No | End of the time range |
-| `limit` | number | No | Maximum number of results to return |
 
-**Response:** `{ success: true, data: PriceCandle[] }`
+#### Use cases
 
-**Python:**
-```python
+##### Get hourly candles for a market
+
+<CodeGroup>
+```python Python
 import pmxt
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.fetch_ohlcv(
-    id="12345",
-    resolution="1h",
-    start="value",
-    end="value",
-    limit=10,
-)
+# Pass pmxt_api_key for volume data and deeper history
+api = pmxt.Polymarket()
+market = api.fetch_market(slug="will-alexandria-ocasio-cortez-win-the-2028-us-presidential-election")
+
+candles = api.fetch_ohlcv(market.yes, resolution="1h", limit=100)
+for c in candles:
+print(f"{c.open:.2f}  {c.high:.2f}  {c.low:.2f}  {c.close:.2f}  V:{c.volume}")
 ```
 
-**TypeScript:**
-```typescript
-import { Router } from "pmxtjs";
+```javascript JavaScript
+import { Polymarket } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.fetchOHLCV({
-  id: "12345",
-  resolution: "1h",
-  start: "value",
-  end: "value",
-  limit: 10,
-});
+// Pass pmxtApiKey for volume data and deeper history
+const api = new Polymarket();
+const market = await api.fetchMarket({ slug: "will-alexandria-ocasio-cortez-win-the-2028-us-presidential-election" });
+
+const candles = await api.fetchOHLCV(market.yes, { resolution: "1h", limit: 100 });
+candles.forEach((c) => console.log(`${c.open}  ${c.high}  ${c.low}  ${c.close}  V:${c.volume}`));
 ```
 
+```bash curl
+# First get the outcome ID from a market, then pass it as the id parameter
+curl "https://api.pmxt.dev/api/polymarket/fetchOHLCV?id=YOUR_OUTCOME_ID&resolution=1h&limit=100" \
+  -H "Authorization: Bearer $PMXT_API_KEY"
+```
+</CodeGroup>
 
 ### Fetch Order Book
 

@@ -93,10 +93,21 @@ matches = router.fetch_event_matches()
 
 for match in matches:
     print(match.event.title)
+    print(f"  {match.event.source_exchange}: {match.event.url}")
+    seen = set()
     for m in match.market_matches:
-        print(f"  {m.source_market.source_exchange}: {m.source_market.url}")
-        print(f"  {m.market.source_exchange}: {m.market.url}")
-        print()
+        venue = m.market.source_exchange
+        if venue not in seen:
+            seen.add(venue)
+            print(f"  {venue}: {m.market.url}")
+
+# Will Jesus Christ return before 2027?
+#   polymarket: https://polymarket.com/event/will-jesus-christ-return-before-2027
+#   probable:   https://probable.markets/event/will-jesus-christ-return-before-2027
+#
+# FL-27 House Election Winner
+#   polymarket: https://polymarket.com/event/fl-27-house-election-winner
+#   kalshi:     https://kalshi.com/events/KXHOUSERACE-FL27-26
 ```
 
 ```javascript JavaScript
@@ -107,10 +118,14 @@ const matches = await router.fetchEventMatches();
 
 for (const match of matches) {
   console.log(match.event.title);
+  console.log(`  ${match.event.sourceExchange}: ${match.event.url}`);
+  const seen = new Set();
   for (const m of match.marketMatches) {
-    console.log(`  ${m.sourceMarket.sourceExchange}: ${m.sourceMarket.url}`);
-    console.log(`  ${m.market.sourceExchange}: ${m.market.url}`);
-    console.log();
+    const venue = m.market.sourceExchange;
+    if (!seen.has(venue)) {
+      seen.add(venue);
+      console.log(`  ${venue}: ${m.market.url}`);
+    }
   }
 }
 ```

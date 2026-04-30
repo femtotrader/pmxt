@@ -2852,32 +2852,56 @@ curl "https://api.pmxt.dev/api/router/fetchEventMatches?eventId=a49db286-39ca-41
 
 ##### Browse all matched events
 
-Omit the event identifier to browse all cross-venue event pairs from the catalog:
+List all cross-venue event matches in the catalog:
 
 <CodeGroup>
 ```python Python
 import pmxt
 
 router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
-matches = router.fetch_event_matches(query="bitcoin", limit=5)
+matches = router.fetch_event_matches()
 
 for match in matches:
-print(f"{match.event.source_exchange}: {match.event.title} ({len(match.market_matches)} market matches)")
+print(match.event.title)
+print(f"  {match.event.source_exchange}: {match.event.url}")
+seen = set()
+for m in match.market_matches:
+    venue = m.market.source_exchange
+    if venue not in seen:
+        seen.add(venue)
+        print(f"  {venue}: {m.market.url}")
+
+# Will Jesus Christ return before 2027?
+#   polymarket: https://polymarket.com/event/will-jesus-christ-return-before-2027
+#   probable:   https://probable.markets/event/will-jesus-christ-return-before-2027
+#
+# FL-27 House Election Winner
+#   polymarket: https://polymarket.com/event/fl-27-house-election-winner
+#   kalshi:     https://kalshi.com/events/KXHOUSERACE-FL27-26
 ```
 
 ```javascript JavaScript
 import { Router } from "pmxtjs";
 
 const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
-const matches = await router.fetchEventMatches({ query: "bitcoin", limit: 5 });
+const matches = await router.fetchEventMatches();
 
 for (const match of matches) {
-  console.log(`${match.event.sourceExchange}: ${match.event.title} (${match.marketMatches.length} market matches)`);
+  console.log(match.event.title);
+  console.log(`  ${match.event.sourceExchange}: ${match.event.url}`);
+  const seen = new Set();
+  for (const m of match.marketMatches) {
+const venue = m.market.sourceExchange;
+if (!seen.has(venue)) {
+  seen.add(venue);
+  console.log(`  ${venue}: ${m.market.url}`);
+}
+  }
 }
 ```
 
 ```bash curl
-curl "https://api.pmxt.dev/api/router/fetchEventMatches?query=bitcoin&limit=5" \
+curl "https://api.pmxt.dev/api/router/fetchEventMatches" \
   -H "Authorization: Bearer $PMXT_API_KEY"
 ```
 </CodeGroup>
@@ -2964,32 +2988,40 @@ curl "https://api.pmxt.dev/api/router/fetchMarketMatches?marketId=46ac6f9c-c66a-
 
 ##### Browse all matched markets
 
-Omit the market identifier to browse all matched pairs from the catalog:
+List all cross-venue market matches in the catalog:
 
 <CodeGroup>
 ```python Python
 import pmxt
 
 router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
-matches = router.fetch_market_matches(query="trump", limit=5)
+matches = router.fetch_market_matches()
 
 for match in matches:
-print(f"{match.market.source_exchange}: {match.market.title} ({match.relation})")
+print(match.source_market.title)
+print(f"  {match.source_market.source_exchange}: {match.source_market.url}")
+print(f"  {match.market.source_exchange}: {match.market.url}")
+
+# Will Gavin Newsom win the 2028 US Presidential Election?
+#   polymarket: https://polymarket.com/event/...
+#   kalshi:     https://kalshi.com/events/...
 ```
 
 ```javascript JavaScript
 import { Router } from "pmxtjs";
 
 const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
-const matches = await router.fetchMarketMatches({ query: "trump", limit: 5 });
+const matches = await router.fetchMarketMatches();
 
 for (const match of matches) {
-  console.log(`${match.market.sourceExchange}: ${match.market.title} (${match.relation})`);
+  console.log(match.sourceMarket.title);
+  console.log(`  ${match.sourceMarket.sourceExchange}: ${match.sourceMarket.url}`);
+  console.log(`  ${match.market.sourceExchange}: ${match.market.url}`);
 }
 ```
 
 ```bash curl
-curl "https://api.pmxt.dev/api/router/fetchMarketMatches?query=trump&limit=5" \
+curl "https://api.pmxt.dev/api/router/fetchMarketMatches" \
   -H "Authorization: Bearer $PMXT_API_KEY"
 ```
 </CodeGroup>

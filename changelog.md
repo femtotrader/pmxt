@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.30] - 2026-04-30
+
+### Docs: cross-venue browse examples for event and market matches
+
+- Updated the browse example on `fetchEventMatches` and
+  `fetchMarketMatches` to show grouped cross-venue output (one entry
+  per event/market concept, all venues listed underneath).
+
 ## [2.35.29] - 2026-04-30
 
 ### Fix: cross-venue docs examples lost on regeneration

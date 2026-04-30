@@ -82,32 +82,38 @@ curl "https://api.pmxt.dev/api/router/fetchMarketMatches?marketId=46ac6f9c-c66a-
 
 ### Browse all matched markets
 
-Omit the market identifier to browse all matched pairs from the catalog:
+List all cross-venue market matches in the catalog:
 
 <CodeGroup>
 ```python Python
 import pmxt
 
 router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
-matches = router.fetch_market_matches(query="trump", limit=5)
+matches = router.fetch_market_matches()
 
 for match in matches:
-    print(f"{match.market.source_exchange}: {match.market.title} ({match.relation})")
+    print(match.source_market.title)
+    print(f"  {match.source_market.source_exchange}: {match.source_market.url}")
+    print(f"  {match.market.source_exchange}: {match.market.url}")
+    print()
 ```
 
 ```javascript JavaScript
 import { Router } from "pmxtjs";
 
 const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
-const matches = await router.fetchMarketMatches({ query: "trump", limit: 5 });
+const matches = await router.fetchMarketMatches();
 
 for (const match of matches) {
-  console.log(`${match.market.sourceExchange}: ${match.market.title} (${match.relation})`);
+  console.log(match.sourceMarket.title);
+  console.log(`  ${match.sourceMarket.sourceExchange}: ${match.sourceMarket.url}`);
+  console.log(`  ${match.market.sourceExchange}: ${match.market.url}`);
+  console.log();
 }
 ```
 
 ```bash curl
-curl "https://api.pmxt.dev/api/router/fetchMarketMatches?query=trump&limit=5" \
+curl "https://api.pmxt.dev/api/router/fetchMarketMatches" \
   -H "Authorization: Bearer $PMXT_API_KEY"
 ```
 </CodeGroup>

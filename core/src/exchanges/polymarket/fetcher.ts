@@ -4,6 +4,26 @@ import { IExchangeFetcher, FetcherContext } from '../interfaces';
 import { GAMMA_API_URL, GAMMA_SEARCH_URL, paginateParallel, paginateSearchParallel } from './utils';
 import { polymarketErrorMapper } from './errors';
 
+/**
+ * Coerce a value that should be a Date into an actual Date instance.
+ * Handles strings (ISO 8601), epoch numbers (seconds or milliseconds),
+ * and passthrough for values that are already Date objects.
+ */
+function ensureDate(d: unknown): Date {
+    if (d instanceof Date) return d;
+    if (typeof d === 'number') {
+        // Heuristic: values < 1e12 are epoch seconds, otherwise ms
+        return new Date(d < 1e12 ? d * 1000 : d);
+    }
+    if (typeof d === 'string') {
+        if (!d.endsWith('Z') && !d.match(/[+-]\d{2}:\d{2}$/)) {
+            return new Date(d + 'Z');
+        }
+        return new Date(d);
+    }
+    return new Date(d as any);
+}
+
 // ----------------------------------------------------------------------------
 // Raw venue-native types (what the Polymarket API returns)
 // ----------------------------------------------------------------------------
@@ -161,16 +181,6 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
             const fidelity = mapIntervalToFidelity(params.resolution);
             const nowTs = Math.floor(Date.now() / 1000);
 
-            const ensureDate = (d: any) => {
-                if (typeof d === 'string') {
-                    if (!d.endsWith('Z') && !d.match(/[+-]\d{2}:\d{2}$/)) {
-                        return new Date(d + 'Z');
-                    }
-                    return new Date(d);
-                }
-                return d;
-            };
-
             const pStart = params.start ? ensureDate(params.start) : undefined;
             const pEnd = params.end ? ensureDate(params.end) : undefined;
 
@@ -221,10 +231,10 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
             };
 
             if (params.start) {
-                queryParams.after = Math.floor(params.start.getTime() / 1000);
+                queryParams.after = Math.floor(ensureDate(params.start).getTime() / 1000);
             }
             if (params.end) {
-                queryParams.before = Math.floor(params.end.getTime() / 1000);
+                queryParams.before = Math.floor(ensureDate(params.end).getTime() / 1000);
             }
 
             const trades = await this.ctx.callApi('getTrades', queryParams) || [];
@@ -238,8 +248,8 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
         const queryParams: Record<string, any> = { user: walletAddress };
         if (params?.marketId) queryParams.market = params.marketId;
         if (params?.limit) queryParams.limit = params.limit;
-        if (params?.since) queryParams.start = Math.floor(params.since.getTime() / 1000);
-        if (params?.until) queryParams.end = Math.floor(params.until.getTime() / 1000);
+        if (params?.since) queryParams.start = Math.floor(ensureDate(params.since).getTime() / 1000);
+        if (params?.until) queryParams.end = Math.floor(ensureDate(params.until).getTime() / 1000);
 
         const data = await this.ctx.callApi('getTrades', queryParams);
         const trades = Array.isArray(data) ? data : (data.data || []);

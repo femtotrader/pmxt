@@ -1382,9 +1382,18 @@ export abstract class Exchange {
         await this.initPromise;
         const resolvedOutcomeId = resolveOutcomeId(outcomeId);
         try {
-            const paramsDict: any = { resolution: params.resolution };
+            const paramsDict: any = {};
+            if (params.resolution) {
+                paramsDict.resolution = params.resolution;
+            }
             if (params.limit) {
                 paramsDict.limit = params.limit;
+            }
+            if (params.start) {
+                paramsDict.start = params.start instanceof Date ? params.start.toISOString() : params.start;
+            }
+            if (params.end) {
+                paramsDict.end = params.end instanceof Date ? params.end.toISOString() : params.end;
             }
 
             const args = [resolvedOutcomeId, paramsDict];

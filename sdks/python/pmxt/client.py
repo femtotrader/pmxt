@@ -1570,6 +1570,8 @@ class Exchange(ABC):
         outcome_id: Union[str, "MarketOutcome"],
         limit: Optional[int] = None,
         since: Optional[int] = None,
+        start: Optional[Union[str, int]] = None,
+        end: Optional[Union[str, int]] = None,
         **kwargs
     ) -> List[Trade]:
         """
@@ -1581,6 +1583,8 @@ class Exchange(ABC):
             outcome_id: Outcome ID (from market.outcomes[].outcome_id)
             limit: Maximum number of trades to return
             since: Return trades since this timestamp (Unix milliseconds)
+            start: Start of time range (ISO 8601 string or epoch seconds/ms)
+            end: End of time range (ISO 8601 string or epoch seconds/ms)
             **kwargs: Additional parameters
 
         Returns:
@@ -1588,6 +1592,7 @@ class Exchange(ABC):
 
         Example:
             >>> trades = exchange.fetch_trades(outcome_id, limit=50)
+            >>> trades = exchange.fetch_trades(outcome_id, start="2025-01-01T00:00:00Z", end="2025-01-31T00:00:00Z")
         """
         try:
             outcome_id = _resolve_outcome_id(outcome_id)
@@ -1596,6 +1601,10 @@ class Exchange(ABC):
                 params_dict["limit"] = limit
             if since:
                 params_dict["since"] = since
+            if start is not None:
+                params_dict["start"] = start
+            if end is not None:
+                params_dict["end"] = end
 
             # Add any extra keyword arguments
             for key, value in kwargs.items():

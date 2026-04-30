@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.28] - 2026-04-30
+
+### Fix: `fetchTrades` crashes with `start`/`end` params on Polymarket
+
+- `fetchRawTrades` and `fetchRawMyTrades` in the Polymarket fetcher
+  called `.getTime()` directly on `params.start`/`params.end`, assuming
+  Date objects. When values arrive through the sidecar HTTP layer they
+  are strings or numbers, causing `params.start.getTime is not a
+  function`.
+- Added a module-level `ensureDate()` that coerces strings (ISO 8601),
+  epoch numbers (seconds or milliseconds), and Date passthroughs.
+  Applied it to all four `.getTime()` call sites in the fetcher
+  (`fetchRawTrades` start/end, `fetchRawMyTrades` since/until).
+  Replaced the duplicate inline helper in `fetchRawOHLCV`.
+- **TS SDK**: `fetchTrades` only forwarded `resolution` and `limit`,
+  silently dropping `start` and `end`. Now forwards both, serializing
+  Date objects to ISO strings.
+- **Python SDK**: `fetch_trades` had no `start`/`end` parameters.
+  Added them as named kwargs accepting strings or epoch integers.
+
 ## [2.35.27] - 2026-04-29
 
 ### Fix: "Hosted" tag missing on cross-venue MDX pages

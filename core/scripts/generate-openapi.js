@@ -1897,7 +1897,7 @@ function buildMethodVerbs(methodSpecs) {
 // ---------------------------------------------------------------------------
 // Exchange constructor metadata (x-sdk-constructors)
 //
-// Parses createExchange() in app.ts to discover which exchanges exist and
+// Parses createExchange() in exchange-factory.ts to discover which exchanges exist and
 // which credentials each one requires — the same logic used by
 // generate-python-exchanges.js. The result is attached to the OpenAPI spec
 // as the `x-sdk-constructors` vendor extension so downstream consumers
@@ -1926,7 +1926,7 @@ function toClassName(name) {
 
 function parseExchanges(content) {
     const startIdx = content.indexOf('function createExchange(');
-    if (startIdx === -1) throw new Error('createExchange not found in app.ts');
+    if (startIdx === -1) throw new Error('createExchange not found in exchange-factory.ts');
 
     const tail = content.slice(startIdx);
     let depth = 0;

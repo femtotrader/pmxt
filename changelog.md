@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.32] - 2026-05-01
+
+### Fix: generators broken after `createExchange` extraction
+
+- `generate-openapi.js` and `generate-python-exchanges.js` parsed
+  `createExchange()` from `app.ts` by hardcoded file path to discover
+  which exchanges exist. The 2.35.31 refactor moved that function to
+  `exchange-factory.ts`, breaking `generate:sdk:all` in CI.
+- Updated both generators to read from `exchange-factory.ts`. Updated
+  stale comments and error messages that still referenced `app.ts`.
+
 ## [2.35.31] - 2026-05-01
 
 ### Fix: Kalshi WebSocket subscription fan-out causing rate limits

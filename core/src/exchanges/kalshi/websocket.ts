@@ -399,7 +399,7 @@ export class KalshiWebSocket {
     // Subscribe if not already subscribed
     if (!this.subscribedOrderBookTickers.has(ticker)) {
       this.subscribedOrderBookTickers.add(ticker);
-      this.subscribeToOrderbook(Array.from(this.subscribedOrderBookTickers));
+      this.subscribeToOrderbook([ticker]);
     }
 
     // Return a promise that resolves on the next orderbook update
@@ -411,6 +411,52 @@ export class KalshiWebSocket {
     });
   }
 
+  async watchOrderBooks(tickers: string[]): Promise<Record<string, OrderBook>> {
+    // Ensure connection
+    if (!this.isConnected) {
+      await this.connect();
+    }
+
+    // Determine which tickers are actually new (not yet subscribed)
+    const newTickers = tickers.filter(
+      (t) => !this.subscribedOrderBookTickers.has(t),
+    );
+
+    // Add all new tickers to the subscription set
+    for (const t of newTickers) {
+      this.subscribedOrderBookTickers.add(t);
+    }
+
+    // Send ONE subscribe message with only the new tickers
+    if (newTickers.length > 0) {
+      this.subscribeToOrderbook(newTickers);
+    }
+
+    // Wait for all tickers to receive at least one snapshot/update
+    const entries = await Promise.all(
+      tickers.map((ticker) =>
+        new Promise<[string, OrderBook]>((resolve, reject) => {
+          if (!this.orderBookResolvers.has(ticker)) {
+            this.orderBookResolvers.set(ticker, []);
+          }
+          this.orderBookResolvers.get(ticker)!.push({
+            resolve: (book: OrderBook | PromiseLike<OrderBook>) => {
+              // Unwrap PromiseLike if needed, but in practice it is always OrderBook
+              Promise.resolve(book).then((b) => resolve([ticker, b]));
+            },
+            reject,
+          });
+        }),
+      ),
+    );
+
+    const result: Record<string, OrderBook> = {};
+    for (const [ticker, book] of entries) {
+      result[ticker] = book;
+    }
+    return result;
+  }
+
   async watchTrades(ticker: string): Promise<Trade[]> {
     // Ensure connection
     if (!this.isConnected) {
@@ -420,7 +466,7 @@ export class KalshiWebSocket {
     // Subscribe if not already subscribed
     if (!this.subscribedTradeTickers.has(ticker)) {
       this.subscribedTradeTickers.add(ticker);
-      this.subscribeToTrades(Array.from(this.subscribedTradeTickers));
+      this.subscribeToTrades([ticker]);
     }
 
     // Return a promise that resolves on the next trade

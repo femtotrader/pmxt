@@ -34,6 +34,7 @@ PUBLIC_METHODS = [
     "filter_markets",
     "filter_events",
     "watch_order_book",
+    "watch_order_books",
     "watch_trades",
     "close",
 ]

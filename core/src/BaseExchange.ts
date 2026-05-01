@@ -273,6 +273,8 @@ export interface ExchangeHas {
     unwatchAddress: ExchangeCapability;
     /** Whether this exchange supports streaming order book updates. */
     watchOrderBook: ExchangeCapability;
+    /** Whether this exchange supports batch-subscribing to multiple order book streams. */
+    watchOrderBooks: ExchangeCapability;
     /** Whether this exchange supports unsubscribing from an order book stream. */
     unwatchOrderBook: ExchangeCapability;
     /** Whether this exchange supports streaming trade updates. */
@@ -1238,6 +1240,33 @@ export abstract class PredictionMarketExchange {
     }
 
     /**
+     * Watch multiple order books simultaneously via WebSocket.
+     * Returns a promise that resolves with a record of order book snapshots keyed by ID.
+     * Exchanges with native batch support (e.g. Kalshi) send a single subscribe message
+     * for all tickers; others fall back to individual watchOrderBook calls.
+     *
+     * @param ids - Array of Outcome IDs to watch
+     * @param limit - Optional limit for orderbook depth
+     * @returns Promise that resolves with order books keyed by ID
+     */
+    async watchOrderBooks(ids: string[], limit?: number): Promise<Record<string, OrderBook>> {
+        // Default implementation: subscribe to each ID individually.
+        // Exchanges with native batch support (e.g. Kalshi) override this
+        // to send a single subscribe message for all tickers.
+        const entries = await Promise.all(
+            ids.map(async (id): Promise<[string, OrderBook]> => {
+                const book = await this.watchOrderBook(id, limit);
+                return [id, book];
+            }),
+        );
+        const result: Record<string, OrderBook> = {};
+        for (const [id, book] of entries) {
+            result[id] = book;
+        }
+        return result;
+    }
+
+    /**
      * Unsubscribe from a previously watched order book stream.
      *
      * @param id - The Outcome ID to stop watching
@@ -1541,7 +1570,7 @@ export abstract class PredictionMarketExchange {
         'fetchMarkets', 'fetchEvents', 'fetchOHLCV', 'fetchOrderBook',
         'fetchTrades', 'createOrder', 'cancelOrder', 'fetchOrder',
         'fetchOpenOrders', 'fetchPositions', 'fetchBalance',
-        'watchAddress', 'unwatchAddress', 'watchOrderBook',
+        'watchAddress', 'unwatchAddress', 'watchOrderBook', 'watchOrderBooks',
         'unwatchOrderBook', 'watchTrades', 'fetchMyTrades',
         'fetchClosedOrders', 'fetchAllOrders', 'buildOrder', 'submitOrder',
         'fetchMarketMatches', 'fetchMatches', 'fetchEventMatches', 'compareMarketPrices',
@@ -1555,7 +1584,7 @@ export abstract class PredictionMarketExchange {
         fetchOrderBook: true, fetchTrades: true, createOrder: true,
         cancelOrder: true, fetchOrder: true, fetchOpenOrders: true,
         fetchPositions: true, fetchBalance: true, watchAddress: true,
-        unwatchAddress: true, watchOrderBook: true, unwatchOrderBook: true,
+        unwatchAddress: true, watchOrderBook: true, watchOrderBooks: true, unwatchOrderBook: true,
         watchTrades: true, fetchMyTrades: true, fetchClosedOrders: true,
         fetchAllOrders: true, buildOrder: true, submitOrder: true,
         fetchMarketMatches: true, fetchMatches: true, fetchEventMatches: true, compareMarketPrices: true,
@@ -1571,6 +1600,7 @@ export abstract class PredictionMarketExchange {
     private static readonly _capabilityDelegates: Partial<Record<keyof ExchangeHas, string>> = {
         fetchMarkets: 'fetchMarketsImpl',
         fetchEvents: 'fetchEventsImpl',
+        watchOrderBooks: 'watchOrderBook',
         fetchMatches: 'fetchMarketMatches',
         fetchHedges: 'fetchRelatedMarkets',
         fetchMatchedPrices: 'fetchMatchedMarkets',

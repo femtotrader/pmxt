@@ -32,6 +32,7 @@ const SKIP_GENERATE = new Set([
     'fetchOHLCV',                // date object preprocessing
     'fetchTrades',               // resolution parameter handling
     'watchOrderBook',            // streaming
+    'watchOrderBooks',           // streaming (batch)
     'watchTrades',               // streaming
     'watchAddress',              // streaming
     'createOrder',               // outcome shorthand logic

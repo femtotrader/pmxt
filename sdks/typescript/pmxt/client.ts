@@ -44,6 +44,7 @@ import { ServerManager } from "./server-manager.js";
 import { buildArgsWithOptionalOptions } from "./args.js";
 import { PmxtError, fromServerError } from "./errors.js";
 import { LOCAL_URL, resolvePmxtBaseUrl } from "./constants.js";
+import { SidecarWsClient } from "./ws-client.js";
 
 /**
  * Resolve a MarketOutcome shorthand to a plain outcome ID string.
@@ -348,6 +349,11 @@ export abstract class Exchange {
      */
     private _getReadsUnsupported: boolean = false;
 
+    /** Shared WebSocket client for streaming methods (lazy). */
+    private _wsClient: SidecarWsClient | null = null;
+    /** Sticky flag: true if the sidecar /ws endpoint is unavailable. */
+    private _wsUnsupported: boolean = false;
+
     constructor(exchangeName: string, options: ExchangeOptions = {}) {
         this.exchangeName = exchangeName.toLowerCase();
         this.apiKey = options.apiKey;
@@ -500,6 +506,73 @@ export abstract class Exchange {
             }
         }
         throw lastError;
+    }
+
+    /**
+     * Return the shared WebSocket client, creating it on first use.
+     *
+     * Returns `null` if the sidecar /ws endpoint was previously found
+     * to be unavailable, letting callers fall back to HTTP.
+     */
+    private async getOrCreateWs(): Promise<SidecarWsClient | null> {
+        if (this._wsUnsupported) return null;
+        if (this._wsClient?.connected) return this._wsClient;
+
+        const host = this.resolveBaseUrl();
+        const accessToken = this.serverManager.getAccessToken();
+
+        const client = new SidecarWsClient(host, accessToken || undefined);
+        try {
+            // Trigger connection to validate the endpoint exists.
+            // subscribe() calls ensureConnected internally, but we want
+            // to detect failure eagerly so we can set _wsUnsupported.
+            await client.subscribe(
+                this.exchangeName,
+                "_ping",
+                [],
+                undefined,
+                3000,
+            ).catch(() => {
+                // Expected -- no _ping method. The connection itself
+                // succeeded if we got a WS error frame back. If the
+                // connection itself failed, we'll catch below.
+            });
+            // If we got here without the connect promise rejecting,
+            // the WS endpoint exists.
+            if (!client.connected) {
+                throw new Error("WS handshake failed");
+            }
+        } catch {
+            this._wsUnsupported = true;
+            client.close();
+            return null;
+        }
+
+        this._wsClient = client;
+        return this._wsClient;
+    }
+
+    /**
+     * Attempt to use the WS transport for a watch method.
+     * Returns the raw data on success, or `null` if WS is unavailable.
+     */
+    private async watchViaWs(
+        method: string,
+        args: any[],
+    ): Promise<any | null> {
+        const ws = await this.getOrCreateWs();
+        if (!ws) return null;
+
+        try {
+            return await ws.subscribe(
+                this.exchangeName,
+                method,
+                args,
+                this.getCredentials() as Record<string, any> | undefined,
+            );
+        } catch {
+            return null;
+        }
     }
 
     // Low-Level API Access
@@ -1432,12 +1505,19 @@ export abstract class Exchange {
     async watchOrderBook(outcomeId: string | MarketOutcome, limit?: number): Promise<OrderBook> {
         await this.initPromise;
         const resolvedOutcomeId = resolveOutcomeId(outcomeId);
-        try {
-            const args: any[] = [resolvedOutcomeId];
-            if (limit !== undefined) {
-                args.push(limit);
-            }
+        const args: any[] = [resolvedOutcomeId];
+        if (limit !== undefined) {
+            args.push(limit);
+        }
 
+        // Try WebSocket transport first
+        const wsData = await this.watchViaWs("watchOrderBook", args);
+        if (wsData !== null) {
+            return convertOrderBook(wsData);
+        }
+
+        // HTTP fallback
+        try {
             const response = await this.fetchWithRetry(`${this.resolveBaseUrl()}/api/${this.exchangeName}/watchOrderBook`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
@@ -1460,17 +1540,110 @@ export abstract class Exchange {
     }
 
     /**
+     * Watch real-time order book updates for multiple outcomes at once.
+     *
+     * Returns a record mapping each outcome ID (ticker) to its latest
+     * order book snapshot. Call repeatedly in a loop to stream updates
+     * (CCXT Pro pattern).
+     *
+     * Prefers the sidecar WebSocket transport when available, falling
+     * back to HTTP POST for older sidecars.
+     *
+     * @param outcomeIds - Array of outcome IDs (or MarketOutcome objects)
+     * @param limit - Optional depth limit for each order book
+     * @returns Record mapping ticker to OrderBook
+     *
+     * @example
+     * ```typescript
+     * const ids = markets.slice(0, 3).map(m => m.outcomes[0].outcomeId);
+     * while (true) {
+     *   const books = await exchange.watchOrderBooks(ids);
+     *   for (const [ticker, ob] of Object.entries(books)) {
+     *     console.log(`${ticker}: bid=${ob.bids[0]?.price}`);
+     *   }
+     * }
+     * ```
+     */
+    async watchOrderBooks(
+        outcomeIds: (string | MarketOutcome)[],
+        limit?: number,
+    ): Promise<Record<string, OrderBook>> {
+        await this.initPromise;
+        const resolvedIds = outcomeIds.map(resolveOutcomeId);
+        const args: any[] = [resolvedIds];
+        if (limit !== undefined) {
+            args.push(limit);
+        }
+
+        // Try WebSocket transport first
+        const ws = await this.getOrCreateWs();
+        if (ws) {
+            try {
+                const rawResult = await ws.subscribeBatch(
+                    this.exchangeName,
+                    "watchOrderBooks",
+                    args,
+                    this.getCredentials() as Record<string, any> | undefined,
+                );
+                if (rawResult && typeof rawResult === "object") {
+                    const result: Record<string, OrderBook> = {};
+                    for (const [k, v] of Object.entries(rawResult)) {
+                        if (v && typeof v === "object") {
+                            result[k] = convertOrderBook(v);
+                        }
+                    }
+                    return result;
+                }
+            } catch {
+                // fall through to HTTP
+            }
+        }
+
+        // HTTP fallback
+        try {
+            const response = await this.fetchWithRetry(
+                `${this.resolveBaseUrl()}/api/${this.exchangeName}/watchOrderBooks`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
+                    body: JSON.stringify({ args, credentials: this.getCredentials() }),
+                },
+            );
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                if (body.error && typeof body.error === "object") {
+                    throw fromServerError(body.error);
+                }
+                throw new PmxtError(body.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            if (data && typeof data === "object") {
+                const result: Record<string, OrderBook> = {};
+                for (const [k, v] of Object.entries(data as Record<string, any>)) {
+                    result[k] = convertOrderBook(v);
+                }
+                return result;
+            }
+            return {};
+        } catch (error) {
+            if (error instanceof PmxtError) throw error;
+            throw new PmxtError(`Failed to watch order books: ${error}`);
+        }
+    }
+
+    /**
      * Watch real-time trade updates via WebSocket.
-     * 
+     *
      * Returns a promise that resolves with the next trade(s).
      * Call repeatedly in a loop to stream updates (CCXT Pro pattern).
-     * 
+     *
      * @param outcomeId - Outcome ID to watch
      * @param address - Public wallet to be watched
      * @param since - Optional timestamp to filter trades from
      * @param limit - Optional limit for number of trades
      * @returns Next trade update(s)
-     * 
+     *
      * @example
      * ```typescript
      * // Stream trade updates

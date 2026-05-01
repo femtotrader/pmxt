@@ -33,6 +33,7 @@ const SKIP_GENERATE = new Set([
     'fetchOHLCV',                // datetime->ISO conversion
     'fetchTrades',               // special parameter handling
     'watchOrderBook',            // streaming
+    'watchOrderBooks',           // streaming (batch)
     'watchTrades',               // streaming
     'watchAddress',              // streaming
     'createOrder',               // outcome shorthand logic

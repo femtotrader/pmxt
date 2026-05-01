@@ -34,6 +34,7 @@ const PUBLIC_METHODS = [
     'filterMarkets',
     'filterEvents',
     'watchOrderBook',
+    'watchOrderBooks',
     'watchTrades',
     'close',
 ];

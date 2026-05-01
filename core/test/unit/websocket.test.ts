@@ -627,6 +627,135 @@ describe('KalshiWebSocket', () => {
             expect(resolver1.resolve).toHaveBeenCalledTimes(1); // not called again
         });
     });
+
+    // --- Fan-out Fix: subscribe only new ticker --------------------------
+
+    describe('watchOrderBook subscription fan-out fix', () => {
+        test('subscribes only the new ticker, not all accumulated tickers', () => {
+            const ws = createKalshiWS();
+            setField(ws, 'isConnected', true);
+
+            const mockWsInstance = { send: jest.fn(), on: jest.fn() };
+            setField(ws, 'ws', mockWsInstance);
+
+            // Subscribe to first ticker
+            field(ws, 'subscribedOrderBookTickers').add('T1');
+            call(ws, 'subscribeToOrderbook', ['T1']);
+
+            // Simulate that T1 is already subscribed, now subscribe T2
+            setField(ws, 'isConnected', true);
+            field(ws, 'subscribedOrderBookTickers').add('T2');
+
+            // The fix: only send T2, not [T1, T2]
+            call(ws, 'subscribeToOrderbook', ['T2']);
+
+            // Check the last send call only contains T2
+            const lastCall = mockWsInstance.send.mock.calls[mockWsInstance.send.mock.calls.length - 1];
+            const lastMsg = JSON.parse(lastCall[0]);
+            expect(lastMsg.params.market_tickers).toEqual(['T2']);
+        });
+    });
+
+    // --- Batch watchOrderBooks -------------------------------------------
+
+    describe('watchOrderBooks', () => {
+        test('sends one subscribe message for all new tickers', () => {
+            const ws = createKalshiWS();
+            setField(ws, 'isConnected', true);
+
+            const mockWsInstance = { send: jest.fn(), on: jest.fn() };
+            setField(ws, 'ws', mockWsInstance);
+
+            // Call watchOrderBooks with 3 tickers (none previously subscribed)
+            ws.watchOrderBooks(['T1', 'T2', 'T3']);
+
+            // Should have sent exactly one subscribe message
+            expect(mockWsInstance.send).toHaveBeenCalledTimes(1);
+            const msg = JSON.parse(mockWsInstance.send.mock.calls[0][0]);
+            expect(msg.params.market_tickers).toEqual(['T1', 'T2', 'T3']);
+            expect(msg.params.channels).toEqual(['orderbook_delta']);
+        });
+
+        test('only subscribes tickers not already subscribed', () => {
+            const ws = createKalshiWS();
+            setField(ws, 'isConnected', true);
+
+            const mockWsInstance = { send: jest.fn(), on: jest.fn() };
+            setField(ws, 'ws', mockWsInstance);
+
+            // Pre-subscribe T1
+            field(ws, 'subscribedOrderBookTickers').add('T1');
+
+            // Call watchOrderBooks with T1 (already subscribed) and T2 (new)
+            ws.watchOrderBooks(['T1', 'T2']);
+
+            expect(mockWsInstance.send).toHaveBeenCalledTimes(1);
+            const msg = JSON.parse(mockWsInstance.send.mock.calls[0][0]);
+            expect(msg.params.market_tickers).toEqual(['T2']);
+        });
+
+        test('does not send subscribe when all tickers already subscribed', () => {
+            const ws = createKalshiWS();
+            setField(ws, 'isConnected', true);
+
+            const mockWsInstance = { send: jest.fn(), on: jest.fn() };
+            setField(ws, 'ws', mockWsInstance);
+
+            // Pre-subscribe both
+            field(ws, 'subscribedOrderBookTickers').add('T1');
+            field(ws, 'subscribedOrderBookTickers').add('T2');
+
+            ws.watchOrderBooks(['T1', 'T2']);
+
+            // No subscribe message sent (but resolvers are still registered)
+            expect(mockWsInstance.send).not.toHaveBeenCalled();
+        });
+
+        test('resolves when all tickers receive snapshots', async () => {
+            const ws = createKalshiWS();
+            setField(ws, 'isConnected', true);
+
+            const mockWsInstance = { send: jest.fn(), on: jest.fn() };
+            setField(ws, 'ws', mockWsInstance);
+
+            const promise = ws.watchOrderBooks(['A', 'B']);
+
+            // Simulate snapshots arriving
+            call(ws, 'handleOrderbookSnapshot', {
+                market_ticker: 'A',
+                yes: [{ price: 50, quantity: 10 }],
+                no: [],
+            });
+
+            call(ws, 'handleOrderbookSnapshot', {
+                market_ticker: 'B',
+                yes: [{ price: 60, quantity: 20 }],
+                no: [],
+            });
+
+            const result = await promise;
+
+            expect(result).toHaveProperty('A');
+            expect(result).toHaveProperty('B');
+            expect(result.A.bids[0].price).toBeCloseTo(0.50);
+            expect(result.B.bids[0].price).toBeCloseTo(0.60);
+        });
+
+        test('adds all tickers to subscribedOrderBookTickers', () => {
+            const ws = createKalshiWS();
+            setField(ws, 'isConnected', true);
+
+            const mockWsInstance = { send: jest.fn(), on: jest.fn() };
+            setField(ws, 'ws', mockWsInstance);
+
+            ws.watchOrderBooks(['X1', 'X2', 'X3']);
+
+            const subs: Set<string> = field(ws, 'subscribedOrderBookTickers');
+            expect(subs.has('X1')).toBe(true);
+            expect(subs.has('X2')).toBe(true);
+            expect(subs.has('X3')).toBe(true);
+        });
+    });
 });
 
 // ---------------------------------------------------------------------------

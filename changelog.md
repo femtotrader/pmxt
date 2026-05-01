@@ -2,6 +2,60 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.35.31] - 2026-05-01
+
+### Fix: Kalshi WebSocket subscription fan-out causing rate limits
+
+- `KalshiWebSocket.watchOrderBook` re-sent **all** subscribed tickers
+  on every new subscription. Watching 100 markets fired 100 subscribe
+  messages (1 ticker, then 2, then 3, ..., then 100), totalling 5,050
+  ticker strings in rapid succession. Kalshi rate-limits WebSocket
+  commands, so this triggered 429s almost immediately.
+- Now sends a single subscribe message containing only the **new**
+  ticker. Same fix applied to `watchTrades`.
+
+### Feat: batch `watchOrderBooks` method
+
+- New `watchOrderBooks(ids, limit?)` method subscribes to multiple
+  order books in a single WebSocket message. Returns a record/dict
+  keyed by ticker.
+- Kalshi implementation sends one `orderbook_delta` subscribe frame
+  for all new tickers. Other exchanges fall back to parallel
+  `watchOrderBook` calls.
+- Added to BaseExchange, KalshiExchange, Python SDK
+  (`watch_order_books`), and TypeScript SDK (`watchOrderBooks`).
+
+### Feat: sidecar WebSocket endpoint for streaming
+
+- The sidecar now exposes a `/ws` WebSocket endpoint for push-based
+  streaming. SDKs can subscribe to `watchOrderBook`,
+  `watchOrderBooks`, and `watchTrades` over a persistent connection
+  instead of HTTP long-polling.
+- Protocol: clients send `{"action": "subscribe", ...}` /
+  `{"action": "unsubscribe", ...}` messages; the server pushes
+  `{"event": "data", ...}` updates per symbol.
+- Auth via `?token=` query parameter or `x-pmxt-access-token` header.
+- Subscriptions are cleaned up automatically on disconnect.
+- `startServer` auto-attaches the handler; `createApp` is unchanged.
+
+### Feat: SDK WebSocket transport (Python + TypeScript)
+
+- Both SDKs now try a WebSocket connection to the sidecar for watch
+  methods before falling back to HTTP POST. The WS connection is lazy,
+  shared across all subscriptions on an exchange instance, and
+  reconnects automatically.
+- **Python**: new `pmxt/ws_client.py` module. Uses `websocket-client`
+  when available; falls back to HTTP transparently if not installed.
+- **TypeScript**: new `pmxt/ws-client.ts` module. Uses native
+  `WebSocket` in browsers, `ws` in Node.
+- Existing HTTP-based `watch_order_book` / `watchOrderBook` continues
+  to work identically. No breaking changes.
+
+### Refactor: extract exchange factory
+
+- Moved `createExchange` from `app.ts` to `server/exchange-factory.ts`
+  for reuse by the new WebSocket handler. No public API changes.
+
 ## [2.35.30] - 2026-04-30
 
 ### Docs: cross-venue browse examples for event and market matches

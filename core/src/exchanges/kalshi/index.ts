@@ -354,6 +354,19 @@ export class KalshiExchange extends PredictionMarketExchange {
     return this.ws.watchOrderBook(marketTicker);
   }
 
+  async watchOrderBooks(ids: string[], limit?: number): Promise<Record<string, OrderBook>> {
+    const auth = this.ensureAuth();
+    if (!this.ws) {
+      const wsConfigWithUrl: KalshiWebSocketConfig = {
+        ...this.wsConfig,
+        wsUrl: this.wsConfig?.wsUrl || this.config.wsUrl,
+      };
+      this.ws = new KalshiWebSocket(auth, wsConfigWithUrl);
+    }
+    const marketTickers = ids.map((id) => id.replace(/-NO$/, ""));
+    return this.ws.watchOrderBooks(marketTickers);
+  }
+
   async watchTrades(
     id: string,
     address?: string,

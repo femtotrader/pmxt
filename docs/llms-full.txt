@@ -3751,6 +3751,37 @@ const result = await exchange.watchOrderBook({ id: "12345" });
 ```
 
 
+### Watch Order Books
+
+`POST /api/{exchange}/watchOrderBooks`
+
+Watch multiple order books simultaneously via WebSocket. Returns a promise that resolves with a record of order book snapshots keyed by ID. Exchanges with native batch support (e.g. Kalshi) send a single subscribe message for all tickers; others fall back to individual watchOrderBook calls.
+
+**Response:** `{ success: true, data: ... }`
+
+**Python:**
+```python
+import pmxt
+
+# API key optional — enables faster catalog-backed lookups
+exchange = pmxt.Router(
+    pmxt_api_key="YOUR_PMXT_API_KEY",
+)
+result = exchange.watch_order_books()
+```
+
+**TypeScript:**
+```typescript
+import { Router } from "pmxtjs";
+
+// API key optional — enables faster catalog-backed lookups
+const exchange = new Router({
+  pmxtApiKey: "YOUR_PMXT_API_KEY",
+});
+const result = await exchange.watchOrderBooks();
+```
+
+
 ### Unwatch Order Book
 
 `POST /api/{exchange}/unwatchOrderBook`

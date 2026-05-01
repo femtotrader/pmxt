@@ -55,6 +55,7 @@ GitHub: https://github.com/pmxt-dev/pmxt
 - [Fetch Positions](https://pmxt.dev/docs/api-reference/fetchPositions): Fetch current user positions across all markets.
 - [Fetch Balance](https://pmxt.dev/docs/api-reference/fetchBalance): Fetch account balances.
 - [Watch Order Book](https://pmxt.dev/docs/api-reference/watchOrderBook): Watch order book updates in real-time via WebSocket. Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+- [Watch Order Books](https://pmxt.dev/docs/api-reference/watchOrderBooks): Watch multiple order books simultaneously via WebSocket. Returns a promise that resolves with a record of order book snapshots keyed by ID. Exchanges with native batch support (e.g. Kalshi) send a single subscribe message for all tickers; others fall back to individual watchOrderBook calls.
 - [Unwatch Order Book](https://pmxt.dev/docs/api-reference/unwatchOrderBook): Unsubscribe from a previously watched order book stream.
 - [Watch Trades](https://pmxt.dev/docs/api-reference/watchTrades): Watch trade executions in real-time via WebSocket. Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern).
 - [Watch Address](https://pmxt.dev/docs/api-reference/watchAddress): Stream activity for a public wallet address Returns a promise that resolves with the next activity snapshot whenever a change is detected. Call repeatedly in a loop to stream updates (CCXT Pro pattern).

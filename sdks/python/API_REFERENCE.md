@@ -375,7 +375,7 @@ exchange.fetch_ohlcv(id="12345", params="...")
 **Notes:**
 **CRITICAL**: Use `outcome.outcomeId` (TS) / `outcome.outcome_id` (Python), not the market ID.
 Polymarket: outcomeId is the CLOB Token ID. Kalshi: outcomeId is the Market Ticker.
-Resolution options: '1m' | '5m' | '15m' | '1h' | '6h' | '1d'
+Common resolutions: '1m' | '5m' | '15m' | '1h' | '6h' | '1d'. Arbitrary intervals (e.g. '30s', '120s', '3h') accepted by venues that support them.
 
 ---
 ### `fetch_order_book`
@@ -763,6 +763,32 @@ exchange.watch_order_book(id="12345", limit=10)
 
 
 ---
+### `watch_order_books`
+
+Watch multiple order books simultaneously via WebSocket.
+
+
+**Signature:**
+
+```python
+def watch_order_books(ids: List[string], limit: Optional[float] = None) -> Dictstr, [OrderBook]:
+```
+
+**Parameters:**
+
+- `ids` (List[string]): Array of Outcome IDs to watch
+- `limit` (float) - **Optional**: Optional limit for orderbook depth
+
+**Returns:** Dict[str, [OrderBook](#orderbook)] - Promise that resolves with order books keyed by ID
+
+**Example:**
+
+```python
+exchange.watch_order_books(ids="12345", limit=10)
+```
+
+
+---
 ### `unwatch_order_book`
 
 Unsubscribe from a previously watched order book stream.
@@ -894,18 +920,18 @@ exchange.close()
 ---
 ### `fetch_market_matches`
 
-Find the same or related market on other venues. Given a market on one venue, discover semantically equivalent markets across every other venue PMXT ingests — each with a relation type (identity, subset, superset, overlap, disjoint), confidence score, and reasoning.
+Find the same or related market on other venues. Two modes:
 
 
 **Signature:**
 
 ```python
-def fetch_market_matches(params: FetchMarketMatchesParams) -> List[MatchResult]:
+def fetch_market_matches(params: Optional[FetchMarketMatchesParams] = None) -> List[MatchResult]:
 ```
 
 **Parameters:**
 
-- `params` ([FetchMarketMatchesParams](#fetchmarketmatchesparams)): Match filter parameters (marketId, relation, minConfidence, etc.)
+- `params` ([FetchMarketMatchesParams](#fetchmarketmatchesparams)) - **Optional**: Match filter parameters
 
 **Returns:** List[[MatchResult](#matchresult)] - Array of matched markets with relation and confidence
 
@@ -944,18 +970,18 @@ exchange.fetch_matches()
 ---
 ### `fetch_event_matches`
 
-Find the same or related event on other venues. Given an event on one venue, discover semantically equivalent events across every other venue PMXT ingests — including market-level match details for each child market.
+Find the same or related event on other venues. Two modes:
 
 
 **Signature:**
 
 ```python
-def fetch_event_matches(params: FetchEventMatchesParams) -> List[EventMatchResult]:
+def fetch_event_matches(params: Optional[FetchEventMatchesParams] = None) -> List[EventMatchResult]:
 ```
 
 **Parameters:**
 
-- `params` ([FetchEventMatchesParams](#fetcheventmatchesparams)): Event match filter parameters (eventId, relation, etc.)
+- `params` ([FetchEventMatchesParams](#fetcheventmatchesparams)) - **Optional**: Event match filter parameters
 
 **Returns:** List[[EventMatchResult](#eventmatchresult)] - Array of matched events with market-level match details
 
@@ -1019,7 +1045,7 @@ exchange.fetch_related_markets()
 ---
 ### `fetch_matched_markets`
 
-Fetch matched markets across venues. Finds markets listed on multiple venues
+fetchMatchedMarkets
 
 
 **Signature:**
@@ -1030,9 +1056,9 @@ def fetch_matched_markets(params: Optional[FetchMatchedMarketsParams] = None) ->
 
 **Parameters:**
 
-- `params` ([FetchMatchedMarketsParams](#fetchmatchedmarketsparams)) - **Optional**: Matched market parameters (minDifference, category, limit)
+- `params` ([FetchMatchedMarketsParams](#fetchmatchedmarketsparams)) - **Optional**: params
 
-**Returns:** List[[MatchedMarketPair](#matchedmarketpair)] - Array of matched market pairs with prices from each venue
+**Returns:** List[[MatchedMarketPair](#matchedmarketpair)] - Result
 
 **Example:**
 
@@ -1383,8 +1409,8 @@ liquidity: float # Current market liquidity (USD).
 open_interest: float # Total value of outstanding contracts (USD).
 url: str # Canonical URL to view the market on the venue.
 image: str # Optional image URL for the market.
-category: str # Optional category label (e.g., "Politics", "Crypto").
-tags: List[string] # Optional list of tags associated with the market.
+category: str # Optional category label. Venue-defined — common values include "Sports", "Politics", "Crypto", "Economics", "Science", "Culture". Polymarket uses finer-grained categories like "Bitcoin", "Soccer", "Economic Policy"; Kalshi uses broader ones like "Sports" or "Mentions".
+tags: List[string] # Optional list of tags. More granular than category — e.g. ["Crypto", "Crypto Prices", "Bitcoin"] or ["Politics", "Elections", "Trump"]. Tags vary by venue: Polymarket markets carry several, Kalshi typically one.
 tick_size: float # Minimum price increment (e.g., 0.01, 0.001)
 status: str # Venue-native lifecycle status (e.g. 'active', 'closed', 'archived').
 contract_address: str # On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.).
@@ -1428,8 +1454,8 @@ volume24h: float # Trading volume over the past 24 hours (USD).
 volume: float # Total / Lifetime volume (sum across markets; undefined if no market provides it)
 url: str # Canonical URL to view the event on the venue.
 image: str # Optional image URL for the event.
-category: str # Optional category label (e.g., "Politics", "Sports").
-tags: List[string] # Optional list of tags associated with the event.
+category: str # Optional category label. Venue-defined — common values include "Sports", "Politics", "Crypto", "Economics", "Science", "Culture". Polymarket uses finer-grained categories like "Bitcoin", "Soccer", "Economic Policy"; Kalshi uses broader ones like "Sports" or "Mentions".
+tags: List[string] # Optional list of tags. More granular than category — e.g. ["Sports", "FIFA World Cup", "2026 FIFA World Cup"] or ["Politics", "Geopolitics", "Middle East"]. Tags vary by venue: Polymarket markets carry several, Kalshi typically one.
 source_exchange: str # The exchange/venue this event originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router.
 ```
 
@@ -1630,8 +1656,8 @@ volume: object # Filter by total (lifetime) volume range
 liquidity: object # Filter by current liquidity range
 open_interest: object # Filter by open interest range
 resolution_date: object # 
-category: str # 
-tags: List[string] # Match if market has ANY of these tags
+category: str # Filter by category. Common values: "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi).
+tags: List[string] # Match markets that have ANY of these tags. Examples: ["Crypto", "Crypto Prices"], ["Politics", "Elections"], ["Sports", "FIFA World Cup"].
 price: object # 
 price_change24h: object # 
 ```
@@ -1646,8 +1672,8 @@ price_change24h: object #
 class EventFilterCriteria:
 text: str # 
 search_in: List[string] # Default: ['title']
-category: str # 
-tags: List[string] # Match events that have any of these tags
+category: str # Filter by category. Common values: "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi).
+tags: List[string] # Match events that have ANY of these tags. Examples: ["Crypto"], ["Politics", "Geopolitics", "Middle East"], ["Sports", "FIFA World Cup"].
 market_count: object # 
 total_volume: object # Sum of market volumes
 ```
@@ -1661,6 +1687,7 @@ total_volume: object # Sum of market volumes
 @dataclass
 class MatchResult:
 market: UnifiedMarket # 
+source_market: Any # The source market this was matched against. Present in browse mode (no marketId), absent in lookup mode.
 relation: str # 
 confidence: float # 
 reasoning: Any # 
@@ -1806,8 +1833,8 @@ search_in: str # Where to search (default: 'title')
 event_id: str # Direct lookup by event ID
 slug: str # Lookup by event slug
 filter: Any # Optional client-side filter applied after fetching
-category: str # Shorthand for filter.category -- merged into filter (takes precedence)
-tags: List[string] # Shorthand for filter.tags -- merged into filter (takes precedence)
+category: str # Filter by category. Each event belongs to a venue-assigned category such as "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi).
+tags: List[string] # Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories -- for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump".
 ```
 
 ---
@@ -1909,14 +1936,18 @@ cursor: str # Opaque pagination cursor from a previous response
 ```python
 @dataclass
 class FetchMarketMatchesParams:
+query: str # Keyword search across matched market titles.
+category: str # Filter matches by category.
 market: Any # Pass a UnifiedMarket directly instead of marketId/slug/url.
-market_id: str # 
+market_id: str # Lookup a specific market by ID. Omit for browse mode.
 slug: str # 
 url: str # 
 relation: str # 
 min_confidence: float # 
 limit: float # 
 include_prices: bool # 
+min_difference: float # Minimum price difference between venues. Browse mode only.
+sort: str # Sort order. Browse mode only.
 ```
 
 ---
@@ -1927,8 +1958,10 @@ include_prices: bool #
 ```python
 @dataclass
 class FetchEventMatchesParams:
+query: str # Keyword search across matched event titles.
+category: str # Filter matches by category.
 event: Any # Pass a UnifiedEvent directly instead of eventId/slug.
-event_id: str # 
+event_id: str # Lookup a specific event by ID. Omit for browse mode.
 slug: str # 
 relation: str # 
 min_confidence: float # 

@@ -12,7 +12,7 @@ const path = require('path');
 const yaml = require('js-yaml');
 
 const BASE_EXCHANGE_PATH = path.join(__dirname, '../src/BaseExchange.ts');
-const APP_TS_PATH = path.join(__dirname, '../src/server/app.ts');
+const APP_TS_PATH = path.join(__dirname, '../src/server/exchange-factory.ts');
 const OPENAPI_OUT_PATH = path.join(__dirname, '../src/server/openapi.yaml');
 // Sidecar metadata consumed by the runtime server (app.ts) so the GET
 // handler knows which methods are safe to expose as GET and how to

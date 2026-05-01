@@ -8,7 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const APP_TS_PATH = path.join(__dirname, '../src/server/app.ts');
+const APP_TS_PATH = path.join(__dirname, '../src/server/exchange-factory.ts');
 const OUTPUT_PATH = path.join(__dirname, '../../sdks/python/pmxt/_exchanges.py');
 const INIT_PATH = path.join(__dirname, '../../sdks/python/pmxt/__init__.py');
 

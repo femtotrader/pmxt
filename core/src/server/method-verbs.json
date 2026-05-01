@@ -304,6 +304,21 @@
       }
     ]
   },
+  "watchOrderBooks": {
+    "verb": "post",
+    "args": [
+      {
+        "name": "ids",
+        "kind": "unknown",
+        "optional": false
+      },
+      {
+        "name": "limit",
+        "kind": "number",
+        "optional": true
+      }
+    ]
+  },
   "unwatchOrderBook": {
     "verb": "post",
     "args": [

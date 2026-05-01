@@ -179,6 +179,7 @@
             "group": "Realtime",
             "pages": [
               "POST /api/{exchange}/watchOrderBook",
+              "POST /api/{exchange}/watchOrderBooks",
               "POST /api/{exchange}/unwatchOrderBook",
               "POST /api/{exchange}/watchTrades",
               "POST /api/{exchange}/watchAddress",

@@ -1329,6 +1329,51 @@ paths:
       description: >-
         Watch order book updates in real-time via WebSocket. Returns a promise that resolves with the next order book
         update. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+  '/api/{exchange}/watchOrderBooks':
+    post:
+      summary: Watch Order Books
+      operationId: watchOrderBooks
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: WatchOrderBooksRequest
+              type: object
+              properties:
+                args:
+                  type: array
+                  minItems: 1
+                  maxItems: 2
+                  items:
+                    oneOf:
+                      - type: array
+                        items:
+                          type: string
+                      - type: number
+                credentials:
+                  $ref: '#/components/schemas/ExchangeCredentials'
+              required:
+                - args
+      responses:
+        '200':
+          description: Watch Order Books response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        additionalProperties:
+                          $ref: '#/components/schemas/OrderBook'
+      description: >-
+        Watch multiple order books simultaneously via WebSocket. Returns a promise that resolves with a record of order
+        book snapshots keyed by ID. Exchanges with native batch support (e.g. Kalshi) send a single subscribe message
+        for all tickers; others fall back to individual watchOrderBook calls.
   '/api/{exchange}/unwatchOrderBook':
     post:
       summary: Unwatch Order Book

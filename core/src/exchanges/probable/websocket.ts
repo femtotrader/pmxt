@@ -1,5 +1,6 @@
 import type { createClobClient } from '@prob/clob';
 import { OrderBook, OrderLevel } from '../../types';
+import { DEFAULT_WATCH_TIMEOUT_MS, withWatchTimeout } from '../../utils/watch-timeout';
 
 interface QueuedPromise<T> {
     resolve: (value: T | PromiseLike<T>) => void;
@@ -13,6 +14,8 @@ export interface ProbableWebSocketConfig {
     baseUrl?: string;
     /** Chain ID (default: 56 for BSC mainnet) */
     chainId?: number;
+    /** Timeout in ms for watch methods to receive data (default: 30000). 0 = no timeout. */
+    watchTimeoutMs?: number;
 }
 
 /**
@@ -67,12 +70,18 @@ export class ProbableWebSocket {
         }
 
         // Return a promise that resolves on the next orderbook update
-        return new Promise<OrderBook>((resolve, reject) => {
+        const dataPromise = new Promise<OrderBook>((resolve, reject) => {
             if (!this.orderBookResolvers.has(tokenId)) {
                 this.orderBookResolvers.set(tokenId, []);
             }
             this.orderBookResolvers.get(tokenId)!.push({ resolve, reject });
         });
+
+        return withWatchTimeout(
+            dataPromise,
+            this.config.watchTimeoutMs ?? DEFAULT_WATCH_TIMEOUT_MS,
+            `watchOrderBook('${tokenId}')`,
+        );
     }
 
     private handleOrderBookUpdate(tokenId: string, data: any) {

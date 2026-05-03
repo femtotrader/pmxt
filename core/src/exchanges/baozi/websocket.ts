@@ -1,5 +1,6 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { OrderBook } from '../../types';
+import { DEFAULT_WATCH_TIMEOUT_MS, withWatchTimeout } from '../../utils/watch-timeout';
 import {
     MARKET_DISCRIMINATOR,
     RACE_MARKET_DISCRIMINATOR,
@@ -14,14 +15,24 @@ interface QueuedPromise<T> {
     reject: (reason?: any) => void;
 }
 
+export interface BaoziWebSocketConfig {
+    /** Timeout in ms for watch methods to receive data (default: 30000). 0 = no timeout. */
+    watchTimeoutMs?: number;
+}
+
 /**
  * Uses Solana's onAccountChange to watch market PDA updates.
  * When the account data changes (new bet placed), we re-parse
  * and emit a new synthetic order book.
  */
 export class BaoziWebSocket {
+    private config: BaoziWebSocketConfig;
     private orderBookResolvers = new Map<string, QueuedPromise<OrderBook>[]>();
     private subscriptions = new Map<string, number>();
+
+    constructor(config: BaoziWebSocketConfig = {}) {
+        this.config = config;
+    }
 
     async watchOrderBook(connection: Connection, outcomeId: string): Promise<OrderBook> {
         const marketPubkey = outcomeId.replace(/-YES$|-NO$|-\d+$/, '');
@@ -65,12 +76,18 @@ export class BaoziWebSocket {
             this.subscriptions.set(marketPubkey, subId);
         }
 
-        return new Promise<OrderBook>((resolve, reject) => {
+        const dataPromise = new Promise<OrderBook>((resolve, reject) => {
             if (!this.orderBookResolvers.has(marketPubkey)) {
                 this.orderBookResolvers.set(marketPubkey, []);
             }
             this.orderBookResolvers.get(marketPubkey)!.push({ resolve, reject });
         });
+
+        return withWatchTimeout(
+            dataPromise,
+            this.config.watchTimeoutMs ?? DEFAULT_WATCH_TIMEOUT_MS,
+            `watchOrderBook('${outcomeId}')`,
+        );
     }
 
     private resolveOrderBook(marketPubkey: string, orderBook: OrderBook): void {

@@ -14,6 +14,7 @@ import {
 } from '../../subscriber/external/goldsky';
 import { AddressWatcher, WatcherConfig } from '../../subscriber/watcher';
 import { OrderBook, OrderLevel, QueuedPromise, Trade } from '../../types';
+import { DEFAULT_WATCH_TIMEOUT_MS, withWatchTimeout } from '../../utils/watch-timeout';
 
 
 export interface PolymarketWebSocketConfig {
@@ -23,6 +24,8 @@ export interface PolymarketWebSocketConfig {
     flushIntervalMs?: number;
     /** Watcher subscription configurations */
     watcherConfig?: WatcherConfig;
+    /** Timeout in ms for watch methods to receive data (default: 30000). 0 = no timeout. */
+    watchTimeoutMs?: number;
 }
 
 /**
@@ -64,12 +67,18 @@ export class PolymarketWebSocket {
         }
 
         // Return a promise that resolves on the next orderbook update
-        return new Promise<OrderBook>((resolve, reject) => {
+        const dataPromise = new Promise<OrderBook>((resolve, reject) => {
             if (!this.orderBookResolvers.has(id)) {
                 this.orderBookResolvers.set(id, []);
             }
             this.orderBookResolvers.get(id)!.push({ resolve, reject });
         });
+
+        return withWatchTimeout(
+            dataPromise,
+            this.config.watchTimeoutMs ?? DEFAULT_WATCH_TIMEOUT_MS,
+            `watchOrderBook('${id}')`,
+        );
     }
 
     async unwatchOrderBook(id: string): Promise<void> {
@@ -109,12 +118,18 @@ export class PolymarketWebSocket {
         }
 
         // Return a promise that resolves on the next trade
-        return new Promise<Trade[]>((resolve, reject) => {
+        const dataPromise = new Promise<Trade[]>((resolve, reject) => {
             if (!this.tradeResolvers.has(id)) {
                 this.tradeResolvers.set(id, []);
             }
             this.tradeResolvers.get(id)!.push({ resolve, reject });
         });
+
+        return withWatchTimeout(
+            dataPromise,
+            this.config.watchTimeoutMs ?? DEFAULT_WATCH_TIMEOUT_MS,
+            `watchTrades('${id}')`,
+        );
     }
 
     async watchAddress(address: string, types: SubscriptionOption[]): Promise<SubscribedAddressSnapshot> {

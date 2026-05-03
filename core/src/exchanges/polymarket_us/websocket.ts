@@ -22,8 +22,14 @@ import type {
     MarketBook,
 } from 'polymarket-us';
 import { OrderBook, QueuedPromise, Trade } from '../../types';
+import { DEFAULT_WATCH_TIMEOUT_MS, withWatchTimeout } from '../../utils/watch-timeout';
 import { fromAmount } from './price';
 import { PolymarketUSNormalizer } from './normalizer';
+
+export interface PolymarketUSWebSocketConfig {
+    /** Timeout in ms for watch methods to receive data (default: 30000). 0 = no timeout. */
+    watchTimeoutMs?: number;
+}
 
 function sideFromOrderSide(raw: string | undefined): 'buy' | 'sell' | 'unknown' {
     if (raw === 'ORDER_SIDE_BUY') return 'buy';
@@ -50,6 +56,7 @@ function slugFromId(id: string): string {
 export class PolymarketUSWebSocket {
     private readonly client: PolymarketUSClient;
     private readonly normalizer: PolymarketUSNormalizer;
+    private readonly config: PolymarketUSWebSocketConfig;
     private socket: MarketsWebSocket | null = null;
     private initializationPromise?: Promise<void>;
     private readonly bookSubscriptions = new Set<string>();
@@ -57,9 +64,10 @@ export class PolymarketUSWebSocket {
     private readonly orderBookResolvers = new Map<string, QueuedPromise<OrderBook>[]>();
     private readonly tradeResolvers = new Map<string, QueuedPromise<Trade[]>[]>();
 
-    constructor(client: PolymarketUSClient, normalizer: PolymarketUSNormalizer) {
+    constructor(client: PolymarketUSClient, normalizer: PolymarketUSNormalizer, config: PolymarketUSWebSocketConfig = {}) {
         this.client = client;
         this.normalizer = normalizer;
+        this.config = config;
     }
 
     async watchOrderBook(id: string): Promise<OrderBook> {
@@ -71,11 +79,17 @@ export class PolymarketUSWebSocket {
             this.socket!.subscribeMarketData(`book:${slug}`, [slug]);
         }
 
-        return new Promise<OrderBook>((resolve, reject) => {
+        const dataPromise = new Promise<OrderBook>((resolve, reject) => {
             const queue = this.orderBookResolvers.get(slug) ?? [];
             queue.push({ resolve, reject });
             this.orderBookResolvers.set(slug, queue);
         });
+
+        return withWatchTimeout(
+            dataPromise,
+            this.config.watchTimeoutMs ?? DEFAULT_WATCH_TIMEOUT_MS,
+            `watchOrderBook('${id}')`,
+        );
     }
 
     async watchTrades(id: string): Promise<Trade[]> {
@@ -87,11 +101,17 @@ export class PolymarketUSWebSocket {
             this.socket!.subscribeTrades(`trade:${slug}`, [slug]);
         }
 
-        return new Promise<Trade[]>((resolve, reject) => {
+        const dataPromise = new Promise<Trade[]>((resolve, reject) => {
             const queue = this.tradeResolvers.get(slug) ?? [];
             queue.push({ resolve, reject });
             this.tradeResolvers.set(slug, queue);
         });
+
+        return withWatchTimeout(
+            dataPromise,
+            this.config.watchTimeoutMs ?? DEFAULT_WATCH_TIMEOUT_MS,
+            `watchTrades('${id}')`,
+        );
     }
 
     async close(): Promise<void> {

@@ -1,9 +1,12 @@
 import WebSocket from "ws";
 import { OrderBook, Trade, OrderLevel, QueuedPromise } from "../../types";
+import { DEFAULT_WATCH_TIMEOUT_MS, withWatchTimeout } from "../../utils/watch-timeout";
 
 export interface OpinionWebSocketConfig {
   /** Reconnection interval in milliseconds (default: 5000) */
   reconnectIntervalMs?: number;
+  /** Timeout in ms for watch methods to receive data (default: 30000). 0 = no timeout. */
+  watchTimeoutMs?: number;
 }
 
 /**
@@ -313,12 +316,18 @@ export class OpinionWebSocket {
       this.sendSubscribe("market.depth.diff", marketId);
     }
 
-    return new Promise<OrderBook>((resolve, reject) => {
+    const dataPromise = new Promise<OrderBook>((resolve, reject) => {
       if (!this.orderBookResolvers.has(marketId)) {
         this.orderBookResolvers.set(marketId, []);
       }
       this.orderBookResolvers.get(marketId)!.push({ resolve, reject });
     });
+
+    return withWatchTimeout(
+      dataPromise,
+      this.config.watchTimeoutMs ?? DEFAULT_WATCH_TIMEOUT_MS,
+      `watchOrderBook('${marketId}')`,
+    );
   }
 
   /**
@@ -342,12 +351,18 @@ export class OpinionWebSocket {
       this.sendSubscribe("market.last.trade", marketId);
     }
 
-    return new Promise<Trade[]>((resolve, reject) => {
+    const dataPromise = new Promise<Trade[]>((resolve, reject) => {
       if (!this.tradeResolvers.has(marketId)) {
         this.tradeResolvers.set(marketId, []);
       }
       this.tradeResolvers.get(marketId)!.push({ resolve, reject });
     });
+
+    return withWatchTimeout(
+      dataPromise,
+      this.config.watchTimeoutMs ?? DEFAULT_WATCH_TIMEOUT_MS,
+      `watchTrades('${marketId}')`,
+    );
   }
 
   /**

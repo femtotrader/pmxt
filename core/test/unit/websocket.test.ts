@@ -628,6 +628,85 @@ describe('KalshiWebSocket', () => {
         });
     });
 
+    // --- Watch Timeout ---------------------------------------------------
+
+    describe('watch timeout', () => {
+        test('watchOrderBook rejects after configured timeout when no data arrives', async () => {
+            const ws = createKalshiWS({ watchTimeoutMs: 500 });
+            setField(ws, 'isConnected', true);
+            const mockWsInstance = { send: jest.fn(), on: jest.fn() };
+            setField(ws, 'ws', mockWsInstance);
+
+            const promise = ws.watchOrderBook('NON-EXISTING');
+
+            jest.advanceTimersByTime(500);
+            await expect(promise).rejects.toThrow(
+                "watchOrderBook('NON-EXISTING'): timed out after 500ms",
+            );
+        });
+
+        test('watchOrderBook resolves normally when data arrives before timeout', async () => {
+            const ws = createKalshiWS({ watchTimeoutMs: 5000 });
+            setField(ws, 'isConnected', true);
+            const mockWsInstance = { send: jest.fn(), on: jest.fn() };
+            setField(ws, 'ws', mockWsInstance);
+
+            const promise = ws.watchOrderBook('MKT-OK');
+
+            // Data arrives at 100ms, well before 5000ms timeout
+            setTimeout(() => {
+                call(ws, 'handleOrderbookSnapshot', {
+                    market_ticker: 'MKT-OK',
+                    yes: [{ price: 50, quantity: 10 }],
+                    no: [],
+                });
+            }, 100);
+
+            jest.advanceTimersByTime(100);
+            const book = await promise;
+            expect(book.bids[0].price).toBeCloseTo(0.50);
+        });
+
+        test('watchTrades rejects after configured timeout when no data arrives', async () => {
+            const ws = createKalshiWS({ watchTimeoutMs: 300 });
+            setField(ws, 'isConnected', true);
+            const mockWsInstance = { send: jest.fn(), on: jest.fn() };
+            setField(ws, 'ws', mockWsInstance);
+
+            const promise = ws.watchTrades('NON-EXISTING');
+
+            jest.advanceTimersByTime(300);
+            await expect(promise).rejects.toThrow(
+                "watchTrades('NON-EXISTING'): timed out after 300ms",
+            );
+        });
+
+        test('watchOrderBooks rejects after timeout when not all tickers receive data', async () => {
+            const ws = createKalshiWS({ watchTimeoutMs: 500 });
+            setField(ws, 'isConnected', true);
+            const mockWsInstance = { send: jest.fn(), on: jest.fn() };
+            setField(ws, 'ws', mockWsInstance);
+
+            const promise = ws.watchOrderBooks(['REAL', 'FAKE']);
+
+            // Only REAL gets data
+            setTimeout(() => {
+                call(ws, 'handleOrderbookSnapshot', {
+                    market_ticker: 'REAL',
+                    yes: [{ price: 50, quantity: 10 }],
+                    no: [],
+                });
+            }, 100);
+
+            jest.advanceTimersByTime(100);
+            jest.advanceTimersByTime(400);
+
+            await expect(promise).rejects.toThrow(
+                'watchOrderBooks(["REAL","FAKE"]): timed out after 500ms',
+            );
+        });
+    });
+
     // --- Fan-out Fix: subscribe only new ticker --------------------------
 
     describe('watchOrderBook subscription fan-out fix', () => {

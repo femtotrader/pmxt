@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.37.2] - 2026-05-03
+
+### Fix: `watchOrderBook()` hangs forever on non-existing IDs
+
+- All watch methods (`watchOrderBook`, `watchOrderBooks`, `watchTrades`)
+  now reject after a configurable timeout (default 30s) when no data
+  arrives. Previously, subscribing to a non-existing ID on Polymarket
+  (and most other exchanges) would hang indefinitely because the
+  WebSocket never receives data for an unknown asset.
+- Added `watchTimeoutMs` config option to every exchange WebSocket
+  implementation. Set to `0` to disable the timeout.
+- Affected exchanges: Polymarket, Kalshi, Opinion, Probable, Baozi,
+  Polymarket US.
+- Limitless and Myriad were already safe (Limitless has a built-in
+  3s WS timeout with REST fallback; Myriad uses polling).
+
+Fixes #121.
+
 ## [2.37.1] - 2026-05-03
 
 ### Fix: websocket connection leak during reconnection

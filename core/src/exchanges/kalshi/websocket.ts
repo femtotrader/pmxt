@@ -1,5 +1,6 @@
 import WebSocket from "ws";
 import { OrderBook, Trade, OrderLevel } from "../../types";
+import { DEFAULT_WATCH_TIMEOUT_MS, withWatchTimeout } from "../../utils/watch-timeout";
 import { KalshiAuth } from "./auth";
 
 interface QueuedPromise<T> {
@@ -12,6 +13,8 @@ export interface KalshiWebSocketConfig {
   wsUrl?: string;
   /** Reconnection interval in milliseconds (default: 5000) */
   reconnectIntervalMs?: number;
+  /** Timeout in ms for watch methods to receive data (default: 30000). 0 = no timeout. */
+  watchTimeoutMs?: number;
 }
 
 /**
@@ -416,12 +419,18 @@ export class KalshiWebSocket {
     }
 
     // Return a promise that resolves on the next orderbook update
-    return new Promise<OrderBook>((resolve, reject) => {
+    const dataPromise = new Promise<OrderBook>((resolve, reject) => {
       if (!this.orderBookResolvers.has(ticker)) {
         this.orderBookResolvers.set(ticker, []);
       }
       this.orderBookResolvers.get(ticker)!.push({ resolve, reject });
     });
+
+    return withWatchTimeout(
+      dataPromise,
+      this.config.watchTimeoutMs ?? DEFAULT_WATCH_TIMEOUT_MS,
+      `watchOrderBook('${ticker}')`,
+    );
   }
 
   async watchOrderBooks(tickers: string[]): Promise<Record<string, OrderBook>> {
@@ -447,7 +456,7 @@ export class KalshiWebSocket {
     }
 
     // Wait for all tickers to receive at least one snapshot/update
-    const entries = await Promise.all(
+    const dataPromise = Promise.all(
       tickers.map((ticker) =>
         new Promise<[string, OrderBook]>((resolve, reject) => {
           if (!this.orderBookResolvers.has(ticker)) {
@@ -461,6 +470,12 @@ export class KalshiWebSocket {
           });
         }),
       ),
+    );
+
+    const entries = await withWatchTimeout(
+      dataPromise,
+      this.config.watchTimeoutMs ?? DEFAULT_WATCH_TIMEOUT_MS,
+      `watchOrderBooks(${JSON.stringify(tickers)})`,
     );
 
     const result: Record<string, OrderBook> = {};
@@ -487,12 +502,18 @@ export class KalshiWebSocket {
       this.subscribeToTrades([ticker]);
     }
 
-    return new Promise<Trade[]>((resolve, reject) => {
+    const dataPromise = new Promise<Trade[]>((resolve, reject) => {
       if (!this.tradeResolvers.has(ticker)) {
         this.tradeResolvers.set(ticker, []);
       }
       this.tradeResolvers.get(ticker)!.push({ resolve, reject });
     });
+
+    return withWatchTimeout(
+      dataPromise,
+      this.config.watchTimeoutMs ?? DEFAULT_WATCH_TIMEOUT_MS,
+      `watchTrades('${ticker}')`,
+    );
   }
 
   async close() {

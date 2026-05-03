@@ -185,3 +185,5 @@ sdks/python/pmxt/_server/package.json
 /core/docs/fallback-audit
 docs/guides/router-guide.md
 fifa.py
+btc-updown-dataset-1777636550-1777722950.csv
+scripts/btc-updown-dataset.ts

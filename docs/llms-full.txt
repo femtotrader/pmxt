@@ -3074,13 +3074,9 @@ curl "https://api.pmxt.dev/api/polymarket/fetchOHLCV?id=YOUR_OUTCOME_ID&resoluti
 
 ### Fetch Order Book
 
-`GET /api/{exchange}/fetchOrderBook`
+`POST /api/{exchange}/fetchOrderBook`
 
 Fetch the current order book (bids/asks) for a specific outcome. Essential for calculating spread, depth, and execution prices.
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `id` | string | Yes |  |
 
 **Response:** `{ success: true, data: ... }`
 
@@ -3092,7 +3088,7 @@ import pmxt
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
-result = exchange.fetch_order_book(id="12345")
+result = exchange.fetch_order_book()
 ```
 
 **TypeScript:**
@@ -3103,7 +3099,7 @@ import { Router } from "pmxtjs";
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
-const result = await exchange.fetchOrderBook({ id: "12345" });
+const result = await exchange.fetchOrderBook();
 ```
 
 

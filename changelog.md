@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.36.0] - 2026-05-03
+
+### Feat: OpenAPI path/operation-level server overrides
+
+- `parseOpenApiSpec` now reads `servers` at both the path and operation
+  level, per the OpenAPI 3.x spec. When present, the override is stored
+  on `ApiEndpoint.baseUrl` and used instead of the top-level base URL
+  when resolving implicit API method requests.
+- This enables the Polymarket `getGeoblock` endpoint, which lives at
+  `https://polymarket.com/api/geoblock` rather than on the CLOB host.
+  The `servers` block was already declared in the spec but previously
+  ignored by the parser.
+
 ## [2.35.32] - 2026-05-01
 
 ### Fix: generators broken after `createExchange` extraction

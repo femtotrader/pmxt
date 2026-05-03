@@ -10,7 +10,8 @@ export function validateOutcomeId(id: string, context: string): void {
     if (id.length < 10 && /^\d+$/.test(id)) {
         throw new ValidationError(
             `Invalid outcome ID for ${context}: "${id}". ` +
-            `Numeric outcome IDs must be at least 10 digits. Please use the correct outcome ID.`,
+            `fetchOrderBook requires an outcome token ID, not a market slug or condition ID. ` +
+            `Use fetchMarkets to find the market, then pass market.yes.outcomeId or market.no.outcomeId.`,
             'id'
         );
     }

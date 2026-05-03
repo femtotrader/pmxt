@@ -222,7 +222,12 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
             // which the heuristic mapper mis-categorises as OrderNotFound.
             // Normalise to NotFound so all venues behave the same for order-book lookups.
             if (mapped instanceof OrderNotFound) {
-                throw new NotFound(`Order book not found: ${id}`, 'Polymarket');
+                throw new NotFound(
+                    `Order book not found: ${id}. ` +
+                    `fetchOrderBook requires an outcome token ID (market.yes.outcomeId or market.no.outcomeId from fetchMarkets), ` +
+                    `not a market slug or condition ID.`,
+                    'Polymarket',
+                );
             }
             throw mapped;
         }

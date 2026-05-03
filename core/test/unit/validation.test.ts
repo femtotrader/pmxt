@@ -58,7 +58,7 @@ describe('Validation Utilities', () => {
                 expect(e.code).toBe('VALIDATION_ERROR');
                 expect(e.field).toBe('id');
                 expect(e.message).toContain('123456');
-                expect(e.message).toContain('at least 10 digits');
+                expect(e.message).toContain('outcome token ID');
             }
         });
     });

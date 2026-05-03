@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.37.3] - 2026-05-03
+
+### Fix: unhelpful error messages for `fetchOrderBook` with wrong ID type
+
+- Users passing market slugs or condition IDs to `fetchOrderBook` now get
+  a clear error explaining that the method requires an outcome token ID
+  and how to obtain one (`market.yes.outcomeId` or `market.no.outcomeId`
+  from `fetchMarkets`).
+- Improved both the 400 (validation rejection) and 404 (upstream not found)
+  error paths for Polymarket.
+
+Fixes #113.
+
 ## [2.37.2] - 2026-05-03
 
 ### Fix: `watchOrderBook()` hangs forever on non-existing IDs

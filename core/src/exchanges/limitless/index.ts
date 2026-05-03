@@ -178,7 +178,7 @@ export class LimitlessExchange extends PredictionMarketExchange {
         return this.normalizer.normalizeOHLCV!(rawPrices as any, params);
     }
 
-    async fetchOrderBook(id: string): Promise<OrderBook> {
+    async fetchOrderBook(id: string, side?: 'yes' | 'no'): Promise<OrderBook> {
         const slug = await this.resolveSlug(id);
         const rawOrderBook = await this.fetcher.fetchRawOrderBook!(slug);
         const orderBook = this.normalizer.normalizeOrderBook!(rawOrderBook as any, id);
@@ -186,7 +186,7 @@ export class LimitlessExchange extends PredictionMarketExchange {
         // The Limitless API always returns the Yes-side order book regardless
         // of which token is queried. If the caller asked for the No token,
         // flip: noBid = 1 - yesAsk, noAsk = 1 - yesBid.
-        const isNoToken = await this.isNoOutcome(id, slug);
+        const isNoToken = side === 'no' || (!side && await this.isNoOutcome(id, slug));
         if (isNoToken) {
             return {
                 bids: orderBook.asks.map((level) => ({ price: 1 - level.price, size: level.size }))

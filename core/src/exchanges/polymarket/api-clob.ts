@@ -517,6 +517,7 @@ export const polymarketClobSpec = {
         },
         "/geoblock": {
             "get": {
+                "operationId": "getGeoblock",
                 "summary": "Check Geoblock Status",
                 "tags": [
                     "System"

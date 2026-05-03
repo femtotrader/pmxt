@@ -45,6 +45,11 @@ export interface ApiEndpoint {
     isPrivate?: boolean;
     /** Identifier used to generate the implicit API method name. */
     operationId?: string;
+    /**
+     * When set, requests use this base URL instead of the descriptor default
+     * (OpenAPI path- or operation-level `servers` override).
+     */
+    baseUrl?: string;
 }
 
 export interface ApiDescriptor {
@@ -1481,7 +1486,11 @@ export abstract class PredictionMarketExchange {
             if (name in this) {
                 continue;
             }
-            (this as any)[name] = this.createImplicitMethod(name, endpoint, descriptor.baseUrl);
+            (this as any)[name] = this.createImplicitMethod(
+                name,
+                endpoint,
+                endpoint.baseUrl ?? descriptor.baseUrl
+            );
         }
     }
 
@@ -1507,7 +1516,7 @@ export abstract class PredictionMarketExchange {
     private createImplicitMethod(
         name: string,
         endpoint: ApiEndpoint,
-        baseUrl: string
+        resolvedBaseUrl: string
     ): (params?: Record<string, any>) => Promise<any> {
         return async (params?: Record<string, any>): Promise<any> => {
             const allParams = { ...(params || {}) };
@@ -1531,7 +1540,7 @@ export abstract class PredictionMarketExchange {
                 headers = this.sign(endpoint.method, resolvedPath, allParams);
             }
 
-            const url = `${baseUrl}${resolvedPath}`;
+            const url = `${resolvedBaseUrl}${resolvedPath}`;
             const method = endpoint.method.toUpperCase();
 
             try {

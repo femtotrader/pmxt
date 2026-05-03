@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.37.4] - 2026-05-03
+
+### Fix: Polymarket `fetchOrderBook` returns `timestamp: null`
+
+- Polymarket's CLOB API returns the order book timestamp as a numeric
+  string (e.g. `"1777816319919"`). The normalizer treated all string
+  timestamps as ISO date strings and passed them to `new Date()`, which
+  produced `Invalid Date` for numeric strings. `getTime()` then returned
+  `NaN`, which `JSON.stringify` serialized as `null`.
+- The normalizer now detects numeric strings and parses them with
+  `Number()` instead of `new Date()`.
+
+Fixes #120.
+
 ## [2.37.3] - 2026-05-03
 
 ### Fix: unhelpful error messages for `fetchOrderBook` with wrong ID type

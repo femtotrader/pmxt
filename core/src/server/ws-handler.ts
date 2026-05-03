@@ -101,6 +101,10 @@ function subscriptionKey(msg: ClientMessage): string {
 /**
  * Start a streaming loop for a single-ticker watch method
  * (watchOrderBook, watchTrades).
+ *
+ * The exchange layer owns connection lifecycle — watchOrderBook() blocks until
+ * data arrives, transparently handling reconnection. This loop is a simple
+ * consumer that only terminates on abort or fatal errors.
  */
 async function streamSingle(
   exchange: any,
@@ -131,8 +135,10 @@ async function streamSingle(
       const code =
         err instanceof BaseError ? err.code : undefined;
       sendError(ws, id, message, code);
-      // Brief pause before retry to avoid tight error loops
-      await new Promise((r) => setTimeout(r, 1000));
+      // Fatal error from exchange (terminated, auth failure, etc.) — stop streaming.
+      // The exchange layer handles transient reconnection internally and should
+      // never throw for recoverable connection drops.
+      break;
     }
   }
 }
@@ -140,6 +146,8 @@ async function streamSingle(
 /**
  * Start a streaming loop for the batch watchOrderBooks method.
  * Each update is sent as an individual data message per symbol.
+ *
+ * Same lifecycle contract as streamSingle — the exchange owns reconnection.
  */
 async function streamBatch(
   exchange: any,
@@ -171,7 +179,8 @@ async function streamBatch(
       const code =
         err instanceof BaseError ? err.code : undefined;
       sendError(ws, id, message, code);
-      await new Promise((r) => setTimeout(r, 1000));
+      // Fatal error — stop streaming. Exchange handles transient reconnection.
+      break;
     }
   }
 }

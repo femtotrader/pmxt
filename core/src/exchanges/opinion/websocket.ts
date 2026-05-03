@@ -297,12 +297,19 @@ export class OpinionWebSocket {
    * Returns a promise that resolves on the next orderbook update.
    */
   async watchOrderBook(marketId: number): Promise<OrderBook> {
-    if (!this.isConnected) {
-      await this.connect();
+    if (this.isTerminated) {
+      throw new Error(`WebSocket terminated, cannot watch market ${marketId}`);
     }
 
     if (!this.subscribedDepthMarketIds.has(marketId)) {
       this.subscribedDepthMarketIds.add(marketId);
+    }
+
+    if (!this.isConnected) {
+      this.connect().catch(() => {
+        // Swallow — scheduleReconnect will retry. Resolvers stay pending.
+      });
+    } else {
       this.sendSubscribe("market.depth.diff", marketId);
     }
 
@@ -319,12 +326,19 @@ export class OpinionWebSocket {
    * Returns a promise that resolves on the next trade.
    */
   async watchTrades(marketId: number): Promise<Trade[]> {
-    if (!this.isConnected) {
-      await this.connect();
+    if (this.isTerminated) {
+      throw new Error(`WebSocket terminated, cannot watch trades for market ${marketId}`);
     }
 
     if (!this.subscribedTradeMarketIds.has(marketId)) {
       this.subscribedTradeMarketIds.add(marketId);
+    }
+
+    if (!this.isConnected) {
+      this.connect().catch(() => {
+        // Swallow — scheduleReconnect will retry. Resolvers stay pending.
+      });
+    } else {
       this.sendSubscribe("market.last.trade", marketId);
     }
 

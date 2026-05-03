@@ -391,14 +391,27 @@ export class KalshiWebSocket {
   }
 
   async watchOrderBook(ticker: string): Promise<OrderBook> {
-    // Ensure connection
-    if (!this.isConnected) {
-      await this.connect();
+    if (this.isTerminated) {
+      throw new Error(`WebSocket terminated, cannot watch ${ticker}`);
     }
 
-    // Subscribe if not already subscribed
+    // Track the subscription regardless of connection state.
+    // When (re)connected, the open handler resubscribes automatically.
     if (!this.subscribedOrderBookTickers.has(ticker)) {
       this.subscribedOrderBookTickers.add(ticker);
+    }
+
+    // Attempt connection — if it fails, scheduleReconnect handles recovery.
+    // The resolver will be fulfilled once the connection is (re)established
+    // and data arrives.
+    if (!this.isConnected) {
+      this.connect().catch(() => {
+        // Connection failed — scheduleReconnect is already queued via the
+        // close handler, so we intentionally swallow here. The pending
+        // resolver will be resolved when data arrives on the next connection.
+      });
+    } else {
+      // Already connected — ensure subscription message is sent
       this.subscribeToOrderbook([ticker]);
     }
 
@@ -412,23 +425,24 @@ export class KalshiWebSocket {
   }
 
   async watchOrderBooks(tickers: string[]): Promise<Record<string, OrderBook>> {
-    // Ensure connection
-    if (!this.isConnected) {
-      await this.connect();
+    if (this.isTerminated) {
+      throw new Error("WebSocket terminated, cannot watch orderbooks");
     }
 
-    // Determine which tickers are actually new (not yet subscribed)
+    // Track subscriptions regardless of connection state.
     const newTickers = tickers.filter(
       (t) => !this.subscribedOrderBookTickers.has(t),
     );
-
-    // Add all new tickers to the subscription set
     for (const t of newTickers) {
       this.subscribedOrderBookTickers.add(t);
     }
 
-    // Send ONE subscribe message with only the new tickers
-    if (newTickers.length > 0) {
+    // Attempt connection — if it fails, scheduleReconnect handles recovery.
+    if (!this.isConnected) {
+      this.connect().catch(() => {
+        // Swallow — scheduleReconnect will retry. Resolvers stay pending.
+      });
+    } else if (newTickers.length > 0) {
       this.subscribeToOrderbook(newTickers);
     }
 
@@ -441,7 +455,6 @@ export class KalshiWebSocket {
           }
           this.orderBookResolvers.get(ticker)!.push({
             resolve: (book: OrderBook | PromiseLike<OrderBook>) => {
-              // Unwrap PromiseLike if needed, but in practice it is always OrderBook
               Promise.resolve(book).then((b) => resolve([ticker, b]));
             },
             reject,
@@ -458,18 +471,22 @@ export class KalshiWebSocket {
   }
 
   async watchTrades(ticker: string): Promise<Trade[]> {
-    // Ensure connection
-    if (!this.isConnected) {
-      await this.connect();
+    if (this.isTerminated) {
+      throw new Error(`WebSocket terminated, cannot watch trades for ${ticker}`);
     }
 
-    // Subscribe if not already subscribed
     if (!this.subscribedTradeTickers.has(ticker)) {
       this.subscribedTradeTickers.add(ticker);
+    }
+
+    if (!this.isConnected) {
+      this.connect().catch(() => {
+        // Swallow — scheduleReconnect will retry. Resolvers stay pending.
+      });
+    } else {
       this.subscribeToTrades([ticker]);
     }
 
-    // Return a promise that resolves on the next trade
     return new Promise<Trade[]>((resolve, reject) => {
       if (!this.tradeResolvers.has(ticker)) {
         this.tradeResolvers.set(ticker, []);

@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.37.1] - 2026-05-03
+
+### Fix: websocket connection leak during reconnection
+
+- `watchOrderBook()` / `watchTrades()` no longer race with the exchange's
+  internal `scheduleReconnect` to create duplicate TCP connections.
+- Previously, the sidecar streaming loop retried on error after 1s while
+  the exchange's own reconnect timer fired at 5s, causing parallel
+  connection attempts under network instability.
+- The exchange layer now solely owns its connection lifecycle. Watch
+  methods track subscriptions and return a pending promise that resolves
+  when data arrives on the (re)established connection. They never throw
+  transient connection errors.
+- The streaming loop (`streamSingle`/`streamBatch`) no longer retries on
+  error — if the exchange throws, it is fatal (terminated, auth failure).
+- Affected exchanges: Kalshi, Opinion (both had `scheduleReconnect`).
+
+Fixes #123.
+
 ## [2.37.0] - 2026-05-03
 
 ### Feat: explicit `side` parameter for `fetchOrderBook`

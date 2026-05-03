@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.36.1] - 2026-05-03
+
+### Fix: consistent `NotFound` error for missing order books across venues
+
+- `fetchOrderBook()` with a non-existing ID now throws `NotFound`
+  (`NOT_FOUND`) on every venue. Previously Polymarket threw
+  `OrderNotFound` (`ORDER_NOT_FOUND`) while Kalshi threw `NotFound`
+  (`NOT_FOUND`), making cross-venue error handling unpredictable.
+- Root cause: the Polymarket CLOB returns a generic "order not found"
+  message on 404, which the base `ErrorMapper` heuristic mis-classified
+  as an order lookup failure rather than an order-book lookup failure.
+- The Polymarket fetcher now catches the mis-classified `OrderNotFound`
+  and re-throws it as `NotFound` with a normalised message.
+- The base `ErrorMapper.mapNotFoundError` heuristic now excludes
+  messages containing "order book" from the `OrderNotFound` path.
+
+Fixes #122.
+
 ## [2.36.0] - 2026-05-03
 
 ### Feat: OpenAPI path/operation-level server overrides

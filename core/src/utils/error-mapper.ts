@@ -178,8 +178,8 @@ export class ErrorMapper {
     protected mapNotFoundError(message: string, data: any): NotFound {
         const lowerMessage = message.toLowerCase();
 
-        // Detect order not found
-        if (lowerMessage.includes('order')) {
+        // Detect order not found (but not "order book" — that's a different resource)
+        if (lowerMessage.includes('order') && !lowerMessage.includes('order book')) {
             // Try to extract order ID from message
             const orderIdMatch = message.match(/order[:\s]+([a-zA-Z0-9-]+)/i);
             const orderId = orderIdMatch ? orderIdMatch[1] : 'unknown';

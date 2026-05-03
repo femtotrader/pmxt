@@ -353,6 +353,12 @@ describe('ErrorMapper', () => {
             expect(error.message).toContain('market456');
         });
 
+        it('should map "order book not found" to NotFound, not OrderNotFound', () => {
+            const error = mapper['mapNotFoundError']('Order book not found: NON-EXISTING-ID', {});
+            expect(error).toBeInstanceOf(NotFound);
+            expect(error).not.toBeInstanceOf(OrderNotFound);
+        });
+
         it('should return NotFound for unmatched patterns', () => {
             const error = mapper['mapNotFoundError']('Resource not found', {});
             expect(error).toBeInstanceOf(NotFound);

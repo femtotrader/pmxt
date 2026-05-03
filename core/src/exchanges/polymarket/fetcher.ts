@@ -1,5 +1,6 @@
 import { AxiosInstance } from 'axios';
 import { MarketFilterParams, EventFetchParams, OHLCVParams, TradesParams, MyTradesParams } from '../../BaseExchange';
+import { NotFound, OrderNotFound } from '../../errors';
 import { IExchangeFetcher, FetcherContext } from '../interfaces';
 import { GAMMA_API_URL, GAMMA_SEARCH_URL, paginateParallel, paginateSearchParallel } from './utils';
 import { polymarketErrorMapper } from './errors';
@@ -216,7 +217,14 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
             const data = await this.ctx.callApi('getBook', { token_id: id });
             return data;
         } catch (error: any) {
-            throw polymarketErrorMapper.mapError(error);
+            const mapped = polymarketErrorMapper.mapError(error);
+            // The CLOB returns a generic "order not found" for missing books,
+            // which the heuristic mapper mis-categorises as OrderNotFound.
+            // Normalise to NotFound so all venues behave the same for order-book lookups.
+            if (mapped instanceof OrderNotFound) {
+                throw new NotFound(`Order book not found: ${id}`, 'Polymarket');
+            }
+            throw mapped;
         }
     }
 

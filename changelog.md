@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.37.0] - 2026-05-03
+
+### Feat: explicit `side` parameter for `fetchOrderBook`
+
+- `fetchOrderBook(id, side?)` now accepts an optional `'yes'` or `'no'`
+  parameter to explicitly indicate which outcome side the caller wants.
+- Required for exchanges like Limitless where the API returns a single
+  orderbook per market (always the Yes side). When `side` is `'no'`,
+  the orderbook is inverted: `noBid = 1 - yesAsk`, `noAsk = 1 - yesBid`.
+- Previously, side detection relied on `isNoOutcome()` which requires a
+  warm cache populated by `fetchMarkets()`. The cache is often incomplete
+  (the default market fetch excludes some markets), causing the inversion
+  to silently fail and returning identical Yes-side data for both outcomes.
+- Backward compatible: `side` is optional. When omitted, the existing
+  cache-based detection is used as a fallback.
+
 ## [2.36.1] - 2026-05-03
 
 ### Fix: consistent `NotFound` error for missing order books across venues

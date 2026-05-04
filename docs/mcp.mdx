@@ -85,7 +85,26 @@ No installation required. Just add the config and your API key.
 
     - *"What are the top Polymarket markets right now?"*
     - *"Show me the orderbook for the presidential election market on Kalshi"*
-    - *"What's the best execution price for a $50 YES buy on this market?"*
+    - *"Compare prices for this market across venues"*
+
+    Here's what a typical response looks like when you ask *"Find markets about bitcoin"*:
+
+    ```json
+    [
+      {
+        "marketId": "63146e19-...",
+        "title": "Will Satoshi move any Bitcoin in 2026?",
+        "outcomes": [
+          { "label": "Yes", "price": 0.085 },
+          { "label": "No", "price": 0.915 }
+        ],
+        "volume24h": 33099.91,
+        "liquidity": 159439.89
+      }
+    ]
+    ```
+
+    If you see market data, the MCP server is working.
   </Step>
 </Steps>
 
@@ -102,28 +121,54 @@ usage limits and quotas apply as normal.
 The MCP server exposes the same tools as the PMXT REST API. Every tool requires
 an `exchange` parameter (e.g., `polymarket`, `kalshi`, `limitless`).
 
-### Read-only (safe to call freely)
+### Market discovery
 
 | Tool | Description |
 |------|-------------|
 | `fetchMarkets` | Search and list markets |
+| `fetchMarket` | Get a single market by ID, slug, or keyword |
+| `fetchMarketsPaginated` | Cursor-based paginated market listing |
 | `fetchEvents` | Search and list events |
-| `fetchMarketsPaginated` | Paginated market listing |
-| `fetchMarket` | Get a single market by ID |
-| `fetchEvent` | Get a single event by ID |
-| `fetchOrderBook` | Get the current orderbook |
-| `fetchTrades` | Get recent trades |
-| `fetchOHLCV` | Get candlestick/OHLCV data |
-| `getExecutionPrice` | Quote a trade |
-| `getExecutionPriceDetailed` | Detailed execution breakdown |
-| `fetchOrder` | Get a specific order |
+| `fetchEvent` | Get a single event by ID or slug |
+| `fetchEventsPaginated` | Cursor-based paginated event listing |
+| `loadMarkets` | Load and cache all markets for a venue |
+
+### Pricing and data
+
+| Tool | Description |
+|------|-------------|
+| `fetchOrderBook` | Get the current orderbook for an outcome |
+| `fetchTrades` | Get recent trade history |
+| `fetchOHLCV` | Get candlestick/OHLCV price data |
+| `getExecutionPrice` | Quote a volume-weighted execution price |
+| `getExecutionPriceDetailed` | Detailed execution breakdown with partial fill data |
+
+### Cross-venue comparison
+
+These tools query the PMXT catalog to find and compare the same market across different venues.
+
+| Tool | Description |
+|------|-------------|
+| `fetchMarketMatches` | Find the same market on other venues |
+| `fetchEventMatches` | Find the same event on other venues |
+| `compareMarketPrices` | Side-by-side price comparison across venues |
+| `fetchMatchedMarkets` | Browse all matched market pairs |
+| `fetchMatchedPrices` | Browse matched pairs with price differences |
+| `fetchRelatedMarkets` | Find subset/superset market relationships |
+| `fetchHedges` | Find hedging opportunities across venues |
+| `fetchArbitrage` | Find arbitrage opportunities across venues |
+
+### Account and orders
+
+| Tool | Description |
+|------|-------------|
+| `fetchBalance` | Get account balance |
+| `fetchPositions` | List your positions |
 | `fetchOpenOrders` | List open orders |
 | `fetchClosedOrders` | List closed orders |
 | `fetchAllOrders` | List all orders |
-| `fetchMyTrades` | List your trades |
-| `fetchPositions` | List your positions |
-| `fetchBalance` | Get account balance |
-| `loadMarkets` | Initialize market data |
+| `fetchOrder` | Get a specific order by ID |
+| `fetchMyTrades` | List your trade history |
 
 ### Trading (requires user confirmation)
 
@@ -149,14 +194,25 @@ Each tool call is proxied back to the PMXT REST API using your Bearer token,
 so all authentication, rate limiting, and usage tracking works identically
 to direct API calls.
 
-## Differences from the npm package
+## Running locally with the npm package
 
-PMXT also publishes `@pmxt/mcp` on npm for running a local MCP server.
-The hosted version is functionally identical but:
+PMXT also publishes [`@pmxt/mcp`](https://www.npmjs.com/package/@pmxt/mcp) on npm
+for running the MCP server as a local process. Use this if you need to self-host,
+work offline, or customize tool behavior.
 
-- **No install** — zero dependencies, zero setup
-- **Always up to date** — new tools are available as soon as they ship
-- **Runs anywhere** — works in cloud-hosted editors and remote environments
+```json
+{
+  "mcpServers": {
+    "pmxt": {
+      "command": "npx",
+      "args": ["-y", "@pmxt/mcp"],
+      "env": {
+        "PMXT_API_KEY": "pmxt_live_..."
+      }
+    }
+  }
+}
+```
 
-Use the npm package if you need to run the server locally or want to
-customize tool behavior.
+The hosted version above is functionally identical but requires no install,
+stays automatically up to date, and works in cloud-hosted editors.

@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.37.5] - 2026-05-04
+
+### Fix: OpenAPI spec not auto-regenerated on direct pushes to main
+
+- The CI check for OpenAPI spec drift only ran on pull requests. Direct
+  pushes to main bypassed the check entirely, allowing the spec (and
+  downstream MCP + SDKs) to silently drift from `BaseExchange.ts`.
+- The `openapi-check` workflow now auto-regenerates and commits the
+  sidecar spec on push to main. The PR check-and-fail behavior is
+  unchanged.
+- The path trigger now watches all source files the generator reads
+  (`types.ts`, `router/types.ts`, `math.ts`, `exchange-factory.ts`),
+  not just `BaseExchange.ts`.
+- The publish workflow now runs `generate:openapi` before SDK generation
+  as a safety net.
+
+### Fix: `fetchOrderBook` `side` parameter missing from OpenAPI spec
+
+- The optional `side` parameter added in v2.37.0 was never propagated to
+  the OpenAPI spec because the commit was pushed directly to main
+  (bypassing the PR-only CI check above).
+- The `paramKind` classifier in `generate-openapi.js` did not recognize
+  string literal unions (`'yes' | 'no'`), causing methods with such
+  parameters to incorrectly flip from GET to POST. String literal unions
+  are now classified as `string`, keeping `fetchOrderBook` as GET with
+  `side` as a query parameter.
+
 ## [2.37.4] - 2026-05-03
 
 ### Fix: Polymarket `fetchOrderBook` returns `timestamp: null`

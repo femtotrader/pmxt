@@ -91,6 +91,11 @@
         "name": "id",
         "kind": "string",
         "optional": false
+      },
+      {
+        "name": "side",
+        "kind": "string",
+        "optional": true
       }
     ]
   },
@@ -229,7 +234,7 @@
       },
       {
         "name": "side",
-        "kind": "unknown",
+        "kind": "string",
         "optional": false
       },
       {
@@ -249,7 +254,7 @@
       },
       {
         "name": "side",
-        "kind": "unknown",
+        "kind": "string",
         "optional": false
       },
       {

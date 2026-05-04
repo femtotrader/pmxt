@@ -4,11 +4,26 @@ on:
   pull_request:
     paths:
       - 'core/src/BaseExchange.ts'
+      - 'core/src/types.ts'
+      - 'core/src/router/types.ts'
+      - 'core/src/utils/math.ts'
+      - 'core/src/server/exchange-factory.ts'
+      - 'core/scripts/generate-openapi.js'
       - '.github/workflows/openapi-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'core/src/BaseExchange.ts'
+      - 'core/src/types.ts'
+      - 'core/src/router/types.ts'
+      - 'core/src/utils/math.ts'
+      - 'core/src/server/exchange-factory.ts'
+      - 'core/scripts/generate-openapi.js'
 
 jobs:
   verify-spec:
     name: Verify OpenAPI spec is up-to-date
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,10 +40,43 @@ jobs:
 
       - name: Check if spec changed
         run: |
-          if git diff --exit-code core/src/server/openapi.yaml; then
-            echo "✓ OpenAPI spec is up-to-date"
+          if git diff --exit-code core/src/server/openapi.yaml core/src/server/method-verbs.json; then
+            echo "OpenAPI spec is up-to-date"
           else
-            echo "✗ OpenAPI spec is out of sync with BaseExchange.ts"
+            echo "OpenAPI spec is out of sync with source files"
             echo "Run: npm run generate:openapi --workspace=pmxt-core"
             exit 1
+          fi
+
+  auto-regenerate:
+    name: Auto-regenerate OpenAPI spec
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --workspace=pmxt-core
+
+      - name: Regenerate OpenAPI spec
+        run: npm run generate:openapi --workspace=pmxt-core
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add core/src/server/openapi.yaml core/src/server/method-verbs.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: auto-regenerate OpenAPI spec"
+            git push origin main
+          else
+            echo "OpenAPI spec is already up-to-date"
           fi

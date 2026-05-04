@@ -64,6 +64,9 @@ jobs:
       - name: Fetch OpenAPI Specs
         run: npm run fetch:openapi --workspace=pmxt-core
 
+      - name: Regenerate OpenAPI spec
+        run: npm run generate:openapi --workspace=pmxt-core
+
       - name: Generate SDKs
         run: npm run generate:sdk:all --workspace=pmxt-core
 

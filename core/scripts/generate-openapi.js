@@ -1221,16 +1221,23 @@ function paramKind(typeNode) {
     case ts.SyntaxKind.TypeLiteral:
       return 'object';
     case ts.SyntaxKind.UnionType: {
-      // Allow unions of named object types as object-kind (fetchTrades
-      // takes `TradesParams | HistoryFilterParams`, etc.). Reject other
-      // unions as unknown so we fall back to POST.
       const members = typeNode.types.filter(
         t =>
           t.kind !== ts.SyntaxKind.NullKeyword &&
           t.kind !== ts.SyntaxKind.UndefinedKeyword
       );
+      // Union of named object types → object-kind (fetchTrades takes
+      // `TradesParams | HistoryFilterParams`, etc.)
       if (members.every(t => t.kind === ts.SyntaxKind.TypeReference)) {
         return 'object';
+      }
+      // Union of string literals → string-kind (fetchOrderBook takes
+      // `side?: 'yes' | 'no'`). These serialize as query params fine.
+      if (members.every(t =>
+        t.kind === ts.SyntaxKind.LiteralType &&
+        t.literal.kind === ts.SyntaxKind.StringLiteral
+      )) {
+        return 'string';
       }
       return 'unknown';
     }

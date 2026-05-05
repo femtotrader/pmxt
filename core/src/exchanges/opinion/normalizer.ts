@@ -353,10 +353,16 @@ export class OpinionNormalizer implements IExchangeNormalizer<OpinionRawMarket, 
             price: 0.5,
         };
 
+        const childTitle = child.marketTitle || '';
+        const parentTitle = parent.marketTitle || '';
+        const combinedTitle = parentTitle && childTitle
+            ? `${parentTitle} - ${childTitle}`
+            : parentTitle || childTitle;
+
         const market: UnifiedMarket = {
             marketId,
             eventId: String(parent.marketId),
-            title: child.marketTitle || '',
+            title: combinedTitle,
             description: child.rules || '',
             outcomes: [yesOutcome, noOutcome],
             resolutionDate: new Date(toMillis(child.cutoffAt)),

@@ -328,9 +328,9 @@ describe('OpinionNormalizer.normalizeMarketsFromEvent', () => {
         const markets = normalizer.normalizeMarketsFromEvent(RAW_CATEGORICAL_MARKET);
         expect(markets).toHaveLength(2);
         expect(markets[0].marketId).toBe('201');
-        expect(markets[0].title).toBe('Decrease rates');
+        expect(markets[0].title).toBe('ECB Rates Decision June 2026 - Decrease rates');
         expect(markets[1].marketId).toBe('202');
-        expect(markets[1].title).toBe('No change');
+        expect(markets[1].title).toBe('ECB Rates Decision June 2026 - No change');
     });
 
     test('should set eventId on child markets', () => {

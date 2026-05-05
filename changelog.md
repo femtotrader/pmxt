@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.37.8] - 2026-05-05
+
+### Fix: Opinion child market titles now include parent event context
+
+- Opinion categorical markets (e.g., "Next James Bond actor?") produce
+  child markets with generic titles like "$200M", "Callum Turner", or
+  "June 30, 2026". These titles lack the subject context needed for
+  cross-venue matching.
+- The Opinion normalizer now prepends the parent event title to child
+  market titles using the same `${event} - ${market}` pattern Polymarket
+  uses. Examples:
+  - `$200M` → `Probable FDV above ... one day after launch? - $200M`
+  - `Callum Turner` → `Next James Bond actor? - Callum Turner`
+  - `June 30, 2026` → `Will Trump visit China by...? - June 30, 2026`
+- This prevents the cross-venue matcher from incorrectly pairing generic
+  Opinion markets (e.g., Probable FDV "$200M") with unrelated markets on
+  other venues that share the same threshold (e.g., Variational FDV
+  "$200M", Unit FDV "$200M").
+
 ## [2.37.7] - 2026-05-05
 
 ### Fix: Kalshi `watchOrderBook` returns empty orderbook for non-existing markets (#124)

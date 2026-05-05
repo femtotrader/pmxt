@@ -159,7 +159,137 @@ describe('KalshiWebSocket', () => {
         });
     });
 
-    // --- Order Book Delta ----------------------------------------------
+    // --- V2 dollars_fp Format (Issue #125) --------------------------------
+
+    describe('handleOrderbookSnapshot (V2 dollars_fp format)', () => {
+        test('parses yes_dollars_fp and no_dollars_fp string pairs', () => {
+            const ws = createKalshiWS();
+
+            call(ws, 'handleOrderbookSnapshot', {
+                market_ticker: 'MKT-V2',
+                yes_dollars_fp: [
+                    ['0.6500', '100.00'],
+                    ['0.6000', '50.00'],
+                ],
+                no_dollars_fp: [
+                    ['0.3500', '80.00'],
+                    ['0.4000', '20.00'],
+                ],
+            });
+
+            const book: OrderBook = field(ws, 'orderBooks').get('MKT-V2');
+            expect(book).toBeDefined();
+
+            // yes_dollars_fp → bids, price used as-is, sorted desc
+            expect(book.bids).toHaveLength(2);
+            expect(book.bids[0].price).toBeCloseTo(0.65);
+            expect(book.bids[0].size).toBe(100);
+            expect(book.bids[1].price).toBeCloseTo(0.60);
+            expect(book.bids[1].size).toBe(50);
+
+            // no_dollars_fp → asks, price = 1 - no_price, sorted asc
+            expect(book.asks).toHaveLength(2);
+            expect(book.asks[0].price).toBeCloseTo(0.60); // 1 - 0.40
+            expect(book.asks[0].size).toBe(20);
+            expect(book.asks[1].price).toBeCloseTo(0.65); // 1 - 0.35
+            expect(book.asks[1].size).toBe(80);
+        });
+
+        test('handles only no_dollars_fp (no YES orders)', () => {
+            const ws = createKalshiWS();
+
+            call(ws, 'handleOrderbookSnapshot', {
+                market_ticker: 'MKT-V2B',
+                no_dollars_fp: [
+                    ['0.0100', '336900.00'],
+                    ['0.9900', '1380305.72'],
+                ],
+            });
+
+            const book: OrderBook = field(ws, 'orderBooks').get('MKT-V2B');
+            expect(book.bids).toHaveLength(0);
+            expect(book.asks).toHaveLength(2);
+            expect(book.asks[0].price).toBeCloseTo(0.01); // 1 - 0.99
+            expect(book.asks[0].size).toBe(1380305.72);
+            expect(book.asks[1].price).toBeCloseTo(0.99); // 1 - 0.01
+            expect(book.asks[1].size).toBe(336900);
+        });
+
+        test('resolves pending promises with V2 data', () => {
+            const ws = createKalshiWS();
+            const resolver = { resolve: jest.fn(), reject: jest.fn() };
+            field(ws, 'orderBookResolvers').set('MKT-V2C', [resolver]);
+
+            call(ws, 'handleOrderbookSnapshot', {
+                market_ticker: 'MKT-V2C',
+                yes_dollars_fp: [['0.55', '10.00']],
+                no_dollars_fp: [],
+            });
+
+            expect(resolver.resolve).toHaveBeenCalledTimes(1);
+            const resolved = (resolver.resolve as jest.Mock).mock.calls[0][0] as OrderBook;
+            expect(resolved.bids[0].price).toBeCloseTo(0.55);
+            expect(resolved.bids[0].size).toBe(10);
+        });
+    });
+
+    describe('handleOrderbookDelta (V2 dollars_fp format)', () => {
+        function snapshotV2First(ws: any, ticker: string) {
+            call(ws, 'handleOrderbookSnapshot', {
+                market_ticker: ticker,
+                yes_dollars_fp: [['0.6500', '100.00']],
+                no_dollars_fp: [['0.4000', '50.00']],
+            });
+        }
+
+        test('applies V2 delta to yes side', () => {
+            const ws = createKalshiWS();
+            snapshotV2First(ws, 'MKT-V2D');
+
+            call(ws, 'handleOrderbookDelta', {
+                market_ticker: 'MKT-V2D',
+                price_dollars_fp: '0.6500',
+                delta_dollars_fp: '20.00',
+                side: 'yes',
+            });
+
+            const book: OrderBook = field(ws, 'orderBooks').get('MKT-V2D');
+            expect(book.bids[0].size).toBe(120); // 100 + 20
+        });
+
+        test('applies V2 delta to no side', () => {
+            const ws = createKalshiWS();
+            snapshotV2First(ws, 'MKT-V2E');
+
+            call(ws, 'handleOrderbookDelta', {
+                market_ticker: 'MKT-V2E',
+                price_dollars_fp: '0.4000',
+                delta_dollars_fp: '10.00',
+                side: 'no',
+            });
+
+            const book: OrderBook = field(ws, 'orderBooks').get('MKT-V2E');
+            // asks: price = 1 - 0.40 = 0.60, original size 50 → 50+10 = 60
+            expect(book.asks[0].size).toBe(60);
+        });
+
+        test('removes level when V2 delta zeroes it out', () => {
+            const ws = createKalshiWS();
+            snapshotV2First(ws, 'MKT-V2F');
+
+            call(ws, 'handleOrderbookDelta', {
+                market_ticker: 'MKT-V2F',
+                price_dollars_fp: '0.6500',
+                delta_dollars_fp: '-100.00',
+                side: 'yes',
+            });
+
+            const book: OrderBook = field(ws, 'orderBooks').get('MKT-V2F');
+            expect(book.bids).toHaveLength(0);
+        });
+    });
+
+    // --- Order Book Delta (legacy cents format) ---------------------------
 
     describe('handleOrderbookDelta', () => {
         function snapshotFirst(ws: any, ticker: string) {

@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.37.6] - 2026-05-05
+
+### Fix: Kalshi `watchOrderBook` always returns empty orderbook (#125)
+
+- Kalshi's V2 WebSocket API changed the snapshot message format from
+  cent-denominated `yes`/`no` arrays to dollar-denominated string pairs
+  (`yes_dollars_fp`/`no_dollars_fp`). The handler only looked for the old
+  fields, so both evaluated to `[]`, producing an empty orderbook.
+- The snapshot handler now detects the V2 format and parses the string
+  pairs with the same `1 - no_price` ask conversion used by
+  `fetchOrderBook`.
+- The delta handler now handles V2 `price_dollars_fp`/`delta_dollars_fp`
+  fields in addition to the legacy cent-based integers.
+- Backward compatible: markets still sending the old format continue to
+  work unchanged.
+
 ## [2.37.5] - 2026-05-04
 
 ### Fix: OpenAPI spec not auto-regenerated on direct pushes to main

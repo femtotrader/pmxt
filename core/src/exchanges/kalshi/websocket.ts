@@ -226,12 +226,28 @@ export class KalshiWebSocket {
   private handleOrderbookSnapshot(data: any) {
     const ticker = data.market_ticker;
 
-    // Kalshi orderbook structure:
-    // yes: [{ price: number (cents), quantity: number }, ...]
-    // no: [{ price: number (cents), quantity: number }, ...]
+    // Kalshi V2 WebSocket uses dollar-denominated string pairs:
+    //   yes_dollars_fp / no_dollars_fp: [["0.55", "100.00"], ...]
+    // Older format used cent-denominated objects:
+    //   yes / no: [{ price: 55, quantity: 100 }, ...]
+    const usesDollarsFp =
+      data.yes_dollars_fp !== undefined || data.no_dollars_fp !== undefined;
 
-    const bids: OrderLevel[] = (data.yes || [])
-      .map((level: any) => {
+    let bids: OrderLevel[];
+    let asks: OrderLevel[];
+
+    if (usesDollarsFp) {
+      bids = (data.yes_dollars_fp || []).map((level: [string, string]) => ({
+        price: parseFloat(level[0]),
+        size: parseFloat(level[1]),
+      }));
+
+      asks = (data.no_dollars_fp || []).map((level: [string, string]) => ({
+        price: Math.round((1 - parseFloat(level[0])) * 10000) / 10000,
+        size: parseFloat(level[1]),
+      }));
+    } else {
+      bids = (data.yes || []).map((level: any) => {
         const price = (level.price || level[0]) / 100;
         const size =
           (level.quantity !== undefined
@@ -240,11 +256,9 @@ export class KalshiWebSocket {
               ? level.size
               : level[1]) || 0;
         return { price, size };
-      })
-      .sort((a: OrderLevel, b: OrderLevel) => b.price - a.price);
+      });
 
-    const asks: OrderLevel[] = (data.no || [])
-      .map((level: any) => {
+      asks = (data.no || []).map((level: any) => {
         const price = (100 - (level.price || level[0])) / 100;
         const size =
           (level.quantity !== undefined
@@ -253,8 +267,11 @@ export class KalshiWebSocket {
               ? level.size
               : level[1]) || 0;
         return { price, size };
-      })
-      .sort((a: OrderLevel, b: OrderLevel) => a.price - b.price);
+      });
+    }
+
+    bids.sort((a: OrderLevel, b: OrderLevel) => b.price - a.price);
+    asks.sort((a: OrderLevel, b: OrderLevel) => a.price - b.price);
 
     const orderBook: OrderBook = {
       bids,
@@ -275,22 +292,43 @@ export class KalshiWebSocket {
       return;
     }
 
-    // Apply delta updates
-    // Kalshi sends: { price: number, delta: number, side: 'yes' | 'no' }
-    const price = data.price / 100;
-    const delta =
-      data.delta !== undefined
-        ? data.delta
-        : data.quantity !== undefined
-          ? data.quantity
-          : 0;
-    const side = data.side;
+    // Kalshi V2 uses dollar-denominated string values:
+    //   { price_dollars_fp: "0.55", delta_dollars_fp: "10.00", side: "yes"|"no" }
+    // Older format used cent-denominated integers:
+    //   { price: 55, delta: 10, side: "yes"|"no" }
+    const usesDollarsFp = data.price_dollars_fp !== undefined;
 
-    if (side === "yes") {
-      this.applyDelta(existing.bids, price, delta, "desc");
+    let price: number;
+    let delta: number;
+
+    if (usesDollarsFp) {
+      const rawPrice = parseFloat(data.price_dollars_fp);
+      delta = parseFloat(data.delta_dollars_fp || "0");
+      const side = data.side;
+
+      if (side === "yes") {
+        price = rawPrice;
+        this.applyDelta(existing.bids, price, delta, "desc");
+      } else {
+        price = Math.round((1 - rawPrice) * 10000) / 10000;
+        this.applyDelta(existing.asks, price, delta, "asc");
+      }
     } else {
-      const yesPrice = (100 - data.price) / 100;
-      this.applyDelta(existing.asks, yesPrice, delta, "asc");
+      price = data.price / 100;
+      delta =
+        data.delta !== undefined
+          ? data.delta
+          : data.quantity !== undefined
+            ? data.quantity
+            : 0;
+      const side = data.side;
+
+      if (side === "yes") {
+        this.applyDelta(existing.bids, price, delta, "desc");
+      } else {
+        const yesPrice = (100 - data.price) / 100;
+        this.applyDelta(existing.asks, yesPrice, delta, "asc");
+      }
     }
 
     existing.timestamp = Date.now();

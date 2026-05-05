@@ -226,6 +226,21 @@ export class KalshiWebSocket {
   private handleOrderbookSnapshot(data: any) {
     const ticker = data.market_ticker;
 
+    // Kalshi returns market_id: "" for non-existing markets — reject instead
+    // of resolving with an empty orderbook.
+    if (!data.market_id) {
+      const resolvers = this.orderBookResolvers.get(ticker);
+      if (resolvers && resolvers.length > 0) {
+        const err = new Error(
+          `watchOrderBook('${ticker}'): market not found on this exchange.`,
+        );
+        resolvers.forEach((r) => r.reject(err));
+        this.orderBookResolvers.set(ticker, []);
+      }
+      this.subscribedOrderBookTickers.delete(ticker);
+      return;
+    }
+
     // Kalshi V2 WebSocket uses dollar-denominated string pairs:
     //   yes_dollars_fp / no_dollars_fp: [["0.55", "100.00"], ...]
     // Older format used cent-denominated objects:

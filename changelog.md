@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.37.7] - 2026-05-05
+
+### Fix: Kalshi `watchOrderBook` returns empty orderbook for non-existing markets (#124)
+
+- Kalshi's WebSocket sends a valid `orderbook_snapshot` even for
+  non-existing market IDs, with `market_id: ""` and no price data. The
+  handler parsed this as an empty orderbook and resolved successfully,
+  while Polymarket correctly threw a timeout error.
+- The snapshot handler now detects the empty `market_id` and rejects the
+  resolver with a clear "market not found" error, consistent with the
+  timeout behavior on other venues.
+
 ## [2.37.6] - 2026-05-05
 
 ### Fix: Kalshi `watchOrderBook` always returns empty orderbook (#125)

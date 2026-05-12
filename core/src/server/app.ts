@@ -41,13 +41,9 @@ function loadMethodVerbs(): Record<string, MethodVerb> {
     path.join(__dirname, "../../src/server/method-verbs.json"),
   ];
   for (const file of candidates) {
-    try {
-      if (fs.existsSync(file)) {
-        return JSON.parse(fs.readFileSync(file, "utf8"));
-      }
-    } catch {
-      // Fall through to the next candidate.
-    }
+    if (!fs.existsSync(file)) continue;
+    const raw = fs.readFileSync(file, "utf8");
+    return JSON.parse(raw);
   }
   console.warn(
     "[pmxt-core] method-verbs.json not found — GET /api/:exchange/:method disabled. " +

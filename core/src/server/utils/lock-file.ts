@@ -22,8 +22,9 @@ export class LockFile {
         try {
             const data = await fs.readFile(this.lockPath, 'utf-8');
             return JSON.parse(data);
-        } catch {
-            return null;
+        } catch (err: any) {
+            if (err?.code === 'ENOENT') return null;
+            throw err;
         }
     }
 

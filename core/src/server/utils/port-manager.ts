@@ -15,14 +15,14 @@ export class PortManager {
     }
 
     private isPortAvailable(port: number): Promise<boolean> {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             const server = net.createServer();
 
             server.once('error', (err: any) => {
                 if (err.code === 'EADDRINUSE') {
                     resolve(false);
                 } else {
-                    resolve(false);
+                    reject(err);
                 }
             });
 

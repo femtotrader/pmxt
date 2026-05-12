@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.40.6] - 2026-05-12
+
+### Fixed
+
+- **Polymarket**: Error messages for signature type mismatches now suggest specific alternatives to try (`deposit_wallet`, `gnosis_safe`, `polyproxy`) instead of generic "pass signatureType" guidance.
+- **Polymarket**: Setup docs now list all four signature types with era labels and a troubleshooting hint when balance shows $0.
+
 ## [2.40.5] - 2026-05-09
 
 ### Fixed

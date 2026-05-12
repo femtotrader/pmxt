@@ -488,11 +488,11 @@ export class PolymarketExchange extends PredictionMarketExchange {
                 if (msg.includes('is not iterable')) {
                     throw new AuthenticationError(
                         'Polymarket CLOB rejected the request to list open orders. ' +
-                        'This usually means the wallet has not completed Polymarket ' +
-                        'onboarding (no proxy/safe exists for this signer), or that ' +
-                        'funderAddress / signatureType need to be passed explicitly. ' +
-                        'Visit https://polymarket.com to complete account setup, or ' +
-                        'pass funderAddress and signatureType in credentials.',
+                        'This usually means your signature_type is wrong for this account, ' +
+                        'or the wallet has not completed Polymarket onboarding. ' +
+                        "Try signature_type='deposit_wallet' (newest accounts), " +
+                        "'gnosis_safe' (2023-era accounts), or 'polyproxy' (legacy accounts). " +
+                        'If none work, visit https://polymarket.com to complete account setup.',
                         'Polymarket',
                     );
                 }

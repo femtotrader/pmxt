@@ -71,6 +71,21 @@ export class PolymarketErrorMapper extends ErrorMapper {
     protected mapBadRequestError(message: string, data: any): BadRequest {
         const lowerMessage = message.toLowerCase();
 
+        // Signature type / maker address mismatch — the most common auth
+        // misconfiguration.  Surface actionable guidance so users don't have
+        // to guess which signature_type to use.
+        if (
+            lowerMessage.includes('maker address not allowed') ||
+            lowerMessage.includes('deposit wallet')
+        ) {
+            return new AuthenticationError(
+                `${message}. Your signature_type may be wrong for this account. ` +
+                `Try signature_type='deposit_wallet' (newest accounts), ` +
+                `'gnosis_safe' (2023-era accounts), or 'polyproxy' (legacy accounts).`,
+                this.exchangeName,
+            );
+        }
+
         // Authentication errors surfaced as 400
         if (
             lowerMessage.includes('api key') ||

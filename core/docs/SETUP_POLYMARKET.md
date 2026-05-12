@@ -39,10 +39,14 @@ POLYMARKET_PRIVATE_KEY=0x...
 POLYMARKET_PROXY_ADDRESS=0x...
 
 # Choose your account type:
-# - 'gnosis_safe' (Modern accounts, recommended) 
-# - 'polyproxy'   (Older accounts)
-# - 'eoa'         (Standard wallet, no proxy)
-POLYMARKET_SIGNATURE_TYPE='gnosis_safe'
+# - 'deposit_wallet' (Newest accounts, post-2024 — recommended)
+# - 'gnosis_safe'    (2023-era accounts)
+# - 'polyproxy'      (Legacy proxy accounts)
+# - 'eoa'            (Standard wallet, no proxy)
+#
+# If balance shows $0 or orders fail with "maker address not allowed",
+# try a different signature type.
+POLYMARKET_SIGNATURE_TYPE='deposit_wallet'
 ```
 
 ## 4. Initialization (Python)
@@ -54,6 +58,6 @@ import pmxt
 exchange = pmxt.Polymarket(
     private_key=os.getenv('POLYMARKET_PRIVATE_KEY'),
     proxy_address=os.getenv('POLYMARKET_PROXY_ADDRESS'),
-    signature_type='gnosis_safe'
+    signature_type='deposit_wallet'
 )
 ```

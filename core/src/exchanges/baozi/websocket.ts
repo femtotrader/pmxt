@@ -67,8 +67,13 @@ export class BaoziWebSocket {
                         };
 
                         this.resolveOrderBook(marketPubkey, orderBook);
-                    } catch {
-                        // Skip parse errors on account change
+                    } catch (error: unknown) {
+                        // Reject pending resolvers so callers fail fast
+                        const rejecters = this.orderBookResolvers.get(marketPubkey) || [];
+                        this.orderBookResolvers.set(marketPubkey, []);
+                        for (const r of rejecters) {
+                            r.reject(error instanceof Error ? error : new Error(String(error)));
+                        }
                     }
                 },
                 'confirmed',

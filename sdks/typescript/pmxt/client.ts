@@ -1603,26 +1603,26 @@ export abstract class Exchange {
      * Requires hosted mode (`pmxtApiKey` set).
      *
      * @param venues - Optional venue filter (e.g. ["polymarket", "limitless"])
-     * @returns Next firehose event with source, symbol, and orderbook
+     * @returns Next event with source, symbol, and orderbook
      *
      * @example
      * ```typescript
      * const poly = new Polymarket({ pmxtApiKey: "pmxt_xxx" });
      * while (true) {
-     *   const event = await poly.firehose();
+     *   const event = await poly.watchAllOrderBooks();
      *   console.log(event.source, event.symbol, event.orderbook.bids[0]);
      * }
      * ```
      */
-    async firehose(venues?: string[]): Promise<FirehoseEvent> {
+    async watchAllOrderBooks(venues?: string[]): Promise<FirehoseEvent> {
         await this.initPromise;
 
         if (!this.isHosted) {
-            throw new PmxtError("firehose() requires hosted mode (set pmxtApiKey)");
+            throw new PmxtError("watchAllOrderBooks() requires hosted mode (set pmxtApiKey)");
         }
 
         const args: any[] = venues ? [venues] : [];
-        const wsData = await this.watchViaWs("firehose", args);
+        const wsData = await this.watchViaWs("watchAllOrderBooks", args);
         if (wsData !== null) {
             return {
                 source: (wsData as any)._source || "",
@@ -1631,7 +1631,12 @@ export abstract class Exchange {
             };
         }
 
-        throw new PmxtError("firehose() requires WebSocket transport — connection failed");
+        throw new PmxtError("watchAllOrderBooks() requires WebSocket transport — connection failed");
+    }
+
+    /** @deprecated Use {@link watchAllOrderBooks} instead. */
+    async firehose(venues?: string[]): Promise<FirehoseEvent> {
+        return this.watchAllOrderBooks(venues);
     }
 
     /**
@@ -1897,7 +1902,8 @@ export abstract class Exchange {
                 }
                 const venue = new VenueClass(venueOpts);
                 const order = await venue.createOrder({ outcomeId: leg.tokenId, side: leg.side, amount: leg.shares, price: leg.price });
-                fills.push({ venue: leg.venue, venueOrderId: order.id, venueMarketId: leg.venueMarketId, venueOutcomeId: leg.venueOutcomeId, shares: order.filled || leg.shares, price: order.price || leg.price, status: 'filled' });
+                const filledShares = order.filled || 0;
+                fills.push({ venue: leg.venue, venueOrderId: order.id, venueMarketId: leg.venueMarketId, venueOutcomeId: leg.venueOutcomeId, shares: filledShares > 0 ? filledShares : leg.shares, price: order.price || leg.price, status: filledShares > 0 ? 'filled' : 'open' });
             } catch (err: any) {
                 fills.push({ venue: leg.venue, venueMarketId: leg.venueMarketId, venueOutcomeId: leg.venueOutcomeId, shares: leg.shares, price: leg.price, status: 'failed', error: err.message });
             }

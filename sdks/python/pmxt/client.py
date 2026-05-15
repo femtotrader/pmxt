@@ -1925,7 +1925,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def firehose(
+    def watch_all_order_books(
         self,
         venues: Optional[List[str]] = None,
     ) -> "FirehoseEvent":
@@ -1941,10 +1941,10 @@ class Exchange(ABC):
             FirehoseEvent with source, symbol, and orderbook
         """
         if not self.is_hosted:
-            raise PmxtError("firehose() requires hosted mode (set pmxt_api_key)")
+            raise PmxtError("watch_all_order_books() requires hosted mode (set pmxt_api_key)")
 
         args: list = [venues] if venues else []
-        data = self._watch_via_ws("firehose", args)
+        data = self._watch_via_ws("watchAllOrderBooks", args)
         if data is not None:
             return FirehoseEvent(
                 source=data.get("_source", ""),
@@ -1952,7 +1952,14 @@ class Exchange(ABC):
                 orderbook=_convert_order_book(data),
             )
 
-        raise PmxtError("firehose() requires WebSocket transport — connection failed")
+        raise PmxtError("watch_all_order_books() requires WebSocket transport — connection failed")
+
+    def firehose(
+        self,
+        venues: Optional[List[str]] = None,
+    ) -> "FirehoseEvent":
+        """Deprecated: Use :meth:`watch_all_order_books` instead."""
+        return self.watch_all_order_books(venues)
 
     def watch_trades(
         self,
@@ -2269,7 +2276,8 @@ class Exchange(ABC):
                     venue_opts["signature_type"] = account.get("signature_type", 3)
                 venue = venue_cls(**venue_opts)
                 result = venue.create_order(outcome_id=leg["tokenId"], side=leg["side"], amount=leg["shares"], price=leg["price"])
-                fills.append({"venue": leg["venue"], "venueOrderId": result.id, "venueMarketId": leg.get("venueMarketId"), "venueOutcomeId": leg.get("venueOutcomeId"), "shares": getattr(result, "filled", None) or leg["shares"], "price": getattr(result, "price", None) or leg["price"], "status": "filled"})
+                filled = getattr(result, "filled", 0) or 0
+                fills.append({"venue": leg["venue"], "venueOrderId": result.id, "venueMarketId": leg.get("venueMarketId"), "venueOutcomeId": leg.get("venueOutcomeId"), "shares": filled if filled > 0 else leg["shares"], "price": getattr(result, "price", None) or leg["price"], "status": "filled" if filled > 0 else "open"})
             except Exception as e:
                 fills.append({"venue": leg["venue"], "venueMarketId": leg.get("venueMarketId"), "venueOutcomeId": leg.get("venueOutcomeId"), "shares": leg["shares"], "price": leg["price"], "status": "failed", "error": str(e)})
 

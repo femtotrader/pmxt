@@ -216,8 +216,11 @@ export class PolymarketExchange extends PredictionMarketExchange {
             let signedOrder;
 
             if (params.type === 'market' || !params.price) {
+                const marketAmount = side === Side.BUY
+                    ? params.amount * (params.price || 1)
+                    : params.amount;
                 signedOrder = await client.createMarketOrder(
-                    { tokenID: params.outcomeId, amount: params.amount, side },
+                    { tokenID: params.outcomeId, amount: marketAmount, side },
                     options,
                 );
             } else {
@@ -265,12 +268,12 @@ export class PolymarketExchange extends PredictionMarketExchange {
                 const making = typeof response.makingAmount === 'string'
                     ? parseFloat(response.makingAmount)
                     : (response.makingAmount ?? 0);
-                // For BUY: makingAmount = shares filled. For SELL: takingAmount = shares filled.
-                // Values are already human-readable (not raw 6-decimal units).
-                filled = side === Side.BUY ? making : taking;
+                // BUY: takingAmount = shares received, makingAmount = USDC spent
+                // SELL: makingAmount = shares sold, takingAmount = USDC received
+                filled = side === Side.BUY ? taking : making;
             }
             const remaining = Math.max(0, built.params.amount - filled);
-            const orderStatus = filled >= built.params.amount - 0.001 ? 'filled' : 'open';
+            const orderStatus = isImmediatelyFilled ? 'filled' : 'open';
 
             return {
                 id: response.orderID,

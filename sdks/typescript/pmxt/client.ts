@@ -1901,9 +1901,11 @@ export abstract class Exchange {
                     venueOpts.signatureType = this._hostedAccount.signatureType || 3;
                 }
                 const venue = new VenueClass(venueOpts);
-                const order = await venue.createOrder({ outcomeId: leg.tokenId, side: leg.side, amount: leg.shares, price: leg.price });
-                const filledShares = order.filled || 0;
-                fills.push({ venue: leg.venue, venueOrderId: order.id, venueMarketId: leg.venueMarketId, venueOutcomeId: leg.venueOutcomeId, shares: filledShares > 0 ? filledShares : leg.shares, price: order.price || leg.price, status: filledShares > 0 ? 'filled' : 'open' });
+                const orderParams: any = { outcomeId: leg.tokenId, side: leg.side, amount: leg.shares };
+                if (leg.orderType === 'market') { orderParams.type = 'market'; orderParams.price = leg.price; }
+                else { orderParams.price = leg.price; }
+                const order = await venue.createOrder(orderParams);
+                fills.push({ venue: leg.venue, venueOrderId: order.id, venueMarketId: leg.venueMarketId, venueOutcomeId: leg.venueOutcomeId, shares: order.filled ?? leg.shares, price: order.price || leg.price, status: order.status });
             } catch (err: any) {
                 fills.push({ venue: leg.venue, venueMarketId: leg.venueMarketId, venueOutcomeId: leg.venueOutcomeId, shares: leg.shares, price: leg.price, status: 'failed', error: err.message });
             }

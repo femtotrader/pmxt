@@ -3781,7 +3781,7 @@ const result = await exchange.fetchBalance({ address: "0xabc..." });
 
 ## Realtime
 
-### Watch Order Book (WebSocket)
+### Watch Order Book
 
 `POST /api/{exchange}/watchOrderBook`
 
@@ -3834,7 +3834,7 @@ const result = await exchange.watchOrderBook({ id: "12345" });
 ```
 
 
-### Watch Order Books (WebSocket)
+### Watch Order Books
 
 `POST /api/{exchange}/watchOrderBooks`
 
@@ -3887,7 +3887,7 @@ const result = await exchange.watchOrderBooks();
 ```
 
 
-### Unwatch Order Book (WebSocket)
+### Unwatch Order Book
 
 `POST /api/{exchange}/unwatchOrderBook`
 
@@ -3938,7 +3938,7 @@ const result = await exchange.unwatchOrderBook();
 ```
 
 
-### Watch Trades (WebSocket)
+### Watch Trades
 
 `POST /api/{exchange}/watchTrades`
 
@@ -3991,7 +3991,7 @@ const result = await exchange.watchTrades({ id: "12345" });
 ```
 
 
-### Watch Address (WebSocket)
+### Watch Address
 
 `POST /api/{exchange}/watchAddress`
 
@@ -4044,7 +4044,7 @@ const result = await exchange.watchAddress({ address: "0xabc..." });
 ```
 
 
-### Unwatch Address (WebSocket)
+### Unwatch Address
 
 `POST /api/{exchange}/unwatchAddress`
 

@@ -3847,7 +3847,7 @@ Source: https://pmxt.dev/docs/api-reference/watch-all-order-books
 |-----------|------|----------|-------------|
 | `venues` | string[] | No | Optional venue filter. Omit to receive all venues. |
 
-Available venues: `polymarket`, `limitless`, `opinion` (more added automatically as they come online).
+Available venues: `polymarket`, `kalshi`, `limitless`, `opinion`.
 
 #### Response
 
@@ -4067,6 +4067,8 @@ Source: https://pmxt.dev/docs/api-reference/watch-order-book
 **WebSocket endpoint** — This method uses WebSocket streaming, not HTTP. Connect to `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` (hosted) or `ws://localhost:3847/ws` (local sidecar).
 
 
+Supported venues: `polymarket`, `kalshi`, `limitless`, `opinion`.
+
 #### Parameters
 
 | Parameter | Type | Required | Description |
@@ -4235,6 +4237,8 @@ Source: https://pmxt.dev/docs/api-reference/watch-order-books
 **WebSocket endpoint** — This method uses WebSocket streaming, not HTTP. Connect to `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` (hosted) or `ws://localhost:3847/ws` (local sidecar).
 
 
+Supported venues: `polymarket`, `kalshi`, `limitless`, `opinion`.
+
 #### Parameters
 
 | Parameter | Type | Required | Description |
@@ -4361,6 +4365,8 @@ Source: https://pmxt.dev/docs/api-reference/watch-trades
 > **Note:**
 **WebSocket endpoint** — This method uses WebSocket streaming, not HTTP. Connect to `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` (hosted) or `ws://localhost:3847/ws` (local sidecar).
 
+
+Supported venues: `polymarket`, `kalshi`, `limitless`, `opinion`.
 
 #### Parameters
 

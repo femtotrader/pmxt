@@ -14,7 +14,7 @@ export function createFeedRouter(): Router {
 
     router.use('/:feed', (req: Request, _res: Response, next: NextFunction) => {
         try {
-            const feed = getFeed(req.params.feed);
+            const feed = getFeed(req.params.feed as string);
             (req as any)._feed = feed;
             next();
         } catch (error: any) {

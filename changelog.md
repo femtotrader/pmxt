@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.7] - 2026-05-23
+
+### Added
+
+- **Docs**: `fetch-order-book.mdx` with Python, JavaScript, and curl examples for live, historical snapshot, and historical range queries. Uses the 2028 Presidential Election market.
+
 ## [2.43.6] - 2026-05-23
 
 ### Improved

@@ -3,7 +3,7 @@
   "info": {
     "title": "PMXT Hosted API",
     "description": "One API for every prediction market. Cross-venue search in under 10ms, a single unified schema, and the complete venue surface from reads to trades.",
-    "version": "2.43.5"
+    "version": "2.43.8"
   },
   "servers": [
     {
@@ -2274,7 +2274,7 @@
             }
           }
         },
-        "description": "Fetch the order book (bids/asks) for a specific outcome.",
+        "description": "Fetch the order book (bids/asks) for a specific outcome. Supports live and historical queries. For historical data, pass `since` to get a single snapshot, or `since` + `until` to get an array of fully reconstructed L2 books from the archive. Range queries return up to `limit` snapshots (default 100, max 1000).",
         "security": [],
         "x-codeSamples": [
           {

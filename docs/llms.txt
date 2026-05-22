@@ -39,7 +39,7 @@ GitHub: https://github.com/pmxt-dev/pmxt
 - [Event Matches](https://pmxt.dev/docs/api-reference/fetch-event-matches)
 - [Market Matches](https://pmxt.dev/docs/api-reference/fetch-market-matches)
 - [Fetch OHLCV](https://pmxt.dev/docs/api-reference/fetch-ohlcv)
-- [Fetch Order Book](https://pmxt.dev/docs/api-reference/fetchOrderBook): Fetch the order book (bids/asks) for a specific outcome.
+- [Fetch Order Book](https://pmxt.dev/docs/api-reference/fetch-order-book)
 - [Fetch Order Books](https://pmxt.dev/docs/api-reference/fetchOrderBooks): Batch variant of {@link fetchOrderBook}. Fetches order books for multiple outcomes in a single request where the exchange supports it.
 - [Fetch Trades](https://pmxt.dev/docs/api-reference/fetchTrades): Fetch raw trade history for a specific outcome.
 - [Get Execution Price](https://pmxt.dev/docs/api-reference/getExecutionPrice): Calculate the volume-weighted average execution price for a given order size. Returns 0 if the order cannot be fully filled.

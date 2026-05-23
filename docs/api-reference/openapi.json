@@ -3,7 +3,7 @@
   "info": {
     "title": "PMXT Hosted API",
     "description": "One API for every prediction market. Cross-venue search in under 10ms, a single unified schema, and the complete venue surface from reads to trades.",
-    "version": "2.43.11"
+    "version": "2.43.12"
   },
   "servers": [
     {
@@ -2694,7 +2694,7 @@
             "schema": {
               "type": "number"
             },
-            "description": "Maximum number of results to return"
+            "description": "Maximum number of results to return (max {@link MAX_TRADES_LIMIT})"
           }
         ],
         "responses": {
@@ -10679,7 +10679,6 @@
       },
       "TradesParams": {
         "type": "object",
-        "description": "Parameters for fetching trade history. No resolution parameter - trades are discrete events.",
         "properties": {
           "start": {
             "type": "string",
@@ -10693,7 +10692,7 @@
           },
           "limit": {
             "type": "number",
-            "description": "Maximum number of results to return"
+            "description": "Maximum number of results to return (max {@link MAX_TRADES_LIMIT})"
           }
         }
       },

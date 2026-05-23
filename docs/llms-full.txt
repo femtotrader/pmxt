@@ -3304,7 +3304,7 @@ Fetch raw trade history for a specific outcome.
 | `outcomeId` | string | Yes |  |
 | `start` | string | No | Start of the time range |
 | `end` | string | No | End of the time range |
-| `limit` | number | No | Maximum number of results to return |
+| `limit` | number | No | Maximum number of results to return (max {@link MAX_TRADES_LIMIT}) |
 
 **Response:** `{ success: true, data: Trade[] }`
 

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.10] - 2026-05-23
+
+### Fixed
+
+- **Logging**: Replaced all remaining raw `console.log/warn/error` calls in production code with the structured `logger` from `core/src/utils/logger.ts`. 17 files, 50 replacements across kalshi, opinion, limitless, polymarket, baozi, probable, smarkets, myriad, metaculus, server/ws-handler, and subscriber/goldsky. Controlled by `PMXT_LOG_LEVEL` env var.
+
 ## [2.43.9] - 2026-05-23
 
 ### Fixed

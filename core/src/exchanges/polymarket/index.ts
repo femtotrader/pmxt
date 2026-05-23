@@ -161,6 +161,9 @@ export class PolymarketExchange extends PredictionMarketExchange {
     }
 
     async fetchOrderBook(outcomeId: string, _limit?: number, _params?: Record<string, any>): Promise<OrderBook> {
+        const resolved = await this.resolveOutcomeAlias(outcomeId, _params);
+        outcomeId = resolved.outcomeId;
+        _params = resolved.params;
         validateIdFormat(outcomeId, 'OrderBook');
         validateOutcomeId(outcomeId, 'OrderBook');
         const raw = await this.fetcher.fetchRawOrderBook(outcomeId);

@@ -724,6 +724,15 @@ paths:
             Outcome side: 'yes' or 'no'. Required for exchanges like Limitless where the API returns a single orderbook
             per market.
         - in: query
+          name: outcome
+          required: false
+          schema:
+            type: string
+          description: >-
+            Outcome alias: 'yes' or 'no', or an outcome token ID. When set, the first argument is treated as a market ID
+            and this value selects which outcome's order book to fetch. Accepts the literal strings 'yes'/'no' (resolved
+            via a market lookup) or a raw outcome token ID.
+        - in: query
           name: since
           required: false
           schema:
@@ -3436,6 +3445,12 @@ components:
           description: >-
             Outcome side: 'yes' or 'no'. Required for exchanges like Limitless where the API returns a single orderbook
             per market.
+        outcome:
+          type: string
+          description: >-
+            Outcome alias: 'yes' or 'no', or an outcome token ID. When set, the first argument is treated as a market ID
+            and this value selects which outcome's order book to fetch. Accepts the literal strings 'yes'/'no' (resolved
+            via a market lookup) or a raw outcome token ID.
         since:
           type: number
           description: >-

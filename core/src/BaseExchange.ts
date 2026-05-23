@@ -174,6 +174,11 @@ export interface FetchOrderBookParams {
     /** Outcome side: 'yes' or 'no'. Required for exchanges like Limitless
      *  where the API returns a single orderbook per market. */
     side?: 'yes' | 'no';
+    /** Outcome alias: 'yes' or 'no', or an outcome token ID. When set,
+     *  the first argument is treated as a market ID and this value selects
+     *  which outcome's order book to fetch. Accepts the literal strings
+     *  'yes'/'no' (resolved via a market lookup) or a raw outcome token ID. */
+    outcome?: string;
     /** Unix timestamp (ms) — fetch a historical snapshot at or before this
      *  time, or the start of a range when combined with `until` (hosted API only). */
     since?: number;
@@ -814,6 +819,75 @@ export abstract class PredictionMarketExchange {
             throw new MarketNotFound(identifier, this.name);
         }
         return markets[0];
+    }
+
+    private cacheMarketLookup(market: UnifiedMarket): void {
+        this.markets[market.marketId] = market;
+        if (market.slug) {
+            this.marketsBySlug[market.slug] = market;
+        }
+    }
+
+    private marketMatchesIdentifier(market: UnifiedMarket, id: string): boolean {
+        return market.marketId === id
+            || market.slug === id
+            || market.contractAddress === id
+            || (market as any).id === id;
+    }
+
+    private getCachedMarketForOutcomeAlias(id: string): UnifiedMarket | undefined {
+        const direct = this.markets[id] ?? this.marketsBySlug[id];
+        if (direct && this.marketMatchesIdentifier(direct, id)) return direct;
+        return Object.values(this.markets).find((market) => this.marketMatchesIdentifier(market, id));
+    }
+
+    private async fetchMarketForOutcomeAlias(id: string): Promise<UnifiedMarket> {
+        const cached = this.getCachedMarketForOutcomeAlias(id);
+        if (cached) return cached;
+
+        for (const params of [{ marketId: id }, { slug: id }]) {
+            const markets = await this.fetchMarkets(params);
+            const exact = markets.find((market) => this.marketMatchesIdentifier(market, id));
+            const market = exact ?? (markets.length === 1 ? markets[0] : undefined);
+            if (market) {
+                this.cacheMarketLookup(market);
+                return market;
+            }
+        }
+
+        throw new MarketNotFound(id, this.name);
+    }
+
+    /**
+     * Resolve an outcome alias ('yes'/'no') to an actual outcome token ID.
+     * When params.outcome is set, treats `id` as a market ID, looks up the
+     * market, and returns the resolved outcome token ID plus cleaned params.
+     * When params.outcome is already a token ID (not 'yes'/'no'), returns it
+     * directly. When params.outcome is not set, returns `id` unchanged.
+     */
+    protected async resolveOutcomeAlias(
+        id: string,
+        params?: FetchOrderBookParams,
+    ): Promise<{ outcomeId: string; params?: FetchOrderBookParams }> {
+        if (!params?.outcome) return { outcomeId: id, params };
+
+        const outcome = String(params.outcome);
+        const alias = outcome.toLowerCase();
+        const { outcome: _, ...rest } = params;
+
+        if (alias === 'yes' || alias === 'no') {
+            const market = await this.fetchMarketForOutcomeAlias(id);
+            const selected = alias === 'yes' ? market.yes : market.no;
+            if (!selected) {
+                throw new Error(
+                    `Market "${id}" has no '${alias}' outcome on ${this.name}`,
+                );
+            }
+            return { outcomeId: selected.outcomeId, params: rest };
+        }
+
+        // outcome is already a raw token ID — use it directly
+        return { outcomeId: outcome, params: rest };
     }
 
     // ----------------------------------------------------------------------------

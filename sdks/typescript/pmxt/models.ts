@@ -528,6 +528,8 @@ export interface TradesParams {
 export interface FetchOrderBookParams {
     /** Outcome side: 'yes' or 'no' (for exchanges like Limitless) */
     side?: 'yes' | 'no';
+    /** Outcome alias: 'yes' or 'no', or a raw outcome token ID */
+    outcome?: string;
     /** Unix timestamp (ms) — historical snapshot at or before this time */
     since?: number;
     /** Unix timestamp (ms) — end of range. With `since`, returns OrderBook[] */

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.13] - 2026-05-24
+
+### Fixed
+
+- **fetchOrderBook**: `params.outcome` now accepts `"yes"`/`"no"` outcome aliases when the first argument is a market ID. The alias is resolved to the venue's actual outcome token ID before fetching live or historical order books, while raw outcome token IDs continue to work unchanged.
+
 ## [2.43.12] - 2026-05-23
 
 ### Fixed

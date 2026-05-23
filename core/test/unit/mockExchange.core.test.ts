@@ -31,6 +31,32 @@ describe('MockExchange', () => {
         expect(o.price).toBeCloseTo(expectedMid, 5);
     });
 
+    test('fetchOrderBook resolves yes/no outcome aliases from market id', async () => {
+        const ex = new MockExchange({ marketCount: 3, orderLatencyMs: 0 });
+        const market = (await ex.fetchMarkets()).find((m) => m.yes && m.no)!;
+
+        const yesByAlias = await ex.fetchOrderBook(market.marketId, undefined, { outcome: 'yes' });
+        const yesByToken = await ex.fetchOrderBook(market.yes!.outcomeId);
+        const noByAlias = await ex.fetchOrderBook(market.marketId, undefined, { outcome: 'no' });
+        const noByToken = await ex.fetchOrderBook(market.no!.outcomeId);
+
+        expect(yesByAlias.bids).toEqual(yesByToken.bids);
+        expect(yesByAlias.asks).toEqual(yesByToken.asks);
+        expect(noByAlias.bids).toEqual(noByToken.bids);
+        expect(noByAlias.asks).toEqual(noByToken.asks);
+    });
+
+    test('fetchOrderBook accepts raw outcome id in params.outcome', async () => {
+        const ex = new MockExchange({ marketCount: 3, orderLatencyMs: 0 });
+        const market = (await ex.fetchMarkets()).find((m) => m.yes)!;
+
+        const byParam = await ex.fetchOrderBook(market.marketId, undefined, { outcome: market.yes!.outcomeId });
+        const byToken = await ex.fetchOrderBook(market.yes!.outcomeId);
+
+        expect(byParam.bids).toEqual(byToken.bids);
+        expect(byParam.asks).toEqual(byToken.asks);
+    });
+
     test('instant limit buy debits free cash and creates position', async () => {
         const ex = new MockExchange({ marketCount: 1, orderLatencyMs: 0, balance: 10_000 });
         const m = (await ex.fetchMarkets()).find(x => x.yes) ?? (await ex.fetchMarkets())[0]!;

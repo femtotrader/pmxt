@@ -179,6 +179,9 @@ export class ProbableExchange extends PredictionMarketExchange {
     }
 
     async fetchOrderBook(outcomeId: string, _limit?: number, _params?: Record<string, any>): Promise<OrderBook> {
+        const resolved = await this.resolveOutcomeAlias(outcomeId, _params);
+        outcomeId = resolved.outcomeId;
+        _params = resolved.params;
         const raw = await this.fetcher.fetchRawOrderBook(outcomeId);
         return this.normalizer.normalizeOrderBook(raw, outcomeId);
     }

@@ -318,6 +318,8 @@ export class MockExchange extends PredictionMarketExchange {
     }
 
     override async fetchOrderBook(id: string, _limit?: number, _params?: Record<string, any>): Promise<OrderBook> {
+        const resolved = await this.resolveOutcomeAlias(id, _params);
+        id = resolved.outcomeId;
         const f = new SeededRng(id);
         const midPrice = round(f.float(0.1, 0.9), 3);
         const spread = round(f.float(0.005, 0.03), 3);

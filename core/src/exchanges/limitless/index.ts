@@ -202,6 +202,9 @@ export class LimitlessExchange extends PredictionMarketExchange {
     }
 
     async fetchOrderBook(outcomeId: string, limit?: number, params?: Record<string, any>): Promise<OrderBook> {
+        const resolved = await this.resolveOutcomeAlias(outcomeId, params);
+        outcomeId = resolved.outcomeId;
+        params = resolved.params;
         const slug = await this.resolveSlug(outcomeId);
         const rawOrderBook = await this.fetcher.fetchRawOrderBook!(slug);
         const orderBook = this.normalizer.normalizeOrderBook!(rawOrderBook as any, outcomeId);

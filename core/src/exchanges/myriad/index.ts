@@ -110,6 +110,9 @@ export class MyriadExchange extends PredictionMarketExchange {
     }
 
     async fetchOrderBook(outcomeId: string, _limit?: number, _params?: Record<string, any>): Promise<OrderBook> {
+        const resolved = await this.resolveOutcomeAlias(outcomeId, _params);
+        outcomeId = resolved.outcomeId;
+        _params = resolved.params;
         const parts = outcomeId.split(':');
         if (parts.length >= 3) {
             const [networkId, marketId, oid] = parts;

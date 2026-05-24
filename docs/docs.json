@@ -196,12 +196,18 @@
             "openapi": "api-reference/openapi.json"
           },
           {
+            "group": "Cross Exchange",
+            "openapi": "api-reference/openapi-hosted.json",
+            "pages": [
+              "GET /v0/matched-event-clusters",
+              "GET /v0/matched-market-clusters"
+            ]
+          },
+          {
             "group": "Enterprise",
             "openapi": "api-reference/openapi-hosted.json",
             "pages": [
               "sql",
-              "GET /v0/matched-event-clusters",
-              "GET /v0/matched-market-clusters",
               "POST /v0/sql"
             ]
           }

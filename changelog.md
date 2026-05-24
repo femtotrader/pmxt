@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.44.1] - 2026-05-24
+
+### Fixed
+
+- **Docs navigation**: Move hosted cross-exchange matching endpoints from the Enterprise sidebar group into the API Reference `Cross Exchange` group.
+- **Hosted docs sync**: Preserve the `Cross Exchange` / `Enterprise` split when hosted endpoint metadata is synced from hosted-pmxt.
+
 ## [2.44.0] - 2026-05-24
 
 ### Added

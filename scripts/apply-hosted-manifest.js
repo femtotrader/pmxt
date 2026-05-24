@@ -20,6 +20,11 @@ const HOSTED_DOC_PATH_ALLOWLIST = new Set([
   '/v0/matched-market-clusters',
   '/v0/sql',
 ]);
+const HOSTED_OPENAPI_REF = 'api-reference/openapi-hosted.json';
+const CROSS_EXCHANGE_DOC_PATHS = new Set([
+  '/v0/matched-event-clusters',
+  '/v0/matched-market-clusters',
+]);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -318,22 +323,38 @@ function updateDocsNavigation(openApiPaths) {
     return;
   }
 
+  const getPathFromPageRef = (page) => page.split(/\s+/)[1] || page;
+  const crossExchangePages = navPages.filter((page) =>
+    CROSS_EXCHANGE_DOC_PATHS.has(getPathFromPageRef(page))
+  );
+  const enterpriseEndpointPages = navPages.filter((page) =>
+    !CROSS_EXCHANGE_DOC_PATHS.has(getPathFromPageRef(page))
+  );
+
   // Static guide pages that always appear at the top of the Enterprise
   // group, before the auto-generated OpenAPI endpoint pages.
   const ENTERPRISE_GUIDE_PAGES = ['sql'];
 
-  const newGroup = {
+  const newGroups = [];
+  if (crossExchangePages.length > 0) {
+    newGroups.push({
+      group: 'Cross Exchange',
+      openapi: HOSTED_OPENAPI_REF,
+      pages: crossExchangePages,
+    });
+  }
+  newGroups.push({
     group: 'Enterprise',
-    openapi: 'api-reference/openapi-hosted.json',
-    pages: [...ENTERPRISE_GUIDE_PAGES, ...navPages],
-  };
+    openapi: HOSTED_OPENAPI_REF,
+    pages: [...ENTERPRISE_GUIDE_PAGES, ...enterpriseEndpointPages],
+  });
 
   // Remove any existing groups that point at the hosted spec (regardless of
   // name) to avoid duplicates, then append the new one.
   const withoutHosted = apiRefTab.groups.filter(
-    (g) => g.openapi !== 'api-reference/openapi-hosted.json'
+    (g) => g.openapi !== HOSTED_OPENAPI_REF
   );
-  const updatedGroups = [...withoutHosted, newGroup];
+  const updatedGroups = [...withoutHosted, ...newGroups];
 
   const updatedApiRefTab = { ...apiRefTab, groups: updatedGroups };
   const updatedTabs = docsJson.navigation.tabs.map((t) =>
@@ -343,7 +364,11 @@ function updateDocsNavigation(openApiPaths) {
   const updatedDocsJson = { ...docsJson, navigation: updatedNavigation };
 
   writeJson(DOCS_JSON_PATH, updatedDocsJson);
-  console.log(`  [docs.json] Enterprise group updated with ${navPages.length} page(s).`);
+  console.log(
+    `  [docs.json] Hosted groups updated: ` +
+    `${crossExchangePages.length} Cross Exchange page(s), ` +
+    `${enterpriseEndpointPages.length} Enterprise endpoint page(s).`
+  );
 }
 
 // ---------------------------------------------------------------------------

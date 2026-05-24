@@ -5024,6 +5024,61 @@ const result = await exchange.feedFetchHistoricalPrices({
 
 
 
+## Cross Exchange
+
+### Fetch matched event clusters
+
+`GET /v0/matched-event-clusters`
+
+Returns connected clusters of semantically matched events across venues. Use this endpoint to browse or anchor event-level matches while preserving each venue's child markets.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `eventId` | string | No | Anchor the response to a specific event ID. |
+| `slug` | string | No | Anchor the response to a specific event slug. |
+| `url` | string | No | Anchor the response to a specific event URL. |
+| `relations` | string | No | Comma-separated relation filter. |
+| `relation` | string | No | Single relation filter. Alias for relations. |
+| `minConfidence` | number | No |  |
+| `venues` | string | No | Comma-separated venue allow-list. |
+| `excludeVenues` | string | No | Comma-separated venue deny-list. |
+| `minVenues` | integer | No | Minimum number of venues required in a cluster. |
+| `withOrderbook` | boolean | No | Require at least one live orderbook on each matched edge. |
+| `updatedSince` | string | No | Only include matches updated after this timestamp. |
+| `includeRawMatches` | boolean | No | Include the pairwise match edges used to build each cluster. |
+| `sort` | string | No |  |
+| `limit` | integer | No |  |
+| `offset` | integer | No |  |
+| `edgeLimit` | integer | No | Maximum number of pairwise edges to scan before clustering. |
+
+
+### Fetch matched market clusters
+
+`GET /v0/matched-market-clusters`
+
+Returns connected clusters of semantically matched markets across venues. Use this endpoint to browse or anchor market-level matches without flattening the response into pairwise rows.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `marketId` | string | No | Anchor the response to a specific market ID. |
+| `slug` | string | No | Anchor the response to a specific market slug. |
+| `url` | string | No | Anchor the response to a specific market URL. |
+| `relations` | string | No | Comma-separated relation filter. |
+| `relation` | string | No | Single relation filter. Alias for relations. |
+| `minConfidence` | number | No |  |
+| `venues` | string | No | Comma-separated venue allow-list. |
+| `excludeVenues` | string | No | Comma-separated venue deny-list. |
+| `minVenues` | integer | No | Minimum number of venues required in a cluster. |
+| `withOrderbook` | boolean | No | Require at least one live orderbook on each matched edge. |
+| `updatedSince` | string | No | Only include matches updated after this timestamp. |
+| `includeRawMatches` | boolean | No | Include the pairwise match edges used to build each cluster. |
+| `sort` | string | No |  |
+| `limit` | integer | No |  |
+| `offset` | integer | No |  |
+| `edgeLimit` | integer | No | Maximum number of pairwise edges to scan before clustering. |
+
+
+
 ## Enterprise
 
 ### SQL
@@ -5224,58 +5279,6 @@ Every query returns:
 - **5-second query timeout** — always scope queries to a single market.
 - **10,000 row cap** — use `LIMIT` or time filters to stay under.
 - **Read-only** — only `SELECT`, `WITH`, `SHOW`, `DESCRIBE`, and `EXPLAIN`.
-
-### Fetch matched event clusters
-
-`GET /v0/matched-event-clusters`
-
-Returns connected clusters of semantically matched events across venues. Use this endpoint to browse or anchor event-level matches while preserving each venue's child markets.
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `eventId` | string | No | Anchor the response to a specific event ID. |
-| `slug` | string | No | Anchor the response to a specific event slug. |
-| `url` | string | No | Anchor the response to a specific event URL. |
-| `relations` | string | No | Comma-separated relation filter. |
-| `relation` | string | No | Single relation filter. Alias for relations. |
-| `minConfidence` | number | No |  |
-| `venues` | string | No | Comma-separated venue allow-list. |
-| `excludeVenues` | string | No | Comma-separated venue deny-list. |
-| `minVenues` | integer | No | Minimum number of venues required in a cluster. |
-| `withOrderbook` | boolean | No | Require at least one live orderbook on each matched edge. |
-| `updatedSince` | string | No | Only include matches updated after this timestamp. |
-| `includeRawMatches` | boolean | No | Include the pairwise match edges used to build each cluster. |
-| `sort` | string | No |  |
-| `limit` | integer | No |  |
-| `offset` | integer | No |  |
-| `edgeLimit` | integer | No | Maximum number of pairwise edges to scan before clustering. |
-
-
-### Fetch matched market clusters
-
-`GET /v0/matched-market-clusters`
-
-Returns connected clusters of semantically matched markets across venues. Use this endpoint to browse or anchor market-level matches without flattening the response into pairwise rows.
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `marketId` | string | No | Anchor the response to a specific market ID. |
-| `slug` | string | No | Anchor the response to a specific market slug. |
-| `url` | string | No | Anchor the response to a specific market URL. |
-| `relations` | string | No | Comma-separated relation filter. |
-| `relation` | string | No | Single relation filter. Alias for relations. |
-| `minConfidence` | number | No |  |
-| `venues` | string | No | Comma-separated venue allow-list. |
-| `excludeVenues` | string | No | Comma-separated venue deny-list. |
-| `minVenues` | integer | No | Minimum number of venues required in a cluster. |
-| `withOrderbook` | boolean | No | Require at least one live orderbook on each matched edge. |
-| `updatedSince` | string | No | Only include matches updated after this timestamp. |
-| `includeRawMatches` | boolean | No | Include the pairwise match edges used to build each cluster. |
-| `sort` | string | No |  |
-| `limit` | integer | No |  |
-| `offset` | integer | No |  |
-| `edgeLimit` | integer | No | Maximum number of pairwise edges to scan before clustering. |
-
 
 ### Execute a read-only SQL query against ClickHouse
 

@@ -68,9 +68,9 @@ GitHub: https://github.com/pmxt-dev/pmxt
 - [Fetch Oracle Round](https://pmxt.dev/docs/api-reference/feedFetchOracleRound): Returns the latest Chainlink oracle round for a price feed.
 - [Fetch Oracle History](https://pmxt.dev/docs/api-reference/feedFetchOracleHistory): Returns historical Chainlink oracle rounds for a price feed.
 - [Fetch Historical Prices](https://pmxt.dev/docs/api-reference/feedFetchHistoricalPrices): Returns historical price data as tickers within a time range.
-- [SQL](https://pmxt.dev/docs/sql): Query raw tick-level orderbook history with SQL.
 - [Fetch matched event clusters](https://pmxt.dev/docs/api-reference/getV0Matched-event-clusters): Returns connected clusters of semantically matched events across venues. Use this endpoint to browse or anchor event-level matches while preserving each venue's child markets.
 - [Fetch matched market clusters](https://pmxt.dev/docs/api-reference/getV0Matched-market-clusters): Returns connected clusters of semantically matched markets across venues. Use this endpoint to browse or anchor market-level matches without flattening the response into pairwise rows.
+- [SQL](https://pmxt.dev/docs/sql): Query raw tick-level orderbook history with SQL.
 - [Execute a read-only SQL query against ClickHouse](https://pmxt.dev/docs/api-reference/postV0Sql)
 
 ## Full documentation

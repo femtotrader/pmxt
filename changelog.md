@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.21] - 2026-05-24
+
+### Fixed
+
+- **Auth guards**: Replace non-null assertions with explicit credential guards in kalshi (#217), limitless (#222), smarkets (#220), polymarket (#203, #213), and polymarket fetcher (#209). Missing credentials now throw immediately with clear error messages.
+- **Unhandled async**: Add `.catch()` handlers to fire-and-forget `connect()`/`ensureConnected()` calls in Binance feed (#280, #288) and Chainlink feed (#293, #300). Add concurrency guard + `.catch()` to GoldSky subscriber poll interval (#255).
+- **GoldSky type safety**: Replace 8 unsafe `any` types with typed interfaces (`GoldskyOrderFilledEvent`, `GoldskyTransfer`, `GoldskyGraphQlResponse`). Fixes #348.
+- **WebSocket safety**: Catch `JSON.parse` in ws-client `onmessage` to prevent malformed frames from killing the connection (#276).
+- **SDK timeouts**: Add 30s timeout to `fetchWithRetry()` (#207), 5s timeout to server-manager health checks (#210, #214), 30s timeout to feed-client fetch calls (#218). Replace 2 unsafe `any` types in feed-client (#226).
+- **Type safety (core)**: Replace unsafe `any` types in errors.ts (#224), args.ts (#228), models.ts (#232), interfaces.ts (#258), feeds/types.ts (#262), error-mapper.ts + 11 exchange error subclasses (#331), kalshi/normalizer.ts (#302), router/client.ts (#254).
+- **Python SDK**: Add `ExecutionPriceResult` to exports, return type annotations on `status()`/`logs()` (#180, #233). Typed `List`/`Dict` in server_manager.py and errors.py (#238, #241). Add `outcome_id`/`market_id` to `UserTrade`, make `PaginatedResult.total` optional (#169, #170, #171). Add `page`/`similarity_threshold` to `MarketFetchParams`, align `fetchOHLCV` timeframe default (#172, #177).
+- **Order.status**: Normalize spelling from `'cancelled'` to `'canceled'` across core types, 10 exchange normalizers, OpenAPI specs, both SDKs, and tests (#152).
+- **Mock exchange**: Replace non-null assertions with guard checks (#273).
+
 ## [2.43.20] - 2026-05-24
 
 ### Fixed

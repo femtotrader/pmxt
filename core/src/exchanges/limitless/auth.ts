@@ -57,7 +57,10 @@ export class LimitlessAuth {
     }
 
     getApiKey(): string {
-        return this.apiKey!;
+        if (!this.apiKey) {
+            throw new Error('[limitless] apiKey is required for authenticated requests');
+        }
+        return this.apiKey;
     }
 
     /**

@@ -480,13 +480,13 @@ class SubscribedAddressSnapshot:
     timestamp: int
 
     """Recent trades for this address"""
-    trades: Optional[list[Trade]] = None
+    trades: Optional[List[Trade]] = None
 
     """Open positions of this address"""
-    positions: Optional[list[Position]] = None
+    positions: Optional[List[Position]] = None
 
     """Balances of this address"""
-    balances: Optional[list[Balance]] = None
+    balances: Optional[List[Balance]] = None
 
 # ----------------------------------------------------------------------------
 # Filtering Types

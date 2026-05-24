@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import axios, { AxiosInstance } from 'axios';
 import { BaseDataFeed, DataFeedOptions } from '../base-feed';
 import { Ticker, Tickers, OHLCV, OrderBook, Market, OracleRound, OracleParams, Dictionary } from '../types';
+import { logger } from '../../utils/logger';
 import {
     ChainlinkFeedConfig,
     ChainlinkLatestPricesResponse,
@@ -163,7 +164,9 @@ export class ChainlinkFeed extends BaseDataFeed {
     protected watchTickerImpl(symbol: string, callback: (ticker: Ticker) => void): () => void {
         const sub: Subscription = { symbol: symbol.toUpperCase(), callback };
         this.subscriptions = [...this.subscriptions, sub];
-        this.ensureConnected();
+        this.ensureConnected().catch((err: unknown) => {
+            logger.error('[ChainlinkFeed] initial connect failed in watchTickerImpl:', err instanceof Error ? err.message : String(err));
+        });
 
         return () => {
             this.subscriptions = this.subscriptions.filter((s) => s !== sub);
@@ -323,7 +326,11 @@ export class ChainlinkFeed extends BaseDataFeed {
         if (this.reconnectTimer) return;
         this.reconnectTimer = setTimeout(() => {
             this.reconnectTimer = null;
-            if (!this.isTerminated) this.connect();
+            if (!this.isTerminated) {
+                this.connect().catch((err: unknown) => {
+                    logger.error('[ChainlinkFeed] reconnect failed:', err instanceof Error ? err.message : String(err));
+                });
+            }
         }, this.reconnectIntervalMs);
     }
 }

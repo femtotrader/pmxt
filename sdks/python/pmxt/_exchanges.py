@@ -513,3 +513,6 @@ class Router(Exchange):
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
         )
+
+# Backwards-compatible aliases for exchange classes generated before underscore handling.
+Polymarket_us = PolymarketUS

@@ -44,7 +44,7 @@ export interface GeminiRawEvent {
     imageUrl?: string;
     type: string;
     category?: string;
-    series?: string;
+    series?: Record<string, any> | null;
     ticker: string;
     status: string;
     resolvedAt?: string | null;

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.25] - 2026-05-24
+
+### Added
+
+- **Polymarket**: Expose `initAuth()` / `init_auth()` in both TypeScript and Python SDKs — previously only available in core. Fixes #505.
+
 ## [2.43.24] - 2026-05-24
 
 ### Fixed

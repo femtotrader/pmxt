@@ -82,10 +82,7 @@ export class BaoziWebSocket {
         }
 
         const dataPromise = new Promise<OrderBook>((resolve, reject) => {
-            if (!this.orderBookResolvers.has(marketPubkey)) {
-                this.orderBookResolvers.set(marketPubkey, []);
-            }
-            this.orderBookResolvers.get(marketPubkey)!.push({ resolve, reject });
+            this.getOrderBookQueue(marketPubkey).push({ resolve, reject });
         });
 
         return withWatchTimeout(
@@ -103,6 +100,17 @@ export class BaoziWebSocket {
             }
             this.orderBookResolvers.set(marketPubkey, []);
         }
+    }
+
+    private getOrderBookQueue(marketPubkey: string): QueuedPromise<OrderBook>[] {
+        const resolvers = this.orderBookResolvers.get(marketPubkey);
+        if (resolvers) {
+            return resolvers;
+        }
+
+        const queue: QueuedPromise<OrderBook>[] = [];
+        this.orderBookResolvers.set(marketPubkey, queue);
+        return queue;
     }
 
     async close(connection: Connection): Promise<void> {

@@ -7,7 +7,7 @@ export class ProbableErrorMapper extends ErrorMapper {
         super('Probable');
     }
 
-    protected extractErrorMessage(error: any): string {
+    protected extractErrorMessage(error: unknown): string {
         if (axios.isAxiosError(error) && error.response?.data) {
             const data = error.response.data;
 
@@ -25,14 +25,14 @@ export class ProbableErrorMapper extends ErrorMapper {
         }
 
         // Handle @prob/clob SDK error objects
-        if (error && typeof error === 'object' && error.msg) {
-            return String(error.msg);
+        if (typeof error === 'object' && error !== null && 'msg' in error) {
+            return String((error as Record<string, unknown>).msg);
         }
 
         return super.extractErrorMessage(error);
     }
 
-    protected mapBadRequestError(message: string, data: any): BadRequest {
+    protected mapBadRequestError(message: string, data: unknown): BadRequest {
         const lowerMessage = message.toLowerCase();
 
         // SDK auth failures

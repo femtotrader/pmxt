@@ -27,9 +27,9 @@ export class BaoziErrorMapper extends ErrorMapper {
         super('Baozi');
     }
 
-    mapError(error: any): BaseError {
+    mapError(error: unknown): BaseError {
         // Handle Solana transaction errors
-        if (error?.message) {
+        if (error instanceof Error) {
             const msg = error.message;
 
             // Solana insufficient funds

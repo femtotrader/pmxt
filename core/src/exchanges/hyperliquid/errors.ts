@@ -22,7 +22,7 @@ export class HyperliquidErrorMapper extends ErrorMapper {
         super('Hyperliquid');
     }
 
-    protected extractErrorMessage(error: any): string {
+    protected extractErrorMessage(error: unknown): string {
         if (axios.isAxiosError(error) && error.response?.data) {
             const data = error.response.data;
             if (typeof data === 'string') {
@@ -35,10 +35,10 @@ export class HyperliquidErrorMapper extends ErrorMapper {
         return super.extractErrorMessage(error);
     }
 
-    protected mapBadRequestError(message: string, data: any): BadRequest {
+    protected mapBadRequestError(message: string, data: unknown): BadRequest {
         const lowerMessage = message.toLowerCase();
-        const responseStr = typeof data === 'object' && data?.response
-            ? String(data.response).toLowerCase()
+        const responseStr = typeof data === 'object' && data !== null && 'response' in data
+            ? String((data as Record<string, unknown>).response).toLowerCase()
             : lowerMessage;
 
         if (responseStr.includes('insufficient margin') || responseStr.includes('not enough')) {
@@ -56,7 +56,7 @@ export class HyperliquidErrorMapper extends ErrorMapper {
         return super.mapBadRequestError(message, data);
     }
 
-    mapError(error: any): ReturnType<ErrorMapper['mapError']> {
+    mapError(error: unknown): ReturnType<ErrorMapper['mapError']> {
         if (axios.isAxiosError(error) && error.response?.status === 429) {
             const retryAfter = error.response.headers?.['retry-after'];
             const retryAfterSeconds = retryAfter ? parseInt(retryAfter, 10) : undefined;

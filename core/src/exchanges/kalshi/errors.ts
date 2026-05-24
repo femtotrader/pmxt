@@ -18,7 +18,7 @@ export class KalshiErrorMapper extends ErrorMapper {
     /**
      * Override to handle Kalshi-specific error patterns
      */
-    protected extractErrorMessage(error: any): string {
+    protected extractErrorMessage(error: unknown): string {
         // Handle Kalshi API errors
         if (axios.isAxiosError(error) && error.response?.data) {
             const data = error.response.data;
@@ -44,7 +44,7 @@ export class KalshiErrorMapper extends ErrorMapper {
     /**
      * Override to detect Kalshi-specific error patterns
      */
-    protected mapBadRequestError(message: string, data: any): BadRequest {
+    protected mapBadRequestError(message: string, data: unknown): BadRequest {
         const lowerMessage = message.toLowerCase();
 
         // Kalshi-specific insufficient funds detection

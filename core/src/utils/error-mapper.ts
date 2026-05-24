@@ -16,6 +16,56 @@ import {
 } from '../errors';
 
 /**
+ * A plain error-like object with an HTTP status and optional data payload.
+ * Common in third-party SDKs (e.g. Polymarket clob-client) that don't throw
+ * proper Error instances.
+ */
+interface PlainErrorObject {
+    readonly status: number;
+    readonly data?: unknown;
+    readonly statusText?: string;
+    readonly message?: string;
+}
+
+/** Type guard for plain error objects with numeric status codes. */
+function isPlainErrorObject(value: unknown): value is PlainErrorObject {
+    return (
+        typeof value === 'object' &&
+        value !== null &&
+        !Array.isArray(value) &&
+        !(value instanceof Error) &&
+        'status' in value &&
+        typeof (value as PlainErrorObject).status === 'number'
+    );
+}
+
+/**
+ * An Error subclass with optional HTTP metadata attached by third-party SDKs.
+ */
+interface ErrorWithHttpMetadata extends Error {
+    readonly status?: number;
+    readonly statusCode?: number;
+    readonly data?: unknown;
+    readonly response?: {
+        readonly status?: number;
+        readonly statusCode?: number;
+        readonly data?: unknown;
+        readonly body?: unknown;
+        readonly headers?: Record<string, string>;
+    };
+}
+
+/** A Node.js-style error with an error code (e.g. ECONNREFUSED). */
+interface NodeError extends Error {
+    readonly code?: string;
+}
+
+/** Type guard for Node.js-style errors with a `code` property. */
+function isNodeError(value: unknown): value is NodeError {
+    return value instanceof Error && 'code' in value;
+}
+
+/**
  * Maps raw errors to PMXT unified error classes
  *
  * Handles axios errors, network errors, and exchange-specific error formats.
@@ -31,11 +81,11 @@ export class ErrorMapper {
     /**
      * Main entry point for error mapping
      */
-    mapError(error: any): BaseError {
+    mapError(error: unknown): BaseError {
         // Already a BaseError, just add exchange context if missing
         if (error instanceof BaseError) {
             if (!error.exchange && this.exchangeName) {
-                return new (error.constructor as any)(
+                return new (error.constructor as new (...args: unknown[]) => BaseError)(
                     error.message,
                     this.exchangeName
                 );
@@ -49,24 +99,24 @@ export class ErrorMapper {
         }
 
         // Handle plain objects with status/data (e.g., Polymarket clob-client)
-        if (error && typeof error === 'object' && !Array.isArray(error) && !(error instanceof Error)) {
-            if (error.status && typeof error.status === 'number') {
-                const message = this.extractErrorMessage(error);
-                return this.mapByStatusCode(error.status, message, error.data, error);
-            }
+        if (isPlainErrorObject(error)) {
+            const message = this.extractErrorMessage(error);
+            return this.mapByStatusCode(error.status, message, error.data, error);
         }
 
         // Handle network errors
-        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
-            return new NetworkError(
-                `Network error: ${error.message}`,
-                this.exchangeName
-            );
+        if (isNodeError(error)) {
+            if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
+                return new NetworkError(
+                    `Network error: ${error.message}`,
+                    this.exchangeName
+                );
+            }
         }
 
         // Handle Error instances with attached HTTP metadata (common in third-party SDKs)
         if (error instanceof Error) {
-            const err: any = error;
+            const err = error as ErrorWithHttpMetadata;
             const status = err.status ?? err.statusCode ?? err.response?.status ?? err.response?.statusCode;
             if (typeof status === 'number') {
                 const message = this.extractErrorMessage(error);
@@ -108,7 +158,7 @@ export class ErrorMapper {
     /**
      * Maps an HTTP status code to the appropriate error class
      */
-    protected mapByStatusCode(status: number, message: string, data: any, response?: any): BaseError {
+    protected mapByStatusCode(status: number, message: string, data: unknown, response?: unknown): BaseError {
         switch (status) {
             case 400:
                 return this.mapBadRequestError(message, data);
@@ -139,7 +189,7 @@ export class ErrorMapper {
     /**
      * Maps 400 errors to specific bad request subtypes
      */
-    protected mapBadRequestError(message: string, data: any): BadRequest {
+    protected mapBadRequestError(message: string, data: unknown): BadRequest {
         const lowerMessage = message.toLowerCase();
 
         // Detect insufficient funds
@@ -175,7 +225,7 @@ export class ErrorMapper {
     /**
      * Maps 404 errors to specific not found subtypes
      */
-    protected mapNotFoundError(message: string, data: any): NotFound {
+    protected mapNotFoundError(message: string, data: unknown): NotFound {
         const lowerMessage = message.toLowerCase();
 
         // Detect order not found (but not "order book" — that's a different resource)
@@ -203,9 +253,14 @@ export class ErrorMapper {
     /**
      * Maps rate limit errors
      */
-    protected mapRateLimitError(message: string, response: any): RateLimitExceeded {
+    protected mapRateLimitError(message: string, response: unknown): RateLimitExceeded {
         // Try to extract retry-after from headers
-        const retryAfter = response?.headers?.['retry-after'];
+        const headers = (
+            typeof response === 'object' && response !== null && 'headers' in response
+                ? (response as { headers?: Record<string, string> }).headers
+                : undefined
+        );
+        const retryAfter = headers?.['retry-after'];
         const retryAfterSeconds = retryAfter ? parseInt(retryAfter, 10) : undefined;
 
         return new RateLimitExceeded(message, retryAfterSeconds, this.exchangeName);
@@ -214,31 +269,35 @@ export class ErrorMapper {
     /**
      * Extracts error message from various error formats
      */
-    protected extractErrorMessage(error: any): string {
+    protected extractErrorMessage(error: unknown): string {
         // Axios error with response data
         if (axios.isAxiosError(error) && error.response?.data) {
-            const data = error.response.data;
+            const data: unknown = error.response.data;
 
             // Try various common error message paths
             if (typeof data === 'string') {
                 return data;
             }
 
-            if (data.error) {
-                if (typeof data.error === 'string') {
-                    return data.error;
-                }
-                if (data.error.message) {
-                    return data.error.message;
-                }
-            }
+            if (typeof data === 'object' && data !== null) {
+                const obj = data as Record<string, unknown>;
 
-            if (data.message) {
-                return data.message;
-            }
+                if (obj.error) {
+                    if (typeof obj.error === 'string') {
+                        return obj.error;
+                    }
+                    if (typeof obj.error === 'object' && obj.error !== null && 'message' in obj.error) {
+                        return String((obj.error as Record<string, unknown>).message);
+                    }
+                }
 
-            if (data.errorMsg) {
-                return data.errorMsg;
+                if (typeof obj.message === 'string') {
+                    return obj.message;
+                }
+
+                if (typeof obj.errorMsg === 'string') {
+                    return obj.errorMsg;
+                }
             }
 
             // Fallback to stringified data
@@ -247,29 +306,13 @@ export class ErrorMapper {
 
         // Plain object with status and data (e.g., Polymarket clob-client errors)
         // These aren't AxiosError instances but have similar structure
-        if (error && typeof error === 'object' && !Array.isArray(error) && !(error instanceof Error)) {
-            const data = error.data;
+        if (isPlainErrorObject(error)) {
+            const data: unknown = error.data;
 
             if (data) {
-                if (typeof data === 'string') {
-                    return data;
-                }
-
-                if (data.error) {
-                    if (typeof data.error === 'string') {
-                        return data.error;
-                    }
-                    if (data.error.message) {
-                        return data.error.message;
-                    }
-                }
-
-                if (data.message) {
-                    return data.message;
-                }
-
-                if (data.errorMsg) {
-                    return data.errorMsg;
+                const extracted = this.extractFromData(data);
+                if (extracted) {
+                    return extracted;
                 }
             }
 
@@ -285,8 +328,8 @@ export class ErrorMapper {
 
         // Standard Error object - check for attached response data from third-party SDKs
         if (error instanceof Error) {
-            const err: any = error;
-            const data = err.response?.data ?? err.data ?? err.body;
+            const err = error as ErrorWithHttpMetadata;
+            const data: unknown = err.response?.data ?? err.data ?? (err as unknown as Record<string, unknown>).body;
             if (data) {
                 const extracted = this.extractFromData(data);
                 if (extracted) {
@@ -305,7 +348,7 @@ export class ErrorMapper {
         if (typeof error === 'object' && error !== null) {
             try {
                 return JSON.stringify(error, Object.getOwnPropertyNames(error));
-            } catch (e) {
+            } catch {
                 return String(error);
             }
         }
@@ -315,27 +358,29 @@ export class ErrorMapper {
     /**
      * Extracts a message string from a response data payload
      */
-    protected extractFromData(data: any): string | undefined {
+    protected extractFromData(data: unknown): string | undefined {
         if (typeof data === 'string') {
             return data;
         }
 
-        if (data && typeof data === 'object') {
-            if (data.error) {
-                if (typeof data.error === 'string') {
-                    return data.error;
+        if (typeof data === 'object' && data !== null) {
+            const obj = data as Record<string, unknown>;
+
+            if (obj.error) {
+                if (typeof obj.error === 'string') {
+                    return obj.error;
                 }
-                if (data.error.message) {
-                    return data.error.message;
+                if (typeof obj.error === 'object' && obj.error !== null && 'message' in obj.error) {
+                    return String((obj.error as Record<string, unknown>).message);
                 }
             }
 
-            if (data.message) {
-                return data.message;
+            if (typeof obj.message === 'string') {
+                return obj.message;
             }
 
-            if (data.errorMsg) {
-                return data.errorMsg;
+            if (typeof obj.errorMsg === 'string') {
+                return obj.errorMsg;
             }
 
             try {

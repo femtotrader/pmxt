@@ -19,7 +19,7 @@ export class LimitlessErrorMapper extends ErrorMapper {
     /**
      * Override to handle Limitless-specific error patterns
      */
-    protected extractErrorMessage(error: any): string {
+    protected extractErrorMessage(error: unknown): string {
         // Handle Limitless CLOB errors (similar to Polymarket)
         if (axios.isAxiosError(error) && error.response?.data) {
             const data = error.response.data;
@@ -45,7 +45,7 @@ export class LimitlessErrorMapper extends ErrorMapper {
     /**
      * Override to detect Limitless-specific error patterns
      */
-    protected mapBadRequestError(message: string, data: any): BadRequest {
+    protected mapBadRequestError(message: string, data: unknown): BadRequest {
         const lowerMessage = (message || '').toString().toLowerCase();
 
         // Limitless-specific authentication errors (400 status)

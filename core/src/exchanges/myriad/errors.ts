@@ -7,7 +7,7 @@ export class MyriadErrorMapper extends ErrorMapper {
         super('Myriad');
     }
 
-    protected extractErrorMessage(error: any): string {
+    protected extractErrorMessage(error: unknown): string {
         if (axios.isAxiosError(error) && error.response?.data) {
             const data = error.response.data;
             if (data.message) return data.message;
@@ -16,7 +16,7 @@ export class MyriadErrorMapper extends ErrorMapper {
         return super.extractErrorMessage(error);
     }
 
-    protected mapBadRequestError(message: string, data: any): BadRequest {
+    protected mapBadRequestError(message: string, data: unknown): BadRequest {
         const lowerMessage = message.toLowerCase();
         if (lowerMessage.includes('insufficient') || lowerMessage.includes('liquidity')) {
             return new BadRequest(message, this.exchangeName);

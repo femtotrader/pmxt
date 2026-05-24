@@ -23,7 +23,7 @@ export class MetaculusErrorMapper extends ErrorMapper {
         super('Metaculus');
     }
 
-    protected override mapNotFoundError(message: string, _data: any): NotFound {
+    protected override mapNotFoundError(message: string, _data: unknown): NotFound {
         const lower = message.toLowerCase();
         if (lower.includes('question') || lower.includes('market')) {
             const match = message.match(/[\d]+/);
@@ -33,7 +33,7 @@ export class MetaculusErrorMapper extends ErrorMapper {
         return new NotFound(message, this.exchangeName);
     }
 
-    protected override mapBadRequestError(message: string, data: any): BadRequest {
+    protected override mapBadRequestError(message: string, data: unknown): BadRequest {
         const lower = message.toLowerCase();
 
         // Probability validation errors from the forecast API
@@ -57,8 +57,8 @@ export class MetaculusErrorMapper extends ErrorMapper {
     protected override mapByStatusCode(
         status: number,
         message: string,
-        data: any,
-        response?: any,
+        data: unknown,
+        response?: unknown,
     ): BaseError {
         if (status === 401) {
             return new AuthenticationError(

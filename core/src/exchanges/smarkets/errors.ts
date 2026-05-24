@@ -98,7 +98,7 @@ export class SmarketsErrorMapper extends ErrorMapper {
     /**
      * Override to handle the Smarkets { error_type, data } format
      */
-    protected extractErrorMessage(error: any): string {
+    protected extractErrorMessage(error: unknown): string {
         if (axios.isAxiosError(error) && error.response?.data) {
             const body = error.response.data;
             const errorType = body.error_type;
@@ -124,7 +124,7 @@ export class SmarketsErrorMapper extends ErrorMapper {
      * Override to map Smarkets error_type values before falling back
      * to the default status-code-based mapping
      */
-    mapError(error: any): ReturnType<ErrorMapper['mapError']> {
+    mapError(error: unknown): ReturnType<ErrorMapper['mapError']> {
         if (axios.isAxiosError(error) && error.response?.data) {
             const errorType: string | undefined = error.response.data.error_type;
 
@@ -143,8 +143,11 @@ export class SmarketsErrorMapper extends ErrorMapper {
     /**
      * Override to detect order-specific errors within 400 responses
      */
-    protected mapBadRequestError(message: string, data: any): BadRequest {
-        const errorType: string | undefined = data?.error_type;
+    protected mapBadRequestError(message: string, data: unknown): BadRequest {
+        const errorType: string | undefined =
+            typeof data === 'object' && data !== null && 'error_type' in data
+                ? String((data as Record<string, unknown>).error_type)
+                : undefined;
 
         if (errorType) {
             if (INSUFFICIENT_FUNDS_ERRORS.has(errorType)) {
@@ -172,14 +175,19 @@ export class SmarketsErrorMapper extends ErrorMapper {
     private mapByErrorType(
         errorType: string,
         message: string,
-        response: any
+        response: unknown
     ): ReturnType<ErrorMapper['mapError']> | undefined {
         if (AUTHENTICATION_ERRORS.has(errorType)) {
             return new AuthenticationError(message, this.exchangeName);
         }
 
         if (RATE_LIMIT_ERRORS.has(errorType)) {
-            const retryAfter = response?.headers?.['retry-after'];
+            const headers = (
+                typeof response === 'object' && response !== null && 'headers' in response
+                    ? (response as { headers?: Record<string, string> }).headers
+                    : undefined
+            );
+            const retryAfter = headers?.['retry-after'];
             const retryAfterSeconds = retryAfter
                 ? parseInt(retryAfter, 10)
                 : undefined;

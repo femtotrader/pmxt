@@ -33,7 +33,7 @@ export class PolymarketErrorMapper extends ErrorMapper {
      * `errorMsg` path for any residual V1 responses (order submission still
      * returns `errorMsg` in some batch flows).
      */
-    protected extractErrorMessage(error: any): string {
+    protected extractErrorMessage(error: unknown): string {
         if (axios.isAxiosError(error) && error.response?.data) {
             const data = error.response.data;
 
@@ -54,7 +54,7 @@ export class PolymarketErrorMapper extends ErrorMapper {
     /**
      * Override to handle V2 status code 425 (Too Early -- matching engine restarting)
      */
-    protected mapByStatusCode(status: number, message: string, data: any, response?: any): BaseError {
+    protected mapByStatusCode(status: number, message: string, data: unknown, response?: unknown): BaseError {
         if (status === 425) {
             return new ExchangeNotAvailable(
                 `Matching engine restarting: ${message}`,
@@ -68,7 +68,7 @@ export class PolymarketErrorMapper extends ErrorMapper {
     /**
      * Override to detect Polymarket-specific error patterns in 400 responses
      */
-    protected mapBadRequestError(message: string, data: any): BadRequest {
+    protected mapBadRequestError(message: string, data: unknown): BadRequest {
         const lowerMessage = message.toLowerCase();
 
         // Signature type / maker address mismatch — the most common auth

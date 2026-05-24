@@ -5,6 +5,8 @@ These mirror the error hierarchy in the core TypeScript library,
 enabling users to catch specific error types.
 """
 
+from __future__ import annotations
+
 
 class PmxtError(Exception):
     """Base error class for all pmxt errors."""

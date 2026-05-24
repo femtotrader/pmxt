@@ -62,7 +62,10 @@ export class GeminiWebSocket {
                     ? this.auth.buildWsHeaders()
                     : {};
 
-                this.ws = new WebSocket(this.config.wsUrl, { headers });
+                this.ws = new WebSocket(this.config.wsUrl, {
+                    headers,
+                    handshakeTimeout: 30_000,
+                });
 
                 this.ws.on('open', () => {
                     this.isConnected = true;
@@ -274,7 +277,12 @@ export class GeminiWebSocket {
             if (!this.orderBookResolvers.has(symbol)) {
                 this.orderBookResolvers.set(symbol, []);
             }
-            this.orderBookResolvers.get(symbol)!.push({ resolve, reject });
+            const resolvers = this.orderBookResolvers.get(symbol);
+            if (!resolvers) {
+                reject(new Error(`[gemini-titan] resolver queue missing for ${symbol}`));
+                return;
+            }
+            resolvers.push({ resolve, reject });
         });
 
         return withWatchTimeout(
@@ -303,7 +311,12 @@ export class GeminiWebSocket {
             if (!this.tradeResolvers.has(symbol)) {
                 this.tradeResolvers.set(symbol, []);
             }
-            this.tradeResolvers.get(symbol)!.push({ resolve, reject });
+            const resolvers = this.tradeResolvers.get(symbol);
+            if (!resolvers) {
+                reject(new Error(`[gemini-titan] resolver queue missing for ${symbol}`));
+                return;
+            }
+            resolvers.push({ resolve, reject });
         });
 
         return withWatchTimeout(

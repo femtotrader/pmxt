@@ -1023,14 +1023,14 @@ describe('BaoziNormalizer', () => {
             expect(market.volume24h).toBe(0);
         });
 
-        test('category is official for layer 0', () => {
+        test('category is undefined (tier is not a topic category)', () => {
             const market = normalizer.normalizeMarket(rawBooleanMarket)!;
-            expect(market.category).toBe('official');
+            expect(market.category).toBeUndefined();
         });
 
-        test('tags include official, solana, and pari-mutuel', () => {
+        test('tags include tier:official, solana, and pari-mutuel', () => {
             const market = normalizer.normalizeMarket(rawBooleanMarket)!;
-            expect(market.tags).toContain('official');
+            expect(market.tags).toContain('tier:official');
             expect(market.tags).toContain('solana');
             expect(market.tags).toContain('pari-mutuel');
         });
@@ -1183,9 +1183,9 @@ describe('BaoziNormalizer', () => {
             expect(market.volume).toBeCloseTo(10, 5);
         });
 
-        test('category is lab for layer 1', () => {
+        test('category is undefined for race markets (tier is not a topic category)', () => {
             const market = normalizer.normalizeMarket(rawRaceMarket)!;
-            expect(market.category).toBe('lab');
+            expect(market.category).toBeUndefined();
         });
 
         test('tags include race', () => {

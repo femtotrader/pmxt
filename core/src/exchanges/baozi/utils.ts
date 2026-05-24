@@ -408,8 +408,8 @@ export function mapBooleanToUnified(market: BaoziMarket, pubkey: string): Unifie
         volume: totalPoolSol,
         liquidity: totalPoolSol,
         url: `https://baozi.bet/market/${pubkey}`,
-        category: layerName(market.layer),
-        tags: [layerName(market.layer), 'solana', 'pari-mutuel'],
+        category: undefined,
+        tags: [`tier:${layerName(market.layer)}`, 'solana', 'pari-mutuel'],
     };
 
     addBinaryOutcomes(um);
@@ -449,8 +449,8 @@ export function mapRaceToUnified(market: BaoziRaceMarket, pubkey: string): Unifi
         volume: totalPoolSol,
         liquidity: totalPoolSol,
         url: `https://baozi.bet/market/${pubkey}`,
-        category: layerName(market.layer),
-        tags: [layerName(market.layer), 'solana', 'pari-mutuel', 'race'],
+        category: undefined,
+        tags: [`tier:${layerName(market.layer)}`, 'solana', 'pari-mutuel', 'race'],
     };
 
     // For 2-outcome races, add binary convenience getters

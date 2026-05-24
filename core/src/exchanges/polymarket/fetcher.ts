@@ -472,7 +472,10 @@ export class PolymarketFetcher implements IExchangeFetcher<PolymarketRawEvent, P
             events = rawEvents.filter(filterClosed);
         }
 
-        const lowerQuery = params.query!.toLowerCase();
+        if (!params.query) {
+            throw new Error('params.query is required for event search');
+        }
+        const lowerQuery = params.query.toLowerCase();
         const searchIn = params.searchIn || 'title';
 
         return events.filter((event: any) => {

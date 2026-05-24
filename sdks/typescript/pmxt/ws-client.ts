@@ -129,8 +129,19 @@ export class SidecarWsClient {
                 const raw = typeof event.data === "string"
                     ? event.data
                     : event.data.toString();
-                const msg: WsMessage = JSON.parse(raw);
-                this.dispatch(msg);
+                let msg: WsMessage;
+                try {
+                    msg = JSON.parse(raw);
+                } catch {
+                    // Non-JSON control frame -- ignore.
+                    return;
+                }
+                try {
+                    this.dispatch(msg);
+                } catch (err) {
+                    // Dispatch bug -- log and continue; don't kill the connection.
+                    console.error('[SidecarWsClient] dispatch error:', err);
+                }
             };
         });
     }

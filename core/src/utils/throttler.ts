@@ -7,19 +7,28 @@ export class Throttler {
     private refillRate: number;
     private capacity: number;
     private delay: number;
+    private maxQueueDepth: number;
 
     constructor(config: {
         refillRate: number;   // tokens per ms (1 / rateLimit)
         capacity: number;     // max tokens
         delay: number;        // polling interval in ms
+        maxQueueDepth?: number; // max queued requests (default 1000)
     }) {
         this.refillRate = config.refillRate;
         this.capacity = config.capacity;
         this.delay = config.delay;
+        this.maxQueueDepth = config.maxQueueDepth ?? 1000;
     }
 
     async throttle(cost: number = 1): Promise<void> {
         return new Promise<void>((resolve) => {
+            if (this.queue.length >= this.maxQueueDepth) {
+                const dropped = this.queue.shift();
+                if (dropped) {
+                    dropped.resolve();
+                }
+            }
             this.queue.push({ resolve, cost });
             if (!this.running) {
                 this.running = true;

@@ -101,18 +101,16 @@ export class AddressWatcher {
         if (assetId) {
             const assetKey = `${key} ${assetId}`;
             return new Promise<Trade[]>((resolve, reject) => {
-                if (!this.assetIdResolvers.has(assetKey)) {
-                    this.assetIdResolvers.set(assetKey, []);
-                }
-                this.assetIdResolvers.get(assetKey)!.push({ resolve, reject });
+                const list = this.assetIdResolvers.get(assetKey) ?? [];
+                list.push({ resolve, reject });
+                this.assetIdResolvers.set(assetKey, list);
             });
         }
 
         return new Promise<SubscribedAddressSnapshot>((resolve, reject) => {
-            if (!this.resolvers.has(key)) {
-                this.resolvers.set(key, []);
-            }
-            this.resolvers.get(key)!.push({ resolve, reject });
+            const list = this.resolvers.get(key) ?? [];
+            list.push({ resolve, reject });
+            this.resolvers.set(key, list);
         });
     }
 

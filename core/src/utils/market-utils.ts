@@ -46,11 +46,11 @@ export function addBinaryOutcomes(market: UnifiedMarket): void {
     // those are meaningful labels for financial markets.
     const yesLabel = market.yes?.label.toLowerCase();
     const noLabel = market.no?.label.toLowerCase();
-    if (market.title && yesLabel === 'yes') {
-        market.yes!.label = market.title;
+    if (market.title && market.yes && yesLabel === 'yes') {
+        market.yes = { ...market.yes, label: market.title };
     }
-    if (market.title && noLabel === 'no') {
-        market.no!.label = `Not ${market.title}`;
+    if (market.title && market.no && noLabel === 'no') {
+        market.no = { ...market.no, label: `Not ${market.title}` };
     }
 
     market.up = market.yes;

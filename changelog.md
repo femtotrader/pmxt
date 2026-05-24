@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.16] - 2026-05-24
+
+### Fixed
+
+- **Baozi**: Initialize order book resolver queues to eliminate unsafe non-null assertion on `Map.get()` in WebSocket handler. Fixes #261.
+- **Probable**: Initialize order book resolver queues to eliminate unsafe non-null assertion on `Map.get()` in WebSocket handler. Fixes #264.
+- **Python SDK**: Export `FirehoseEvent` and `SubscribedAddressSnapshot` from package entry point and `__all__`. Fixes #461.
+- **Python SDK**: Generate correct class names for underscore-delimited exchanges (`Polymarket_us` -> `PolymarketUS`), with legacy alias preserved for backward compatibility.
+- **SDK generators**: Preserve hand-written `fetchOrderBook` return type (`OrderBook | OrderBook[]`) and positional argument handling during client regeneration.
+
+### Added
+
+- Regression tests for Baozi and Probable WebSocket resolver queue initialization.
+- Python public export list regression test.
+
 ## [2.43.15] - 2026-05-24
 
 ### Fixed

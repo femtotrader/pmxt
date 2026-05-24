@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { startServer } from './app';
 import { PortManager } from './utils/port-manager';
 import { LockFile } from './utils/lock-file';
+import { logger } from '../utils/logger';
 
 import { randomUUID } from 'crypto';
 
@@ -52,15 +53,15 @@ async function main() {
 
     const server = await startServer(port, accessToken);
 
-    console.log(`PMXT Sidecar Server v${version} running on http://localhost:${port}`);
+    logger.info(`PMXT Sidecar Server v${version} running on http://localhost:${port}`);
     if (version.includes('-dev.')) {
-        console.log('Running in Development Mode (auto-restart enabled)');
+        logger.info('Running in Development Mode (auto-restart enabled)');
     }
-    console.log(`Lock file created at ${lockFile.lockPath}`);
+    logger.info(`Lock file created at ${lockFile.lockPath}`);
 
     // Graceful shutdown
     const shutdown = async () => {
-        console.log('\nShutting down gracefully...');
+        logger.info('Shutting down gracefully...');
         server.close();
         await lockFile.remove();
         process.exit(0);
@@ -71,6 +72,6 @@ async function main() {
 }
 
 main().catch((error) => {
-    console.error('Failed to start server:', error);
+    logger.error('Failed to start server:', error);
     process.exit(1);
 });

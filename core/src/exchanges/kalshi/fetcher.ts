@@ -29,6 +29,7 @@ export interface KalshiRawMarket {
     volume_24h?: number;
     volume?: number;
     liquidity?: number;
+    liquidity_dollars?: string;
     open_interest?: number;
     volume_24h_fp?: string;
     volume_fp?: string;

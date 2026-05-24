@@ -121,20 +121,22 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
     }
 
     normalizeOHLCV(rawCandles: KalshiRawCandlestick[], params: OHLCVParams): PriceCandle[] {
+        type OhlcField = 'open' | 'high' | 'low' | 'close';
+
         const candles = rawCandles.map((c) => {
             const p = c.price || {};
             const ask = c.yes_ask || {};
             const bid = c.yes_bid || {};
 
-            const getVal = (field: string) => {
-                const pf = (p as any)[field];
-                const af = (ask as any)[field];
-                const bf = (bid as any)[field];
-                if (pf !== null && pf !== undefined) return pf;
-                if (af !== null && af !== undefined && bf !== null && bf !== undefined) {
+            const getVal = (field: OhlcField): number => {
+                const pf = p[field];
+                const af = ask[field];
+                const bf = bid[field];
+                if (pf != null) return pf;
+                if (af != null && bf != null) {
                     return (af + bf) / 2;
                 }
-                return (p as any).previous || 0;
+                return p.previous || 0;
             };
 
             return {
@@ -286,7 +288,7 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
         }
     }
 
-    private deriveEventDescription(markets: any[]): string {
+    private deriveEventDescription(markets: KalshiRawMarket[]): string {
         const texts = markets
             .map((m) => m.rules_primary)
             .filter((t): t is string => typeof t === 'string' && t.length > 0);
@@ -356,22 +358,22 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
 
 // -- Event sorting utility (exported for fetchEvents) -------------------------
 
-function eventVolume(event: any): number {
-    return (event.markets || []).reduce((sum: number, m: any) => sum + (parseFloat(m.volume_fp ?? '') || Number(m.volume || 0)), 0);
+function eventVolume(event: KalshiRawEvent): number {
+    return (event.markets || []).reduce((sum: number, m: KalshiRawMarket) => sum + (parseFloat(m.volume_fp ?? '') || Number(m.volume || 0)), 0);
 }
 
-function eventLiquidity(event: any): number {
-    return (event.markets || []).reduce((sum: number, m: any) => sum + (parseFloat(m.open_interest_fp ?? '') || parseFloat(m.liquidity_dollars || m.open_interest || m.liquidity || '0') || 0), 0);
+function eventLiquidity(event: KalshiRawEvent): number {
+    return (event.markets || []).reduce((sum: number, m: KalshiRawMarket) => sum + (parseFloat(m.open_interest_fp ?? '') || parseFloat(String(m.liquidity_dollars || m.open_interest || m.liquidity || '0')) || 0), 0);
 }
 
-function eventNewest(event: any): number {
+function eventNewest(event: KalshiRawEvent): number {
     const times = (event.markets || [])
-        .map((m: any) => (m.close_time ? new Date(m.close_time).getTime() : 0))
+        .map((m: KalshiRawMarket) => (m.close_time ? new Date(m.close_time).getTime() : 0))
         .filter((t: number) => t > 0);
     return times.length > 0 ? Math.min(...times) : 0;
 }
 
-export function sortRawEvents(events: any[], sort: string): any[] {
+export function sortRawEvents(events: KalshiRawEvent[], sort: string): KalshiRawEvent[] {
     const copy = [...events];
     if (sort === 'newest') {
         copy.sort((a, b) => eventNewest(b) - eventNewest(a));

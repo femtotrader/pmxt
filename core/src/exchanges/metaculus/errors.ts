@@ -76,6 +76,14 @@ export class MetaculusErrorMapper extends ErrorMapper {
                     this.exchangeName,
                 );
             }
+            // Feature-gated 403: API forecasting not enabled for the account
+            if (lower.includes('api_forecasting_not_enabled')) {
+                return new PermissionDenied(
+                    'Metaculus API forecasting is not enabled for your account. '
+                    + 'Visit your Metaculus account settings to enable it, or contact Metaculus support.',
+                    this.exchangeName,
+                );
+            }
             return new PermissionDenied(
                 'You do not have permission for this operation. '
                 + 'Check your Metaculus account permissions and API token scope.',

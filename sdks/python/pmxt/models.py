@@ -274,7 +274,7 @@ class OrderBook:
     timestamp: Optional[int] = None
     """Unix timestamp (milliseconds)"""
 
-    dt: Optional[str] = None
+    datetime: Optional[str] = None
     """ISO 8601 datetime string (CCXT-compatible)"""
 
 

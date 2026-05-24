@@ -12,7 +12,7 @@ import time
 import urllib.error
 from abc import ABC
 from datetime import datetime
-from typing import List, Optional, Dict, Any, Literal, Union
+from typing import Callable, List, Optional, Dict, Any, Literal, Union
 
 # Add generated client to path
 _GENERATED_PATH = os.path.join(os.path.dirname(__file__), "..", "generated")
@@ -46,6 +46,10 @@ from .models import (
     EventFilterFunction,
     SubscribedAddressSnapshot,
     FirehoseEvent,
+    MatchResult,
+    EventMatchResult,
+    PriceComparison,
+    ArbitrageOpportunity,
 )
 from .constants import LOCAL_URL, resolve_pmxt_base_url
 from .errors import PmxtError, from_server_error
@@ -62,7 +66,6 @@ _SNAKE_TO_CAMEL = {
     'price_change_24h': 'priceChange24h',
     'unrealized_pnl': 'unrealizedPnL',
     'realized_pnl': 'realizedPnL',
-    'dt': 'datetime',
 }
 
 
@@ -72,6 +75,15 @@ def _snake_to_camel(name: str) -> str:
         return _SNAKE_TO_CAMEL[name]
     parts = name.split('_')
     return parts[0] + ''.join(p.title() for p in parts[1:])
+
+
+def _convert_params_to_camel(params: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert snake_case param keys to camelCase for the sidecar wire format.
+
+    Keys that are already camelCase or single-word pass through unchanged.
+    Nested dicts/lists are left as-is -- only top-level keys are converted.
+    """
+    return {_snake_to_camel(k): v for k, v in params.items()}
 
 
 def _auto_convert(cls, raw: Dict[str, Any], **overrides):
@@ -739,7 +751,7 @@ class Exchange(ABC):
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
-                args.append(params)
+                args.append(_convert_params_to_camel(params))
             body: dict = {"args": args}
             creds = self._get_credentials_dict()
             if creds:
@@ -762,7 +774,7 @@ class Exchange(ABC):
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
-                args.append(params)
+                args.append(_convert_params_to_camel(params))
             body: dict = {"args": args}
             creds = self._get_credentials_dict()
             if creds:
@@ -789,7 +801,7 @@ class Exchange(ABC):
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
-                args.append(params)
+                args.append(_convert_params_to_camel(params))
             body: dict = {"args": args}
             creds = self._get_credentials_dict()
             if creds:
@@ -812,7 +824,7 @@ class Exchange(ABC):
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
-                args.append(params)
+                args.append(_convert_params_to_camel(params))
             body: dict = {"args": args}
             creds = self._get_credentials_dict()
             if creds:
@@ -835,7 +847,7 @@ class Exchange(ABC):
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
-                args.append(params)
+                args.append(_convert_params_to_camel(params))
             body: dict = {"args": args}
             creds = self._get_credentials_dict()
             if creds:
@@ -1132,7 +1144,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_market_matches(self, params: Optional[dict] = None, **kwargs) -> List[Any]:
+    def fetch_market_matches(self, params: Optional[dict] = None, **kwargs) -> List[MatchResult]:
         try:
             args = []
             if kwargs:
@@ -1155,7 +1167,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_matches(self, params: dict, **kwargs) -> List[Any]:
+    def fetch_matches(self, params: dict, **kwargs) -> List[MatchResult]:
         try:
             args = []
             if kwargs:
@@ -1177,7 +1189,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_event_matches(self, params: Optional[dict] = None, **kwargs) -> List[Any]:
+    def fetch_event_matches(self, params: Optional[dict] = None, **kwargs) -> List[EventMatchResult]:
         try:
             args = []
             if kwargs:
@@ -1200,7 +1212,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def compare_market_prices(self, params: dict, **kwargs) -> List[Any]:
+    def compare_market_prices(self, params: dict, **kwargs) -> List[PriceComparison]:
         try:
             args = []
             if kwargs:
@@ -1222,7 +1234,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_related_markets(self, params: dict, **kwargs) -> List[Any]:
+    def fetch_related_markets(self, params: dict, **kwargs) -> List[MatchResult]:
         try:
             args = []
             if kwargs:
@@ -1244,7 +1256,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_matched_markets(self, params: Optional[dict] = None, **kwargs) -> List[Any]:
+    def fetch_matched_markets(self, params: Optional[dict] = None, **kwargs) -> List[MatchResult]:
         try:
             args = []
             if kwargs:
@@ -1267,7 +1279,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_matched_prices(self, params: Optional[dict] = None, **kwargs) -> List[Any]:
+    def fetch_matched_prices(self, params: Optional[dict] = None, **kwargs) -> List[PriceComparison]:
         try:
             args = []
             if kwargs:
@@ -1290,7 +1302,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_hedges(self, params: dict, **kwargs) -> List[Any]:
+    def fetch_hedges(self, params: dict, **kwargs) -> List[PriceComparison]:
         try:
             args = []
             if kwargs:
@@ -1312,7 +1324,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_arbitrage(self, params: Optional[dict] = None, **kwargs) -> List[Any]:
+    def fetch_arbitrage(self, params: Optional[dict] = None, **kwargs) -> List[ArbitrageOpportunity]:
         try:
             args = []
             if kwargs:
@@ -2054,7 +2066,7 @@ class Exchange(ABC):
     def watch_address(
         self,
         address: str,
-        types: list[str] = None,
+        types: Optional[List[str]] = None,
     ) -> SubscribedAddressSnapshot:
         """
         Watch real-time updates of a public wallet via WebSocket.
@@ -2140,7 +2152,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def watch_prices(self, market_address: str, callback: Optional[Any] = None) -> Any:
+    def watch_prices(self, market_address: str, callback: Optional[Callable[[Dict[str, Any]], None]] = None) -> Dict[str, Any]:
         """
         Watch real-time AMM price updates via WebSocket.
 
@@ -2176,7 +2188,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def watch_user_positions(self, callback: Optional[Any] = None) -> List[Position]:
+    def watch_user_positions(self, callback: Optional[Callable[[Dict[str, Any]], None]] = None) -> List[Position]:
         """
         Watch real-time user position updates via WebSocket.
         Requires API key authentication.
@@ -2213,7 +2225,7 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def watch_user_transactions(self, callback: Optional[Any] = None) -> Any:
+    def watch_user_transactions(self, callback: Optional[Callable[[Dict[str, Any]], None]] = None) -> Dict[str, Any]:
         """
         Watch real-time user transaction updates via WebSocket.
         Requires API key authentication.
@@ -2326,7 +2338,7 @@ class Exchange(ABC):
         market_id: Optional[str] = None,
         outcome_id: Optional[str] = None,
         side: Literal["buy", "sell"] = "buy",
-        type: Literal["market", "limit"] = "market",
+        order_type: Literal["market", "limit"] = "market",
         amount: float = 0,
         price: Optional[float] = None,
         fee: Optional[int] = None,
@@ -2344,7 +2356,7 @@ class Exchange(ABC):
             market_id: Market ID (or use outcome instead)
             outcome_id: Outcome ID (or use outcome instead)
             side: Order side (buy/sell)
-            type: Order type (market/limit)
+            order_type: Order type (market/limit)
             amount: Number of contracts
             price: Limit price (required for limit orders, 0.0-1.0)
             fee: Optional fee rate (e.g., 1000 for 0.1%)
@@ -2359,7 +2371,7 @@ class Exchange(ABC):
             ...     market_id="663583",
             ...     outcome_id="10991849...",
             ...     side="buy",
-            ...     type="limit",
+            ...     order_type="limit",
             ...     amount=10,
             ...     price=0.55
             ... )
@@ -2368,7 +2380,7 @@ class Exchange(ABC):
             >>> order = exchange.create_order(
             ...     outcome=market.yes,
             ...     side="buy",
-            ...     type="market",
+            ...     order_type="market",
             ...     amount=10,
             ... )
         """
@@ -2376,7 +2388,7 @@ class Exchange(ABC):
             if self.exchange_name == "sor" and self.private_key:
                 return self._execute_sor_order(
                     market_id=market_id, outcome_id=outcome_id, side=side,
-                    type=type, amount=amount, price=price, outcome=outcome,
+                    type=order_type, amount=amount, price=price, outcome=outcome,
                 )
             raise PmxtError(
                 "Trade execution is not available through the hosted API. "
@@ -2405,7 +2417,7 @@ class Exchange(ABC):
                 "marketId": market_id,
                 "outcomeId": outcome_id,
                 "side": side,
-                "type": type,
+                "type": order_type,
                 "amount": amount,
             }
             if price is not None:
@@ -2443,7 +2455,7 @@ class Exchange(ABC):
         market_id: Optional[str] = None,
         outcome_id: Optional[str] = None,
         side: Literal["buy", "sell"] = "buy",
-        type: Literal["market", "limit"] = "market",
+        order_type: Literal["market", "limit"] = "market",
         amount: float = 0,
         price: Optional[float] = None,
         fee: Optional[int] = None,
@@ -2463,7 +2475,7 @@ class Exchange(ABC):
             market_id: Market ID (or use outcome instead)
             outcome_id: Outcome ID (or use outcome instead)
             side: Order side (buy/sell)
-            type: Order type (market/limit)
+            order_type: Order type (market/limit)
             amount: Number of contracts
             price: Limit price (required for limit orders, 0.0-1.0)
             fee: Optional fee rate (e.g., 1000 for 0.1%)
@@ -2478,7 +2490,7 @@ class Exchange(ABC):
             ...     market_id="663583",
             ...     outcome_id="10991849...",
             ...     side="buy",
-            ...     type="limit",
+            ...     order_type="limit",
             ...     amount=10,
             ...     price=0.55
             ... )
@@ -2489,7 +2501,7 @@ class Exchange(ABC):
             >>> built = exchange.build_order(
             ...     outcome=market.yes,
             ...     side="buy",
-            ...     type="market",
+            ...     order_type="market",
             ...     amount=10
             ... )
         """
@@ -2521,7 +2533,7 @@ class Exchange(ABC):
                 "marketId": market_id,
                 "outcomeId": outcome_id,
                 "side": side,
-                "type": type,
+                "type": order_type,
                 "amount": amount,
             }
             if price is not None:

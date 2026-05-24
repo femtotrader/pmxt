@@ -557,7 +557,7 @@ just set the env var and all API calls route through the proxy.
 | Kalshi | `KALSHI_BASE_URL` | `https://api.elections.kalshi.com` |
 | Kalshi Demo | `KALSHI_DEMO_BASE_URL` | `https://demo-api.kalshi.co` |
 | Limitless | `LIMITLESS_BASE_URL` | `https://api.limitless.exchange` |
-| Opinion | `OPINION_BASE_URL` | `https://openapi.opinion.trade/openapi` |
+| Opinion | `OPINION_BASE_URL` | `https://proxy.opinion.trade:8443/openapi` |
 | Smarkets | `SMARKETS_BASE_URL` | `https://api.smarkets.com` |
 | Probable | `PROBABLE_BASE_URL` | `https://market-api.probable.markets` |
 | Myriad | `MYRIAD_BASE_URL` | `https://api-v2.myriadprotocol.com` |

@@ -11,7 +11,7 @@ export const opinionApiSpec = {
     },
     "servers": [
         {
-            "url": "https://openapi.opinion.trade/openapi"
+            "url": "https://proxy.opinion.trade:8443/openapi"
         }
     ],
     "security": [

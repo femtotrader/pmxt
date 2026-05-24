@@ -8,7 +8,7 @@ info:
     For trading operations, use the Opinion CLOB SDK.
 
 servers:
-  - url: https://openapi.opinion.trade/openapi
+  - url: https://proxy.opinion.trade:8443/openapi
     description: Production server
 
 security:

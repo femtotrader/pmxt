@@ -17,6 +17,7 @@ export interface HyperliquidRawOutcome {
     name: string;           // e.g. "BTC > $100K @ 2026-05-09 06:00 UTC"
     description: string;    // pipe-delimited contract spec
     sideSpecs: HyperliquidRawSideSpec[];
+    quoteToken: string;     // settlement currency, e.g. "USDC"
 }
 
 export interface HyperliquidRawQuestion {

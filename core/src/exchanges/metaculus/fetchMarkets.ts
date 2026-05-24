@@ -56,7 +56,7 @@ async function fetchPostPages(
         const results: any[] = data.results ?? [];
         if (results.length === 0) break;
 
-        all = all.concat(results);
+        all.push(...results);
         offset += results.length;
         page++;
 

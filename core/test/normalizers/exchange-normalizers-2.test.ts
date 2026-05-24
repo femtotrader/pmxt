@@ -411,7 +411,7 @@ describe('MyriadNormalizer', () => {
         volume24h: 8500,
         volume: 120000,
         liquidity: 30000,
-        questionId: 7,
+        eventId: 7,
         topics: ['crypto', 'ethereum'],
         outcomes: Object.freeze([
             Object.freeze({
@@ -449,7 +449,7 @@ describe('MyriadNormalizer', () => {
             expect(result.marketId).toBe('137:42');
         });
 
-        it('sets eventId from questionId', () => {
+        it('sets eventId from eventId', () => {
             const result = normalizer.normalizeMarket(rawMarket)!;
             expect(result.eventId).toBe('7');
         });

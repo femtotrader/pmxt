@@ -632,6 +632,30 @@ export abstract class Exchange {
         return response.json();
     }
 
+    /**
+     * Read a hosted catalog endpoint directly.
+     *
+     * Hosted-only Router APIs such as matched clusters are not part of the
+     * core sidecar method namespace. They live under /v0 and return their own
+     * response envelopes, so callers intentionally receive the raw JSON body.
+     */
+    protected async catalogReadRequest(path: string, query: Record<string, unknown> = {}): Promise<any> {
+        const qs = buildSidecarQueryString(query);
+        const url = `${this.resolveBaseUrl()}${path}${qs ? `?${qs}` : ''}`;
+        const response = await this.fetchWithRetry(url, {
+            method: 'GET',
+            headers: this.getAuthHeaders(),
+        });
+        if (!response.ok) {
+            const body = await response.json().catch(() => ({}));
+            if (body.error && typeof body.error === "object") {
+                throw fromServerError(body.error);
+            }
+            throw new PmxtError(body.error?.message || response.statusText);
+        }
+        return response.json();
+    }
+
     // BEGIN GENERATED METHODS
 
     async loadMarkets(reload: boolean = false): Promise<Record<string, UnifiedMarket>> {

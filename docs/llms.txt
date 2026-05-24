@@ -23,8 +23,8 @@ GitHub: https://github.com/pmxt-dev/pmxt
 - [What is the Router?](https://pmxt.dev/docs/router/overview): One API key. Every prediction market. Cross-venue search, matching, and price comparison.
 - [Search Events](https://pmxt.dev/docs/router/events): Search events across every venue in a single query.
 - [Search Markets](https://pmxt.dev/docs/router/markets): Search markets across every venue in a single query.
-- [Find Similar Events](https://pmxt.dev/docs/router/event-matching): Match an entire event across venues — all child markets mapped in a single call.
-- [Find Similar Markets](https://pmxt.dev/docs/router/matching): Find the same or related market on other venues, with relation types, confidence scores, and reasoning.
+- [Find Similar Events](https://pmxt.dev/docs/router/event-matching): Discover cross-venue event clusters and the markets inside each matched event.
+- [Find Similar Markets](https://pmxt.dev/docs/router/matching): Discover cross-venue market clusters with relation types, confidence scores, and source markets.
 - [Compare Prices Across Venues](https://pmxt.dev/docs/router/prices): Compare prices across venues and find related markets.
 - [Overview](https://pmxt.dev/docs/api-reference/overview): The full venue pass-through surface — auto-generated from pmxt-core.
 - [Server Health Check](https://pmxt.dev/docs/api-reference/healthCheck)
@@ -36,8 +36,6 @@ GitHub: https://github.com/pmxt-dev/pmxt
 - [Fetch Markets](https://pmxt.dev/docs/api-reference/fetch-markets)
 - [Fetch Markets Paginated](https://pmxt.dev/docs/api-reference/fetchMarketsPaginated): Fetch markets with cursor-based pagination backed by a stable in-memory snapshot. On the first call (or when no cursor is supplied), fetches all markets once and caches them. Subsequent calls with a cursor returned from a previous call slice directly from the cached snapshot — no additional API calls are made. The snapshot is invalidated after `snapshotTTL` ms (configured via `ExchangeOptions` in the constructor). A request using a cursor from an expired snapshot throws `'Cursor has expired'`.
 - [Fetch Market](https://pmxt.dev/docs/api-reference/fetch-market)
-- [Event Matches](https://pmxt.dev/docs/api-reference/fetch-event-matches)
-- [Market Matches](https://pmxt.dev/docs/api-reference/fetch-market-matches)
 - [Fetch OHLCV](https://pmxt.dev/docs/api-reference/fetch-ohlcv)
 - [Fetch Order Book](https://pmxt.dev/docs/api-reference/fetch-order-book)
 - [Fetch Order Books](https://pmxt.dev/docs/api-reference/fetchOrderBooks): Batch variant of {@link fetchOrderBook}. Fetches order books for multiple outcomes in a single request where the exchange supports it.
@@ -71,8 +69,8 @@ GitHub: https://github.com/pmxt-dev/pmxt
 - [Fetch Oracle History](https://pmxt.dev/docs/api-reference/feedFetchOracleHistory): Returns historical Chainlink oracle rounds for a price feed.
 - [Fetch Historical Prices](https://pmxt.dev/docs/api-reference/feedFetchHistoricalPrices): Returns historical price data as tickers within a time range.
 - [SQL](https://pmxt.dev/docs/sql): Query raw tick-level orderbook history with SQL.
-- [Discover matched markets across venues](https://pmxt.dev/docs/api-reference/getV0Matched-markets): Bulk cross-venue price comparison. Returns matched market pairs from the market_matches table, computing price differences across venues.
-- [Discover cross-venue matched market prices](https://pmxt.dev/docs/api-reference/getV0Matched-prices): Bulk cross-venue price comparison. Returns matched market pairs from the market_matches table, computing price differences across venues.
+- [Fetch matched event clusters](https://pmxt.dev/docs/api-reference/getV0Matched-event-clusters): Returns connected clusters of semantically matched events across venues. Use this endpoint to browse or anchor event-level matches while preserving each venue's child markets.
+- [Fetch matched market clusters](https://pmxt.dev/docs/api-reference/getV0Matched-market-clusters): Returns connected clusters of semantically matched markets across venues. Use this endpoint to browse or anchor market-level matches without flattening the response into pairwise rows.
 - [Execute a read-only SQL query against ClickHouse](https://pmxt.dev/docs/api-reference/postV0Sql)
 
 ## Full documentation

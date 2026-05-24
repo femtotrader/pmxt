@@ -16,6 +16,10 @@ const path = require("path");
 const DOCS_DIR = path.join(__dirname, "..", "docs");
 const BASE_URL = "https://pmxt.dev/docs";
 
+function trimTrailingWhitespace(text) {
+  return text.replace(/[ \t]+$/gm, "");
+}
+
 // ---------------------------------------------------------------------------
 // 1. Read navigation from docs.json
 // ---------------------------------------------------------------------------
@@ -616,7 +620,7 @@ llmsTxtLines.push(
 
 fs.writeFileSync(
   path.join(DOCS_DIR, "llms.txt"),
-  llmsTxtLines.join("\n") + "\n",
+  trimTrailingWhitespace(llmsTxtLines.join("\n")) + "\n",
   "utf8"
 );
 console.log(`wrote docs/llms.txt  (${llmsTxtLines.length} lines)`);
@@ -635,7 +639,9 @@ const header = [
   "",
 ];
 
-const fullTxt = header.join("\n") + "\n" + fullSections.join("\n") + "\n";
+const fullTxt = trimTrailingWhitespace(
+  header.join("\n") + "\n" + fullSections.join("\n")
+) + "\n";
 
 fs.writeFileSync(path.join(DOCS_DIR, "llms-full.txt"), fullTxt, "utf8");
 const lineCount = fullTxt.split("\n").length;

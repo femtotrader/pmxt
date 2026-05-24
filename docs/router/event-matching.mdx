@@ -1,18 +1,17 @@
 ---
 title: Find Similar Events
-description: "Match an entire event across venues — all child markets mapped in a single call."
+description: "Discover cross-venue event clusters and the markets inside each matched event."
 ---
 
-Given an event on any venue, find the corresponding event on every
-other venue and map all child markets across them. Instead of matching
-one market at a time, this returns the full cross-venue mapping in a
-single call.
+Use event clusters when the thing you care about has multiple child
+markets. PMXT groups matched events across venues, then returns the
+markets attached to each event so you can inspect the full cross-venue
+structure in one response.
 
-An [Event](/concepts/unified-schema) is the parent container — it holds
-multiple Markets, each with their own Outcomes. Event matching maps the
-entire tree across venues.
+You can anchor the lookup to an event you already have, or omit the
+anchor fields to browse event clusters across the catalog.
 
-## fetchEventMatches
+## fetchMatchedEventClusters
 
 <Tabs>
   <Tab title="Python">
@@ -21,12 +20,22 @@ entire tree across venues.
 
     router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 
-    event_matches = router.fetch_event_matches(event_id="e344d660-...")
+    clusters = router.fetch_matched_event_clusters(
+        slug="2026-nba-champion",
+        relation="identity",
+        min_confidence=0.8,
+        venues=["polymarket", "kalshi"],
+        include_raw_matches=True,
+        limit=5,
+    )
 
-    for em in event_matches:
-        print(em.event.title)
-        for mm in em.market_matches:
-            print(f"  {mm.relation} ({mm.confidence}): {mm.market.title}")
+    for cluster in clusters:
+        print(cluster.cluster_id, cluster.confidence, cluster.canonical_title)
+
+        for event in cluster.events:
+            print(f"  {event.source_exchange}: {event.title}")
+            for market in event.markets[:3]:
+                print(f"    - {market.title}")
     ```
   </Tab>
   <Tab title="TypeScript">
@@ -35,75 +44,174 @@ entire tree across venues.
 
     const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
 
-    const eventMatches = await router.fetchEventMatches({
-      eventId: "e344d660-...",
+    const clusters = await router.fetchMatchedEventClusters({
+      slug: "2026-nba-champion",
+      relation: "identity",
+      minConfidence: 0.8,
+      venues: ["polymarket", "kalshi"],
+      includeRawMatches: true,
+      limit: 5,
     });
 
-    for (const em of eventMatches) {
-      console.log(em.event.title);
-      for (const mm of em.marketMatches) {
-        console.log(`  ${mm.relation} (${mm.confidence}): ${mm.market.title}`);
+    for (const cluster of clusters) {
+      console.log(cluster.clusterId, cluster.confidence, cluster.canonicalTitle);
+
+      for (const event of cluster.events) {
+        console.log(`  ${event.sourceExchange}: ${event.title}`);
+        for (const market of event.markets.slice(0, 3)) {
+          console.log(`    - ${market.title}`);
+        }
       }
     }
     ```
   </Tab>
   <Tab title="curl">
     ```bash
-    curl "https://api.pmxt.dev/v0/events/e344d660-.../matches" \
-      -H "Authorization: Bearer pmxt_live_..."
+    curl -G "https://api.pmxt.dev/v0/matched-event-clusters" \
+      -H "Authorization: Bearer pmxt_live_..." \
+      --data-urlencode "slug=2026-nba-champion" \
+      --data-urlencode "relation=identity" \
+      --data-urlencode "minConfidence=0.8" \
+      --data-urlencode "venues=polymarket,kalshi" \
+      --data-urlencode "includeRawMatches=true" \
+      --data-urlencode "limit=5"
+    ```
+  </Tab>
+</Tabs>
+
+### Passing an existing event
+
+If the event came from `fetchEvents`, pass it directly.
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    events = router.fetch_events(query="2026 NBA Champion", limit=1)
+    clusters = router.fetch_matched_event_clusters(events[0])
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    const events = await router.fetchEvents({
+      query: "2026 NBA Champion",
+      limit: 1,
+    });
+
+    const clusters = await router.fetchMatchedEventClusters(events[0]);
+    ```
+  </Tab>
+</Tabs>
+
+### Browsing clusters
+
+Omit `eventId`, `slug`, and `url` to browse the highest-volume matched
+event clusters.
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    clusters = router.fetch_matched_event_clusters(
+        sort="volume",
+        min_venues=2,
+        limit=25,
+    )
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    const clusters = await router.fetchMatchedEventClusters({
+      sort: "volume",
+      minVenues: 2,
+      limit: 25,
+    });
     ```
   </Tab>
 </Tabs>
 
 ### Parameters
 
-| Parameter       | Type      | Default | Notes                                             |
-| --------------- | --------- | ------- | ------------------------------------------------- |
-| `eventId`       | `string`  | —       | Internal PMXT event ID.                           |
-| `slug`          | `string`  | —       | Event slug (alternative to `eventId`).            |
-| `relation`      | `string`  | —       | Filter market matches to a specific [relation type](/router/matching#relation-types). |
-| `minConfidence` | `number`  | —       | Only return matches above this threshold (0–1).   |
-| `limit`         | `integer` | —       | Max event matches to return.                      |
-| `includePrices` | `boolean` | `false` | Attach live prices to each market match.          |
+| Parameter | Type | Default | Notes |
+| --------- | ---- | ------- | ----- |
+| `eventId` | `string` | - | Anchor to a PMXT event ID. |
+| `slug` | `string` | - | Anchor to an event slug. |
+| `url` | `string` | - | Anchor to a venue event URL. |
+| `relation` | `string` | - | Filter to one relation type. |
+| `relations` | `string` or `string[]` | - | Filter to multiple relation types. |
+| `minConfidence` / `min_confidence` | `number` | `0` | Minimum cluster edge confidence, from `0` to `1`. |
+| `venues` | `string` or `string[]` | - | Only include clusters touching these venues. |
+| `excludeVenues` / `exclude_venues` | `string` or `string[]` | - | Exclude clusters touching these venues. |
+| `minVenues` / `min_venues` | `integer` | - | Require at least this many venues in a cluster. |
+| `withOrderbook` / `with_orderbook` | `boolean` | `false` | Require live orderbook coverage on matched edges. |
+| `includeRawMatches` / `include_raw_matches` | `boolean` | `false` | Include pairwise edges used to build the cluster. |
+| `updatedSince` / `updated_since` | `datetime` | - | Only include matches updated after this time. |
+| `sort` | `"volume"` or `"confidence"` | `"volume"` | Cluster sort order. |
+| `limit` | `integer` | `50` | Maximum clusters to return. |
+| `offset` | `integer` | `0` | Pagination offset. |
+| `edgeLimit` / `edge_limit` | `integer` | - | Maximum pairwise edges to scan before clustering. |
 
 ### Response shape
 
 ```json
-[
-  {
-    "event": {
-      "eventId": "...",
-      "title": "2028 US Presidential Election"
+{
+  "clusterId": "ecl_3e7b1534e6235f9e",
+  "canonicalTitle": "2026 NBA Champion",
+  "category": "Sports",
+  "relations": ["identity"],
+  "confidence": 0.97,
+  "volume24h": 1487365.42,
+  "events": [
+    {
+      "id": "poly_event_...",
+      "sourceExchange": "polymarket",
+      "title": "2026 NBA Champion",
+      "markets": [
+        {
+          "marketId": "pm_knicks_...",
+          "title": "2026 NBA Champion - Will the New York Knicks win the 2026 NBA Finals?",
+          "outcomes": [
+            { "outcomeId": "pm_knicks_yes", "label": "Yes", "price": 0.23 },
+            { "outcomeId": "pm_knicks_no", "label": "No", "price": 0.77 }
+          ]
+        }
+      ]
     },
-    "marketMatches": [
-      {
-        "market": { "marketId": "...", "title": "Will Newsom win?" },
-        "relation": "identity",
-        "confidence": 0.92,
-        "reasoning": "Same candidate, same office, same election cycle."
-      },
-      {
-        "market": { "marketId": "...", "title": "Will DeSantis win?" },
-        "relation": "identity",
-        "confidence": 0.89,
-        "reasoning": "Same candidate — different bracket formatting on Kalshi."
-      }
-    ]
-  }
-]
+    {
+      "id": "kalshi_event_...",
+      "sourceExchange": "kalshi",
+      "title": "2026 Pro Basketball Finals",
+      "markets": [
+        {
+          "marketId": "kalshi_knicks_...",
+          "title": "Will New York win the 2026 Pro Basketball Finals?",
+          "outcomes": [
+            { "outcomeId": "KXNBA-26-NYK", "label": "Yes", "price": 0.22 },
+            { "outcomeId": "KXNBA-26-NYK-NO", "label": "No", "price": 0.78 }
+          ]
+        }
+      ]
+    }
+  ],
+  "rawMatches": [
+    {
+      "eventAId": "poly_event_...",
+      "eventBId": "kalshi_event_...",
+      "marketAId": "pm_knicks_...",
+      "marketBId": "kalshi_knicks_...",
+      "relation": "identity",
+      "confidence": 0.97
+    }
+  ]
+}
 ```
 
-Each matched event contains its full list of cross-venue market matches.
-Markets that exist on one venue but not the other are omitted from the
-response — only matched pairs appear.
+## When To Use Event Clusters
 
-### When to use event matching vs market matching
+| You have | Use |
+| -------- | --- |
+| A single tradeable question | [Find Similar Markets](/router/matching) |
+| A parent event with many child markets | **Find Similar Events** |
 
-| You have…                | Use                                        |
-| ------------------------ | ------------------------------------------ |
-| A single market question | [Find Similar Markets](/router/matching)   |
-| An event with many child markets | **Find Similar Events** (this page) |
-
-Event matching is more efficient when you care about the full picture —
-it maps all child markets in one call instead of N separate market
-match calls.
+Event clusters are the better default when venues structure the same
+topic differently. For example, one venue may expose a single event with
+many team markets while another exposes each team as its own market
+under a differently named event.

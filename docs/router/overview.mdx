@@ -19,7 +19,7 @@ interface.
     markets = router.fetch_markets(query="fed rate cut", limit=5)
 
     # Find the same market on other venues
-    matches = router.fetch_market_matches(market_id=markets[0].market_id)
+    clusters = router.fetch_matched_market_clusters(markets[0])
 
     # Compare prices across venues
     prices = router.compare_market_prices(market_id=markets[0].market_id)
@@ -35,7 +35,7 @@ interface.
     const markets = await router.fetchMarkets({ query: "fed rate cut", limit: 5 });
 
     // Find the same market on other venues
-    const matches = await router.fetchMarketMatches({ marketId: markets[0].marketId });
+    const clusters = await router.fetchMatchedMarketClusters(markets[0]);
 
     // Compare prices across venues
     const prices = await router.compareMarketPrices({ marketId: markets[0].marketId });
@@ -55,9 +55,9 @@ required for search, matching, or price analysis.
     calls.
   </Card>
   <Card title="Market matching" icon="link" href="/router/matching">
-    Given a market on any venue, find the same or related market on
-    every other venue. Each match has a relation type, confidence score,
-    and reasoning.
+    Given a market on any venue, find the cluster of matching markets
+    across other venues. Each cluster has relation types and confidence
+    scores.
   </Card>
   <Card title="Price comparison" icon="scale-balanced" href="/router/prices#comparemarketprices">
     Side-by-side bid/ask for the same market on every venue. See where
@@ -67,9 +67,9 @@ required for search, matching, or price analysis.
     Find markets whose resolution conditions are subsets or supersets of
     a target market — narrower or broader markets on other venues.
   </Card>
-  <Card title="Matched markets" icon="arrow-right-arrow-left" href="/router/prices#fetchmatchedmarkets">
-    Compare prices for the same market across venues. See price
-    differences at a glance.
+  <Card title="Matched markets" icon="arrow-right-arrow-left" href="/router/prices#fetchmatchedmarketclusters">
+    Browse matched market clusters across venues, then inspect venue
+    prices and order books.
   </Card>
   <Card title="Compose with venues" icon="puzzle-piece" href="/router/prices#composing-with-venue-exchanges">
     Use the Router for data, venue exchanges for trading. Same SDK,

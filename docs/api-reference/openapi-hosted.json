@@ -3,7 +3,7 @@
   "info": {
     "title": "PMXT Hosted Router API",
     "description": "Hosted-only endpoints for cross-venue search, matching, arbitrage, and SQL.",
-    "version": "81efb2b"
+    "version": "9389e99"
   },
   "servers": [
     {
@@ -17,761 +17,54 @@
     }
   ],
   "paths": {
-    "/v0/arbitrage": {
+    "/v0/matched-event-clusters": {
       "get": {
-        "summary": "Discover cross-exchange arbitrage opportunities",
-        "description": "Bulk cross-exchange arbitrage discovery. Returns matched market pairs from the market_matches table, computing directional spread opportunities across venues.\n",
-        "tags": [
-          "Arbitrage"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "relations",
-            "schema": {
-              "type": "string",
-              "default": "identity"
-            },
-            "description": "Comma-separated relation filter. Valid values: identity, subset, superset, overlap, disjoint.\n",
-            "example": "identity,overlap"
-          },
-          {
-            "in": "query",
-            "name": "minSpread",
-            "schema": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1,
-              "default": 0
-            },
-            "description": "Minimum price spread to include (0.0-1.0)."
-          },
-          {
-            "in": "query",
-            "name": "category",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter both sides of the match by category."
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 500,
-              "default": 50
-            },
-            "description": "Maximum number of matched pairs to return."
-          },
-          {
-            "in": "query",
-            "name": "minConfidence",
-            "schema": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1,
-              "default": 0
-            },
-            "description": "Minimum match confidence score (0.0-1.0)."
-          },
-          {
-            "in": "query",
-            "name": "includePrices",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "description": "Enrich markets with live order book prices."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Arbitrage opportunities sorted by spread descending.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "marketA": {
-                            "$ref": "#/components/schemas/UnifiedMarket"
-                          },
-                          "marketB": {
-                            "$ref": "#/components/schemas/UnifiedMarket"
-                          },
-                          "spread": {
-                            "type": "number"
-                          },
-                          "buyVenue": {
-                            "type": "string"
-                          },
-                          "sellVenue": {
-                            "type": "string"
-                          },
-                          "buyPrice": {
-                            "type": "number"
-                          },
-                          "sellPrice": {
-                            "type": "number"
-                          },
-                          "relation": {
-                            "type": "string",
-                            "enum": [
-                              "identity",
-                              "subset",
-                              "superset",
-                              "overlap",
-                              "disjoint"
-                            ]
-                          },
-                          "confidence": {
-                            "type": "number"
-                          }
-                        }
-                      }
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "count": {
-                          "type": "integer"
-                        },
-                        "limit": {
-                          "type": "integer"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid query parameters.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "operationId": "getV0Arbitrage"
-      }
-    },
-    "/v0/events": {
-      "get": {
-        "summary": "List events with pagination, search, and filters",
-        "tags": [
-          "Events"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "q",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Full-text search on event title and slug (ILIKE)"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 500,
-              "default": 50
-            },
-            "description": "Maximum number of events to return"
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0
-            },
-            "description": "Number of events to skip for pagination"
-          },
-          {
-            "in": "query",
-            "name": "closed",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "description": "Include closed/resolved/settled events"
-          },
-          {
-            "in": "query",
-            "name": "sourceExchange",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter by source exchange (e.g. polymarket, kalshi)"
-          },
-          {
-            "in": "query",
-            "name": "category",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter by event category"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Paginated list of unified events",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/UnifiedEvent"
-                      }
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "count": {
-                          "type": "integer"
-                        },
-                        "limit": {
-                          "type": "integer"
-                        },
-                        "offset": {
-                          "type": "integer"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "operationId": "getV0Events"
-      }
-    },
-    "/v0/events/{id}/matches": {
-      "get": {
-        "summary": "Get cross-exchange event matches",
-        "description": "Finds markets belonging to the source event, looks up cross-exchange matches via market_matches, groups by parent event, and returns matched events with market-level match details.\n",
-        "tags": [
-          "Events"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Event UUID or slug"
-          },
-          {
-            "in": "query",
-            "name": "relation",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "identity",
-                "subset",
-                "superset",
-                "overlap",
-                "disjoint"
-              ]
-            },
-            "description": "Filter by match relation type"
-          },
-          {
-            "in": "query",
-            "name": "minConfidence",
-            "schema": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1,
-              "default": 0
-            },
-            "description": "Minimum match confidence score"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 500,
-              "default": 50
-            },
-            "description": "Maximum number of matched events to return"
-          },
-          {
-            "in": "query",
-            "name": "includePrices",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "description": "Attach bestBid, bestAsk, and lastPrice to each market"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Source event with cross-exchange matches",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "event": {
-                          "$ref": "#/components/schemas/UnifiedEvent"
-                        },
-                        "matches": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "event": {
-                                "$ref": "#/components/schemas/UnifiedEvent"
-                              },
-                              "marketMatches": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "sourceMarket": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "type": "string"
-                                        },
-                                        "title": {
-                                          "type": "string"
-                                        }
-                                      }
-                                    },
-                                    "market": {
-                                      "$ref": "#/components/schemas/UnifiedMarket"
-                                    },
-                                    "relation": {
-                                      "type": "string",
-                                      "enum": [
-                                        "identity",
-                                        "subset",
-                                        "superset",
-                                        "overlap",
-                                        "disjoint"
-                                      ]
-                                    },
-                                    "confidence": {
-                                      "type": "number"
-                                    },
-                                    "reasoning": {
-                                      "type": "string",
-                                      "nullable": true
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid relation parameter"
-          },
-          "404": {
-            "description": "Event not found"
-          }
-        },
-        "operationId": "getV0EventsIdMatches"
-      }
-    },
-    "/v0/events/{id}": {
-      "get": {
-        "summary": "Get a single event by UUID",
-        "tags": [
-          "Events"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Event UUID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Single unified event with nested markets",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/UnifiedEvent"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Event not found"
-          }
-        },
-        "operationId": "getV0EventsId"
-      }
-    },
-    "/v0/markets": {
-      "get": {
-        "summary": "List markets",
-        "description": "Returns a paginated list of prediction markets with optional search and filters.",
-        "tags": [
-          "Markets"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "q",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Full-text search on market question and slug (case-insensitive)."
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 500,
-              "default": 50
-            },
-            "description": "Maximum number of markets to return."
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0
-            },
-            "description": "Number of markets to skip for pagination."
-          },
-          {
-            "in": "query",
-            "name": "closed",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "description": "When true, include closed and resolved markets."
-          },
-          {
-            "in": "query",
-            "name": "sourceExchange",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter by source exchange (e.g. polymarket, kalshi)."
-          },
-          {
-            "in": "query",
-            "name": "category",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter by market category."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Paginated list of markets.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/UnifiedMarket"
-                      }
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "count": {
-                          "type": "integer"
-                        },
-                        "limit": {
-                          "type": "integer"
-                        },
-                        "offset": {
-                          "type": "integer"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "operationId": "getV0Markets"
-      }
-    },
-    "/v0/markets/{id}/matches": {
-      "get": {
-        "summary": "Get cross-exchange matches for a market",
-        "description": "Returns all cross-exchange matches for the given market. Each match includes the full UnifiedMarket shape plus relation, confidence, and reasoning from the matching engine. The market can be looked up by UUID, slug, or URL.\n",
-        "tags": [
-          "Markets"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Market UUID, slug, or URL."
-          },
-          {
-            "in": "query",
-            "name": "relation",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "identity",
-                "subset",
-                "superset",
-                "overlap",
-                "disjoint"
-              ]
-            },
-            "description": "Filter matches by semantic relation type."
-          },
-          {
-            "in": "query",
-            "name": "minConfidence",
-            "schema": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1,
-              "default": 0
-            },
-            "description": "Minimum confidence threshold (0-1)."
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 500,
-              "default": 50
-            },
-            "description": "Maximum number of matches to return."
-          },
-          {
-            "in": "query",
-            "name": "includePrices",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "description": "When true, attach bestBid, bestAsk, and lastPrice to each market."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Source market and its cross-exchange matches.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "market": {
-                          "$ref": "#/components/schemas/UnifiedMarket"
-                        },
-                        "matches": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "market": {
-                                "$ref": "#/components/schemas/UnifiedMarket"
-                              },
-                              "relation": {
-                                "type": "string",
-                                "enum": [
-                                  "identity",
-                                  "subset",
-                                  "superset",
-                                  "overlap",
-                                  "disjoint"
-                                ]
-                              },
-                              "confidence": {
-                                "type": "number"
-                              },
-                              "reasoning": {
-                                "type": "string",
-                                "nullable": true
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid relation parameter."
-          },
-          "404": {
-            "description": "Market not found."
-          }
-        },
-        "operationId": "getV0MarketsIdMatches"
-      }
-    },
-    "/v0/markets/{id}": {
-      "get": {
-        "summary": "Get a single market",
-        "description": "Returns a single prediction market by its UUID.",
-        "tags": [
-          "Markets"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Market UUID."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The requested market.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/UnifiedMarket"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Market not found."
-          }
-        },
-        "operationId": "getV0MarketsId"
-      }
-    },
-    "/v0/matched-markets": {
-      "get": {
-        "summary": "Discover matched markets across venues",
-        "description": "Bulk cross-venue price comparison. Returns matched market pairs from the market_matches table, computing price differences across venues.\n",
+        "summary": "Fetch matched event clusters",
+        "description": "Returns connected clusters of semantically matched events across venues. Use this endpoint to browse or anchor event-level matches while preserving each venue's child markets.\n",
         "tags": [
           "MatchedMarkets"
         ],
         "parameters": [
           {
             "in": "query",
-            "name": "query",
+            "name": "eventId",
             "schema": {
               "type": "string"
             },
-            "description": "Keyword search across matched market titles.",
-            "example": "bitcoin"
+            "description": "Anchor the response to a specific event ID."
+          },
+          {
+            "in": "query",
+            "name": "slug",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Anchor the response to a specific event slug."
+          },
+          {
+            "in": "query",
+            "name": "url",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Anchor the response to a specific event URL."
           },
           {
             "in": "query",
             "name": "relations",
             "schema": {
-              "type": "string",
-              "default": "identity"
+              "type": "string"
             },
-            "description": "Comma-separated relation filter. Valid values: identity, subset, superset, overlap, disjoint.\n",
+            "description": "Comma-separated relation filter.",
             "example": "identity,overlap"
           },
           {
             "in": "query",
-            "name": "minDifference",
-            "schema": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1,
-              "default": 0
-            },
-            "description": "Minimum price difference to include (0.0-1.0)."
-          },
-          {
-            "in": "query",
-            "name": "category",
+            "name": "relation",
             "schema": {
               "type": "string"
             },
-            "description": "Filter both sides of the match by category."
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 500,
-              "default": 50
-            },
-            "description": "Maximum number of matched pairs to return."
+            "description": "Single relation filter. Alias for relations."
           },
           {
             "in": "query",
@@ -781,150 +74,158 @@
               "minimum": 0,
               "maximum": 1,
               "default": 0
-            },
-            "description": "Minimum match confidence score (0.0-1.0)."
+            }
           },
           {
             "in": "query",
-            "name": "includePrices",
+            "name": "venues",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated venue allow-list.",
+            "example": "polymarket,kalshi"
+          },
+          {
+            "in": "query",
+            "name": "excludeVenues",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated venue deny-list."
+          },
+          {
+            "in": "query",
+            "name": "minVenues",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Minimum number of venues required in a cluster."
+          },
+          {
+            "in": "query",
+            "name": "withOrderbook",
             "schema": {
               "type": "boolean",
               "default": false
             },
-            "description": "Enrich markets with live order book prices."
+            "description": "Require at least one live orderbook on each matched edge."
+          },
+          {
+            "in": "query",
+            "name": "updatedSince",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Only include matches updated after this timestamp."
+          },
+          {
+            "in": "query",
+            "name": "includeRawMatches",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Include the pairwise match edges used to build each cluster."
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "volume",
+                "confidence"
+              ],
+              "default": "volume"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 50
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "in": "query",
+            "name": "edgeLimit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Maximum number of pairwise edges to scan before clustering."
           }
         ],
         "responses": {
           "200": {
-            "description": "Matched market pairs sorted by price difference descending.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "marketA": {
-                            "$ref": "#/components/schemas/UnifiedMarket"
-                          },
-                          "marketB": {
-                            "$ref": "#/components/schemas/UnifiedMarket"
-                          },
-                          "priceDifference": {
-                            "type": "number"
-                          },
-                          "venueA": {
-                            "type": "string"
-                          },
-                          "venueB": {
-                            "type": "string"
-                          },
-                          "priceA": {
-                            "type": "number"
-                          },
-                          "priceB": {
-                            "type": "number"
-                          },
-                          "relation": {
-                            "type": "string",
-                            "enum": [
-                              "identity",
-                              "subset",
-                              "superset",
-                              "overlap",
-                              "disjoint"
-                            ]
-                          },
-                          "confidence": {
-                            "type": "number"
-                          },
-                          "reasoning": {
-                            "type": "string",
-                            "nullable": true
-                          }
-                        }
-                      }
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "count": {
-                          "type": "integer"
-                        },
-                        "limit": {
-                          "type": "integer"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid query parameters.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
+            "description": "Matched event clusters."
           }
         },
-        "operationId": "getV0Matched-markets"
+        "operationId": "getV0Matched-event-clusters"
       }
     },
-    "/v0/matched-prices": {
+    "/v0/matched-market-clusters": {
       "get": {
-        "summary": "Discover cross-venue matched market prices",
-        "description": "Bulk cross-venue price comparison. Returns matched market pairs from the market_matches table, computing price differences across venues.\n",
+        "summary": "Fetch matched market clusters",
+        "description": "Returns connected clusters of semantically matched markets across venues. Use this endpoint to browse or anchor market-level matches without flattening the response into pairwise rows.\n",
         "tags": [
-          "MatchedPrices"
+          "MatchedMarkets"
         ],
         "parameters": [
           {
             "in": "query",
+            "name": "marketId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Anchor the response to a specific market ID."
+          },
+          {
+            "in": "query",
+            "name": "slug",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Anchor the response to a specific market slug."
+          },
+          {
+            "in": "query",
+            "name": "url",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Anchor the response to a specific market URL."
+          },
+          {
+            "in": "query",
             "name": "relations",
             "schema": {
-              "type": "string",
-              "default": "identity"
+              "type": "string"
             },
-            "description": "Comma-separated relation filter. Valid values: identity, subset, superset, overlap, disjoint.\n",
+            "description": "Comma-separated relation filter.",
             "example": "identity,overlap"
           },
           {
             "in": "query",
-            "name": "minDifference",
-            "schema": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1,
-              "default": 0
-            },
-            "description": "Minimum price difference to include (0.0-1.0)."
-          },
-          {
-            "in": "query",
-            "name": "category",
+            "name": "relation",
             "schema": {
               "type": "string"
             },
-            "description": "Filter both sides of the match by category."
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 500,
-              "default": 50
-            },
-            "description": "Maximum number of matched pairs to return."
+            "description": "Single relation filter. Alias for relations."
           },
           {
             "in": "query",
@@ -934,101 +235,108 @@
               "minimum": 0,
               "maximum": 1,
               "default": 0
-            },
-            "description": "Minimum match confidence score (0.0-1.0)."
+            }
           },
           {
             "in": "query",
-            "name": "includePrices",
+            "name": "venues",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated venue allow-list.",
+            "example": "polymarket,kalshi"
+          },
+          {
+            "in": "query",
+            "name": "excludeVenues",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated venue deny-list."
+          },
+          {
+            "in": "query",
+            "name": "minVenues",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Minimum number of venues required in a cluster."
+          },
+          {
+            "in": "query",
+            "name": "withOrderbook",
             "schema": {
               "type": "boolean",
               "default": false
             },
-            "description": "Enrich markets with live order book prices."
+            "description": "Require at least one live orderbook on each matched edge."
+          },
+          {
+            "in": "query",
+            "name": "updatedSince",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Only include matches updated after this timestamp."
+          },
+          {
+            "in": "query",
+            "name": "includeRawMatches",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Include the pairwise match edges used to build each cluster."
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "volume",
+                "confidence"
+              ],
+              "default": "volume"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 50
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "in": "query",
+            "name": "edgeLimit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Maximum number of pairwise edges to scan before clustering."
           }
         ],
         "responses": {
           "200": {
-            "description": "Matched market pairs sorted by price difference descending.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "marketA": {
-                            "$ref": "#/components/schemas/UnifiedMarket"
-                          },
-                          "marketB": {
-                            "$ref": "#/components/schemas/UnifiedMarket"
-                          },
-                          "priceDifference": {
-                            "type": "number"
-                          },
-                          "venueA": {
-                            "type": "string"
-                          },
-                          "venueB": {
-                            "type": "string"
-                          },
-                          "priceA": {
-                            "type": "number"
-                          },
-                          "priceB": {
-                            "type": "number"
-                          },
-                          "relation": {
-                            "type": "string",
-                            "enum": [
-                              "identity",
-                              "subset",
-                              "superset",
-                              "overlap",
-                              "disjoint"
-                            ]
-                          },
-                          "confidence": {
-                            "type": "number"
-                          },
-                          "reasoning": {
-                            "type": "string",
-                            "nullable": true
-                          }
-                        }
-                      }
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "count": {
-                          "type": "integer"
-                        },
-                        "limit": {
-                          "type": "integer"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid query parameters.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
+            "description": "Matched market clusters."
           }
         },
-        "operationId": "getV0Matched-prices"
+        "operationId": "getV0Matched-market-clusters"
       }
     },
     "/v0/sql": {

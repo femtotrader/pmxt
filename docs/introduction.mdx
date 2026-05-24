@@ -48,11 +48,11 @@ router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 # Search every venue at once
 markets = router.fetch_markets(query="fed rate cut")
 
-# Find this market on other venues with confidence scores
-matches = router.fetch_market_matches(market_id=markets[0].market_id)
+# Find the cluster of matching markets on other venues
+clusters = router.fetch_matched_market_clusters(markets[0])
 
-# Compare prices for matched markets across venues
-prices = router.fetch_matched_markets(min_difference=0.03)
+# Browse high-volume matched clusters across venues
+top_clusters = router.fetch_matched_market_clusters(sort="volume", min_venues=2, limit=10)
 ```
 
 <CardGroup cols={2}>
@@ -61,8 +61,8 @@ prices = router.fetch_matched_markets(min_difference=0.03)
     shared catalog.
   </Card>
   <Card title="Market matching" icon="link" href="/router/matching">
-    Find the same or related market on other venues with relation
-    types, confidence, and reasoning.
+    Find clusters of the same or related market across venues with
+    relation types and confidence scores.
   </Card>
   <Card title="Price comparison" icon="scale-balanced" href="/router/prices">
     Compare bid/ask across venues and find related markets.

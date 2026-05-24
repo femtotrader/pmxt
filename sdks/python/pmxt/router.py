@@ -5,19 +5,24 @@ Search, match, compare prices, find hedges, and detect arbitrage across
 every venue PMXT supports. Only requires a PMXT API key.
 """
 
+import json
 import warnings
-from typing import Any, Dict, List, Optional
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional, Union
 
 from .client import Exchange, _convert_market, _convert_event
 from .models import (
     MatchResult,
     EventMatchResult,
+    MatchedEventCluster,
+    MatchedMarketCluster,
     PriceComparison,
     ArbitrageOpportunity,
     MatchRelation,
     UnifiedMarket,
     UnifiedEvent,
 )
+from pmxt_internal.exceptions import ApiException
 
 
 def _parse_market(raw: Any) -> UnifiedMarket:
@@ -50,6 +55,51 @@ def _parse_match_result(raw: Dict[str, Any]) -> MatchResult:
         best_bid=raw.get("bestBid") or market_data.get("bestBid"),
         best_ask=raw.get("bestAsk") or market_data.get("bestAsk"),
         source_market=_parse_market(source_raw) if source_raw else None,
+    )
+
+
+def _normalize_query_value(value: Any) -> Any:
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    return value
+
+
+def _add_query_param(params: Dict[str, Any], key: str, value: Any) -> None:
+    if value is not None and value != "":
+        params[key] = _normalize_query_value(value)
+
+
+def _extract_response_list(raw: Any) -> List[Dict[str, Any]]:
+    if isinstance(raw, list):
+        return raw
+    if isinstance(raw, dict) and isinstance(raw.get("data"), list):
+        return raw["data"]
+    return []
+
+
+def _parse_market_cluster(raw: Dict[str, Any]) -> MatchedMarketCluster:
+    return MatchedMarketCluster(
+        cluster_id=raw.get("clusterId") or raw.get("cluster_id", ""),
+        canonical_title=raw.get("canonicalTitle") or raw.get("canonical_title"),
+        markets=[_parse_market(m) for m in raw.get("markets", [])],
+        relations=raw.get("relations", []),
+        confidence=raw.get("confidence", 0.0),
+        category=raw.get("category"),
+        volume_24h=raw.get("volume24h", raw.get("volume_24h")),
+        raw_matches=raw.get("rawMatches", raw.get("raw_matches")),
+    )
+
+
+def _parse_event_cluster(raw: Dict[str, Any]) -> MatchedEventCluster:
+    return MatchedEventCluster(
+        cluster_id=raw.get("clusterId") or raw.get("cluster_id", ""),
+        canonical_title=raw.get("canonicalTitle") or raw.get("canonical_title"),
+        events=[_parse_event(e) for e in raw.get("events", [])],
+        relations=raw.get("relations", []),
+        confidence=raw.get("confidence", 0.0),
+        category=raw.get("category"),
+        volume_24h=raw.get("volume24h", raw.get("volume_24h")),
+        raw_matches=raw.get("rawMatches", raw.get("raw_matches")),
     )
 
 
@@ -252,6 +302,135 @@ class Router(Exchange):
             ]
             results.append(EventMatchResult(event=event, market_matches=market_matches))
         return results
+
+    def _get_catalog_path(self, path: str, params: Dict[str, Any]) -> Any:
+        """GET a hosted catalog /v0 path and return its raw JSON body."""
+        qs = self._build_sidecar_query_string(params)
+        url = f"{self._resolve_sidecar_host()}{path}{'?' + qs if qs else ''}"
+        headers = {"Accept": "application/json"}
+        headers.update(self._get_auth_headers())
+        try:
+            response = self._fetch_with_retry(
+                lambda: self._api_client.call_api(
+                    method="GET",
+                    url=url,
+                    header_params=headers,
+                )
+            )
+            response.read()
+            return json.loads(response.data)
+        except ApiException as e:
+            raise self._parse_api_exception(e) from None
+
+    def fetch_matched_market_clusters(
+        self,
+        market: Optional[UnifiedMarket] = None,
+        *,
+        market_id: Optional[str] = None,
+        slug: Optional[str] = None,
+        url: Optional[str] = None,
+        query: Optional[str] = None,
+        category: Optional[str] = None,
+        relations: Optional[Union[str, List[MatchRelation]]] = None,
+        relation: Optional[MatchRelation] = None,
+        min_confidence: Optional[float] = None,
+        venues: Optional[Union[str, List[str]]] = None,
+        exclude_venues: Optional[Union[str, List[str]]] = None,
+        min_venues: Optional[int] = None,
+        with_orderbook: bool = False,
+        updated_since: Optional[Any] = None,
+        include_raw_matches: bool = False,
+        sort: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        edge_limit: Optional[int] = None,
+    ) -> List[MatchedMarketCluster]:
+        """Fetch connected clusters of semantically matched markets."""
+        if market is not None and market_id is None:
+            if hasattr(market, "slug") and market.slug:
+                slug = slug or market.slug
+            else:
+                market_id = market.market_id
+
+        params: Dict[str, Any] = {}
+        _add_query_param(params, "marketId", market_id)
+        _add_query_param(params, "slug", slug)
+        _add_query_param(params, "url", url)
+        _add_query_param(params, "query", query)
+        _add_query_param(params, "category", category)
+        _add_query_param(params, "relations", relations)
+        _add_query_param(params, "relation", relation)
+        _add_query_param(params, "minConfidence", min_confidence)
+        _add_query_param(params, "venues", venues)
+        _add_query_param(params, "excludeVenues", exclude_venues)
+        _add_query_param(params, "minVenues", min_venues)
+        if with_orderbook:
+            params["withOrderbook"] = True
+        _add_query_param(params, "updatedSince", updated_since)
+        if include_raw_matches:
+            params["includeRawMatches"] = True
+        _add_query_param(params, "sort", sort)
+        _add_query_param(params, "limit", limit)
+        _add_query_param(params, "offset", offset)
+        _add_query_param(params, "edgeLimit", edge_limit)
+
+        raw = self._get_catalog_path("/v0/matched-market-clusters", params)
+        return [_parse_market_cluster(c) for c in _extract_response_list(raw)]
+
+    def fetch_matched_event_clusters(
+        self,
+        event: Optional[UnifiedEvent] = None,
+        *,
+        event_id: Optional[str] = None,
+        slug: Optional[str] = None,
+        url: Optional[str] = None,
+        query: Optional[str] = None,
+        category: Optional[str] = None,
+        relations: Optional[Union[str, List[MatchRelation]]] = None,
+        relation: Optional[MatchRelation] = None,
+        min_confidence: Optional[float] = None,
+        venues: Optional[Union[str, List[str]]] = None,
+        exclude_venues: Optional[Union[str, List[str]]] = None,
+        min_venues: Optional[int] = None,
+        with_orderbook: bool = False,
+        updated_since: Optional[Any] = None,
+        include_raw_matches: bool = False,
+        sort: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        edge_limit: Optional[int] = None,
+    ) -> List[MatchedEventCluster]:
+        """Fetch connected clusters of semantically matched events."""
+        if event is not None and event_id is None:
+            if hasattr(event, "slug") and event.slug:
+                slug = slug or event.slug
+            else:
+                event_id = event.id
+
+        params: Dict[str, Any] = {}
+        _add_query_param(params, "eventId", event_id)
+        _add_query_param(params, "slug", slug)
+        _add_query_param(params, "url", url)
+        _add_query_param(params, "query", query)
+        _add_query_param(params, "category", category)
+        _add_query_param(params, "relations", relations)
+        _add_query_param(params, "relation", relation)
+        _add_query_param(params, "minConfidence", min_confidence)
+        _add_query_param(params, "venues", venues)
+        _add_query_param(params, "excludeVenues", exclude_venues)
+        _add_query_param(params, "minVenues", min_venues)
+        if with_orderbook:
+            params["withOrderbook"] = True
+        _add_query_param(params, "updatedSince", updated_since)
+        if include_raw_matches:
+            params["includeRawMatches"] = True
+        _add_query_param(params, "sort", sort)
+        _add_query_param(params, "limit", limit)
+        _add_query_param(params, "offset", offset)
+        _add_query_param(params, "edgeLimit", edge_limit)
+
+        raw = self._get_catalog_path("/v0/matched-event-clusters", params)
+        return [_parse_event_cluster(c) for c in _extract_response_list(raw)]
 
     # ------------------------------------------------------------------
     # Price comparison

@@ -3,15 +3,16 @@ title: Compare Prices Across Venues
 description: "Compare prices across venues and find related markets."
 ---
 
-Three methods build on [matching](/router/matching) to answer pricing
-questions across venues.
+Use [matching](/router/matching) to find cross-venue clusters, then use
+price helpers or venue exchanges to inspect executable bid/ask data.
 
 ## compareMarketPrices
 
 Side-by-side bid/ask for the same market on every venue.
 
-Under the hood this calls `fetchMarketMatches` with `relation: "identity"`
-and `includePrices: true`, then maps the results to a flat comparison.
+This returns a flat side-by-side view for one anchored market. For
+cluster-first discovery across the whole catalog, use
+[`fetchMatchedMarketClusters`](/router/matching#fetchmatchedmarketclusters).
 
 <Tabs>
   <Tab title="Python">
@@ -105,26 +106,33 @@ reverse. See [relation types](/router/matching#relation-types) for the
 full taxonomy.
 
 <Info>
-  `fetchRelatedMarkets` filters matches to `subset` and `superset`
-  relations only. If you want all relations, use
-  [`fetchMarketMatches`](/router/matching#fetchmarketmatches) directly.
+  `fetchRelatedMarkets` filters to `subset` and `superset` relations.
+  If you want all relation types, use
+  [`fetchMatchedMarketClusters`](/router/matching#fetchmatchedmarketclusters)
+  with `relation` or `relations` filters.
 </Info>
 
-## fetchMatchedMarkets
+## fetchMatchedMarketClusters
 
-Returns matched market pairs across venues with live pricing from each.
-The Router finds identity-matched markets on different venues and
-returns each pair with side-by-side data.
+Returns matched market clusters across venues. Use this when you want
+the full group of markets first, then inspect prices and outcomes inside
+each venue market.
 
 <Tabs>
   <Tab title="Python">
     ```python
-    pairs = router.fetch_matched_markets(min_difference=0.03, category="Politics", limit=20)
+    clusters = router.fetch_matched_market_clusters(
+        relation="identity",
+        sort="volume",
+        min_venues=2,
+        limit=20,
+    )
 
-    for p in pairs:
-        print(f"{p.market_a.title}")
-        print(f"  {p.venue_a:12s} @ {p.price_a:.2f}")
-        print(f"  {p.venue_b:12s} @ {p.price_b:.2f}")
+    for cluster in clusters:
+        print(cluster.canonical_title)
+        for market in cluster.markets:
+            price = market.yes.price if market.yes else None
+            print(f"  {market.source_exchange:12s} @ {price}")
     ```
 
     ```
@@ -135,16 +143,18 @@ returns each pair with side-by-side data.
   </Tab>
   <Tab title="TypeScript">
     ```typescript
-    const pairs = await router.fetchMatchedMarkets({
-      minDifference: 0.03,
-      category: "Politics",
+    const clusters = await router.fetchMatchedMarketClusters({
+      relation: "identity",
+      sort: "volume",
+      minVenues: 2,
       limit: 20,
     });
 
-    for (const p of pairs) {
-      console.log(p.marketA.title);
-      console.log(`  ${p.venueA} @ ${p.priceA}`);
-      console.log(`  ${p.venueB} @ ${p.priceB}`);
+    for (const cluster of clusters) {
+      console.log(cluster.canonicalTitle);
+      for (const market of cluster.markets) {
+        console.log(`  ${market.sourceExchange} @ ${market.yes?.price}`);
+      }
     }
     ```
   </Tab>
@@ -154,24 +164,27 @@ returns each pair with side-by-side data.
 
 | Parameter       | Type      | Default | Notes                                                      |
 | --------------- | --------- | ------- | ---------------------------------------------------------- |
-| `minDifference` | `number`  | `0`     | Minimum price difference between venues to include.        |
-| `category`      | `string`  | —       | Filter both sides of the match by category.                |
-| `limit`         | `integer` | `50`    | Maximum number of matched pairs to return.                 |
+| `relation`      | `string`  | —       | Filter to a relation type such as `identity`.              |
+| `minVenues`     | `integer` | —       | Require at least this many venues in a cluster.            |
+| `sort`          | `string`  | `volume` | Sort by `volume` or `confidence`.                         |
+| `limit`         | `integer` | `50`    | Maximum number of clusters to return.                      |
 
-Results are sorted by price difference descending.
+Results are cluster-first. PMXT does not pick a best opportunity for
+you; inspect the returned markets, outcomes, and order books before
+deciding how to trade.
 
 ### Response shape
 
 ```json
 {
-  "marketA": { "marketId": "...", "title": "..." },
-  "marketB": { "marketId": "...", "title": "..." },
-  "priceDifference": 0.05,
-  "venueA": "polymarket",
-  "venueB": "kalshi",
-  "priceA": 0.58,
-  "priceB": 0.63,
-  "reasoning": "Both markets ask whether BTC exceeds $100k by Dec 2026"
+  "clusterId": "mcl_...",
+  "canonicalTitle": "Will BTC hit $100k by Dec 31?",
+  "relations": ["identity"],
+  "confidence": 0.98,
+  "markets": [
+    { "marketId": "pm_...", "sourceExchange": "polymarket", "title": "Will BTC hit $100k by Dec 31?" },
+    { "marketId": "kalshi_...", "sourceExchange": "kalshi", "title": "Bitcoin above $100,000 on Dec 31" }
+  ]
 }
 ```
 
@@ -186,11 +199,11 @@ import pmxt
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 poly   = pmxt.Polymarket(private_key="0x...")
 
-# 1. Browse matched markets across venues
-pairs = router.fetch_matched_markets(category="Politics")
+# 1. Browse matched market clusters across venues
+clusters = router.fetch_matched_market_clusters(relation="identity", limit=20)
 
 # 2. Inspect the order book on a specific venue
-book = poly.fetch_order_book(market_id=pairs[0].market_a.market_id)
+book = poly.fetch_order_book(market_id=clusters[0].markets[0].market_id)
 
 # 3. Place an order locally (never proxied through PMXT)
 # poly.create_order(...)

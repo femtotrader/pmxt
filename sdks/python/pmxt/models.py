@@ -6,7 +6,7 @@ These are clean Pythonic wrappers around the auto-generated OpenAPI models.
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional, Dict, Any, Literal
+from typing import List, Optional, Dict, Any, Literal, Union, TypedDict
 
 # Parameter types
 # Common values: "1m", "5m", "15m", "1h", "6h", "1d".
@@ -600,6 +600,52 @@ class EventFetchParams(TypedDict, total=False):
 # ----------------------------------------------------------------------------
 
 MatchRelation = Literal["identity", "subset", "superset", "overlap", "disjoint"]
+ClusterSortOption = Literal["volume", "confidence"]
+VenueFilter = Union[str, List[str]]
+
+
+class MatchedMarketClusterParams(TypedDict, total=False):
+    """Parameters for fetching matched market clusters."""
+    market_id: str
+    slug: str
+    url: str
+    query: str
+    category: str
+    relations: Union[str, List[MatchRelation]]
+    relation: MatchRelation
+    min_confidence: float
+    venues: VenueFilter
+    exclude_venues: VenueFilter
+    min_venues: int
+    with_orderbook: bool
+    updated_since: Union[str, datetime]
+    include_raw_matches: bool
+    sort: ClusterSortOption
+    limit: int
+    offset: int
+    edge_limit: int
+
+
+class MatchedEventClusterParams(TypedDict, total=False):
+    """Parameters for fetching matched event clusters."""
+    event_id: str
+    slug: str
+    url: str
+    query: str
+    category: str
+    relations: Union[str, List[MatchRelation]]
+    relation: MatchRelation
+    min_confidence: float
+    venues: VenueFilter
+    exclude_venues: VenueFilter
+    min_venues: int
+    with_orderbook: bool
+    updated_since: Union[str, datetime]
+    include_raw_matches: bool
+    sort: ClusterSortOption
+    limit: int
+    offset: int
+    edge_limit: int
 
 
 @dataclass
@@ -643,6 +689,64 @@ class EventMatchResult:
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.event, name)
+
+
+@dataclass
+class MatchedMarketCluster:
+    """A connected cluster of semantically matched markets across venues."""
+
+    cluster_id: str
+    """Stable cluster ID."""
+
+    canonical_title: Optional[str]
+    """Canonical title selected by the hosted API."""
+
+    markets: List[UnifiedMarket]
+    """Markets in the cluster."""
+
+    relations: List[MatchRelation]
+    """Relation types present among the cluster's pairwise edges."""
+
+    confidence: float
+    """Cluster confidence score."""
+
+    category: Optional[str] = None
+    """Canonical category selected by the hosted API."""
+
+    volume_24h: Optional[float] = None
+    """Total 24-hour volume across markets in the cluster."""
+
+    raw_matches: Optional[List[Dict[str, Any]]] = None
+    """Pairwise match edges used to build the cluster when requested."""
+
+
+@dataclass
+class MatchedEventCluster:
+    """A connected cluster of semantically matched events across venues."""
+
+    cluster_id: str
+    """Stable cluster ID."""
+
+    canonical_title: Optional[str]
+    """Canonical title selected by the hosted API."""
+
+    events: List[UnifiedEvent]
+    """Events in the cluster."""
+
+    relations: List[MatchRelation]
+    """Relation types present among the cluster's pairwise edges."""
+
+    confidence: float
+    """Cluster confidence score."""
+
+    category: Optional[str] = None
+    """Canonical category selected by the hosted API."""
+
+    volume_24h: Optional[float] = None
+    """Total 24-hour volume across events in the cluster."""
+
+    raw_matches: Optional[List[Dict[str, Any]]] = None
+    """Pairwise match edges used to build the cluster when requested."""
 
 
 @dataclass
@@ -701,4 +805,3 @@ class ArbitrageOpportunity:
 
     confidence: Optional[float] = None
     """Match confidence score (0.0 to 1.0)."""
-

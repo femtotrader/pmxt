@@ -62,16 +62,16 @@ router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 # Search every venue at once
 markets = router.fetch_markets(query="fed rate cut")
 
-# Find this market on other venues with confidence scores
-matches = router.fetch_market_matches(market_id=markets[0].market_id)
+# Find the cluster of matching markets on other venues
+clusters = router.fetch_matched_market_clusters(markets[0])
 
-# Compare prices for matched markets across venues
-prices = router.fetch_matched_markets(min_difference=0.03)
+# Browse high-volume matched clusters across venues
+top_clusters = router.fetch_matched_market_clusters(sort="volume", min_venues=2, limit=10)
 ```
 
 
   - **[Cross-venue search](https://pmxt.dev/docs/router/events)** — One query fans out across every venue. Results in ~10ms from a shared catalog.
-  - **[Market matching](https://pmxt.dev/docs/router/matching)** — Find the same or related market on other venues with relation types, confidence, and reasoning.
+  - **[Market matching](https://pmxt.dev/docs/router/matching)** — Find clusters of the same or related market across venues with relation types and confidence scores.
   - **[Price comparison](https://pmxt.dev/docs/router/prices)** — Compare bid/ask across venues and find related markets.
   - **[Compose with venues](https://pmxt.dev/docs/router/prices#composing-with-venue-exchanges)** — Discover with the Router, trade on venue exchanges. Same schema, same `marketId`.
 
@@ -127,7 +127,7 @@ interface — same methods, same response shape, regardless of which venue
 you're talking to.
 
 
-  
+
 **Python:**
 
 ```bash
@@ -143,8 +143,8 @@ markets = poly.fetch_markets(query="election", limit=3)
 for m in markets:
     print(m.title, m.outcomes[0].price)
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```bash
@@ -159,7 +159,7 @@ const markets = await poly.fetchMarkets({ query: "election", limit: 3 });
 
 markets.forEach((m) => console.log(m.title, m.outcomes[0].price));
 ```
-  
+
 
 
 Switch venues by swapping the class — `pmxt.Kalshi(...)`, `pmxt.Limitless(...)`,
@@ -237,7 +237,7 @@ Set `PMXT_API_KEY` and the SDK automatically routes to the hosted
 endpoint. No code changes versus local development.
 
 
-  
+
 **Python:**
 
 ```python
@@ -252,8 +252,8 @@ Or pass it directly:
 ```python
 poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
@@ -268,7 +268,7 @@ Or pass it directly:
 ```typescript
 const poly = new pmxt.Polymarket({ pmxtApiKey: "pmxt_live_..." });
 ```
-  
+
 
 
 Explicit argument takes precedence over the environment variable.
@@ -336,19 +336,19 @@ No installation required. Just add the config and your API key.
 #### Setup
 
 
-  
+
 **Get an API key**
 
 Go to [pmxt.dev/dashboard](https://pmxt.dev/dashboard) and create a key.
 It starts with `pmxt_live_` and works immediately.
-  
-  
+
+
 **Add the MCP config to your editor**
 
 Add the following to your editor's MCP configuration file.
 
 
-  
+
 **Claude Code:**
 
     Add to `~/.claude.json` (global) or `.mcp.json` (per-project):
@@ -366,8 +366,8 @@ Add the following to your editor's MCP configuration file.
       }
     }
     ```
-  
-  
+
+
 **Cursor:**
 
     Add to your Cursor MCP settings:
@@ -385,8 +385,8 @@ Add the following to your editor's MCP configuration file.
       }
     }
     ```
-  
-  
+
+
 **Custom client:**
 
     Connect to the endpoint using any MCP SDK:
@@ -411,10 +411,10 @@ Add the following to your editor's MCP configuration file.
 
     const tools = await client.listTools();
     ```
-  
 
-  
-  
+
+
+
 **Start using it**
 
 Ask your AI assistant something like:
@@ -441,7 +441,7 @@ Here's what a typical response looks like when you ask *"Find markets about bitc
 ```
 
 If you see market data, the MCP server is working.
-  
+
 
 
 #### Authentication
@@ -485,14 +485,10 @@ These tools query the PMXT catalog to find and compare the same market across di
 
 | Tool | Description |
 |------|-------------|
-| `fetchMarketMatches` | Find the same market on other venues |
-| `fetchEventMatches` | Find the same event on other venues |
+| `fetchMatchedMarketClusters` | Find clusters of matched markets across venues |
+| `fetchMatchedEventClusters` | Find clusters of matched events across venues |
 | `compareMarketPrices` | Side-by-side price comparison across venues |
-| `fetchMatchedMarkets` | Browse all matched market pairs |
-| `fetchMatchedPrices` | Browse matched pairs with price differences |
 | `fetchRelatedMarkets` | Find subset/superset market relationships |
-| `fetchHedges` | Find hedging opportunities across venues |
-| `fetchArbitrage` | Find arbitrage opportunities across venues |
 
 ##### Account and orders
 
@@ -683,7 +679,7 @@ window and retry timing. The SDKs handle short bursts automatically with
 exponential backoff.
 
 
-  
+
 **Per-minute:**
 
 ```json
@@ -695,8 +691,8 @@ exponential backoff.
   "window": "1 minute"
 }
 ```
-  
-  
+
+
 **Per-month:**
 
 ```json
@@ -707,7 +703,7 @@ exponential backoff.
   "used": 25000
 }
 ```
-  
+
 
 
 #### Usage dashboard
@@ -743,7 +739,7 @@ PMXT markets carry two fields that map directly to the orderbook history:
 Grab them from any PMXT market response:
 
 
-  
+
 **Python:**
 
 ```python
@@ -756,8 +752,8 @@ m = markets[0]
 condition_id = m.contract_address       # "0xa0f4c492..."
 yes_token    = m.yes.outcome_id         # "1391568931..."
 ```
-  
-  
+
+
 **curl:**
 
 ```bash
@@ -769,7 +765,7 @@ curl -s "https://api.pmxt.dev/api/polymarket/fetchMarkets" \
 
 In the response, read `data[0].contractAddress` and
 `data[0].yes.outcomeId`.
-  
+
 
 
 #### Table schema
@@ -812,7 +808,7 @@ Change `toStartOfHour` to `toStartOfMinute`, `toStartOfFiveMinutes`,
 or `toStartOfDay` for different granularities.
 
 
-  
+
 **Python:**
 
 ```python
@@ -839,8 +835,8 @@ resp = requests.post(
 )
 candles = resp.json()["data"]
 ```
-  
-  
+
+
 **curl:**
 
 ```bash
@@ -849,7 +845,7 @@ curl "https://api.pmxt.dev/v0/sql" \
   -H "Content-Type: application/json" \
   -d '{"query": "SELECT toStartOfHour(timestamp) AS hour, argMin(...) AS open, argMax(...) AS close, min(...) AS low, max(...) AS high, count() AS ticks FROM polymarket_orderbook_rust WHERE market = '\''YOUR_CONDITION_ID'\'' AND event_type = '\''price_change'\'' AND JSONExtractString(data, '\''asset_id'\'') = '\''YOUR_OUTCOME_ID'\'' AND timestamp >= now() - INTERVAL 7 DAY GROUP BY hour ORDER BY hour"}'
 ```
-  
+
 
 
 #### 2. Historical orderbook snapshots
@@ -1189,7 +1185,7 @@ immediately. Otherwise spawns `pmxt-ensure-server` and waits for the
 health check.
 
 
-  
+
 **Python:**
 
 ```python
@@ -1197,8 +1193,8 @@ import pmxt
 
 pmxt.server.start()
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
@@ -1206,7 +1202,7 @@ import pmxt from "pmxtjs";
 
 await pmxt.server.start();
 ```
-  
+
 
 
 > **Note:**
@@ -1220,20 +1216,20 @@ Reads the lock file at `~/.pmxt/server.lock`, sends SIGTERM to the
 sidecar process, and removes the lock file.
 
 
-  
+
 **Python:**
 
 ```python
 pmxt.server.stop()
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
 await pmxt.server.stop();
 ```
-  
+
 
 
 #### Restart
@@ -1241,20 +1237,20 @@ await pmxt.server.stop();
 Equivalent to `stop()` followed by `start()`.
 
 
-  
+
 **Python:**
 
 ```python
 pmxt.server.restart()
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
 await pmxt.server.restart();
 ```
-  
+
 
 
 #### Status
@@ -1263,7 +1259,7 @@ Returns a structured snapshot of the sidecar state. A new object is
 returned on every call (no shared mutable references).
 
 
-  
+
 **Python:**
 
 ```python
@@ -1278,8 +1274,8 @@ print(info)
 #   "lock_file": "/Users/you/.pmxt/server.lock"
 # }
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
@@ -1294,7 +1290,7 @@ console.log(info);
 //   lockFile: "/Users/you/.pmxt/server.lock"
 // }
 ```
-  
+
 
 
 | Field | Type | Description |
@@ -1312,15 +1308,15 @@ Returns `true`/`True` if the sidecar's `/health` endpoint responds with
 `{"status": "ok"}`, `false`/`False` otherwise.
 
 
-  
+
 **Python:**
 
 ```python
 if pmxt.server.health():
     print("sidecar is up")
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
@@ -1328,7 +1324,7 @@ if (await pmxt.server.health()) {
   console.log("sidecar is up");
 }
 ```
-  
+
 
 
 #### Logs
@@ -1337,21 +1333,21 @@ Returns the last _n_ lines from `~/.pmxt/server.log`. Defaults to 50.
 Returns an empty list/array if the log file does not exist.
 
 
-  
+
 **Python:**
 
 ```python
 for line in pmxt.server.logs(20):
     print(line)
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
 pmxt.server.logs(20).forEach((line) => console.log(line));
 ```
-  
+
 
 
 #### Deprecated aliases
@@ -1392,7 +1388,7 @@ Limitless, and [8 more venues](https://pmxt.dev/docs/concepts/venues) — throug
 interface.
 
 
-  
+
 **Python:**
 
 ```python
@@ -1404,13 +1400,13 @@ router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 markets = router.fetch_markets(query="fed rate cut", limit=5)
 
 # Find the same market on other venues
-matches = router.fetch_market_matches(market_id=markets[0].market_id)
+clusters = router.fetch_matched_market_clusters(markets[0])
 
 # Compare prices across venues
 prices = router.compare_market_prices(market_id=markets[0].market_id)
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
@@ -1422,12 +1418,12 @@ const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
 const markets = await router.fetchMarkets({ query: "fed rate cut", limit: 5 });
 
 // Find the same market on other venues
-const matches = await router.fetchMarketMatches({ marketId: markets[0].marketId });
+const clusters = await router.fetchMatchedMarketClusters(markets[0]);
 
 // Compare prices across venues
 const prices = await router.compareMarketPrices({ marketId: markets[0].marketId });
 ```
-  
+
 
 
 The Router only needs a PMXT API key — venue credentials are not
@@ -1437,10 +1433,10 @@ required for search, matching, or price analysis.
 
 
   - **[Cross-venue search](https://pmxt.dev/docs/router/events)** — Search markets and events across every venue in a single query. Results come from a shared catalog — ~10ms, not 11 sequential API calls.
-  - **[Market matching](https://pmxt.dev/docs/router/matching)** — Given a market on any venue, find the same or related market on every other venue. Each match has a relation type, confidence score, and reasoning.
+  - **[Market matching](https://pmxt.dev/docs/router/matching)** — Given a market on any venue, find the cluster of matching markets across other venues. Each cluster has relation types and confidence scores.
   - **[Price comparison](https://pmxt.dev/docs/router/prices#comparemarketprices)** — Side-by-side bid/ask for the same market on every venue. See where it's cheapest to buy and where it pays the most to sell.
   - **[Related markets](https://pmxt.dev/docs/router/prices#fetchrelatedmarkets)** — Find markets whose resolution conditions are subsets or supersets of a target market — narrower or broader markets on other venues.
-  - **[Matched markets](https://pmxt.dev/docs/router/prices#fetchmatchedmarkets)** — Compare prices for the same market across venues. See price differences at a glance.
+  - **[Matched markets](https://pmxt.dev/docs/router/prices#fetchmatchedmarketclusters)** — Browse matched market clusters across venues, then inspect venue prices and order books.
   - **[Compose with venues](https://pmxt.dev/docs/router/prices#composing-with-venue-exchanges)** — Use the Router for data, venue exchanges for trading. Same SDK, same schema — `marketId` works everywhere.
 
 
@@ -1470,26 +1466,26 @@ different framing.
 2. **Install the SDK:**
 
 
-  
+
 **Python:**
 
 ```bash
 pip install pmxt
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```bash
 npm install pmxtjs
 ```
-  
+
 
 
 3. **Create a Router and start querying:**
 
 
-  
+
 **Python:**
 
 ```python
@@ -1498,8 +1494,8 @@ import pmxt
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 markets = router.fetch_markets(query="election")
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
@@ -1508,7 +1504,7 @@ import pmxt from "pmxtjs";
 const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
 const markets = await router.fetchMarkets({ query: "election" });
 ```
-  
+
 
 
 That's it. Everything the Router returns uses the same
@@ -1669,19 +1665,18 @@ moving between them is a routing decision — not a data-mapping one.
 
 Source: https://pmxt.dev/docs/router/event-matching
 
-Given an event on any venue, find the corresponding event on every
-other venue and map all child markets across them. Instead of matching
-one market at a time, this returns the full cross-venue mapping in a
-single call.
+Use event clusters when the thing you care about has multiple child
+markets. PMXT groups matched events across venues, then returns the
+markets attached to each event so you can inspect the full cross-venue
+structure in one response.
 
-An [Event](https://pmxt.dev/docs/concepts/unified-schema) is the parent container — it holds
-multiple Markets, each with their own Outcomes. Event matching maps the
-entire tree across venues.
+You can anchor the lookup to an event you already have, or omit the
+anchor fields to browse event clusters across the catalog.
 
-#### fetchEventMatches
+#### fetchMatchedEventClusters
 
 
-  
+
 **Python:**
 
 ```python
@@ -1689,15 +1684,25 @@ import pmxt
 
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 
-event_matches = router.fetch_event_matches(event_id="e344d660-...")
+clusters = router.fetch_matched_event_clusters(
+    slug="2026-nba-champion",
+    relation="identity",
+    min_confidence=0.8,
+    venues=["polymarket", "kalshi"],
+    include_raw_matches=True,
+    limit=5,
+)
 
-for em in event_matches:
-    print(em.event.title)
-    for mm in em.market_matches:
-        print(f"  {mm.relation} ({mm.confidence}): {mm.market.title}")
+for cluster in clusters:
+    print(cluster.cluster_id, cluster.confidence, cluster.canonical_title)
+
+    for event in cluster.events:
+        print(f"  {event.source_exchange}: {event.title}")
+        for market in event.markets[:3]:
+            print(f"    - {market.title}")
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
@@ -1705,208 +1710,433 @@ import pmxt from "pmxtjs";
 
 const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
 
-const eventMatches = await router.fetchEventMatches({
-  eventId: "e344d660-...",
-});
-
-for (const em of eventMatches) {
-  console.log(em.event.title);
-  for (const mm of em.marketMatches) {
-    console.log(`  ${mm.relation} (${mm.confidence}): ${mm.market.title}`);
-  }
-}
-```
-  
-  
-**curl:**
-
-```bash
-curl "https://api.pmxt.dev/v0/events/e344d660-.../matches" \
-  -H "Authorization: Bearer pmxt_live_..."
-```
-  
-
-
-##### Parameters
-
-| Parameter       | Type      | Default | Notes                                             |
-| --------------- | --------- | ------- | ------------------------------------------------- |
-| `eventId`       | `string`  | —       | Internal PMXT event ID.                           |
-| `slug`          | `string`  | —       | Event slug (alternative to `eventId`).            |
-| `relation`      | `string`  | —       | Filter market matches to a specific [relation type](https://pmxt.dev/docs/router/matching#relation-types). |
-| `minConfidence` | `number`  | —       | Only return matches above this threshold (0–1).   |
-| `limit`         | `integer` | —       | Max event matches to return.                      |
-| `includePrices` | `boolean` | `false` | Attach live prices to each market match.          |
-
-##### Response shape
-
-```json
-[
-  {
-"event": {
-  "eventId": "...",
-  "title": "2028 US Presidential Election"
-},
-"marketMatches": [
-  {
-    "market": { "marketId": "...", "title": "Will Newsom win?" },
-    "relation": "identity",
-    "confidence": 0.92,
-    "reasoning": "Same candidate, same office, same election cycle."
-  },
-  {
-    "market": { "marketId": "...", "title": "Will DeSantis win?" },
-    "relation": "identity",
-    "confidence": 0.89,
-    "reasoning": "Same candidate — different bracket formatting on Kalshi."
-  }
-]
-  }
-]
-```
-
-Each matched event contains its full list of cross-venue market matches.
-Markets that exist on one venue but not the other are omitted from the
-response — only matched pairs appear.
-
-##### When to use event matching vs market matching
-
-| You have…                | Use                                        |
-| ------------------------ | ------------------------------------------ |
-| A single market question | [Find Similar Markets](https://pmxt.dev/docs/router/matching)   |
-| An event with many child markets | **Find Similar Events** (this page) |
-
-Event matching is more efficient when you care about the full picture —
-it maps all child markets in one call instead of N separate market
-match calls.
-
-### Find Similar Markets
-
-Source: https://pmxt.dev/docs/router/matching
-
-Given a market on any venue, find semantically equivalent or related
-markets on every other venue PMXT ingests. Each match comes with a
-relation type, confidence score, and reasoning.
-
-#### fetchMarketMatches
-
-
-  
-**Python:**
-
-```python
-import pmxt
-
-router = pmxt.Router(pmxt_api_key="pmxt_live_...")
-
-matches = router.fetch_market_matches(market_id="d35bc8c6-...", min_confidence=0.8)
-
-for m in matches:
-    print(m.relation, m.confidence, m.market.title)
-    print(f"  best bid: {m.best_bid}  best ask: {m.best_ask}")
-```
-  
-  
-**TypeScript:**
-
-```typescript
-import pmxt from "pmxtjs";
-
-const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
-
-const matches = await router.fetchMarketMatches({
-  marketId: "d35bc8c6-...",
+const clusters = await router.fetchMatchedEventClusters({
+  slug: "2026-nba-champion",
+  relation: "identity",
   minConfidence: 0.8,
+  venues: ["polymarket", "kalshi"],
+  includeRawMatches: true,
+  limit: 5,
 });
 
-for (const m of matches) {
-  console.log(m.relation, m.confidence, m.market.title);
-  console.log(`  best bid: ${m.bestBid}  best ask: ${m.bestAsk}`);
+for (const cluster of clusters) {
+  console.log(cluster.clusterId, cluster.confidence, cluster.canonicalTitle);
+
+  for (const event of cluster.events) {
+    console.log(`  ${event.sourceExchange}: ${event.title}`);
+    for (const market of event.markets.slice(0, 3)) {
+      console.log(`    - ${market.title}`);
+    }
+  }
 }
 ```
-  
-  
+
+
 **curl:**
 
 ```bash
-curl "https://api.pmxt.dev/v0/markets/d35bc8c6-.../matches?minConfidence=0.8" \
-  -H "Authorization: Bearer pmxt_live_..."
+curl -G "https://api.pmxt.dev/v0/matched-event-clusters" \
+  -H "Authorization: Bearer pmxt_live_..." \
+  --data-urlencode "slug=2026-nba-champion" \
+  --data-urlencode "relation=identity" \
+  --data-urlencode "minConfidence=0.8" \
+  --data-urlencode "venues=polymarket,kalshi" \
+  --data-urlencode "includeRawMatches=true" \
+  --data-urlencode "limit=5"
 ```
-  
+
+
+
+##### Passing an existing event
+
+If the event came from `fetchEvents`, pass it directly.
+
+
+
+**Python:**
+
+```python
+events = router.fetch_events(query="2026 NBA Champion", limit=1)
+clusters = router.fetch_matched_event_clusters(events[0])
+```
+
+
+**TypeScript:**
+
+```typescript
+const events = await router.fetchEvents({
+  query: "2026 NBA Champion",
+  limit: 1,
+});
+
+const clusters = await router.fetchMatchedEventClusters(events[0]);
+```
+
+
+
+##### Browsing clusters
+
+Omit `eventId`, `slug`, and `url` to browse the highest-volume matched
+event clusters.
+
+
+
+**Python:**
+
+```python
+clusters = router.fetch_matched_event_clusters(
+    sort="volume",
+    min_venues=2,
+    limit=25,
+)
+```
+
+
+**TypeScript:**
+
+```typescript
+const clusters = await router.fetchMatchedEventClusters({
+  sort: "volume",
+  minVenues: 2,
+  limit: 25,
+});
+```
+
 
 
 ##### Parameters
 
-| Parameter       | Type      | Default | Notes                                                         |
-| --------------- | --------- | ------- | ------------------------------------------------------------- |
-| `marketId`      | `string`  | —       | Internal PMXT market ID.                                      |
-| `slug`          | `string`  | —       | Market slug (alternative to `marketId`).                      |
-| `url`           | `string`  | —       | Market URL on the source venue (alternative to `marketId`).   |
-| `relation`      | `string`  | —       | Filter to a specific relation type (see below).               |
-| `minConfidence` | `number`  | —       | Only return matches above this threshold (0–1).               |
-| `limit`         | `integer` | —       | Max matches to return.                                        |
-| `includePrices` | `boolean` | `false` | Attach live `bestBid` / `bestAsk` to each match.             |
-
-Provide one of `marketId`, `slug`, or `url`. The Router resolves the
-market and searches every other venue for matches.
+| Parameter | Type | Default | Notes |
+| --------- | ---- | ------- | ----- |
+| `eventId` | `string` | - | Anchor to a PMXT event ID. |
+| `slug` | `string` | - | Anchor to an event slug. |
+| `url` | `string` | - | Anchor to a venue event URL. |
+| `relation` | `string` | - | Filter to one relation type. |
+| `relations` | `string` or `string[]` | - | Filter to multiple relation types. |
+| `minConfidence` / `min_confidence` | `number` | `0` | Minimum cluster edge confidence, from `0` to `1`. |
+| `venues` | `string` or `string[]` | - | Only include clusters touching these venues. |
+| `excludeVenues` / `exclude_venues` | `string` or `string[]` | - | Exclude clusters touching these venues. |
+| `minVenues` / `min_venues` | `integer` | - | Require at least this many venues in a cluster. |
+| `withOrderbook` / `with_orderbook` | `boolean` | `false` | Require live orderbook coverage on matched edges. |
+| `includeRawMatches` / `include_raw_matches` | `boolean` | `false` | Include pairwise edges used to build the cluster. |
+| `updatedSince` / `updated_since` | `datetime` | - | Only include matches updated after this time. |
+| `sort` | `"volume"` or `"confidence"` | `"volume"` | Cluster sort order. |
+| `limit` | `integer` | `50` | Maximum clusters to return. |
+| `offset` | `integer` | `0` | Pagination offset. |
+| `edgeLimit` / `edge_limit` | `integer` | - | Maximum pairwise edges to scan before clustering. |
 
 ##### Response shape
 
 ```json
 {
-  "market": { "marketId": "...", "title": "...", "outcomes": [...] },
+  "clusterId": "ecl_3e7b1534e6235f9e",
+  "canonicalTitle": "2026 NBA Champion",
+  "category": "Sports",
+  "relations": ["identity"],
+  "confidence": 0.97,
+  "volume24h": 1487365.42,
+  "events": [
+{
+  "id": "poly_event_...",
+  "sourceExchange": "polymarket",
+  "title": "2026 NBA Champion",
+  "markets": [
+    {
+      "marketId": "pm_knicks_...",
+      "title": "2026 NBA Champion - Will the New York Knicks win the 2026 NBA Finals?",
+      "outcomes": [
+        { "outcomeId": "pm_knicks_yes", "label": "Yes", "price": 0.23 },
+        { "outcomeId": "pm_knicks_no", "label": "No", "price": 0.77 }
+      ]
+    }
+  ]
+},
+{
+  "id": "kalshi_event_...",
+  "sourceExchange": "kalshi",
+  "title": "2026 Pro Basketball Finals",
+  "markets": [
+    {
+      "marketId": "kalshi_knicks_...",
+      "title": "Will New York win the 2026 Pro Basketball Finals?",
+      "outcomes": [
+        { "outcomeId": "KXNBA-26-NYK", "label": "Yes", "price": 0.22 },
+        { "outcomeId": "KXNBA-26-NYK-NO", "label": "No", "price": 0.78 }
+      ]
+    }
+  ]
+}
+  ],
+  "rawMatches": [
+{
+  "eventAId": "poly_event_...",
+  "eventBId": "kalshi_event_...",
+  "marketAId": "pm_knicks_...",
+  "marketBId": "kalshi_knicks_...",
   "relation": "identity",
-  "confidence": 0.95,
-  "reasoning": "Same resolution condition: will BTC exceed $100k by Dec 31.",
-  "bestBid": 0.60,
-  "bestAsk": 0.65
+  "confidence": 0.97
+}
+  ]
 }
 ```
 
-#### Relation types
+#### When To Use Event Clusters
 
-Every match is classified into one of five set-theoretic relations
-describing how two markets' resolution conditions relate:
+| You have | Use |
+| -------- | --- |
+| A single tradeable question | [Find Similar Markets](https://pmxt.dev/docs/router/matching) |
+| A parent event with many child markets | **Find Similar Events** |
 
-| Relation      | Meaning                                            | Example                                                                  |
-| ------------- | -------------------------------------------------- | ------------------------------------------------------------------------ |
-| **identity**  | Same resolution condition.                         | "BTC > $100k by Dec 31" on Polymarket and Kalshi.                        |
-| **subset**    | A resolving YES implies B resolves YES, not vice versa. | "Democrats win presidency" (A) ⊂ "Democrats win popular vote" (B).  |
-| **superset**  | B resolving YES implies A resolves YES, not vice versa. | "Anyone wins popular vote" (A) ⊃ "Democrats win popular vote" (B).  |
-| **overlap**   | Related, but neither implies the other.            | "Fed cuts in June" vs "Fed cuts in 2025" — June is a subset of 2025, but a cut in September would satisfy B without A. |
-| **disjoint**  | Cannot both resolve YES.                           | "Democrats win" vs "Republicans win" the same election.                  |
+Event clusters are the better default when venues structure the same
+topic differently. For example, one venue may expose a single event with
+many team markets while another exposes each team as its own market
+under a differently named event.
 
-Filter to a specific relation with the `relation` parameter:
+### Find Similar Markets
+
+Source: https://pmxt.dev/docs/router/matching
+
+Use market clusters when you want the same tradeable question across
+venues. A cluster contains every matched market PMXT currently knows
+about for that question, plus the pairwise relations used to connect the
+cluster.
+
+You can anchor the lookup to a market you already have, or omit the
+anchor fields to browse clusters across the catalog.
+
+#### fetchMatchedMarketClusters
+
+
+
+**Python:**
 
 ```python
-# Only identity matches (same market, different venue)
-matches = router.fetch_market_matches(market_id="...", relation="identity")
+import pmxt
 
-# Only subset/superset (see fetchRelatedMarkets for a dedicated method)
-matches = router.fetch_market_matches(market_id="...", relation="subset")
+router = pmxt.Router(pmxt_api_key="pmxt_live_...")
+
+clusters = router.fetch_matched_market_clusters(
+    slug="will-satoshi-move-any-bitcoin-in-2026",
+    relation="identity",
+    min_confidence=0.8,
+    venues=["polymarket", "kalshi", "probable"],
+    include_raw_matches=True,
+    limit=5,
+)
+
+for cluster in clusters:
+    print(cluster.cluster_id, cluster.confidence, cluster.canonical_title)
+
+    for market in cluster.markets:
+        print(f"  {market.source_exchange}: {market.title}")
+        print(f"    market_id={market.market_id}")
+
+    for edge in cluster.raw_matches or []:
+        print(f"  edge: {edge['relation']} confidence={edge['confidence']}")
 ```
 
 
+**TypeScript:**
+
+```typescript
+import pmxt from "pmxtjs";
+
+const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
+
+const clusters = await router.fetchMatchedMarketClusters({
+  slug: "will-satoshi-move-any-bitcoin-in-2026",
+  relation: "identity",
+  minConfidence: 0.8,
+  venues: ["polymarket", "kalshi", "probable"],
+  includeRawMatches: true,
+  limit: 5,
+});
+
+for (const cluster of clusters) {
+  console.log(cluster.clusterId, cluster.confidence, cluster.canonicalTitle);
+
+  for (const market of cluster.markets) {
+    console.log(`  ${market.sourceExchange}: ${market.title}`);
+    console.log(`    marketId=${market.marketId}`);
+  }
+
+  for (const edge of cluster.rawMatches ?? []) {
+    console.log(`  edge: ${edge.relation} confidence=${edge.confidence}`);
+  }
+}
+```
+
+
+**curl:**
+
+```bash
+curl -G "https://api.pmxt.dev/v0/matched-market-clusters" \
+  -H "Authorization: Bearer pmxt_live_..." \
+  --data-urlencode "slug=will-satoshi-move-any-bitcoin-in-2026" \
+  --data-urlencode "relation=identity" \
+  --data-urlencode "minConfidence=0.8" \
+  --data-urlencode "venues=polymarket,kalshi,probable" \
+  --data-urlencode "includeRawMatches=true" \
+  --data-urlencode "limit=5"
+```
+
+
+
+##### Passing an existing market
+
+If the market came from `fetchMarkets`, pass it directly.
+
+
+
+**Python:**
+
+```python
+markets = router.fetch_markets(query="Satoshi Bitcoin 2026", limit=1)
+clusters = router.fetch_matched_market_clusters(markets[0])
+```
+
+
+**TypeScript:**
+
+```typescript
+const markets = await router.fetchMarkets({
+  query: "Satoshi Bitcoin 2026",
+  limit: 1,
+});
+
+const clusters = await router.fetchMatchedMarketClusters(markets[0]);
+```
+
+
+
+##### Browsing clusters
+
+Omit `marketId`, `slug`, and `url` to browse the highest-volume matched
+clusters.
+
+
+
+**Python:**
+
+```python
+clusters = router.fetch_matched_market_clusters(
+    sort="volume",
+    min_venues=2,
+    limit=25,
+)
+```
+
+
+**TypeScript:**
+
+```typescript
+const clusters = await router.fetchMatchedMarketClusters({
+  sort: "volume",
+  minVenues: 2,
+  limit: 25,
+});
+```
+
+
+
+##### Parameters
+
+| Parameter | Type | Default | Notes |
+| --------- | ---- | ------- | ----- |
+| `marketId` | `string` | - | Anchor to a PMXT market ID. |
+| `slug` | `string` | - | Anchor to a market slug. |
+| `url` | `string` | - | Anchor to a venue market URL. |
+| `relation` | `string` | - | Filter to one relation type. |
+| `relations` | `string` or `string[]` | - | Filter to multiple relation types. |
+| `minConfidence` / `min_confidence` | `number` | `0` | Minimum cluster edge confidence, from `0` to `1`. |
+| `venues` | `string` or `string[]` | - | Only include clusters touching these venues. |
+| `excludeVenues` / `exclude_venues` | `string` or `string[]` | - | Exclude clusters touching these venues. |
+| `minVenues` / `min_venues` | `integer` | - | Require at least this many venues in a cluster. |
+| `withOrderbook` / `with_orderbook` | `boolean` | `false` | Require live orderbook coverage on matched edges. |
+| `includeRawMatches` / `include_raw_matches` | `boolean` | `false` | Include pairwise edges used to build the cluster. |
+| `updatedSince` / `updated_since` | `datetime` | - | Only include matches updated after this time. |
+| `sort` | `"volume"` or `"confidence"` | `"volume"` | Cluster sort order. |
+| `limit` | `integer` | `50` | Maximum clusters to return. |
+| `offset` | `integer` | `0` | Pagination offset. |
+| `edgeLimit` / `edge_limit` | `integer` | - | Maximum pairwise edges to scan before clustering. |
+
+##### Response shape
+
+```json
+{
+  "clusterId": "mcl_706533a07496a4eb",
+  "canonicalTitle": "Will Satoshi move any Bitcoin in 2026?",
+  "category": "Crypto",
+  "relations": ["identity"],
+  "confidence": 1,
+  "volume24h": 42310.15,
+  "markets": [
+{
+  "marketId": "pm_...",
+  "sourceExchange": "polymarket",
+  "title": "Will Satoshi move any Bitcoin in 2026?",
+  "slug": "will-satoshi-move-any-bitcoin-in-2026",
+  "outcomes": [
+    { "outcomeId": "pm_yes", "label": "Yes", "price": 0.24 },
+    { "outcomeId": "pm_no", "label": "No", "price": 0.76 }
+  ]
+},
+{
+  "marketId": "kalshi_...",
+  "sourceExchange": "kalshi",
+  "title": "Will Satoshi move Bitcoin in 2026?",
+  "outcomes": [
+    { "outcomeId": "KXSATOSHI-26", "label": "Yes", "price": 0.25 },
+    { "outcomeId": "KXSATOSHI-26-NO", "label": "No", "price": 0.75 }
+  ]
+}
+  ],
+  "rawMatches": [
+{
+  "marketAId": "pm_...",
+  "marketBId": "kalshi_...",
+  "relation": "identity",
+  "confidence": 1
+}
+  ]
+}
+```
+
+#### Relation Types
+
+Every edge in a cluster is classified into one of five set-theoretic
+relations describing how two markets' resolution conditions relate.
+
+| Relation | Meaning | Example |
+| -------- | ------- | ------- |
+| `identity` | Same resolution condition. | "BTC > $100k by Dec 31" on Polymarket and Kalshi. |
+| `subset` | A resolving YES implies the other resolves YES, not vice versa. | "Democrats win presidency" is narrower than "Democrats win popular vote". |
+| `superset` | The reverse of `subset`. | "Democrats win popular vote" is broader than "Democrats win presidency". |
+| `overlap` | Related, but neither condition implies the other. | "Fed cuts in June" and "Fed cuts twice in 2026". |
+| `disjoint` | Cannot both resolve YES. | Two mutually exclusive candidates winning the same office. |
+
+
 > **Note:**
-  To match an entire event and all its child markets at once, see
+  To match an entire event and see the corresponding child markets, use
   [Find Similar Events](https://pmxt.dev/docs/router/event-matching).
 
 ### Compare Prices Across Venues
 
 Source: https://pmxt.dev/docs/router/prices
 
-Three methods build on [matching](https://pmxt.dev/docs/router/matching) to answer pricing
-questions across venues.
+Use [matching](https://pmxt.dev/docs/router/matching) to find cross-venue clusters, then use
+price helpers or venue exchanges to inspect executable bid/ask data.
 
 #### compareMarketPrices
 
 Side-by-side bid/ask for the same market on every venue.
 
-Under the hood this calls `fetchMarketMatches` with `relation: "identity"`
-and `includePrices: true`, then maps the results to a flat comparison.
+This returns a flat side-by-side view for one anchored market. For
+cluster-first discovery across the whole catalog, use
+[`fetchMatchedMarketClusters`](https://pmxt.dev/docs/router/matching#fetchmatchedmarketclusters).
 
 
-  
+
 **Python:**
 
 ```python
@@ -1925,8 +2155,8 @@ polymarket    bid 0.60  ask 0.65
 kalshi        bid 0.58  ask 0.63
 limitless     bid 0.61  ask 0.66
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
@@ -1942,7 +2172,7 @@ for (const p of prices) {
   console.log(`${p.venue.padEnd(12)}  bid ${p.bestBid}  ask ${p.bestAsk}`);
 }
 ```
-  
+
 
 
 ##### Response shape
@@ -1965,7 +2195,7 @@ Find related markets across venues — markets whose resolution condition
 is a subset or superset of the target market.
 
 
-  
+
 **Python:**
 
 ```python
@@ -1985,8 +2215,8 @@ superset   polymarket    Will a Democrat win the popular vote?
            confidence 72%  bid 0.70  ask 0.73
            Broader — popular vote does not guarantee election win.
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
@@ -1997,7 +2227,7 @@ for (const r of related) {
   console.log(`  confidence: ${r.confidence}  reasoning: ${r.reasoning}`);
 }
 ```
-  
+
 
 
 Subset means A=YES implies B=YES but not vice versa. Superset is the
@@ -2006,28 +2236,35 @@ full taxonomy.
 
 
 > **Note:**
-  `fetchRelatedMarkets` filters matches to `subset` and `superset`
-  relations only. If you want all relations, use
-  [`fetchMarketMatches`](https://pmxt.dev/docs/router/matching#fetchmarketmatches) directly.
+  `fetchRelatedMarkets` filters to `subset` and `superset` relations.
+  If you want all relation types, use
+  [`fetchMatchedMarketClusters`](https://pmxt.dev/docs/router/matching#fetchmatchedmarketclusters)
+  with `relation` or `relations` filters.
 
 
-#### fetchMatchedMarkets
+#### fetchMatchedMarketClusters
 
-Returns matched market pairs across venues with live pricing from each.
-The Router finds identity-matched markets on different venues and
-returns each pair with side-by-side data.
+Returns matched market clusters across venues. Use this when you want
+the full group of markets first, then inspect prices and outcomes inside
+each venue market.
 
 
-  
+
 **Python:**
 
 ```python
-pairs = router.fetch_matched_markets(min_difference=0.03, category="Politics", limit=20)
+clusters = router.fetch_matched_market_clusters(
+    relation="identity",
+    sort="volume",
+    min_venues=2,
+    limit=20,
+)
 
-for p in pairs:
-    print(f"{p.market_a.title}")
-    print(f"  {p.venue_a:12s} @ {p.price_a:.2f}")
-    print(f"  {p.venue_b:12s} @ {p.price_b:.2f}")
+for cluster in clusters:
+    print(cluster.canonical_title)
+    for market in cluster.markets:
+        price = market.yes.price if market.yes else None
+        print(f"  {market.source_exchange:12s} @ {price}")
 ```
 
 ```
@@ -2035,48 +2272,53 @@ Will BTC hit $100k by Dec 31?
   polymarket   @ 0.58
   kalshi       @ 0.63
 ```
-  
-  
+
+
 **TypeScript:**
 
 ```typescript
-const pairs = await router.fetchMatchedMarkets({
-  minDifference: 0.03,
-  category: "Politics",
+const clusters = await router.fetchMatchedMarketClusters({
+  relation: "identity",
+  sort: "volume",
+  minVenues: 2,
   limit: 20,
 });
 
-for (const p of pairs) {
-  console.log(p.marketA.title);
-  console.log(`  ${p.venueA} @ ${p.priceA}`);
-  console.log(`  ${p.venueB} @ ${p.priceB}`);
+for (const cluster of clusters) {
+  console.log(cluster.canonicalTitle);
+  for (const market of cluster.markets) {
+    console.log(`  ${market.sourceExchange} @ ${market.yes?.price}`);
+  }
 }
 ```
-  
+
 
 
 ##### Parameters
 
 | Parameter       | Type      | Default | Notes                                                      |
 | --------------- | --------- | ------- | ---------------------------------------------------------- |
-| `minDifference` | `number`  | `0`     | Minimum price difference between venues to include.        |
-| `category`      | `string`  | —       | Filter both sides of the match by category.                |
-| `limit`         | `integer` | `50`    | Maximum number of matched pairs to return.                 |
+| `relation`      | `string`  | —       | Filter to a relation type such as `identity`.              |
+| `minVenues`     | `integer` | —       | Require at least this many venues in a cluster.            |
+| `sort`          | `string`  | `volume` | Sort by `volume` or `confidence`.                         |
+| `limit`         | `integer` | `50`    | Maximum number of clusters to return.                      |
 
-Results are sorted by price difference descending.
+Results are cluster-first. PMXT does not pick a best opportunity for
+you; inspect the returned markets, outcomes, and order books before
+deciding how to trade.
 
 ##### Response shape
 
 ```json
 {
-  "marketA": { "marketId": "...", "title": "..." },
-  "marketB": { "marketId": "...", "title": "..." },
-  "priceDifference": 0.05,
-  "venueA": "polymarket",
-  "venueB": "kalshi",
-  "priceA": 0.58,
-  "priceB": 0.63,
-  "reasoning": "Both markets ask whether BTC exceeds $100k by Dec 2026"
+  "clusterId": "mcl_...",
+  "canonicalTitle": "Will BTC hit $100k by Dec 31?",
+  "relations": ["identity"],
+  "confidence": 0.98,
+  "markets": [
+{ "marketId": "pm_...", "sourceExchange": "polymarket", "title": "Will BTC hit $100k by Dec 31?" },
+{ "marketId": "kalshi_...", "sourceExchange": "kalshi", "title": "Bitcoin above $100,000 on Dec 31" }
+  ]
 }
 ```
 
@@ -2091,11 +2333,11 @@ import pmxt
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 poly   = pmxt.Polymarket(private_key="0x...")
 
-# 1. Browse matched markets across venues
-pairs = router.fetch_matched_markets(category="Politics")
+# 1. Browse matched market clusters across venues
+clusters = router.fetch_matched_market_clusters(relation="identity", limit=20)
 
 # 2. Inspect the order book on a specific venue
-book = poly.fetch_order_book(market_id=pairs[0].market_a.market_id)
+book = poly.fetch_order_book(market_id=clusters[0].markets[0].market_id)
 
 # 3. Place an order locally (never proxied through PMXT)
 # poly.create_order(...)
@@ -2822,265 +3064,6 @@ market.outcomes.forEach((o) => console.log(`  ${o.label}: ${o.price}`));
 
 ```bash curl
 curl "https://api.pmxt.dev/api/polymarket/fetchMarket?slug=will-gavin-newsom-win-the-2028-us-presidential-election" \
-  -H "Authorization: Bearer $PMXT_API_KEY"
-```
-</CodeGroup>
-
-
-## Cross-Venue
-
-### Event Matches
-
-Source: https://pmxt.dev/docs/api-reference/fetch-event-matches
-
-#### Use cases
-
-##### Find the same event on other venues
-
-Fetch an event from Polymarket, then find it on every other venue:
-
-<CodeGroup>
-```python Python
-import pmxt
-
-# Step 1: Get an event from any venue
-poly = pmxt.Polymarket()
-event = poly.fetch_event(slug="presidential-election-winner-2028")
-
-# Step 2: Find matches across all other venues (requires API key)
-router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
-matches = router.fetch_event_matches(event=event)
-
-for match in matches:
-print(f"{match.event.source_exchange}: {match.event.title} ({len(match.market_matches)} market matches)")
-```
-
-```javascript JavaScript
-import { Polymarket, Router } from "pmxtjs";
-
-// Step 1: Get an event from any venue
-const poly = new Polymarket();
-const event = await poly.fetchEvent({ slug: "presidential-election-winner-2028" });
-
-// Step 2: Find matches across all other venues (requires API key)
-const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
-const matches = await router.fetchEventMatches({ event });
-
-for (const match of matches) {
-  console.log(`${match.event.sourceExchange}: ${match.event.title} (${match.marketMatches.length} market matches)`);
-}
-```
-
-```bash curl
-curl "https://api.pmxt.dev/api/router/fetchEventMatches?slug=presidential-election-winner-2028" \
-  -H "Authorization: Bearer $PMXT_API_KEY"
-```
-</CodeGroup>
-
-##### Look up by event ID
-
-If you already have an event ID, pass it directly:
-
-<CodeGroup>
-```python Python
-import pmxt
-
-router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
-matches = router.fetch_event_matches(event_id="a49db286-39ca-4119-9de5-1335a92ef92a")
-
-for match in matches:
-print(f"{match.event.source_exchange}: {match.event.title}")
-```
-
-```javascript JavaScript
-import { Router } from "pmxtjs";
-
-const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
-const matches = await router.fetchEventMatches({ eventId: "a49db286-39ca-4119-9de5-1335a92ef92a" });
-
-for (const match of matches) {
-  console.log(`${match.event.sourceExchange}: ${match.event.title}`);
-}
-```
-
-```bash curl
-curl "https://api.pmxt.dev/api/router/fetchEventMatches?eventId=a49db286-39ca-4119-9de5-1335a92ef92a" \
-  -H "Authorization: Bearer $PMXT_API_KEY"
-```
-</CodeGroup>
-
-##### Browse all matched events
-
-List all cross-venue event matches in the catalog:
-
-<CodeGroup>
-```python Python
-import pmxt
-
-router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
-matches = router.fetch_event_matches()
-
-for match in matches:
-print(match.event.title)
-print(f"  {match.event.source_exchange}: {match.event.url}")
-seen = set()
-for m in match.market_matches:
-    venue = m.market.source_exchange
-    if venue not in seen:
-        seen.add(venue)
-        print(f"  {venue}: {m.market.url}")
-
-# Will Jesus Christ return before 2027?
-#   polymarket: https://polymarket.com/event/will-jesus-christ-return-before-2027
-#   probable:   https://probable.markets/event/will-jesus-christ-return-before-2027
-#
-# FL-27 House Election Winner
-#   polymarket: https://polymarket.com/event/fl-27-house-election-winner
-#   kalshi:     https://kalshi.com/events/KXHOUSERACE-FL27-26
-```
-
-```javascript JavaScript
-import { Router } from "pmxtjs";
-
-const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
-const matches = await router.fetchEventMatches();
-
-for (const match of matches) {
-  console.log(match.event.title);
-  console.log(`  ${match.event.sourceExchange}: ${match.event.url}`);
-  const seen = new Set();
-  for (const m of match.marketMatches) {
-const venue = m.market.sourceExchange;
-if (!seen.has(venue)) {
-  seen.add(venue);
-  console.log(`  ${venue}: ${m.market.url}`);
-}
-  }
-}
-```
-
-```bash curl
-curl "https://api.pmxt.dev/api/router/fetchEventMatches" \
-  -H "Authorization: Bearer $PMXT_API_KEY"
-```
-</CodeGroup>
-
-### Market Matches
-
-Source: https://pmxt.dev/docs/api-reference/fetch-market-matches
-
-#### Use cases
-
-##### Find the same market on other venues
-
-Fetch a market from Polymarket, then find it on every other venue:
-
-<CodeGroup>
-```python Python
-import pmxt
-
-# Step 1: Get a market from any venue
-poly = pmxt.Polymarket()
-market = poly.fetch_market(slug="will-gavin-newsom-win-the-2028-us-presidential-election")
-
-# Step 2: Find matches across all other venues (requires API key)
-router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
-matches = router.fetch_market_matches(market=market)
-
-for match in matches:
-print(f"{match.market.source_exchange}: {match.market.title} ({match.relation}, {match.confidence:.0%})")
-```
-
-```javascript JavaScript
-import { Polymarket, Router } from "pmxtjs";
-
-// Step 1: Get a market from any venue
-const poly = new Polymarket();
-const market = await poly.fetchMarket({ slug: "will-gavin-newsom-win-the-2028-us-presidential-election" });
-
-// Step 2: Find matches across all other venues (requires API key)
-const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
-const matches = await router.fetchMarketMatches({ market });
-
-for (const match of matches) {
-  console.log(`${match.market.sourceExchange}: ${match.market.title} (${match.relation}, ${(match.confidence * 100).toFixed(0)}%)`);
-}
-```
-
-```bash curl
-curl "https://api.pmxt.dev/api/router/fetchMarketMatches?slug=will-gavin-newsom-win-the-2028-us-presidential-election" \
-  -H "Authorization: Bearer $PMXT_API_KEY"
-```
-</CodeGroup>
-
-##### Look up by market ID
-
-If you already have a market ID, pass it directly:
-
-<CodeGroup>
-```python Python
-import pmxt
-
-router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
-matches = router.fetch_market_matches(market_id="46ac6f9c-c66a-48a5-8f12-beefd6e06221")
-
-for match in matches:
-print(match.market.source_exchange, match.market.title)
-```
-
-```javascript JavaScript
-import { Router } from "pmxtjs";
-
-const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
-const matches = await router.fetchMarketMatches({ marketId: "46ac6f9c-c66a-48a5-8f12-beefd6e06221" });
-
-for (const match of matches) {
-  console.log(match.market.sourceExchange, match.market.title);
-}
-```
-
-```bash curl
-curl "https://api.pmxt.dev/api/router/fetchMarketMatches?marketId=46ac6f9c-c66a-48a5-8f12-beefd6e06221" \
-  -H "Authorization: Bearer $PMXT_API_KEY"
-```
-</CodeGroup>
-
-##### Browse all matched markets
-
-List all cross-venue market matches in the catalog:
-
-<CodeGroup>
-```python Python
-import pmxt
-
-router = pmxt.Router(pmxt_api_key="YOUR_PMXT_API_KEY")
-matches = router.fetch_market_matches()
-
-for match in matches:
-print(match.source_market.title)
-print(f"  {match.source_market.source_exchange}: {match.source_market.url}")
-print(f"  {match.market.source_exchange}: {match.market.url}")
-
-# Will Gavin Newsom win the 2028 US Presidential Election?
-#   polymarket: https://polymarket.com/event/...
-#   kalshi:     https://kalshi.com/events/...
-```
-
-```javascript JavaScript
-import { Router } from "pmxtjs";
-
-const router = new Router({ pmxtApiKey: "YOUR_PMXT_API_KEY" });
-const matches = await router.fetchMarketMatches();
-
-for (const match of matches) {
-  console.log(match.sourceMarket.title);
-  console.log(`  ${match.sourceMarket.sourceExchange}: ${match.sourceMarket.url}`);
-  console.log(`  ${match.market.sourceExchange}: ${match.market.url}`);
-}
-```
-
-```bash curl
-curl "https://api.pmxt.dev/api/router/fetchMarketMatches" \
   -H "Authorization: Bearer $PMXT_API_KEY"
 ```
 </CodeGroup>
@@ -5066,7 +5049,7 @@ PMXT markets carry two fields that map directly to the orderbook history:
 Grab them from any PMXT market response:
 
 
-  
+
 **Python:**
 
 ```python
@@ -5079,8 +5062,8 @@ m = markets[0]
 condition_id = m.contract_address       # "0xa0f4c492..."
 yes_token    = m.yes.outcome_id         # "1391568931..."
 ```
-  
-  
+
+
 **curl:**
 
 ```bash
@@ -5092,7 +5075,7 @@ curl -s "https://api.pmxt.dev/api/polymarket/fetchMarkets" \
 
 In the response, read `data[0].contractAddress` and
 `data[0].yes.outcomeId`.
-  
+
 
 
 #### Table schema
@@ -5135,7 +5118,7 @@ Change `toStartOfHour` to `toStartOfMinute`, `toStartOfFiveMinutes`,
 or `toStartOfDay` for different granularities.
 
 
-  
+
 **Python:**
 
 ```python
@@ -5162,8 +5145,8 @@ resp = requests.post(
 )
 candles = resp.json()["data"]
 ```
-  
-  
+
+
 **curl:**
 
 ```bash
@@ -5172,7 +5155,7 @@ curl "https://api.pmxt.dev/v0/sql" \
   -H "Content-Type: application/json" \
   -d '{"query": "SELECT toStartOfHour(timestamp) AS hour, argMin(...) AS open, argMax(...) AS close, min(...) AS low, max(...) AS high, count() AS ticks FROM polymarket_orderbook_rust WHERE market = '\''YOUR_CONDITION_ID'\'' AND event_type = '\''price_change'\'' AND JSONExtractString(data, '\''asset_id'\'') = '\''YOUR_OUTCOME_ID'\'' AND timestamp >= now() - INTERVAL 7 DAY GROUP BY hour ORDER BY hour"}'
 ```
-  
+
 
 
 #### 2. Historical orderbook snapshots
@@ -5242,41 +5225,56 @@ Every query returns:
 - **10,000 row cap** — use `LIMIT` or time filters to stay under.
 - **Read-only** — only `SELECT`, `WITH`, `SHOW`, `DESCRIBE`, and `EXPLAIN`.
 
-### Discover matched markets across venues
+### Fetch matched event clusters
 
-`GET /v0/matched-markets`
+`GET /v0/matched-event-clusters`
 
-Bulk cross-venue price comparison. Returns matched market pairs from the market_matches table, computing price differences across venues.
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `query` | string | No | Keyword search across matched market titles. |
-| `relations` | string | No | Comma-separated relation filter. Valid values: identity, subset, superset, overlap, disjoint. |
-| `minDifference` | number | No | Minimum price difference to include (0.0-1.0). |
-| `category` | string | No | Filter both sides of the match by category. |
-| `limit` | integer | No | Maximum number of matched pairs to return. |
-| `minConfidence` | number | No | Minimum match confidence score (0.0-1.0). |
-| `includePrices` | boolean | No | Enrich markets with live order book prices. |
-
-**Response:** `{ success: true, data: object[] }`
-
-
-### Discover cross-venue matched market prices
-
-`GET /v0/matched-prices`
-
-Bulk cross-venue price comparison. Returns matched market pairs from the market_matches table, computing price differences across venues.
+Returns connected clusters of semantically matched events across venues. Use this endpoint to browse or anchor event-level matches while preserving each venue's child markets.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `relations` | string | No | Comma-separated relation filter. Valid values: identity, subset, superset, overlap, disjoint. |
-| `minDifference` | number | No | Minimum price difference to include (0.0-1.0). |
-| `category` | string | No | Filter both sides of the match by category. |
-| `limit` | integer | No | Maximum number of matched pairs to return. |
-| `minConfidence` | number | No | Minimum match confidence score (0.0-1.0). |
-| `includePrices` | boolean | No | Enrich markets with live order book prices. |
+| `eventId` | string | No | Anchor the response to a specific event ID. |
+| `slug` | string | No | Anchor the response to a specific event slug. |
+| `url` | string | No | Anchor the response to a specific event URL. |
+| `relations` | string | No | Comma-separated relation filter. |
+| `relation` | string | No | Single relation filter. Alias for relations. |
+| `minConfidence` | number | No |  |
+| `venues` | string | No | Comma-separated venue allow-list. |
+| `excludeVenues` | string | No | Comma-separated venue deny-list. |
+| `minVenues` | integer | No | Minimum number of venues required in a cluster. |
+| `withOrderbook` | boolean | No | Require at least one live orderbook on each matched edge. |
+| `updatedSince` | string | No | Only include matches updated after this timestamp. |
+| `includeRawMatches` | boolean | No | Include the pairwise match edges used to build each cluster. |
+| `sort` | string | No |  |
+| `limit` | integer | No |  |
+| `offset` | integer | No |  |
+| `edgeLimit` | integer | No | Maximum number of pairwise edges to scan before clustering. |
 
-**Response:** `{ success: true, data: object[] }`
+
+### Fetch matched market clusters
+
+`GET /v0/matched-market-clusters`
+
+Returns connected clusters of semantically matched markets across venues. Use this endpoint to browse or anchor market-level matches without flattening the response into pairwise rows.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `marketId` | string | No | Anchor the response to a specific market ID. |
+| `slug` | string | No | Anchor the response to a specific market slug. |
+| `url` | string | No | Anchor the response to a specific market URL. |
+| `relations` | string | No | Comma-separated relation filter. |
+| `relation` | string | No | Single relation filter. Alias for relations. |
+| `minConfidence` | number | No |  |
+| `venues` | string | No | Comma-separated venue allow-list. |
+| `excludeVenues` | string | No | Comma-separated venue deny-list. |
+| `minVenues` | integer | No | Minimum number of venues required in a cluster. |
+| `withOrderbook` | boolean | No | Require at least one live orderbook on each matched edge. |
+| `updatedSince` | string | No | Only include matches updated after this timestamp. |
+| `includeRawMatches` | boolean | No | Include the pairwise match edges used to build each cluster. |
+| `sort` | string | No |  |
+| `limit` | integer | No |  |
+| `offset` | integer | No |  |
+| `edgeLimit` | integer | No | Maximum number of pairwise edges to scan before clustering. |
 
 
 ### Execute a read-only SQL query against ClickHouse

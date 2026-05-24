@@ -861,6 +861,124 @@ export interface EventMatchResult extends Readonly<UnifiedEvent> {
     marketMatches: MatchResult[];
 }
 
+export type MatchedClusterSort = 'volume' | 'confidence';
+
+/** Shared filters for matched market/event cluster discovery. */
+export interface MatchedClusterFilterParams {
+    /** Text search across cluster titles. */
+    query?: string;
+
+    /** Filter both sides of matched edges by category. */
+    category?: string;
+
+    /** Comma-separated relation filter. */
+    relations?: MatchRelation | MatchRelation[] | string;
+
+    /** Single relation filter. Alias for relations. */
+    relation?: MatchRelation;
+
+    /** Minimum match confidence score (0.0 to 1.0). */
+    minConfidence?: number;
+
+    /** Venue allow-list. */
+    venues?: string | string[];
+
+    /** Venue deny-list. */
+    excludeVenues?: string | string[];
+
+    /** Minimum number of venues required in a cluster. */
+    minVenues?: number;
+
+    /** Require live orderbook coverage on matched edges. */
+    withOrderbook?: boolean;
+
+    /** Only include matches updated after this timestamp. */
+    updatedSince?: string | Date;
+
+    /** Include the pairwise match edges used to build each cluster. */
+    includeRawMatches?: boolean;
+
+    /** Cluster sort order. */
+    sort?: MatchedClusterSort;
+
+    /** Maximum clusters to return. */
+    limit?: number;
+
+    /** Pagination offset. */
+    offset?: number;
+
+    /** Maximum pairwise edges to scan before clustering. */
+    edgeLimit?: number;
+}
+
+/** Parameters for fetching matched market clusters. */
+export interface FetchMatchedMarketClustersParams extends MatchedClusterFilterParams {
+    /** Pass a UnifiedMarket directly instead of marketId/slug/url. */
+    market?: UnifiedMarket;
+
+    /** Anchor the response to a specific market ID. */
+    marketId?: string;
+
+    /** Anchor the response to a specific market slug. */
+    slug?: string;
+
+    /** Anchor the response to a specific market URL. */
+    url?: string;
+}
+
+/** Parameters for fetching matched event clusters. */
+export interface FetchMatchedEventClustersParams extends MatchedClusterFilterParams {
+    /** Pass a UnifiedEvent directly instead of eventId/slug/url. */
+    event?: UnifiedEvent;
+
+    /** Anchor the response to a specific event ID. */
+    eventId?: string;
+
+    /** Anchor the response to a specific event slug. */
+    slug?: string;
+
+    /** Anchor the response to a specific event URL. */
+    url?: string;
+}
+
+/** Pairwise edge used to build a matched market cluster. */
+export interface MatchedMarketClusterEdge {
+    marketAId: string;
+    marketBId: string;
+    relation: MatchRelation;
+    confidence: number;
+}
+
+/** Pairwise edge used to build a matched event cluster. */
+export interface MatchedEventClusterEdge extends MatchedMarketClusterEdge {
+    eventAId: string;
+    eventBId: string;
+}
+
+/** Connected cluster of semantically matched markets across venues. */
+export interface MatchedMarketCluster {
+    clusterId: string;
+    canonicalTitle: string | null;
+    category?: string | null;
+    relations: MatchRelation[];
+    confidence: number;
+    volume24h: number;
+    markets: UnifiedMarket[];
+    rawMatches?: MatchedMarketClusterEdge[];
+}
+
+/** Connected cluster of semantically matched events across venues. */
+export interface MatchedEventCluster {
+    clusterId: string;
+    canonicalTitle: string | null;
+    category?: string | null;
+    relations: MatchRelation[];
+    confidence: number;
+    volume24h: number;
+    events: UnifiedEvent[];
+    rawMatches?: MatchedEventClusterEdge[];
+}
+
 /** Side-by-side price comparison for a matched market. */
 export interface PriceComparison {
     /** The matched market. */

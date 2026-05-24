@@ -11,6 +11,10 @@ import {
     MatchResult,
     MatchRelation,
     EventMatchResult,
+    FetchMatchedEventClustersParams,
+    FetchMatchedMarketClustersParams,
+    MatchedEventCluster,
+    MatchedMarketCluster,
     PriceComparison,
     ArbitrageOpportunity,
     UnifiedMarket,
@@ -24,6 +28,8 @@ function convertMarket(raw: any): UnifiedMarket {
         label: o.label,
         price: o.price,
         priceChange24h: o.priceChange24h,
+        bestBid: o.bestBid,
+        bestAsk: o.bestAsk,
         metadata: o.metadata,
     }));
 
@@ -33,6 +39,8 @@ function convertMarket(raw: any): UnifiedMarket {
         label: o.label,
         price: o.price,
         priceChange24h: o.priceChange24h,
+        bestBid: o.bestBid,
+        bestAsk: o.bestAsk,
         metadata: o.metadata,
     }) : undefined;
 
@@ -92,6 +100,79 @@ function parseMatchResult(raw: any): MatchResult {
         bestBid: raw.bestBid ?? marketData.bestBid,
         bestAsk: raw.bestAsk ?? marketData.bestAsk,
         sourceMarket: raw.sourceMarket ? convertMarket(raw.sourceMarket) : undefined,
+    };
+}
+
+function normalizeQueryValue(value: unknown): unknown {
+    if (value instanceof Date) return value.toISOString();
+    return value;
+}
+
+function appendQuery(query: Record<string, unknown>, key: string, value: unknown): void {
+    if (value !== undefined && value !== null && value !== '') {
+        query[key] = normalizeQueryValue(value);
+    }
+}
+
+function addClusterFilters(query: Record<string, unknown>, params: {
+    query?: string;
+    category?: string;
+    relations?: MatchRelation | MatchRelation[] | string;
+    relation?: MatchRelation;
+    minConfidence?: number;
+    venues?: string | string[];
+    excludeVenues?: string | string[];
+    minVenues?: number;
+    withOrderbook?: boolean;
+    updatedSince?: string | Date;
+    includeRawMatches?: boolean;
+    sort?: string;
+    limit?: number;
+    offset?: number;
+    edgeLimit?: number;
+}): void {
+    appendQuery(query, 'query', params.query);
+    appendQuery(query, 'category', params.category);
+    appendQuery(query, 'relations', params.relations);
+    appendQuery(query, 'relation', params.relation);
+    appendQuery(query, 'minConfidence', params.minConfidence);
+    appendQuery(query, 'venues', params.venues);
+    appendQuery(query, 'excludeVenues', params.excludeVenues);
+    appendQuery(query, 'minVenues', params.minVenues);
+    appendQuery(query, 'withOrderbook', params.withOrderbook);
+    appendQuery(query, 'updatedSince', params.updatedSince);
+    appendQuery(query, 'includeRawMatches', params.includeRawMatches);
+    appendQuery(query, 'sort', params.sort);
+    appendQuery(query, 'limit', params.limit);
+    appendQuery(query, 'offset', params.offset);
+    appendQuery(query, 'edgeLimit', params.edgeLimit);
+}
+
+function extractCatalogArray(raw: any): any[] {
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw?.data)) return raw.data;
+    return [];
+}
+
+function isUnifiedMarket(value: UnifiedMarket | FetchMatchedMarketClustersParams): value is UnifiedMarket {
+    return Boolean(value && 'marketId' in value && 'title' in value);
+}
+
+function isUnifiedEvent(value: UnifiedEvent | FetchMatchedEventClustersParams): value is UnifiedEvent {
+    return Boolean(value && 'id' in value && 'title' in value && 'markets' in value);
+}
+
+function parseMatchedMarketCluster(raw: any): MatchedMarketCluster {
+    return {
+        ...raw,
+        markets: (raw.markets || []).map(convertMarket),
+    };
+}
+
+function parseMatchedEventCluster(raw: any): MatchedEventCluster {
+    return {
+        ...raw,
+        events: (raw.events || []).map(convertEvent),
     };
 }
 
@@ -259,6 +340,72 @@ export class Router extends Exchange {
         } catch (error) {
             if (error instanceof Error) throw error;
             throw new Error(`Failed to fetchEventMatches: ${error}`);
+        }
+    }
+
+    /**
+     * Fetch connected clusters of semantically matched markets across venues.
+     *
+     * @param marketOrParams - A UnifiedMarket, or an options object.
+     */
+    async fetchMatchedMarketClusters(market: UnifiedMarket): Promise<MatchedMarketCluster[]>;
+    async fetchMatchedMarketClusters(params?: FetchMatchedMarketClustersParams): Promise<MatchedMarketCluster[]>;
+    async fetchMatchedMarketClusters(
+        marketOrParams: UnifiedMarket | FetchMatchedMarketClustersParams = {},
+    ): Promise<MatchedMarketCluster[]> {
+        const params: FetchMatchedMarketClustersParams = isUnifiedMarket(marketOrParams)
+            ? { market: marketOrParams }
+            : marketOrParams;
+        await this.initPromise;
+
+        const query: Record<string, unknown> = {};
+        const marketId = params.marketId ?? params.market?.marketId;
+        const slug = params.slug ?? (!marketId ? params.market?.slug : undefined);
+        const url = params.url ?? (!marketId && !slug ? params.market?.url : undefined);
+        appendQuery(query, 'marketId', marketId);
+        appendQuery(query, 'slug', slug);
+        appendQuery(query, 'url', url);
+        addClusterFilters(query, params);
+
+        try {
+            const raw = await this.catalogReadRequest('/v0/matched-market-clusters', query);
+            return extractCatalogArray(raw).map(parseMatchedMarketCluster);
+        } catch (error) {
+            if (error instanceof Error) throw error;
+            throw new Error(`Failed to fetchMatchedMarketClusters: ${error}`);
+        }
+    }
+
+    /**
+     * Fetch connected clusters of semantically matched events across venues.
+     *
+     * @param eventOrParams - A UnifiedEvent, or an options object.
+     */
+    async fetchMatchedEventClusters(event: UnifiedEvent): Promise<MatchedEventCluster[]>;
+    async fetchMatchedEventClusters(params?: FetchMatchedEventClustersParams): Promise<MatchedEventCluster[]>;
+    async fetchMatchedEventClusters(
+        eventOrParams: UnifiedEvent | FetchMatchedEventClustersParams = {},
+    ): Promise<MatchedEventCluster[]> {
+        const params: FetchMatchedEventClustersParams = isUnifiedEvent(eventOrParams)
+            ? { event: eventOrParams }
+            : eventOrParams;
+        await this.initPromise;
+
+        const query: Record<string, unknown> = {};
+        const eventId = params.eventId ?? params.event?.id;
+        const slug = params.slug ?? (!eventId ? params.event?.slug : undefined);
+        const url = params.url ?? (!eventId && !slug ? params.event?.url : undefined);
+        appendQuery(query, 'eventId', eventId);
+        appendQuery(query, 'slug', slug);
+        appendQuery(query, 'url', url);
+        addClusterFilters(query, params);
+
+        try {
+            const raw = await this.catalogReadRequest('/v0/matched-event-clusters', query);
+            return extractCatalogArray(raw).map(parseMatchedEventCluster);
+        } catch (error) {
+            if (error instanceof Error) throw error;
+            throw new Error(`Failed to fetchMatchedEventClusters: ${error}`);
         }
     }
 

@@ -156,14 +156,6 @@ const ENDPOINT_GROUPS = [
         order: ['fetchEvents', 'fetchEventsPaginated', 'fetchEvent', 'fetchMarkets', 'fetchMarketsPaginated', 'fetchMarket'],
     },
     {
-        name: 'Cross-Venue',
-        match: (opId) =>
-            /^(fetchEventMatches|fetchMarketMatches)$/.test(
-                opId
-            ),
-        order: ['fetchEventMatches', 'fetchMarketMatches'],
-    },
-    {
         name: 'Order Book & Trades',
         match: (opId) =>
             /^(fetchOrderBook|fetchOrderBooks|fetchOHLCV|fetchTrades|getExecutionPrice|getExecutionPriceDetailed)$/.test(
@@ -221,7 +213,19 @@ const ENDPOINT_GROUPS = [
 // Operations that exist in the OpenAPI spec but should not appear in the docs
 // sidebar (e.g. SDK-only helpers that are exposed as routes but aren't meant
 // to be called directly by API consumers).
-const HIDDEN_OPERATIONS = new Set(['filterMarkets', 'filterEvents', 'fetchHedges', 'fetchArbitrage', 'fetchMatchedPrices', 'compareMarketPrices', 'fetchRelatedMarkets', 'fetchMatchedMarkets', 'testDummyMethod']);
+const HIDDEN_OPERATIONS = new Set([
+    'filterMarkets',
+    'filterEvents',
+    'fetchHedges',
+    'fetchArbitrage',
+    'fetchMatchedPrices',
+    'compareMarketPrices',
+    'fetchRelatedMarkets',
+    'fetchMatchedMarkets',
+    'fetchEventMatches',
+    'fetchMarketMatches',
+    'testDummyMethod',
+]);
 
 // Convert an operationId to its expected MDX file path (docs-relative,
 // no extension).  fetchEventMatches -> api-reference/fetch-event-matches

@@ -11,6 +11,16 @@ const DOCS_JSON_PATH = path.join(DOCS_DIR, 'docs.json');
 const RATE_LIMITS_PATH = path.join(DOCS_DIR, 'rate-limits.mdx');
 const VENUES_PATH = path.join(DOCS_DIR, 'concepts', 'venues.mdx');
 
+// Hosted-pmxt exposes compatibility aliases that should keep working but
+// should not be promoted in the public docs. Keep the documented surface
+// explicit so legacy pairwise matching endpoints do not reappear when hosted
+// docs sync runs.
+const HOSTED_DOC_PATH_ALLOWLIST = new Set([
+  '/v0/matched-event-clusters',
+  '/v0/matched-market-clusters',
+  '/v0/sql',
+]);
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -120,6 +130,27 @@ function dropGetDuplicates(paths) {
       result[pathKey] = methods;
     }
   }
+  return result;
+}
+
+function filterPublicHostedDocs(paths) {
+  const result = {};
+  const skipped = [];
+
+  for (const [pathKey, methods] of Object.entries(paths)) {
+    if (HOSTED_DOC_PATH_ALLOWLIST.has(pathKey)) {
+      result[pathKey] = methods;
+    } else {
+      for (const method of Object.keys(methods)) {
+        skipped.push(`${method.toUpperCase()} ${pathKey}`);
+      }
+    }
+  }
+
+  if (skipped.length > 0) {
+    console.log(`  [openapi-hosted] Skipped ${skipped.length} non-public doc path(s): ${skipped.join(', ')}`);
+  }
+
   return result;
 }
 
@@ -431,7 +462,7 @@ function main() {
 
   console.log('Manifest loaded. Applying updates…');
 
-  const docsPaths = stripOperationSecurity(dropGetDuplicates(manifest.openApiPaths));
+  const docsPaths = filterPublicHostedDocs(stripOperationSecurity(dropGetDuplicates(manifest.openApiPaths)));
   writeHostedOpenApiSpec(docsPaths, manifest.openApiComponents, manifest.hostedPmxtVersion);
   updateDocsNavigation(docsPaths);
   updateRateLimits(manifest.rateLimits);

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.44.0] - 2026-05-24
+
+### Added
+
+- **Router SDKs**: Add cluster-first cross-venue matching methods to both TypeScript and Python SDKs: `fetchMatchedMarketClusters` / `fetch_matched_market_clusters` and `fetchMatchedEventClusters` / `fetch_matched_event_clusters`.
+- **Matching docs**: Document the new cluster-first market and event matching workflows with query-based and anchor-object examples.
+
+### Changed
+
+- **Hosted docs**: Promote the cluster-first matching endpoints in the generated docs while hiding the legacy pairwise matching routes from public navigation.
+- **SDK responses**: Preserve live `bestBid` / `bestAsk` fields on converted market outcomes so cluster responses include executable-price context.
+
 ## [2.43.25] - 2026-05-24
 
 ### Added

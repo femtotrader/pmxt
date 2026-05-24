@@ -29,6 +29,12 @@ export interface MarketOutcome {
 
     /** Exchange-specific metadata */
     metadata?: Record<string, any>;
+
+    /** Best bid price from the order book (when includePrices=True) */
+    bestBid?: number;
+
+    /** Best ask price from the order book (when includePrices=True) */
+    bestAsk?: number;
 }
 
 /**
@@ -103,6 +109,9 @@ export interface UnifiedMarket {
 
     /** Convenience access to the Down outcome for binary markets. */
     down?: MarketOutcome;
+
+    /** Alias for `title`. Matches the Python SDK's `market.question` property. */
+    readonly question?: string;
 }
 
 /**

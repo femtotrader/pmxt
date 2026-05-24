@@ -104,7 +104,7 @@ function queryHasNestedObject(query: Record<string, unknown>): boolean {
 
 // Converter functions
 function convertMarket(raw: any): UnifiedMarket {
-    return {
+    const market: UnifiedMarket = {
         ...raw,
         resolutionDate: raw.resolutionDate ? new Date(raw.resolutionDate) : undefined,
         outcomes: (raw.outcomes || []).map((o: any) => ({ ...o })),
@@ -113,6 +113,12 @@ function convertMarket(raw: any): UnifiedMarket {
         up: raw.up ? { ...raw.up } : undefined,
         down: raw.down ? { ...raw.down } : undefined,
     };
+    Object.defineProperty(market, 'question', {
+        get() { return this.title; },
+        enumerable: false,
+        configurable: true,
+    });
+    return market;
 }
 
 
@@ -659,7 +665,7 @@ export abstract class Exchange {
         }
     }
 
-    async fetchMarketsPaginated(params?: any): Promise<PaginatedMarketsResult> {
+    async fetchMarketsPaginated(params?: MarketFetchParams): Promise<PaginatedMarketsResult> {
         await this.initPromise;
         try {
             const args: any[] = [];
@@ -2043,9 +2049,18 @@ export abstract class Exchange {
      * @param amount - The amount to execute
      * @returns The volume-weighted average price, or 0 if insufficient liquidity
      */
-    async getExecutionPrice(orderBook: OrderBook, side: 'buy' | 'sell', amount: number): Promise<number> {
-        const result = await this.getExecutionPriceDetailed(orderBook, side, amount);
-        return result.fullyFilled ? result.price : 0;
+    getExecutionPrice(orderBook: OrderBook, side: 'buy' | 'sell', amount: number): number {
+        const levels = side === 'buy' ? orderBook.asks : orderBook.bids;
+        let remaining = amount;
+        let totalCost = 0;
+        for (const level of levels) {
+            const fill = Math.min(remaining, level.size);
+            totalCost += fill * level.price;
+            remaining -= fill;
+            if (remaining <= 0) break;
+        }
+        if (remaining > 0) return 0;
+        return totalCost / amount;
     }
 
     /**
@@ -2400,8 +2415,14 @@ export abstract class Exchange {
  * Options for initializing Polymarket client.
  */
 export interface PolymarketOptions {
+    /** Venue-specific API key (e.g. Polymarket CLOB key). Optional. */
+    apiKey?: string;
+
     /** Private key for authentication (optional) */
     privateKey?: string;
+
+    /** Hosted pmxt API key. Enables hosted mode when set. */
+    pmxtApiKey?: string;
 
     /** Base URL of the PMXT sidecar server */
     baseUrl?: string;

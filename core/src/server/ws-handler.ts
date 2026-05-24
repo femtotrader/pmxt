@@ -255,8 +255,10 @@ export function createWebSocketHandler(
       const action = parsed.action as string | undefined;
       const exchange = parsed.exchange as string | undefined;
 
-      if (!id || !action || !exchange) {
-        sendError(ws, id, "Missing required fields: id, action, exchange");
+      const method = parsed.method as string | undefined;
+
+      if (!id || !action || !exchange || !method) {
+        sendError(ws, id, "Missing required fields: id, action, exchange, method");
         return;
       }
 
@@ -267,7 +269,7 @@ export function createWebSocketHandler(
           id,
           action: "subscribe",
           exchange: exchangeName,
-          method: parsed.method as string,
+          method,
           args: (parsed.args as unknown[]) || [],
           credentials: parsed.credentials as ExchangeCredentials | undefined,
         };
@@ -277,7 +279,7 @@ export function createWebSocketHandler(
           id,
           action: "unsubscribe",
           exchange: exchangeName,
-          method: parsed.method as string,
+          method,
           args: (parsed.args as unknown[]) || [],
         };
         handleUnsubscribe(ws, state, msg, exchangeName);

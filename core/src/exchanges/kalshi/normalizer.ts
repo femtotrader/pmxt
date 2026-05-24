@@ -114,7 +114,7 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
                 ? markets.reduce((sum, m) => sum + (m.volume ?? 0), 0)
                 : undefined,
             url: `https://kalshi.com/events/${raw.event_ticker}`,
-            image: raw.image_url,
+            image: raw.image_url ?? undefined,
             category: raw.category,
             tags: raw.tags || [],
         };

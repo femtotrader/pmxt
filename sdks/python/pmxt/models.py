@@ -333,6 +333,12 @@ class UserTrade(Trade):
     order_id: Optional[str] = None
     """The order that generated this fill"""
 
+    outcome_id: Optional[str] = None
+    """The outcome this trade belongs to"""
+
+    market_id: Optional[str] = None
+    """The market this trade belongs to"""
+
 
 @dataclass
 class PaginatedMarketsResult:
@@ -341,7 +347,7 @@ class PaginatedMarketsResult:
     data: "List[UnifiedMarket]"
     """Markets in this page"""
 
-    total: int
+    total: Optional[int] = None
     """Total number of markets in the snapshot"""
 
     next_cursor: Optional[str] = None
@@ -355,7 +361,7 @@ class PaginatedEventsResult:
     data: "List[UnifiedEvent]"
     """Events in this page"""
 
-    total: int
+    total: Optional[int] = None
     """Total number of events in the snapshot"""
 
     next_cursor: Optional[str] = None

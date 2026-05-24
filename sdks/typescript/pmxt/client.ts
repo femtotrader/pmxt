@@ -392,7 +392,10 @@ export abstract class Exchange {
 
         for (let attempt = 0; attempt <= delays.length; attempt++) {
             try {
-                return await fetch(input, init);
+                return await fetch(input, {
+                    ...init,
+                    signal: AbortSignal.timeout(30_000),
+                });
             } catch (error) {
                 lastError = error;
                 if (attempt >= delays.length) break;

@@ -13,7 +13,7 @@ import {
 import { IExchangeNormalizer } from '../interfaces';
 import { OHLCVParams } from '../../BaseExchange';
 import { addBinaryOutcomes } from '../../utils/market-utils';
-import { toMarketId, toOutcomeId, toCoinNotation, decodeAssetId } from './utils';
+import { toMarketId, toOutcomeId, toMidKey, decodeAssetId } from './utils';
 import { OUTCOME_ASSET_BASE } from './config';
 import {
     HyperliquidRawOutcomeWithQuestion,
@@ -273,8 +273,8 @@ export class HyperliquidNormalizer implements IExchangeNormalizer<HyperliquidRaw
             const outcome = outcomeMeta.outcomes.find(o => o.outcome === outcomeId);
             if (!outcome) continue;
 
-            const yesCoin = toCoinNotation(outcomeId, 'yes');
-            const midPrice = mids[yesCoin];
+            const midKey = toMidKey(outcomeId);
+            const midPrice = mids[midKey];
 
             const market = this.normalizeMarket({
                 outcome,

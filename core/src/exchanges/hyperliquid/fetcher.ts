@@ -1,7 +1,7 @@
 import { MarketFilterParams, EventFetchParams, OHLCVParams, TradesParams } from '../../BaseExchange';
 import { IExchangeFetcher, FetcherContext } from '../interfaces';
 import { hyperliquidErrorMapper } from './errors';
-import { toCoinNotation, fromMarketId } from './utils';
+import { toCoinNotation, toMidKey, fromMarketId } from './utils';
 
 // ----------------------------------------------------------------------------
 // Raw venue-native types (Hyperliquid HIP-4 Outcome Markets)
@@ -306,7 +306,7 @@ export class HyperliquidFetcher implements IExchangeFetcher<HyperliquidRawOutcom
     }
 
     private getMidForOutcome(mids: HyperliquidRawMid, outcomeId: number): string | undefined {
-        const yesCoin = toCoinNotation(outcomeId, 'yes');
-        return mids[yesCoin];
+        const midKey = toMidKey(outcomeId);
+        return mids[midKey];
     }
 }

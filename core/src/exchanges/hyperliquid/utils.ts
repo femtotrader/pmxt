@@ -52,6 +52,17 @@ export function fromCoinEncoding(encoding: number): { outcomeId: number; side: '
 }
 
 /**
+ * Convert an outcome ID to the allMids lookup key.
+ *
+ * The allMids endpoint keys prediction-market outcomes as "@{outcomeId}"
+ * (e.g. "@8"), which is distinct from the "#encoding" coin notation used
+ * for orders and positions.
+ */
+export function toMidKey(outcomeId: number): string {
+    return `@${outcomeId}`;
+}
+
+/**
  * Build a unique market ID string from an outcome.
  * We use "hl-outcome-{outcomeId}" as the market ID.
  */

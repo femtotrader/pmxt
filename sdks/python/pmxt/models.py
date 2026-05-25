@@ -599,7 +599,7 @@ class EventFetchParams(TypedDict, total=False):
 # Router Types
 # ----------------------------------------------------------------------------
 
-MatchRelation = Literal["identity", "subset", "superset", "overlap", "disjoint"]
+MatchRelation = Literal["identity", "complement", "subset", "superset", "overlap", "disjoint"]
 ClusterSortOption = Literal["volume", "confidence"]
 VenueFilter = Union[str, List[str]]
 

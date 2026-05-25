@@ -824,7 +824,7 @@ export interface SubscribedAddressSnapshot {
 // ----------------------------------------------------------------------------
 
 /** Set-theoretic relation between two markets' resolution conditions. */
-export type MatchRelation = 'identity' | 'subset' | 'superset' | 'overlap' | 'disjoint';
+export type MatchRelation = 'identity' | 'complement' | 'subset' | 'superset' | 'overlap' | 'disjoint';
 
 /** A cross-venue market match with relation classification.
  *  Market properties (title, slug, url, etc.) are accessible directly on the result. */

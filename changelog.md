@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.46.0] - 2026-05-25
+
+### Added
+
+- **Cross Exchange**: Add `complement` to the matched event and market cluster relation types in the core router types and TypeScript/Python SDK models, matching the hosted API's complement relation filter.
+
 ## [2.45.1] - 2026-05-25
 
 ### Fixed

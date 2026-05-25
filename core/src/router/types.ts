@@ -5,7 +5,7 @@ import type { UnifiedMarket, UnifiedEvent } from '../types';
 // Relation types (matches the matching engine's SetRelation)
 // ---------------------------------------------------------------------------
 
-export type MatchRelation = 'identity' | 'subset' | 'superset' | 'overlap' | 'disjoint';
+export type MatchRelation = 'identity' | 'complement' | 'subset' | 'superset' | 'overlap' | 'disjoint';
 
 // ---------------------------------------------------------------------------
 // Constructor options

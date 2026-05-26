@@ -19,7 +19,7 @@ GitHub: https://github.com/pmxt-dev/pmxt
 - [Unified Schema](https://pmxt.dev/docs/concepts/unified-schema): One shape for events, markets, and outcomes — across every venue.
 - [Catalog vs Live](https://pmxt.dev/docs/concepts/catalog-vs-live): Reads from Postgres, writes to the venue. How the hosted backend chooses.
 - [Supported Venues](https://pmxt.dev/docs/concepts/venues): Every venue PMXT currently speaks.
-- [Server Management](https://pmxt.dev/docs/sdk/server): Start, stop, restart, and inspect the PMXT sidecar from your SDK code.
+- [Server Management](https://pmxt.dev/docs/sdk/server): Start, stop, restart, and inspect the PMXT local server from your SDK code.
 - [What is the Router?](https://pmxt.dev/docs/router/overview): One API key. Every prediction market. Cross-venue search, matching, and price comparison.
 - [Search Events](https://pmxt.dev/docs/router/events): Search events across every venue in a single query.
 - [Search Markets](https://pmxt.dev/docs/router/markets): Search markets across every venue in a single query.

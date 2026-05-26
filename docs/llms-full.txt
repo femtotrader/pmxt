@@ -25,7 +25,7 @@ talking to.
 It runs two ways:
 
 - **Locally** — the open-source [pmxt](https://github.com/pmxt-dev/pmxt)
-  sidecar runs on your machine. No API key, no external dependency. Your
+  local server runs on your machine. No API key, no external dependency. Your
   requests go directly to the venues.
 - **Hosted** — `api.pmxt.dev` adds a shared catalog, cross-venue search,
   and you skip running infrastructure. Set an API key and the SDK
@@ -930,7 +930,7 @@ Event  (a topic, like "2028 US Presidential Election")
    └─ Outcome  (a tradable side, like "Yes" @ 0.31)
 ```
 
-Every response — from the local sidecar, from the hosted Router, or from
+Every response — from the local server, from the hosted Router, or from
 a hosted venue pass-through — uses the same field names. Write your client
 once, switch venues with a config change.
 
@@ -1160,20 +1160,20 @@ matrix (inferred from the OpenAPI `operationId`s).
 
 Source: https://pmxt.dev/docs/sdk/server
 
-The PMXT SDKs manage a local sidecar server automatically. When you
+The PMXT SDKs manage a local server automatically. When you
 create an exchange instance without a hosted API key, the SDK spawns a
-sidecar process, waits for it to become healthy, and routes every
+local server process, waits for it to become healthy, and routes every
 request through it.
 
-The `server` namespace gives you explicit control over that sidecar
+The `server` namespace gives you explicit control over that local server
 lifecycle.
 
 #### Quick reference
 
 | Method | Description |
 |--------|-------------|
-| `server.start()` | Start the sidecar if it is not already running (idempotent). |
-| `server.stop()` | Stop the running sidecar (SIGTERM + lock file cleanup). |
+| `server.start()` | Start the local server if it is not already running (idempotent). |
+| `server.stop()` | Stop the running local server (SIGTERM + lock file cleanup). |
 | `server.restart()` | Stop then start. |
 | `server.status()` | Structured snapshot: running, pid, port, version, uptime. |
 | `server.health()` | `true`/`True` if `/health` responds OK, `false`/`False` otherwise. |
@@ -1181,7 +1181,7 @@ lifecycle.
 
 #### Start
 
-Idempotent. If the sidecar is already running and healthy, returns
+Idempotent. If the local server is already running and healthy, returns
 immediately. Otherwise spawns `pmxt-ensure-server` and waits for the
 health check.
 
@@ -1214,7 +1214,7 @@ await pmxt.server.start();
 #### Stop
 
 Reads the lock file at `~/.pmxt/server.lock`, sends SIGTERM to the
-sidecar process, and removes the lock file.
+local server process, and removes the lock file.
 
 
 
@@ -1256,7 +1256,7 @@ await pmxt.server.restart();
 
 #### Status
 
-Returns a structured snapshot of the sidecar state. A new object is
+Returns a structured snapshot of the local server state. A new object is
 returned on every call (no shared mutable references).
 
 
@@ -1296,16 +1296,16 @@ console.log(info);
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `running` | `bool` | Whether the sidecar is alive and responding to `/health`. |
+| `running` | `bool` | Whether the local server is alive and responding to `/health`. |
 | `pid` | `int \| null` | Process ID from the lock file. |
-| `port` | `int \| null` | Port the sidecar is listening on (default `3847`). |
+| `port` | `int \| null` | Port the local server is listening on (default `3847`). |
 | `version` | `string \| null` | Server version from the lock file. |
 | `uptime_seconds` / `uptimeSeconds` | `float \| null` | Seconds since the lock file was written. |
 | `lock_file` / `lockFile` | `string` | Absolute path to `~/.pmxt/server.lock`. |
 
 #### Health
 
-Returns `true`/`True` if the sidecar's `/health` endpoint responds with
+Returns `true`/`True` if the local server's `/health` endpoint responds with
 `{"status": "ok"}`, `false`/`False` otherwise.
 
 
@@ -1314,7 +1314,7 @@ Returns `true`/`True` if the sidecar's `/health` endpoint responds with
 
 ```python
 if pmxt.server.health():
-    print("sidecar is up")
+    print("local server is up")
 ```
 
 
@@ -1322,7 +1322,7 @@ if pmxt.server.health():
 
 ```typescript
 if (await pmxt.server.health()) {
-  console.log("sidecar is up");
+  console.log("local server is up");
 }
 ```
 
@@ -1369,7 +1369,7 @@ pmxt.server.stop()
 
 | Variable | Effect |
 |----------|--------|
-| `PMXT_ALWAYS_RESTART=1` | Force-restart the sidecar on every `ensure_server_running` / `ensureServerRunning` call (useful during development). |
+| `PMXT_ALWAYS_RESTART=1` | Force-restart the local server on every `ensure_server_running` / `ensureServerRunning` call (useful during development). |
 
 
 ---
@@ -2369,7 +2369,7 @@ page is the hand-written preface; everything else under
 
 PMXT Hosted mounts `pmxt-core`'s HTTP surface under
 `POST /api/:exchange/:method`. That surface is the same one the local
-sidecar exposes, and it's described by a single OpenAPI 3 document
+server exposes, and it's described by a single OpenAPI 3 document
 ([`openapi.yaml`](https://github.com/pmxt-dev/pmxt/blob/main/core/src/server/openapi.yaml))
 generated from the TypeScript source of
 [`BaseExchange.ts`](https://github.com/pmxt-dev/pmxt/blob/main/core/src/exchanges/BaseExchange.ts)
@@ -4073,7 +4073,7 @@ Connect to the WebSocket endpoint with your API key:
 
 | Environment | URL |
 |---|---|
-| Local sidecar | `ws://localhost:3847/ws` |
+| Local server | `ws://localhost:3847/ws` |
 | Hosted API | `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` |
 
 All messages are JSON text frames. A single connection supports multiple concurrent subscriptions.
@@ -4120,7 +4120,7 @@ All messages are JSON text frames. A single connection supports multiple concurr
 Source: https://pmxt.dev/docs/api-reference/watch-all-order-books
 
 > **Note:**
-**Hosted only** — This method requires a PMXT API key and connects to the hosted WebSocket API at `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY`. Not available on the local sidecar.
+**Hosted only** — This method requires a PMXT API key and connects to the hosted WebSocket API at `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY`. Not available on the local server.
 
 
 > **Note:**
@@ -4440,7 +4440,7 @@ if (spread > 0.03) {
 Source: https://pmxt.dev/docs/api-reference/watch-order-book
 
 > **Note:**
-**WebSocket endpoint** — This method uses WebSocket streaming, not HTTP. Connect to `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` (hosted) or `ws://localhost:3847/ws` (local sidecar).
+**WebSocket endpoint** — This method uses WebSocket streaming, not HTTP. Connect to `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` (hosted) or `ws://localhost:3847/ws` (local server).
 
 
 Supported venues: `polymarket`, `kalshi`, `limitless`, `opinion`.
@@ -4612,7 +4612,7 @@ console.log(`Arbitrage opportunity: ${spread.toFixed(4)}`);
 Source: https://pmxt.dev/docs/api-reference/watch-order-books
 
 > **Note:**
-**WebSocket endpoint** — This method uses WebSocket streaming, not HTTP. Connect to `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` (hosted) or `ws://localhost:3847/ws` (local sidecar).
+**WebSocket endpoint** — This method uses WebSocket streaming, not HTTP. Connect to `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` (hosted) or `ws://localhost:3847/ws` (local server).
 
 
 Supported venues: `polymarket`, `kalshi`, `limitless`, `opinion`.
@@ -4744,7 +4744,7 @@ console.log(`${id.slice(0, 20)}... mid=${(mid * 100).toFixed(1)}%`);
 Source: https://pmxt.dev/docs/api-reference/watch-trades
 
 > **Note:**
-**WebSocket endpoint** — This method uses WebSocket streaming, not HTTP. Connect to `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` (hosted) or `ws://localhost:3847/ws` (local sidecar).
+**WebSocket endpoint** — This method uses WebSocket streaming, not HTTP. Connect to `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` (hosted) or `ws://localhost:3847/ws` (local server).
 
 
 Supported venues: `polymarket`, `kalshi`, `limitless`, `opinion`.

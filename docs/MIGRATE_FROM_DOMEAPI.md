@@ -34,7 +34,7 @@ npm install pmxtjs
 
 # Python
 pip install pmxt
-# Also requires Node.js for the sidecar server:
+# Also requires Node.js for the local server:
 npm install -g pmxtjs
 ```
 

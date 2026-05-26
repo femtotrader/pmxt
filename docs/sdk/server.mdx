@@ -1,22 +1,22 @@
 ---
 title: Server Management
-description: "Start, stop, restart, and inspect the PMXT sidecar from your SDK code."
+description: "Start, stop, restart, and inspect the PMXT local server from your SDK code."
 ---
 
-The PMXT SDKs manage a local sidecar server automatically. When you
+The PMXT SDKs manage a local server automatically. When you
 create an exchange instance without a hosted API key, the SDK spawns a
-sidecar process, waits for it to become healthy, and routes every
+local server process, waits for it to become healthy, and routes every
 request through it.
 
-The `server` namespace gives you explicit control over that sidecar
+The `server` namespace gives you explicit control over that local server
 lifecycle.
 
 ## Quick reference
 
 | Method | Description |
 |--------|-------------|
-| `server.start()` | Start the sidecar if it is not already running (idempotent). |
-| `server.stop()` | Stop the running sidecar (SIGTERM + lock file cleanup). |
+| `server.start()` | Start the local server if it is not already running (idempotent). |
+| `server.stop()` | Stop the running local server (SIGTERM + lock file cleanup). |
 | `server.restart()` | Stop then start. |
 | `server.status()` | Structured snapshot: running, pid, port, version, uptime. |
 | `server.health()` | `true`/`True` if `/health` responds OK, `false`/`False` otherwise. |
@@ -24,7 +24,7 @@ lifecycle.
 
 ## Start
 
-Idempotent. If the sidecar is already running and healthy, returns
+Idempotent. If the local server is already running and healthy, returns
 immediately. Otherwise spawns `pmxt-ensure-server` and waits for the
 health check.
 
@@ -53,7 +53,7 @@ health check.
 ## Stop
 
 Reads the lock file at `~/.pmxt/server.lock`, sends SIGTERM to the
-sidecar process, and removes the lock file.
+local server process, and removes the lock file.
 
 <Tabs>
   <Tab title="Python">
@@ -87,7 +87,7 @@ Equivalent to `stop()` followed by `start()`.
 
 ## Status
 
-Returns a structured snapshot of the sidecar state. A new object is
+Returns a structured snapshot of the local server state. A new object is
 returned on every call (no shared mutable references).
 
 <Tabs>
@@ -123,29 +123,29 @@ returned on every call (no shared mutable references).
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `running` | `bool` | Whether the sidecar is alive and responding to `/health`. |
+| `running` | `bool` | Whether the local server is alive and responding to `/health`. |
 | `pid` | `int \| null` | Process ID from the lock file. |
-| `port` | `int \| null` | Port the sidecar is listening on (default `3847`). |
+| `port` | `int \| null` | Port the local server is listening on (default `3847`). |
 | `version` | `string \| null` | Server version from the lock file. |
 | `uptime_seconds` / `uptimeSeconds` | `float \| null` | Seconds since the lock file was written. |
 | `lock_file` / `lockFile` | `string` | Absolute path to `~/.pmxt/server.lock`. |
 
 ## Health
 
-Returns `true`/`True` if the sidecar's `/health` endpoint responds with
+Returns `true`/`True` if the local server's `/health` endpoint responds with
 `{"status": "ok"}`, `false`/`False` otherwise.
 
 <Tabs>
   <Tab title="Python">
     ```python
     if pmxt.server.health():
-        print("sidecar is up")
+        print("local server is up")
     ```
   </Tab>
   <Tab title="TypeScript">
     ```typescript
     if (await pmxt.server.health()) {
-      console.log("sidecar is up");
+      console.log("local server is up");
     }
     ```
   </Tab>
@@ -188,4 +188,4 @@ pmxt.server.stop()
 
 | Variable | Effect |
 |----------|--------|
-| `PMXT_ALWAYS_RESTART=1` | Force-restart the sidecar on every `ensure_server_running` / `ensureServerRunning` call (useful during development). |
+| `PMXT_ALWAYS_RESTART=1` | Force-restart the local server on every `ensure_server_running` / `ensureServerRunning` call (useful during development). |

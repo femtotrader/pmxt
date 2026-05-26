@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.46.8] - 2026-05-26
+
+### Fixed
+
+- **Docs**: Use "local server" terminology consistently across the docs, including generated `llms.txt` docs and WebSocket/server management pages.
+
 ## [2.46.7] - 2026-05-26
 
 ### Fixed

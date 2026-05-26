@@ -1,6 +1,7 @@
 import { HttpClient, OrderClient, OrderBuilder, OrderSigner, MarketFetcher, Side, OrderType } from '@limitless-exchange/sdk';
-import { Wallet, providers, Contract, utils } from 'ethers';
+import { Wallet, providers, Contract } from 'ethers';
 import { LIMITLESS_RPC_URL } from './config';
+import { scaledIntegerToNumber } from './utils';
 
 const DEFAULT_LIMITLESS_API_URL = process.env.LIMITLESS_BASE_URL || 'https://api.limitless.exchange';
 
@@ -397,6 +398,6 @@ export class LimitlessClient {
         const balance = await contract.balanceOf(this.signer.address);
         const decimals = await contract.decimals(); // Should be 6
 
-        return parseFloat(utils.formatUnits(balance, decimals));
+        return scaledIntegerToNumber(balance, Number(decimals));
     }
 }

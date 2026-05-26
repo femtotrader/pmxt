@@ -36,7 +36,7 @@ import { LIMITLESS_RPC_URL } from './config';
 import { limitlessErrorMapper } from './errors';
 import { LimitlessFetcher } from './fetcher';
 import { LimitlessNormalizer } from './normalizer';
-import { DEFAULT_LIMITLESS_API_URL } from './utils';
+import { DEFAULT_LIMITLESS_API_URL, scaledIntegerToNumber } from './utils';
 import { LimitlessWebSocket, LimitlessWebSocketConfig } from './websocket';
 import { logger } from '../../utils/logger';
 
@@ -587,7 +587,7 @@ export class LimitlessExchange extends PredictionMarketExchange {
         );
         const rawBalance = await usdcContract.balanceOf(targetAddress);
         const USDC_DECIMALS = 6;
-        const total = parseFloat(rawBalance.toString()) / Math.pow(10, USDC_DECIMALS);
+        const total = scaledIntegerToNumber(rawBalance, USDC_DECIMALS);
 
         return [{
             currency: 'USDC',

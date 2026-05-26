@@ -20,6 +20,26 @@ const LIMITLESS_PROMOTED_MARKET_KEYS = [
     '__pmxtCategories', '__pmxtTags',
 ] as const;
 
+export function scaledIntegerToNumber(value: bigint | { toBigInt?: () => bigint; toString(): string }, decimals: number): number {
+    if (!Number.isInteger(decimals) || decimals < 0) {
+        throw new Error(`[limitless] Invalid token decimals: ${decimals}`);
+    }
+
+    const raw = typeof value === 'bigint'
+        ? value
+        : typeof value.toBigInt === 'function'
+            ? value.toBigInt()
+            : BigInt(value.toString());
+    const sign = raw < 0n ? -1 : 1;
+    const abs = raw < 0n ? -raw : raw;
+    const scale = 10n ** BigInt(decimals);
+    const whole = abs / scale;
+    const fraction = abs % scale;
+    const amount = Number(whole) + (Number(fraction) / Number(scale));
+
+    return sign * amount;
+}
+
 export interface LimitlessMarketContext {
     eventId?: string;
     eventTitle?: string;

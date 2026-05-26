@@ -1808,6 +1808,7 @@ class Exchange(ABC):
                     existing_id = ws._active_subs.pop(sub_key, None)
                     if existing_id:
                         ws._subscriptions.pop(existing_id, None)
+                        ws._data_queues.pop(existing_id, None)
                         ws._data_store.pop(existing_id, None)
         except PmxtError:
             raise

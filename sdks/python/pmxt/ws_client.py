@@ -8,11 +8,41 @@ does not support the /ws endpoint.
 """
 
 import json
+import socket
 import threading
+import time
 import uuid
-from typing import Any, Callable, Dict, List, Optional
+from collections import deque
+from typing import Any, Deque, Dict, List, Optional
+from urllib.parse import urlparse
 
 from .errors import PmxtError
+
+MAX_QUEUED_MESSAGES_PER_SUBSCRIPTION = 100_000
+CONNECT_ATTEMPTS = 3
+_NO_DATA = object()
+
+
+def _connect_websocket(ws: Any, url: str, timeout: float) -> None:
+    """Connect, preferring IPv4 for hosted pmxt custom-domain websockets."""
+    host = urlparse(url).hostname
+    if host != "api.pmxt.dev":
+        ws.connect(url, timeout=timeout)
+        return
+
+    original_getaddrinfo = socket.getaddrinfo
+
+    def getaddrinfo_ipv4_first(*args: Any, **kwargs: Any) -> Any:
+        results = original_getaddrinfo(*args, **kwargs)
+        ipv4 = [item for item in results if item[0] == socket.AF_INET]
+        other = [item for item in results if item[0] != socket.AF_INET]
+        return ipv4 + other
+
+    socket.getaddrinfo = getaddrinfo_ipv4_first
+    try:
+        ws.connect(url, timeout=timeout)
+    finally:
+        socket.getaddrinfo = original_getaddrinfo
 
 
 class _WsSubscription:
@@ -45,7 +75,9 @@ class SidecarWsClient:
         self._reader_thread: Optional[threading.Thread] = None
         self._closed = False
 
-        # request_id -> latest data payload
+        # request_id -> queued data payloads for single-event watch methods
+        self._data_queues: Dict[str, Deque[Dict[str, Any]]] = {}
+        # request_id[:symbol] -> latest data payload for batch snapshots/errors
         self._data_store: Dict[str, Dict[str, Any]] = {}
         # request_id -> subscription metadata
         self._subscriptions: Dict[str, _WsSubscription] = {}
@@ -85,8 +117,28 @@ class SidecarWsClient:
         elif self._access_token:
             url = f"{url}?token={self._access_token}"
 
-        ws = websocket.WebSocket()
-        ws.connect(url, timeout=10)
+        last_error: Optional[Exception] = None
+        ws = None
+        for attempt in range(CONNECT_ATTEMPTS):
+            ws = websocket.WebSocket()
+            try:
+                _connect_websocket(ws, url, timeout=10)
+                last_error = None
+                break
+            except Exception as exc:
+                last_error = exc
+                try:
+                    ws.close()
+                except Exception:
+                    pass
+                if attempt < CONNECT_ATTEMPTS - 1:
+                    time.sleep(0.25 * (attempt + 1))
+
+        if last_error is not None:
+            raise last_error
+        if ws is None:
+            raise PmxtError("WebSocket connection failed")
+        ws.settimeout(None)
         self._ws = ws
         self._closed = False
 
@@ -117,10 +169,9 @@ class SidecarWsClient:
         with self._lock:
             for request_id, sub in list(self._subscriptions.items()):
                 if not sub.event.is_set():
-                    self._data_store[request_id] = {
+                    self._enqueue_data_locked(request_id, {
                         "_error": {"message": error_msg}
-                    }
-                    sub.event.set()
+                    })
 
     def _dispatch(self, msg: Dict[str, Any]) -> None:
         """Route an incoming server message to the matching subscription."""
@@ -129,10 +180,10 @@ class SidecarWsClient:
 
         if event_type == "error":
             # Wake up any waiter with the error stored
-            if request_id and request_id in self._subscriptions:
-                sub = self._subscriptions[request_id]
-                self._data_store[request_id] = {"_error": msg.get("error", {})}
-                sub.event.set()
+            if request_id:
+                with self._lock:
+                    self._data_store[request_id] = {"_error": msg.get("error", {})}
+                    self._enqueue_data_locked(request_id, {"_error": msg.get("error", {})})
             return
 
         if event_type == "subscribed":
@@ -142,14 +193,62 @@ class SidecarWsClient:
         if event_type == "data" and request_id:
             symbol = msg.get("symbol", "")
             data = msg.get("data", {})
-            # Store keyed by (request_id, symbol) for batch methods
-            store_key = f"{request_id}:{symbol}"
-            self._data_store[store_key] = data
-            # Also store by request_id alone for single-symbol methods
-            self._data_store[request_id] = data
-            if request_id in self._subscriptions:
-                sub = self._subscriptions[request_id]
-                sub.event.set()
+            with self._lock:
+                # Store keyed by (request_id, symbol) for batch methods
+                store_key = f"{request_id}:{symbol}"
+                self._data_store[store_key] = data
+                self._enqueue_data_locked(request_id, data)
+
+    def _enqueue_data_locked(self, request_id: str, data: Dict[str, Any]) -> None:
+        queue = self._data_queues.setdefault(request_id, deque())
+        queue.append(data)
+        while len(queue) > MAX_QUEUED_MESSAGES_PER_SUBSCRIPTION:
+            queue.popleft()
+
+        sub = self._subscriptions.get(request_id)
+        if sub:
+            sub.event.set()
+
+    def _pop_data_locked(self, request_id: str) -> Any:
+        queue = self._data_queues.get(request_id)
+        if not queue:
+            return _NO_DATA
+
+        data = queue.popleft()
+        if not queue:
+            self._data_queues.pop(request_id, None)
+            sub = self._subscriptions.get(request_id)
+            if sub:
+                sub.event.clear()
+        return data
+
+    def _wait_for_subscription_data(
+        self,
+        sub: _WsSubscription,
+        timeout: float,
+    ) -> Dict[str, Any]:
+        with self._lock:
+            data = self._pop_data_locked(sub.request_id)
+            if data is _NO_DATA:
+                sub.event.clear()
+
+        if data is _NO_DATA:
+            if not sub.event.wait(timeout=timeout):
+                raise PmxtError(f"Timeout waiting for WebSocket data (method={sub.method})")
+
+            with self._lock:
+                data = self._pop_data_locked(sub.request_id)
+
+        if data is _NO_DATA:
+            return {}
+
+        if isinstance(data, dict) and "_error" in data:
+            err = data["_error"]
+            raise PmxtError(
+                err.get("message", "WebSocket subscription error")
+            )
+
+        return data
 
     # ------------------------------------------------------------------
     # Public API
@@ -181,10 +280,6 @@ class SidecarWsClient:
             existing_id = self._active_subs.get(sub_key)
             if existing_id and existing_id in self._subscriptions:
                 sub = self._subscriptions[existing_id]
-                # Clear previous event so we wait for the NEXT push
-                sub.event.clear()
-                # Clear stale data
-                self._data_store.pop(existing_id, None)
             else:
                 self._ensure_connected()
                 request_id = f"req-{uuid.uuid4().hex[:12]}"
@@ -207,19 +302,7 @@ class SidecarWsClient:
 
                 self._ws.send(json.dumps(message))
 
-        # Block until data arrives
-        if not sub.event.wait(timeout=timeout):
-            raise PmxtError(f"Timeout waiting for WebSocket data (method={method})")
-
-        # Check for error
-        error_data = self._data_store.get(sub.request_id, {})
-        if isinstance(error_data, dict) and "_error" in error_data:
-            err = error_data["_error"]
-            raise PmxtError(
-                err.get("message", "WebSocket subscription error")
-            )
-
-        return self._data_store.get(sub.request_id, {})
+        return self._wait_for_subscription_data(sub, timeout)
 
     def subscribe_batch(
         self,
@@ -257,16 +340,7 @@ class SidecarWsClient:
 
         # Wait for data event (the server may push one consolidated event
         # or multiple per-symbol events)
-        if not sub.event.wait(timeout=timeout):
-            raise PmxtError(f"Timeout waiting for WebSocket data (method={method})")
-
-        # Check for error
-        error_data = self._data_store.get(request_id, {})
-        if isinstance(error_data, dict) and "_error" in error_data:
-            err = error_data["_error"]
-            raise PmxtError(
-                err.get("message", "WebSocket subscription error")
-            )
+        first_data = self._wait_for_subscription_data(sub, timeout)
 
         # Collect per-symbol data
         result: Dict[str, Any] = {}
@@ -277,9 +351,7 @@ class SidecarWsClient:
         # If no per-symbol data found, return the single data event
         # (server may return a dict of all order books in one push)
         if not result:
-            data = self._data_store.get(request_id, {})
-            if isinstance(data, dict) and not data.get("_error"):
-                result = data
+            result = first_data
         return result
 
     def close(self) -> None:
@@ -292,6 +364,9 @@ class SidecarWsClient:
                 import logging
                 logging.warning("WebSocket close error: %s", e)
             self._ws = None
+        with self._lock:
+            self._data_queues.clear()
+            self._data_store.clear()
 
     @property
     def connected(self) -> bool:

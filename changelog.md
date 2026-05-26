@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.46.4] - 2026-05-26
+
+### Fixed
+
+- **SDK streaming**: Queue WebSocket data events in FIFO order in both the TypeScript and Python SDKs so bursty `watchAllOrderBooks()` / `watch_all_order_books()` streams are drained event-by-event instead of overwriting intermediate updates.
+- **Python SDK streaming**: Improve hosted WebSocket reliability by preferring IPv4 for `api.pmxt.dev`, retrying transient handshake failures, and clearing the connect timeout after the handshake so quiet periods do not close an otherwise healthy stream.
+
 ## [2.46.3] - 2026-05-25
 
 ### Fixed

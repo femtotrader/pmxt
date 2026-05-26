@@ -9,6 +9,8 @@
 
 import { PmxtError } from "./errors.js";
 
+const MAX_QUEUED_MESSAGES_PER_SUBSCRIPTION = 100_000;
+
 interface WsSubscription {
     readonly requestId: string;
     readonly method: string;
@@ -39,7 +41,9 @@ export class SidecarWsClient {
     private authParamName: string;
     private closed = false;
 
-    /** requestId -> latest data payload */
+    /** requestId -> queued data payloads for single-event watch methods */
+    private dataQueues: Map<string, any[]> = new Map();
+    /** requestId[:symbol] -> latest data payload for batch snapshots */
     private dataStore: Map<string, any> = new Map();
     /** requestId -> subscription metadata */
     private subscriptions: Map<string, WsSubscription> = new Map();
@@ -189,17 +193,30 @@ export class SidecarWsClient {
             const symbol = msg.symbol || "";
             const data = msg.data || {};
 
-            // Store by (requestId:symbol) for batch methods
+            // Store by (requestId:symbol) for batch methods.
             this.dataStore.set(`${requestId}:${symbol}`, data);
-            // Store by requestId alone for single-symbol methods
-            this.dataStore.set(requestId, data);
+            this.deliverOrQueue(requestId, data);
+        }
+    }
 
-            const sub = this.subscriptions.get(requestId);
-            if (sub?.resolve) {
-                sub.resolve(data);
-                sub.resolve = null;
-                sub.reject = null;
-            }
+    private deliverOrQueue(requestId: string, data: any): void {
+        const sub = this.subscriptions.get(requestId);
+        if (sub?.resolve) {
+            sub.resolve(data);
+            sub.resolve = null;
+            sub.reject = null;
+            return;
+        }
+
+        let queue = this.dataQueues.get(requestId);
+        if (!queue) {
+            queue = [];
+            this.dataQueues.set(requestId, queue);
+        }
+        queue.push(data);
+
+        if (queue.length > MAX_QUEUED_MESSAGES_PER_SUBSCRIPTION) {
+            queue.splice(0, queue.length - MAX_QUEUED_MESSAGES_PER_SUBSCRIPTION);
         }
     }
 
@@ -297,8 +314,8 @@ export class SidecarWsClient {
         }
         this.ws.send(JSON.stringify(message));
 
-        // Wait for first data event
-        await this.waitForData(requestId, timeoutMs);
+        // Wait for first data event.
+        const firstData = await this.waitForData(requestId, timeoutMs);
 
         // Collect per-symbol data
         const result: Record<string, any> = {};
@@ -312,9 +329,8 @@ export class SidecarWsClient {
 
         // If no per-symbol data, return the single data event as-is
         if (Object.keys(result).length === 0) {
-            const data = this.dataStore.get(requestId);
-            if (data && typeof data === "object") {
-                return data;
+            if (firstData && typeof firstData === "object") {
+                return firstData;
             }
         }
 
@@ -331,6 +347,8 @@ export class SidecarWsClient {
             }
             this.ws = null;
         }
+        this.dataQueues.clear();
+        this.dataStore.clear();
     }
 
     get connected(): boolean {
@@ -342,11 +360,14 @@ export class SidecarWsClient {
     // ------------------------------------------------------------------
 
     private waitForData(requestId: string, timeoutMs: number): Promise<any> {
-        // Check if data is already available
-        const existing = this.dataStore.get(requestId);
-        if (existing !== undefined) {
-            this.dataStore.delete(requestId);
-            return Promise.resolve(existing);
+        // Check if queued data is already available.
+        const queue = this.dataQueues.get(requestId);
+        if (queue && queue.length > 0) {
+            const next = queue.shift();
+            if (queue.length === 0) {
+                this.dataQueues.delete(requestId);
+            }
+            return Promise.resolve(next);
         }
 
         return new Promise<any>((resolve, reject) => {

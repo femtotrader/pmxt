@@ -61,6 +61,7 @@ interface SidecarWsClientInternals {
     ws: RawWebSocketLike | null;
     activeSubs: Map<string, string>;
     subscriptions: Map<string, { reject: ((error: Error) => void) | null }>;
+    dataQueues: Map<string, any[]>;
     dataStore: Map<string, any>;
 }
 
@@ -538,6 +539,7 @@ export abstract class Exchange {
 
         internals.activeSubs.delete(subKey);
         internals.subscriptions.delete(requestId);
+        internals.dataQueues.delete(requestId);
         internals.dataStore.delete(requestId);
 
         const firstArg = args[0] ?? "";

@@ -138,6 +138,7 @@ def test_unwatch_order_book_sends_websocket_unsubscribe(monkeypatch):
             self._ws = FakeSocket()
             self._active_subs = {"watchOrderBook:outcome-1": "req-existing"}
             self._subscriptions = {"req-existing": object()}
+            self._data_queues = {"req-existing": [_raw_order_book()]}
             self._data_store = {"req-existing": _raw_order_book()}
 
         def _ensure_connected(self):
@@ -160,4 +161,5 @@ def test_unwatch_order_book_sends_websocket_unsubscribe(monkeypatch):
     assert fake_ws._ws.sent[0]["args"] == ["outcome-1"]
     assert "watchOrderBook:outcome-1" not in fake_ws._active_subs
     assert "req-existing" not in fake_ws._subscriptions
+    assert "req-existing" not in fake_ws._data_queues
     assert "req-existing" not in fake_ws._data_store

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.46.14] - 2026-05-26
+
+### Fixed
+
+- **Docs**: Simplify the raw WebSocket Python example for `watchAllOrderBooks()` to use the hosted PMXT URL directly and drop the local relay override from that section.
+
 ## [2.46.13] - 2026-05-26
 
 ### Fixed

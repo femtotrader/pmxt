@@ -74,16 +74,12 @@ Use this when you are not using the Python or TypeScript SDKs, or when you are i
 | Environment | URL |
 |-------------|-----|
 | Hosted PMXT | `wss://api.pmxt.dev/ws?apiKey=YOUR_PMXT_API_KEY` |
-| Local hosted-compatible relay | `ws://localhost:5005/ws?apiKey=YOUR_PMXT_API_KEY` |
 
 This Python example does not use the PMXT SDK; it connects to the same raw WebSocket URL that a Rust or Go client would use.
 
 ```bash
 pip install websockets
 PMXT_API_KEY="YOUR_PMXT_API_KEY" python raw-watch-all-order-books.py
-
-# Local hosted-compatible relay:
-PMXT_WS_URL="ws://localhost:5005/ws" PMXT_API_KEY="YOUR_PMXT_API_KEY" python raw-watch-all-order-books.py
 ```
 
 ```python raw-watch-all-order-books.py
@@ -94,11 +90,10 @@ import os
 import websockets
 
 PMXT_API_KEY = os.environ["PMXT_API_KEY"]
-PMXT_WS_URL = os.environ.get("PMXT_WS_URL", "wss://api.pmxt.dev/ws")
 
 
 async def main():
-    url = f"{PMXT_WS_URL}?apiKey={PMXT_API_KEY}"
+    url = f"wss://api.pmxt.dev/ws?apiKey={PMXT_API_KEY}"
     async with websockets.connect(url) as ws:
         await ws.send(json.dumps({
             "id": "all-books",

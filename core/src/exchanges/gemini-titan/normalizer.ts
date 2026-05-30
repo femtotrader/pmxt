@@ -1,6 +1,7 @@
 import {
     UnifiedMarket,
     UnifiedEvent,
+    UnifiedSeries,
     OrderBook,
     Order,
     Position,
@@ -163,6 +164,34 @@ export class GeminiNormalizer implements IExchangeNormalizer<GeminiRawEvent, Gem
             ...event,
             markets,
             volume24h: markets.reduce((sum, m) => sum + m.volume24h, 0),
+        };
+    }
+
+    /**
+     * Produce a UnifiedSeries from a Gemini `series` object (raw Record).
+     * The series id is taken from the first non-null of: id, ticker, symbol.
+     * `events` is optionally injected by the caller when doing a single-id lookup.
+     */
+    normalizeSeries(raw: Record<string, unknown>, events?: UnifiedEvent[]): UnifiedSeries {
+        const id = String(raw['id'] ?? raw['ticker'] ?? raw['symbol'] ?? '');
+        const ticker = raw['ticker'] != null ? String(raw['ticker']) : undefined;
+        const title = String(raw['title'] ?? raw['name'] ?? id);
+        const recurrence = raw['frequency'] != null
+            ? String(raw['frequency'])
+            : raw['recurrence'] != null
+                ? String(raw['recurrence'])
+                : null;
+
+        return {
+            id,
+            ticker,
+            title,
+            recurrence,
+            events,
+            sourceMetadata: buildSourceMetadata(
+                raw,
+                ['id', 'ticker', 'title', 'name', 'frequency', 'recurrence'],
+            ),
         };
     }
 

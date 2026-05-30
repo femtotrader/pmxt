@@ -924,6 +924,7 @@ const EXCLUDED_METHODS = new Set(['callApi', 'defineImplicitApi', 'fetchMatches'
 const TYPE_REF_MAP = {
   UnifiedMarket: 'UnifiedMarket',
   UnifiedEvent: 'UnifiedEvent',
+  UnifiedSeries: 'UnifiedSeries',
   MarketOutcome: 'MarketOutcome',
   Order: 'Order',
   Trade: 'Trade',
@@ -1690,6 +1691,7 @@ const GENERATED_SCHEMA_ORDER = [
   'UnifiedMarket',
   'MarketOutcome',
   'UnifiedEvent',
+  'UnifiedSeries',
   'PriceCandle',
   'OrderBook',
   'OrderLevel',

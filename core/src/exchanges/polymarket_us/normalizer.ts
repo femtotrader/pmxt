@@ -9,11 +9,13 @@ import type {
     UserPosition,
     UserBalance,
     Activity,
+    Series as SdkSeries,
 } from 'polymarket-us';
 
 import {
     UnifiedMarket,
     UnifiedEvent,
+    UnifiedSeries,
     MarketOutcome,
     OrderBook,
     Order,
@@ -29,6 +31,11 @@ import { fromAmount, fromLongSidePrice } from './price';
 // excluded from sourceMetadata so we capture only what the unified shape drops.
 const POLYMARKET_US_PROMOTED_EVENT_KEYS = [
     'slug', 'title', 'description', 'category', 'tags', 'volume', 'markets',
+] as const;
+
+// Series fields promoted to first-class UnifiedSeries columns.
+const POLYMARKET_US_PROMOTED_SERIES_KEYS = [
+    'id', 'slug', 'title', 'description', 'recurrence',
 ] as const;
 
 // marketSides and outcomePrices feed the outcomes array and are therefore
@@ -297,6 +304,34 @@ function mapOrderStatus(state: OrderState): 'pending' | 'open' | 'filled' | 'can
 // ----------------------------------------------------------------------------
 
 export class PolymarketUSNormalizer {
+
+    /**
+     * Normalize a Polymarket US SDK Series into a UnifiedSeries.
+     *
+     * The SDK's Series type is exported as `Series` from `polymarket-us`;
+     * the `id` field is numeric and is stringified for the unified identifier.
+     */
+    normalizeSeries(raw: SdkSeries): UnifiedSeries {
+        const id = String(raw.id);
+        const slug = raw.slug || undefined;
+        const title = raw.title || slug || id;
+        const description = raw.description != null ? raw.description : null;
+        const recurrence = raw.recurrence != null ? raw.recurrence : null;
+        const url = slug != null ? `https://polymarket.us/series/${slug}` : null;
+
+        return {
+            id,
+            slug,
+            title,
+            description,
+            recurrence,
+            url,
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                POLYMARKET_US_PROMOTED_SERIES_KEYS,
+            ),
+        };
+    }
 
     /**
      * Normalize a single MarketDetail into a UnifiedMarket.

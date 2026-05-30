@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.48.0] - 2026-05-30
+
+### Added
+
+- **Core**: New `UnifiedSeries` type representing recurring event groupings — the fourth tier above Event -> Market -> Outcome. Examples: Kalshi `KXATPMATCH` (every ATP match), Polymarket `wta` (every WTA match).
+- **Core**: `fetchSeries(params?)` method on `BaseExchange` with vendor implementations for Kalshi (`GetSeriesList`), Polymarket and Polymarket US (Gamma `/series` + `/series/{id}`), Opinion (emulated from raw `collection` field), and Gemini-Titan (emulated from raw `series` field). Venues without a series concept return `[]` and report `has.fetchSeries: false`.
+- **Core**: New `series?: string` parameter on `fetchEvents` for filtering by venue-native series id / ticker / slug. Passes through to vendor APIs where supported (Kalshi `?series_ticker=`, Polymarket Gamma `?series_id=`); venues without one return `[]` rather than silently ignore the filter.
+- **Core**: `Router.fetchSeries()` and `Router.fetchEvents({series})` for cross-venue queries by normalized PMXT series id (e.g. `tennis-atp-match`, `nfl`, `crypto-btc-15m`). Backed by a curated venue-id map at `core/src/router/series-map.ts` covering tennis, American sports, soccer, esports, and crypto.
+- **Core**: `ExchangeHas.fetchSeries` capability flag.
+
 ## [2.47.0] - 2026-05-30
 
 ### Added

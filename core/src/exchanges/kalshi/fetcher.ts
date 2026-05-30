@@ -59,6 +59,15 @@ interface KalshiSeriesInfo {
     tags?: string[];
 }
 
+export interface KalshiRawSeries {
+    ticker: string;
+    title?: string;
+    tags?: string[];
+    frequency?: string;
+    category?: string;
+    [key: string]: unknown;
+}
+
 export interface KalshiRawEventPage {
     events: KalshiRawEvent[];
     cursor?: string | null;
@@ -203,6 +212,12 @@ export class KalshiFetcher implements IExchangeFetcher<KalshiRawEvent, KalshiRaw
             }
             if (params.slug) {
                 return this.fetchRawEventByTicker(params.slug);
+            }
+
+            // When a series filter is present, delegate to server-side filtering so
+            // only events belonging to that series are returned — no double-filtering.
+            if (params.series) {
+                return this.fetchAllWithSeriesTicker(params.series);
             }
 
             const status = (params?.status as string | undefined) || 'active';
@@ -374,6 +389,15 @@ export class KalshiFetcher implements IExchangeFetcher<KalshiRawEvent, KalshiRaw
     async fetchRawHistoricalOrders(queryParams: Record<string, any>): Promise<KalshiRawOrder[]> {
         const data = await this.ctx.callApi('GetHistoricalOrders', queryParams);
         return data.orders || [];
+    }
+
+    async fetchRawSeriesList(): Promise<KalshiRawSeries[]> {
+        try {
+            const data = await this.ctx.callApi('GetSeriesList');
+            return (data.series || []) as KalshiRawSeries[];
+        } catch (e: any) {
+            throw kalshiErrorMapper.mapError(e);
+        }
     }
 
     async fetchRawSeriesMap(): Promise<Map<string, KalshiSeriesInfo>> {
@@ -558,6 +582,31 @@ export class KalshiFetcher implements IExchangeFetcher<KalshiRawEvent, KalshiRaw
             if (events.length === 0) break;
 
             allEvents.push(...events);
+            cursor = data.cursor;
+            page++;
+        } while (cursor && page < MAX_PAGES);
+
+        return allEvents;
+    }
+
+    private async fetchAllWithSeriesTicker(seriesTicker: string): Promise<KalshiRawEvent[]> {
+        let allEvents: KalshiRawEvent[] = [];
+        let cursor = null;
+        let page = 0;
+
+        do {
+            const queryParams: Record<string, unknown> = {
+                series_ticker: seriesTicker,
+                with_nested_markets: true,
+                limit: BATCH_SIZE,
+            };
+            if (cursor) queryParams.cursor = cursor;
+
+            const data = await this.ctx.callApi('GetEvents', queryParams);
+            const events: KalshiRawEvent[] = data.events || [];
+            if (events.length === 0) break;
+
+            allEvents = [...allEvents, ...events];
             cursor = data.cursor;
             page++;
         } while (cursor && page < MAX_PAGES);

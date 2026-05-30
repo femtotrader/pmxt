@@ -184,6 +184,11 @@ export async function fetchEvents(
     params: EventFetchParams,
     callApi: CallApi,
 ): Promise<UnifiedEvent[]> {
+    // Venue does not expose a series concept; honoring `params.series` by returning [] rather than ignoring the filter.
+    if (params.series !== undefined) {
+        return [];
+    }
+
     try {
         // Direct lookup by slug (post ID, tournament slug, or url_title)
         if (params.slug) {

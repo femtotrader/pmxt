@@ -58,6 +58,7 @@ export class BaoziExchange extends PredictionMarketExchange {
         fetchOpenOrders: 'emulated' as const,
         cancelOrder: false as const,
         watchTrades: false as const,
+        fetchSeries: false as const,
     };
 
     private auth?: BaoziAuth;
@@ -109,6 +110,11 @@ export class BaoziExchange extends PredictionMarketExchange {
     }
 
     protected async fetchEventsImpl(params: EventFetchParams): Promise<UnifiedEvent[]> {
+        // Venue does not expose a series concept; honoring `params.series` by returning [] rather than ignoring the filter.
+        if (params.series !== undefined) {
+            return [];
+        }
+
         const rawMarkets = await this.fetcher.fetchRawEvents(params);
         return this.normalizer.normalizeEvents(rawMarkets, {
             query: params.query,

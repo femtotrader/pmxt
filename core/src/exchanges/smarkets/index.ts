@@ -36,6 +36,7 @@ import { logger } from '../../utils/logger';
 export class SmarketsExchange extends PredictionMarketExchange {
     protected override readonly capabilityOverrides = {
         fetchPositions: 'emulated' as const,
+        fetchSeries: false as const,
     };
 
     private auth?: SmarketsAuth;
@@ -216,6 +217,10 @@ export class SmarketsExchange extends PredictionMarketExchange {
     protected async fetchEventsImpl(
         params: EventFetchParams,
     ): Promise<UnifiedEvent[]> {
+        // Venue does not expose a series concept; honoring `params.series` by
+        // returning [] rather than ignoring the filter.
+        if (params.series !== undefined) return [];
+
         const rawEvents = await this.fetcher.fetchRawEvents(params);
         const limit = params?.limit || 250000;
         const query = (params?.query || '').toLowerCase();

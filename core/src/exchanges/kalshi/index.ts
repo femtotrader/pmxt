@@ -7,6 +7,7 @@ import {
     OHLCVParams,
     OrderHistoryParams,
     PredictionMarketExchange,
+    SeriesFetchParams,
     TradesParams,
 } from '../../BaseExchange';
 import { AuthenticationError } from '../../errors';
@@ -22,6 +23,7 @@ import {
     Trade,
     UnifiedEvent,
     UnifiedMarket,
+    UnifiedSeries,
     UserTrade,
 } from '../../types';
 import { parseOpenApiSpec } from '../../utils/openapi';
@@ -184,6 +186,46 @@ export class KalshiExchange extends PredictionMarketExchange {
             .map((raw) => this.normalizer.normalizeEvent(raw))
             .filter((e): e is UnifiedEvent => e !== null)
             .slice(0, limit);
+    }
+
+    protected async fetchSeriesImpl(params: SeriesFetchParams): Promise<UnifiedSeries[]> {
+        const rawList = await this.fetcher.fetchRawSeriesList();
+
+        // If a specific series id is requested, fetch its events and attach them.
+        // We still iterate the full list so filters apply uniformly.
+        let eventsById: Map<string, UnifiedEvent[]> | null = null;
+        if (params.id) {
+            const rawEvents = await this.fetcher.fetchRawEvents({ series: params.id });
+            const normalizedEvents = rawEvents
+                .map((raw) => this.normalizer.normalizeEvent(raw))
+                .filter((e): e is UnifiedEvent => e !== null);
+            eventsById = new Map([[params.id, normalizedEvents]]);
+        }
+
+        const normalized: UnifiedSeries[] = rawList.map((raw) => {
+            const events = eventsById?.get(raw.ticker);
+            return this.normalizer.normalizeSeries(raw, events);
+        });
+
+        // Client-side filters
+        let filtered = normalized;
+
+        if (params.id) {
+            filtered = filtered.filter((s) => s.id === params.id);
+        } else if (params.slug) {
+            filtered = filtered.filter((s) => s.ticker === params.slug || s.slug === params.slug);
+        }
+
+        if (params.query) {
+            const lowerQuery = params.query.toLowerCase();
+            filtered = filtered.filter((s) => s.title.toLowerCase().includes(lowerQuery));
+        }
+
+        if (params.recurrence) {
+            filtered = filtered.filter((s) => s.recurrence === params.recurrence);
+        }
+
+        return filtered;
     }
 
     async fetchEventsPage(

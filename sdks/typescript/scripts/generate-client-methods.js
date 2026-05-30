@@ -54,6 +54,7 @@ const SKIP_GENERATE = new Set([
 const TYPE_MAP = {
     UnifiedMarket: { converter: 'convertMarket' },
     UnifiedEvent: { converter: 'convertEvent' },
+    UnifiedSeries: { converter: 'convertSeries' },
     Order: { converter: 'convertOrder' },
     UserTrade: { converter: 'convertUserTrade' },
     Position: { converter: 'convertPosition' },
@@ -67,11 +68,11 @@ const TYPE_MAP = {
 
 // SDK types that can appear in generated signatures without extra imports
 const SDK_PARAM_TYPES = new Set([
-    'UnifiedMarket', 'UnifiedEvent', 'OrderBook', 'Order', 'Trade',
+    'UnifiedMarket', 'UnifiedEvent', 'UnifiedSeries', 'OrderBook', 'Order', 'Trade',
     'UserTrade', 'Position', 'Balance', 'PriceCandle', 'PaginatedMarketsResult',
     'BuiltOrder',
     // Parameter types
-    'MarketFilterParams', 'MarketFetchParams', 'EventFetchParams',
+    'MarketFilterParams', 'MarketFetchParams', 'EventFetchParams', 'SeriesFetchParams',
     'OHLCVParams', 'TradesParams', 'HistoryFilterParams',
     'MyTradesParams', 'OrderHistoryParams', 'CreateOrderParams',
     'MarketFilterCriteria', 'EventFilterCriteria',

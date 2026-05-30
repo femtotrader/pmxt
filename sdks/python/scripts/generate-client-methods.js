@@ -60,6 +60,7 @@ const SKIP_GENERATE = new Set([
 const TYPE_MAP = {
     UnifiedMarket: { pyType: 'UnifiedMarket', converter: '_convert_market' },
     UnifiedEvent: { pyType: 'UnifiedEvent', converter: '_convert_event' },
+    UnifiedSeries: { pyType: 'UnifiedSeries', converter: '_convert_series' },
     Order: { pyType: 'Order', converter: '_convert_order' },
     UserTrade: { pyType: 'UserTrade', converter: '_convert_user_trade' },
     Position: { pyType: 'Position', converter: '_convert_position' },

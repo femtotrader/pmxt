@@ -1,15 +1,19 @@
 import { OHLCVParams } from '../../BaseExchange';
-import { UnifiedMarket, UnifiedEvent, PriceCandle, OrderBook, Trade, UserTrade, Position, Balance, MarketOutcome } from '../../types';
+import { UnifiedMarket, UnifiedEvent, UnifiedSeries, PriceCandle, OrderBook, Trade, UserTrade, Position, Balance, MarketOutcome } from '../../types';
 import { IExchangeNormalizer } from '../interfaces';
 import { addBinaryOutcomes } from '../../utils/market-utils';
 import { buildSourceMetadata } from '../../utils/metadata';
 import { fromKalshiCents, invertKalshiUnified } from './price';
-import { KalshiRawEvent, KalshiRawMarket, KalshiRawCandlestick, KalshiRawTrade, KalshiRawFill, KalshiRawOrder, KalshiRawPosition, KalshiRawOrderBookFp } from './fetcher';
+import { KalshiRawEvent, KalshiRawMarket, KalshiRawCandlestick, KalshiRawTrade, KalshiRawFill, KalshiRawOrder, KalshiRawPosition, KalshiRawOrderBookFp, KalshiRawSeries } from './fetcher';
 
 // Raw Kalshi fields already promoted to first-class Unified columns — excluded
 // from sourceMetadata so we capture only what the unified shape would drop.
 const KALSHI_PROMOTED_EVENT_KEYS = [
     'event_ticker', 'title', 'markets', 'category', 'image_url', 'tags',
+] as const;
+
+const KALSHI_PROMOTED_SERIES_KEYS = [
+    'ticker', 'title', 'tags', 'frequency', 'category',
 ] as const;
 
 const KALSHI_PROMOTED_MARKET_KEYS = [
@@ -146,6 +150,21 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
             sourceMetadata: buildSourceMetadata(
                 raw as unknown as Record<string, unknown>,
                 KALSHI_PROMOTED_EVENT_KEYS,
+            ),
+        };
+    }
+
+    normalizeSeries(raw: KalshiRawSeries, events?: UnifiedEvent[]): UnifiedSeries {
+        return {
+            id: raw.ticker,
+            ticker: raw.ticker,
+            title: (typeof raw.title === 'string' && raw.title.trim()) ? raw.title.trim() : raw.ticker,
+            recurrence: (typeof raw.frequency === 'string' && raw.frequency.trim()) ? raw.frequency.trim() : null,
+            url: `https://kalshi.com/events?series=${raw.ticker}`,
+            events: events ?? undefined,
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                KALSHI_PROMOTED_SERIES_KEYS,
             ),
         };
     }

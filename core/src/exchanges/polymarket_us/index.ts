@@ -19,11 +19,13 @@ import {
     ExchangeCredentials,
     MarketFetchParams,
     EventFetchParams,
+    SeriesFetchParams,
     MyTradesParams,
 } from '../../BaseExchange';
 import {
     UnifiedMarket,
     UnifiedEvent,
+    UnifiedSeries,
     OrderBook,
     Trade,
     UserTrade,
@@ -185,10 +187,33 @@ export class PolymarketUSExchange extends PredictionMarketExchange {
                 return resp.event ? [this.normalizer.normalizeEvent(resp.event)] : [];
             }
 
+            // When filtering by series, the SDK accepts seriesId as an array of
+            // numeric ids. The PMXT series param is a string (id or slug); we
+            // attempt numeric parsing first and fall back to slug resolution below.
+            let seriesIdFilter: number[] | undefined;
+            if (params?.series != null) {
+                const numericId = Number(params.series);
+                if (Number.isFinite(numericId) && numericId > 0) {
+                    seriesIdFilter = [numericId];
+                } else {
+                    // Non-numeric: attempt to resolve the slug to a numeric series id
+                    // by listing series and finding a slug match.
+                    const slugResp = await this.client.series.list({ slug: [params.series] });
+                    const matched = slugResp.series?.[0];
+                    if (!matched) {
+                        // Unknown series slug — return empty rather than silently
+                        // ignoring the filter and returning all events.
+                        return [];
+                    }
+                    seriesIdFilter = [matched.id];
+                }
+            }
+
             const resp = await this.client.events.list({
                 active: true,
                 limit: params?.limit ?? 100,
                 offset: params?.offset ?? 0,
+                ...(seriesIdFilter !== undefined ? { seriesId: seriesIdFilter } : {}),
             });
             if (!resp.events) {
                 throw new Error('PolymarketUS events.list response missing required "events" field');
@@ -204,6 +229,54 @@ export class PolymarketUSExchange extends PredictionMarketExchange {
             }
 
             return events;
+        });
+    }
+
+    protected override async fetchSeriesImpl(
+        params: SeriesFetchParams,
+    ): Promise<UnifiedSeries[]> {
+        return this.run(async () => {
+            // Direct lookup by numeric id
+            if (params?.id != null) {
+                const numericId = Number(params.id);
+                if (!Number.isFinite(numericId) || numericId <= 0) {
+                    return [];
+                }
+                const resp = await this.client.series.retrieve(numericId);
+                if (!resp.series) {
+                    throw new Error('PolymarketUS series.retrieve response missing required "series" field');
+                }
+                return [this.normalizer.normalizeSeries(resp.series)];
+            }
+
+            const listParams: {
+                active?: boolean;
+                slug?: string[];
+                recurrence?: string;
+            } = { active: true };
+
+            if (params?.slug != null) {
+                listParams.slug = [params.slug];
+            }
+            if (params?.recurrence != null) {
+                listParams.recurrence = params.recurrence;
+            }
+
+            const resp = await this.client.series.list(listParams);
+            if (!resp.series) {
+                throw new Error('PolymarketUS series.list response missing required "series" field');
+            }
+            let series = resp.series.map(s => this.normalizer.normalizeSeries(s));
+
+            if (params?.query) {
+                const q = params.query.toLowerCase();
+                series = series.filter(s =>
+                    s.title.toLowerCase().includes(q) ||
+                    (s.description || '').toLowerCase().includes(q),
+                );
+            }
+
+            return series;
         });
     }
 

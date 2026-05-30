@@ -36,12 +36,14 @@ import {
     PaginatedMarketsResult,
     PaginatedEventsResult,
     Position,
+    SeriesFetchParams,
     PriceCandle,
     SubscribedAddressSnapshot,
     SubscriptionOption,
     Trade,
     UnifiedEvent,
     UnifiedMarket,
+    UnifiedSeries,
     UserTrade,
     FirehoseEvent,
 } from "./models.js";
@@ -172,6 +174,10 @@ function convertEvent(raw: any): UnifiedEvent {
     return { ...raw, markets };
 }
 
+function convertSeries(raw: any): UnifiedSeries {
+    const events = Array.isArray(raw.events) ? raw.events.map(convertEvent) : undefined;
+    return { ...raw, ...(events !== undefined ? { events } : {}) };
+}
 
 function convertSubscriptionSnapshot(raw: any): SubscribedAddressSnapshot {
     return {
@@ -860,6 +866,32 @@ export abstract class Exchange {
         } catch (error) {
             if (error instanceof PmxtError) throw error;
             throw new PmxtError(`Failed to fetchEvents: ${error}`);
+        }
+    }
+
+    async fetchSeries(params?: SeriesFetchParams): Promise<UnifiedSeries[]> {
+        await this.initPromise;
+        try {
+            const args: any[] = [];
+            if (params !== undefined) args.push(params);
+            const response = await this.fetchWithRetry(`${this.resolveBaseUrl()}/api/${this.exchangeName}/fetchSeries`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
+                body: JSON.stringify({ args, credentials: this.getCredentials() }),
+            });
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                if (body.error && typeof body.error === "object") {
+                    throw fromServerError(body.error);
+                }
+                throw new PmxtError(body.error?.message || response.statusText);
+            }
+            const json = await response.json();
+            const data = this.handleResponse(json);
+            return data.map(convertSeries);
+        } catch (error) {
+            if (error instanceof PmxtError) throw error;
+            throw new PmxtError(`Failed to fetchSeries: ${error}`);
         }
     }
 

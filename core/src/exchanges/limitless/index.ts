@@ -51,6 +51,7 @@ export interface LimitlessExchangeOptions {
 export class LimitlessExchange extends PredictionMarketExchange {
     protected override readonly capabilityOverrides = {
         fetchOrder: false as const,
+        fetchSeries: false as const,
     };
 
     private auth?: LimitlessAuth;
@@ -190,6 +191,10 @@ export class LimitlessExchange extends PredictionMarketExchange {
     }
 
     protected async fetchEventsImpl(params: EventFetchParams): Promise<UnifiedEvent[]> {
+        // Venue does not expose a series concept; honoring `params.series` by
+        // returning [] rather than ignoring the filter.
+        if (params.series !== undefined) return [];
+
         const rawEvents = await this.fetcher.fetchRawEvents(params);
         return rawEvents
             .map((raw) => this.normalizer.normalizeEvent(raw))

@@ -3,11 +3,13 @@ import {
     type ExchangeCredentials,
     type MarketFetchParams,
     type EventFetchParams,
+    type SeriesFetchParams,
 } from '../BaseExchange';
 import { BaseError, EventNotFound, MarketNotFound } from '../errors';
-import type { UnifiedMarket, UnifiedEvent, OrderBook, OrderLevel, MarketOutcome } from '../types';
+import type { UnifiedMarket, UnifiedEvent, UnifiedSeries, OrderBook, OrderLevel, MarketOutcome } from '../types';
 import { logger } from '../utils/logger';
 import { PmxtApiClient } from './client';
+import { SERIES_MAP, getVenueSeriesId } from './series-map';
 import type {
     RouterOptions,
     MatchResult,
@@ -174,6 +176,21 @@ export class Router extends PredictionMarketExchange {
     }
 
     protected async fetchEventsImpl(params?: EventFetchParams): Promise<UnifiedEvent[]> {
+        // When a normalized series id is requested, fan out to each mapped venue
+        // using the venue-native series id and aggregate the results.
+        if (params?.series !== undefined) {
+            const normalized = params.series;
+            const entry = SERIES_MAP.find((e) => e.id === normalized);
+
+            if (entry !== undefined) {
+                return this.fetchEventsForMappedSeries(entry.venues, params);
+            }
+
+            // Not a known normalized id — fall through and pass the raw value to
+            // the hosted search endpoint (single-venue callers using vendor-native
+            // ids still work).
+        }
+
         const response = await this.client.searchEvents({
             query: params?.query,
             category: params?.category,
@@ -186,6 +203,171 @@ export class Router extends PredictionMarketExchange {
             );
         }
         return response;
+    }
+
+    /**
+     * Fan out fetchEvents({series: venueSeriesId}) to each venue in the
+     * mapping, collect all results, and tag each event with its sourceExchange.
+     */
+    private async fetchEventsForMappedSeries(
+        venueMap: { readonly [venueName: string]: string },
+        baseParams: EventFetchParams,
+    ): Promise<UnifiedEvent[]> {
+        const venueEntries = Object.entries(venueMap);
+        if (venueEntries.length === 0) return [];
+
+        const fetchResults = await Promise.all(
+            venueEntries.map(async ([venueName, venueSeriesId]) => {
+                const exchange = this.localExchanges[venueName];
+                if (!exchange) {
+                    logger.debug(
+                        `Router.fetchEventsForMappedSeries: no exchange instance for venue "${venueName}", skipping`,
+                    );
+                    return [] as UnifiedEvent[];
+                }
+                try {
+                    const events = await exchange.fetchEvents({
+                        ...baseParams,
+                        series: venueSeriesId,
+                    });
+                    return events.map((ev): UnifiedEvent => ({
+                        ...ev,
+                        sourceExchange: ev.sourceExchange ?? venueName,
+                    }));
+                } catch (error: unknown) {
+                    logger.warn(
+                        `Router.fetchEventsForMappedSeries: fetchEvents failed for venue "${venueName}" ` +
+                        `series "${venueSeriesId}": ${error instanceof Error ? error.message : String(error)}`,
+                    );
+                    return [] as UnifiedEvent[];
+                }
+            }),
+        );
+
+        return fetchResults.flat();
+    }
+
+    // -----------------------------------------------------------------------
+    // Cross-venue series (series-map + fan-out)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Cross-venue series fetch.
+     *
+     * - If `params.id` matches a normalized id in SERIES_MAP, returns a single
+     *   synthesized `UnifiedSeries` whose `events` is the concatenation of
+     *   `fetchEvents({series: venueSeriesId})` results from each mapped venue.
+     * - Otherwise fans out `fetchSeries(params)` to all venue instances with
+     *   `has.fetchSeries !== false`, collects, and returns deduplicated results
+     *   tagged with their `sourceExchange`.
+     */
+    protected async fetchSeriesImpl(params: SeriesFetchParams): Promise<UnifiedSeries[]> {
+        const requestedId = params.id;
+
+        if (requestedId !== undefined) {
+            const entry = SERIES_MAP.find((e) => e.id === requestedId);
+            if (entry !== undefined) {
+                return this.fetchSynthesizedSeries(entry, params);
+            }
+        }
+
+        return this.fanOutFetchSeries(params);
+    }
+
+    /**
+     * Build a single synthesized `UnifiedSeries` from the SERIES_MAP entry by
+     * fetching events from all mapped venues and concatenating them.
+     */
+    private async fetchSynthesizedSeries(
+        entry: { id: string; title: string; venues: { readonly [venueName: string]: string } },
+        params: SeriesFetchParams,
+    ): Promise<UnifiedSeries[]> {
+        const venueEntries = Object.entries(entry.venues);
+
+        const eventsPerVenue = await Promise.all(
+            venueEntries.map(async ([venueName, venueSeriesId]) => {
+                const exchange = this.localExchanges[venueName];
+                if (!exchange) {
+                    logger.debug(
+                        `Router.fetchSynthesizedSeries: no exchange instance for venue "${venueName}", skipping`,
+                    );
+                    return [] as UnifiedEvent[];
+                }
+                try {
+                    const events = await exchange.fetchEvents({ series: venueSeriesId });
+                    return events.map((ev): UnifiedEvent => ({
+                        ...ev,
+                        sourceExchange: ev.sourceExchange ?? venueName,
+                    }));
+                } catch (error: unknown) {
+                    logger.warn(
+                        `Router.fetchSynthesizedSeries: fetchEvents failed for venue "${venueName}" ` +
+                        `series "${venueSeriesId}": ${error instanceof Error ? error.message : String(error)}`,
+                    );
+                    return [] as UnifiedEvent[];
+                }
+            }),
+        );
+
+        const allEvents = eventsPerVenue.flat();
+
+        const synthesized: UnifiedSeries = {
+            id: entry.id,
+            title: entry.title,
+            events: allEvents,
+            sourceExchange: 'Router',
+        };
+
+        // Apply limit/offset if the caller passed them (BaseExchange.fetchSeries strips
+        // them before calling fetchSeriesImpl, but guard defensively).
+        const limit = params.limit;
+        const offset = params.offset ?? 0;
+        if (limit !== undefined) {
+            return [{ ...synthesized, events: allEvents.slice(offset, offset + limit) }];
+        }
+        return [synthesized];
+    }
+
+    /**
+     * Fan out `fetchSeries(params)` to all venue instances whose
+     * `has.fetchSeries` is not `false`. Tag each result with its originating
+     * venue name.
+     */
+    private async fanOutFetchSeries(params: SeriesFetchParams): Promise<UnifiedSeries[]> {
+        const venueEntries = Object.entries(this.localExchanges);
+        if (venueEntries.length === 0) return [];
+
+        const fetchResults = await Promise.all(
+            venueEntries.map(async ([venueName, exchange]) => {
+                if (exchange.has.fetchSeries === false) return [] as UnifiedSeries[];
+
+                // When params.id is a venue-native id on this specific venue,
+                // pass it through directly so single-venue lookups still work.
+                let venueParams = params;
+                if (params.id !== undefined) {
+                    const nativeId = getVenueSeriesId(params.id, venueName);
+                    if (nativeId !== undefined) {
+                        venueParams = { ...params, id: nativeId };
+                    }
+                }
+
+                try {
+                    const series = await exchange.fetchSeries(venueParams);
+                    return series.map((s): UnifiedSeries => ({
+                        ...s,
+                        sourceExchange: s.sourceExchange ?? venueName,
+                    }));
+                } catch (error: unknown) {
+                    logger.warn(
+                        `Router.fanOutFetchSeries: fetchSeries failed for venue "${venueName}": ` +
+                        `${error instanceof Error ? error.message : String(error)}`,
+                    );
+                    return [] as UnifiedSeries[];
+                }
+            }),
+        );
+
+        return fetchResults.flat();
     }
 
     // -----------------------------------------------------------------------

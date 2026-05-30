@@ -52,6 +52,10 @@ import { cancelOrder, CancelOrderContext } from "./cancelOrder";
  * | Continuous/numeric/date | Yes (read-only HIGHER/LOWER) | No (requires 201-point CDF) |
  */
 export class MetaculusExchange extends PredictionMarketExchange {
+    protected override readonly capabilityOverrides = {
+        fetchSeries: false as const,
+    };
+
     private readonly apiToken?: string;
     private readonly baseUrl: string;
 

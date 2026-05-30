@@ -23,6 +23,7 @@ export class MyriadExchange extends PredictionMarketExchange {
         fetchBalance: 'emulated' as const,
         watchOrderBook: 'emulated' as const,
         watchTrades: 'emulated' as const,
+        fetchSeries: false as const,
     };
 
     private auth?: MyriadAuth;
@@ -92,6 +93,10 @@ export class MyriadExchange extends PredictionMarketExchange {
     }
 
     protected async fetchEventsImpl(params: EventFetchParams): Promise<UnifiedEvent[]> {
+        // Venue does not expose a series concept; honoring `params.series` by
+        // returning [] rather than ignoring the filter.
+        if (params.series !== undefined) return [];
+
         const rawQuestions = await this.fetcher.fetchRawEvents(params);
         return rawQuestions
             .map((raw) => this.normalizer.normalizeEvent(raw))

@@ -1,5 +1,5 @@
 import { OHLCVParams } from '../../BaseExchange';
-import { UnifiedMarket, UnifiedEvent, PriceCandle, OrderBook, Trade, UserTrade, Position } from '../../types';
+import { UnifiedMarket, UnifiedEvent, UnifiedSeries, PriceCandle, OrderBook, Trade, UserTrade, Position } from '../../types';
 import { IExchangeNormalizer } from '../interfaces';
 import { buildSourceMetadata } from '../../utils/metadata';
 import { mapMarketToUnified, mapIntervalToFidelity } from './utils';
@@ -18,6 +18,13 @@ const POLYMARKET_PROMOTED_EVENT_KEYS = [
     'id', 'slug', 'title', 'description', 'image', 'category', 'tags',
     // 'markets' is the child-markets array — promoted to UnifiedEvent.markets
     'markets',
+] as const;
+
+// Raw Polymarket Gamma series fields promoted to first-class UnifiedSeries columns.
+const POLYMARKET_PROMOTED_SERIES_KEYS = [
+    'id', 'ticker', 'slug', 'title', 'description', 'image', 'recurrence',
+    // 'events' is promoted to UnifiedSeries.events
+    'events',
 ] as const;
 
 export class PolymarketNormalizer implements IExchangeNormalizer<PolymarketRawEvent, PolymarketRawEvent> {
@@ -71,6 +78,39 @@ export class PolymarketNormalizer implements IExchangeNormalizer<PolymarketRawEv
                 POLYMARKET_PROMOTED_EVENT_KEYS,
             ),
         } as UnifiedEvent;
+    }
+
+    normalizeSeries(raw: Record<string, unknown>): UnifiedSeries {
+        const id = String(raw['id'] ?? '');
+        const slug = typeof raw['slug'] === 'string' ? raw['slug'] : undefined;
+        const ticker = typeof raw['ticker'] === 'string' ? raw['ticker'] : undefined;
+        const title = typeof raw['title'] === 'string' ? raw['title'] : (slug ?? id);
+        const description = raw['description'] != null ? String(raw['description']) : null;
+        const recurrence = raw['recurrence'] != null ? String(raw['recurrence']) : null;
+        const image = raw['image'] != null ? String(raw['image']) : null;
+
+        const rawEvents = Array.isArray(raw['events']) ? (raw['events'] as Record<string, unknown>[]) : undefined;
+        const events: UnifiedEvent[] | undefined = rawEvents !== undefined
+            ? rawEvents
+                .map((e) => this.normalizeEvent(e as unknown as import('./fetcher').PolymarketRawEvent))
+                .filter((e): e is UnifiedEvent => e !== null)
+            : undefined;
+
+        return {
+            id,
+            ticker,
+            slug,
+            title,
+            description,
+            recurrence,
+            image,
+            url: slug != null ? `https://polymarket.com/series/${slug}` : null,
+            events,
+            sourceMetadata: buildSourceMetadata(
+                raw,
+                POLYMARKET_PROMOTED_SERIES_KEYS,
+            ),
+        };
     }
 
     normalizeOHLCV(raw: { history: PolymarketRawOHLCVPoint[] }, params: OHLCVParams): PriceCandle[] {

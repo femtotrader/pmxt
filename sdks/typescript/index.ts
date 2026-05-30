@@ -30,6 +30,7 @@ export { Router } from "./pmxt/router.js";
 export { ServerManager } from "./pmxt/server-manager.js";
 export { HOSTED_URL, LOCAL_URL, ENV, resolvePmxtBaseUrl } from "./pmxt/constants.js";
 export { MarketList } from "./pmxt/models.js";
+export type { UnifiedSeries } from "./pmxt/models.js";
 export type * from "./pmxt/models.js";
 export * from "./pmxt/errors.js";
 

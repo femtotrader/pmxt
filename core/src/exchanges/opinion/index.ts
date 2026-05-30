@@ -4,12 +4,14 @@ import {
     OHLCVParams,
     ExchangeCredentials,
     EventFetchParams,
+    SeriesFetchParams,
     MyTradesParams,
     OrderHistoryParams,
 } from '../../BaseExchange';
 import {
     UnifiedMarket,
     UnifiedEvent,
+    UnifiedSeries,
     PriceCandle,
     OrderBook,
     Trade,
@@ -61,6 +63,10 @@ export class OpinionExchange extends PredictionMarketExchange {
 
     // Maps outcomeId (token ID) → numeric marketId for WebSocket subscriptions
     private readonly outcomeToMarketId = new Map<string, number>();
+
+    protected override readonly capabilityOverrides = {
+        fetchSeries: 'emulated' as const,
+    };
 
     constructor(options?: ExchangeCredentials | OpinionExchangeOptions) {
         let credentials: ExchangeCredentials | undefined;
@@ -184,9 +190,18 @@ export class OpinionExchange extends PredictionMarketExchange {
         const limit = params.limit || 250000;
         const query = (params.query || '').toLowerCase();
 
-        const filtered = query
+        let filtered = query
             ? rawEvents.filter((raw) => (raw.marketTitle || '').toLowerCase().includes(query))
             : rawEvents;
+
+        // Client-side series filter: keep only events whose collection symbol
+        // matches the requested series identifier.
+        if (params.series) {
+            const seriesId = params.series;
+            filtered = filtered.filter(
+                (raw) => raw.collection?.symbol === seriesId,
+            );
+        }
 
         const events = filtered
             .map((raw) => this.normalizer.normalizeEvent(raw))
@@ -197,6 +212,65 @@ export class OpinionExchange extends PredictionMarketExchange {
         await this.enrichPrices(allMarkets);
 
         return events;
+    }
+
+    protected async fetchSeriesImpl(
+        params: SeriesFetchParams,
+    ): Promise<UnifiedSeries[]> {
+        // Opinion has no dedicated /series endpoint. Derive the catalog by
+        // fetching all markets and grouping by collection.symbol.
+        const rawMarkets = await this.fetcher.fetchRawMarkets();
+
+        // Build a map from collection.symbol -> { collection, rawEvents[] }
+        const seriesMap = new Map<string, {
+            collection: import('./fetcher').OpinionRawCollection;
+            raws: import('./fetcher').OpinionRawMarket[];
+        }>();
+
+        for (const raw of rawMarkets) {
+            if (!raw.collection) continue;
+            const sym = raw.collection.symbol;
+            const existing = seriesMap.get(sym);
+            if (existing) {
+                existing.raws.push(raw);
+            } else {
+                seriesMap.set(sym, { collection: raw.collection, raws: [raw] });
+            }
+        }
+
+        let entries = Array.from(seriesMap.values());
+
+        // Apply params.id filter
+        if (params.id) {
+            entries = entries.filter((e) => e.collection.symbol === params.id);
+        }
+
+        // Apply params.query filter (title match)
+        if (params.query) {
+            const lowerQuery = params.query.toLowerCase();
+            entries = entries.filter((e) =>
+                e.collection.title.toLowerCase().includes(lowerQuery),
+            );
+        }
+
+        // Apply params.recurrence filter
+        if (params.recurrence) {
+            const recurrence = params.recurrence;
+            entries = entries.filter((e) => e.collection.frequency === recurrence);
+        }
+
+        return entries.map((e) => {
+            let events: UnifiedEvent[] | undefined;
+
+            // When fetching by id, populate the events field.
+            if (params.id) {
+                events = e.raws
+                    .map((raw) => this.normalizer.normalizeEvent(raw))
+                    .filter((ev): ev is UnifiedEvent => ev !== null);
+            }
+
+            return this.normalizer.normalizeSeries(e.collection, events);
+        });
     }
 
     async fetchOHLCV(

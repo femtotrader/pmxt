@@ -249,6 +249,49 @@ class UnifiedEvent:
     """The exchange/venue this event comes from (e.g. 'polymarket', 'kalshi'). Populated by the Router."""
 
 
+@dataclass
+class UnifiedSeries:
+    """A recurring grouping of events on a venue — the tier above Event.
+
+    Examples: Kalshi ``KXATPMATCH`` (every ATP tennis match), Polymarket
+    ``wta`` (every WTA match). Series only exists where the venue exposes a
+    recurring-event concept; venues without one return an empty array from
+    ``fetchSeries``.
+    """
+
+    id: str
+    """Stable venue-native series identifier (e.g. "KXATPMATCH" on Kalshi, "atp" on Polymarket Gamma)."""
+
+    title: str
+    """Human-readable series title (e.g. "ATP Match Winner", "WTA")."""
+
+    ticker: Optional[str] = None
+    """Venue-native ticker, when distinct from id."""
+
+    slug: Optional[str] = None
+    """Venue-native slug."""
+
+    description: Optional[str] = None
+    """Long-form series description."""
+
+    recurrence: Optional[str] = None
+    """Recurrence cadence the venue reports ('daily', 'weekly', 'annual', ...)."""
+
+    events: Optional[List["UnifiedEvent"]] = None
+    """Child events. Populated when fetched by id; the list form usually omits this to keep payloads small."""
+
+    url: Optional[str] = None
+    """Canonical venue URL for the series."""
+
+    image: Optional[str] = None
+    """Venue-hosted image."""
+
+    source_exchange: Optional[str] = None
+    """The exchange this series originates from. Populated by the Router."""
+
+    source_metadata: Optional[Dict[str, Any]] = None
+    """Raw venue-specific fields not promoted to first-class columns."""
+
 
 @dataclass
 class OrderLevel:

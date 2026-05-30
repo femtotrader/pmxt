@@ -47,6 +47,7 @@ export class SuiBetsExchange extends PredictionMarketExchange {
         fetchPositions: true as const,
         watchOrderBook: false as const,
         watchTrades: false as const,
+        fetchSeries: false as const,
     };
 
     private readonly config: SuibetsApiConfig;
@@ -96,6 +97,11 @@ export class SuiBetsExchange extends PredictionMarketExchange {
     }
 
     protected async fetchEventsImpl(params: EventFetchParams): Promise<UnifiedEvent[]> {
+        // Venue does not expose a series concept; honoring `params.series` by returning [] rather than ignoring the filter.
+        if (params.series !== undefined) {
+            return [];
+        }
+
         const raw = await this.fetcher.fetchRawEvents(params);
         return raw
             .map(r => this.normalizer.normalizeEvent(r))

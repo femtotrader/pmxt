@@ -37,6 +37,10 @@ import { logger } from '../../utils/logger';
 const BSC_USDT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
 
 export class ProbableExchange extends PredictionMarketExchange {
+    protected override readonly capabilityOverrides = {
+        fetchSeries: false as const,
+    };
+
     private auth?: ProbableAuth;
     private ws?: ProbableWebSocket;
     private wsConfig?: ProbableWebSocketConfig;
@@ -125,6 +129,10 @@ export class ProbableExchange extends PredictionMarketExchange {
     }
 
     protected async fetchEventsImpl(params: EventFetchParams): Promise<UnifiedEvent[]> {
+        // Venue does not expose a series concept; honoring `params.series` by
+        // returning [] rather than ignoring the filter.
+        if (params.series !== undefined) return [];
+
         const rawEvents = await this.fetcher.fetchRawEvents(params);
 
         const events = rawEvents

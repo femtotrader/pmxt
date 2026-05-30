@@ -9,6 +9,7 @@ import {
     MyTradesParams,
     OHLCVParams,
     PredictionMarketExchange,
+    SeriesFetchParams,
     TradesParams,
 } from '../../BaseExchange';
 import { AuthenticationError } from '../../errors';
@@ -26,6 +27,7 @@ import {
     Trade,
     UnifiedEvent,
     UnifiedMarket,
+    UnifiedSeries,
     UserTrade,
 } from '../../types';
 import { parseOpenApiSpec } from '../../utils/openapi';
@@ -54,6 +56,10 @@ export interface PolymarketExchangeOptions {
 }
 
 export class PolymarketExchange extends PredictionMarketExchange {
+    protected override readonly capabilityOverrides = {
+        fetchSeries: true as const,
+    };
+
     private auth?: PolymarketAuth;
     private wsConfig?: PolymarketWebSocketConfig;
     private cachedApiCreds?: { key: string; secret: string; passphrase: string };
@@ -659,11 +665,67 @@ export class PolymarketExchange extends PredictionMarketExchange {
             const events = await this.callApi('listEvents', queryParams);
             return (events || []).map((event: any) => this.normalizer.normalizeEvent(event)).filter((e: UnifiedEvent | null): e is UnifiedEvent => e !== null);
         }
+
+        if (params.series) {
+            const seriesId = await this.resolveSeriesId(params.series);
+            const events = await this.callApi('listEvents', { series_id: seriesId });
+            return (events || []).map((event: any) => this.normalizer.normalizeEvent(event)).filter((e: UnifiedEvent | null): e is UnifiedEvent => e !== null);
+        }
+
         const rawEvents = await this.fetcher.fetchRawEvents(params);
         return rawEvents
             .map((raw) => this.normalizer.normalizeEvent(raw))
             .filter((e): e is UnifiedEvent => e !== null)
             .slice(0, params.limit || 250000);
+    }
+
+    /**
+     * Resolve a series id or slug string to a numeric Gamma series id.
+     * If the value is already numeric, returns it unchanged.
+     * Otherwise, calls `listSeries` with the value as `slug` and returns the
+     * first matching series id.
+     */
+    private async resolveSeriesId(seriesValue: string): Promise<number> {
+        const numericId = Number(seriesValue);
+        if (Number.isInteger(numericId) && numericId > 0) {
+            return numericId;
+        }
+        // Slug path: look up via listSeries
+        const results = await this.callApi('listSeries', { slug: [seriesValue] });
+        const first = Array.isArray(results) ? results[0] : undefined;
+        if (!first || first.id == null) {
+            throw new Error(`Polymarket: no series found for slug "${seriesValue}"`);
+        }
+        return Number(first.id);
+    }
+
+    protected override async fetchSeriesImpl(params: SeriesFetchParams): Promise<UnifiedSeries[]> {
+        if (params.id) {
+            const raw = await this.callApi('getSeries', { id: params.id });
+            if (!raw || raw.id == null) return [];
+            return [this.normalizer.normalizeSeries(raw as unknown as Record<string, unknown>)];
+        }
+
+        const queryParams: Record<string, unknown> = {};
+        if (params.slug) queryParams['slug'] = [params.slug];
+        if (params.recurrence) queryParams['recurrence'] = params.recurrence;
+
+        const results = await this.callApi('listSeries', queryParams);
+        const list: unknown[] = Array.isArray(results) ? results : [];
+
+        const normalized = list.map((raw) =>
+            this.normalizer.normalizeSeries(raw as unknown as Record<string, unknown>),
+        );
+
+        if (params.query) {
+            const lowerQuery = params.query.toLowerCase();
+            return normalized.filter((s) =>
+                (s.title || '').toLowerCase().includes(lowerQuery) ||
+                (s.description || '').toLowerCase().includes(lowerQuery),
+            );
+        }
+
+        return normalized;
     }
 
     /**

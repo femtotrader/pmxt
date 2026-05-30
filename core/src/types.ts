@@ -111,6 +111,38 @@ export interface UnifiedMarket {
 }
 
 /**
+ * A recurring grouping of events on a venue — the fourth tier above
+ * Event -> Market -> Outcome. Examples: Kalshi `KXATPMATCH` (every ATP
+ * tennis match), Polymarket `wta` (every WTA match), Opinion's daily
+ * `collection`. Series only exists where the venue exposes a recurring-event
+ * concept; venues without one return an empty array from `fetchSeries`.
+ */
+export interface UnifiedSeries {
+    /** Stable venue-native series identifier (e.g. "KXATPMATCH" on Kalshi, "atp" on Polymarket Gamma, numeric Gamma id). */
+    id: string;
+    /** Venue-native ticker, when distinct from `id`. */
+    ticker?: string;
+    /** Venue-native slug. */
+    slug?: string;
+    /** Human-readable series title (e.g. "ATP Match Winner", "WTA"). */
+    title: string;
+    /** Long-form series description. */
+    description?: string | null;
+    /** Recurrence cadence the venue reports ('daily', 'weekly', 'annual', ...). */
+    recurrence?: string | null;
+    /** Child events. Populated when fetched by id; the list form usually omits this to keep payloads small. */
+    events?: UnifiedEvent[];
+    /** Canonical venue URL for the series. */
+    url?: string | null;
+    /** Venue-hosted image. */
+    image?: string | null;
+    /** The exchange this series originates from. Populated by the Router. */
+    sourceExchange?: string;
+    /** Raw venue-specific fields not promoted to first-class columns. */
+    sourceMetadata?: Record<string, unknown>;
+}
+
+/**
  * Candle interval for OHLCV data.
  *
  * Common values: `'1m'`, `'5m'`, `'15m'`, `'1h'`, `'6h'`, `'1d'`.

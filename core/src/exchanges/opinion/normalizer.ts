@@ -2,6 +2,7 @@ import { OHLCVParams } from '../../BaseExchange';
 import {
     UnifiedMarket,
     UnifiedEvent,
+    UnifiedSeries,
     PriceCandle,
     OrderBook,
     Trade,
@@ -17,6 +18,7 @@ import { parseNumStr, mapOrderStatus, toMillis, intervalToMs } from './utils';
 import {
     OpinionRawMarket,
     OpinionRawChildMarket,
+    OpinionRawCollection,
     OpinionRawOrderBook,
     OpinionRawPricePoint,
     OpinionRawLatestPrice,
@@ -90,6 +92,27 @@ export class OpinionNormalizer implements IExchangeNormalizer<OpinionRawMarket, 
         }
 
         return results;
+    }
+
+    // -- Series ---------------------------------------------------------------
+
+    /**
+     * Produce a UnifiedSeries from an Opinion `collection` object.
+     * `id` is the canonical series identifier (collection.symbol).
+     * `events` is optionally injected by the caller when doing a single-id lookup.
+     */
+    normalizeSeries(raw: OpinionRawCollection, events?: UnifiedEvent[]): UnifiedSeries {
+        return {
+            id: raw.symbol,
+            ticker: raw.symbol,
+            title: raw.title,
+            recurrence: raw.frequency || null,
+            events,
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                ['title', 'symbol', 'frequency'],
+            ),
+        };
     }
 
     // -- Events ---------------------------------------------------------------

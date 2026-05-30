@@ -2,11 +2,13 @@ import {
     PredictionMarketExchange,
     MarketFilterParams,
     EventFetchParams,
+    SeriesFetchParams,
     ExchangeCredentials,
 } from '../../BaseExchange';
 import {
     UnifiedMarket,
     UnifiedEvent,
+    UnifiedSeries,
     OrderBook,
     Trade,
     Order,
@@ -35,6 +37,10 @@ export class GeminiTitanExchange extends PredictionMarketExchange {
     private readonly normalizer: GeminiNormalizer;
     private readonly geminiAuth?: GeminiAuth;
     private geminiWs?: GeminiWebSocket;
+
+    protected override readonly capabilityOverrides = {
+        fetchSeries: 'emulated' as const,
+    };
 
     constructor(credentials?: ExchangeCredentials | GeminiTitanExchangeOptions) {
         const opts = credentials && 'credentials' in credentials
@@ -101,9 +107,102 @@ export class GeminiTitanExchange extends PredictionMarketExchange {
         params: EventFetchParams,
     ): Promise<UnifiedEvent[]> {
         const rawEvents = await this.fetcher.fetchRawEvents(params);
-        return rawEvents
+
+        let filtered = rawEvents;
+
+        // Client-side series filter: keep only events whose series id matches.
+        if (params.series) {
+            const seriesId = params.series;
+            filtered = rawEvents.filter((e) => {
+                if (e.series == null) return false;
+                const s = e.series as unknown as Record<string, unknown>;
+                const id = String(s['id'] ?? s['ticker'] ?? s['symbol'] ?? '');
+                return id === seriesId;
+            });
+        }
+
+        return filtered
             .map(e => this.normalizer.normalizeEventWithMarkets(e))
             .filter((e): e is UnifiedEvent => e !== null);
+    }
+
+    protected async fetchSeriesImpl(
+        params: SeriesFetchParams,
+    ): Promise<UnifiedSeries[]> {
+        // Gemini-Titan has no dedicated /series endpoint. Derive the catalog by
+        // fetching all events and grouping by the series id in event.series.
+        const rawEvents = await this.fetcher.fetchRawEvents({});
+
+        // Build a map from series id -> { rawSeries, rawEvents[] }
+        const seriesMap = new Map<string, {
+            raw: Record<string, unknown>;
+            raws: import('./types').GeminiRawEvent[];
+        }>();
+
+        for (const event of rawEvents) {
+            if (event.series == null) continue;
+            const s = event.series as unknown as Record<string, unknown>;
+            const id = String(s['id'] ?? s['ticker'] ?? s['symbol'] ?? '');
+            if (!id) continue;
+
+            const existing = seriesMap.get(id);
+            if (existing) {
+                existing.raws.push(event);
+            } else {
+                seriesMap.set(id, { raw: s, raws: [event] });
+            }
+        }
+
+        let entries = Array.from(seriesMap.entries()).map(([id, v]) => ({
+            id,
+            raw: v.raw,
+            raws: v.raws,
+        }));
+
+        // Apply params.id filter
+        if (params.id) {
+            entries = entries.filter((e) => e.id === params.id);
+        }
+
+        // Apply params.slug filter (treat slug same as id for Gemini series)
+        if (params.slug) {
+            const slug = params.slug;
+            entries = entries.filter((e) => {
+                const rawSlug = e.raw['slug'] != null ? String(e.raw['slug']) : e.id;
+                return rawSlug === slug;
+            });
+        }
+
+        // Apply params.query filter (title match)
+        if (params.query) {
+            const lowerQuery = params.query.toLowerCase();
+            entries = entries.filter((e) => {
+                const title = String(e.raw['title'] ?? e.raw['name'] ?? '');
+                return title.toLowerCase().includes(lowerQuery);
+            });
+        }
+
+        // Apply params.recurrence filter
+        if (params.recurrence) {
+            const recurrence = params.recurrence;
+            entries = entries.filter((e) => {
+                const freq = e.raw['frequency'] ?? e.raw['recurrence'];
+                return freq != null && String(freq) === recurrence;
+            });
+        }
+
+        return entries.map((e) => {
+            let events: UnifiedEvent[] | undefined;
+
+            // When fetching by id, populate the events field.
+            if (params.id) {
+                events = e.raws
+                    .map((raw) => this.normalizer.normalizeEventWithMarkets(raw))
+                    .filter((ev): ev is UnifiedEvent => ev !== null);
+            }
+
+            return this.normalizer.normalizeSeries(e.raw, events);
+        });
     }
 
     async fetchOrderBook(outcomeId: string, _limit?: number, _params?: Record<string, any>): Promise<OrderBook> {

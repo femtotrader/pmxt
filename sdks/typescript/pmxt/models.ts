@@ -506,6 +506,25 @@ export interface CreateOrderParams {
 export type MarketFetchParams = MarketFilterParams;
 
 /**
+ * Parameters for fetching series.
+ * Venues without a recurring-event concept return an empty array regardless of the filters.
+ */
+export interface SeriesFetchParams {
+    /** Direct lookup by venue-native series id (e.g. "KXATPMATCH" on Kalshi, "atp" on Polymarket Gamma). When set, the result includes events where the venue supports it. */
+    id?: string;
+    /** Lookup by series slug (e.g. "wta", "nfl"). */
+    slug?: string;
+    /** Keyword search across series title / description. */
+    query?: string;
+    /** Filter by recurrence cadence ('daily', 'weekly', 'annual', ...). */
+    recurrence?: string;
+    /** Maximum number of results to return. */
+    limit?: number;
+    /** Pagination offset. */
+    offset?: number;
+}
+
+/**
  * Parameters for fetching OHLCV candle data.
  */
 export interface OHLCVParams {
@@ -658,6 +677,46 @@ export class MarketList extends Array<UnifiedMarket> {
         }
         return matches[0];
     }
+}
+
+/**
+ * A recurring grouping of events on a venue — the tier above Event.
+ * Examples: Kalshi "KXATPMATCH" (every ATP match), Polymarket "wta" (every WTA match).
+ * Venues without a recurring-event concept return an empty array from fetchSeries.
+ */
+export interface UnifiedSeries {
+    /** Stable venue-native series identifier. */
+    id: string;
+
+    /** Venue-native ticker, when distinct from id. */
+    ticker?: string;
+
+    /** Venue-native slug. */
+    slug?: string;
+
+    /** Human-readable series title. */
+    title: string;
+
+    /** Long-form series description. */
+    description?: string | null;
+
+    /** Recurrence cadence the venue reports ('daily', 'weekly', 'annual', ...). */
+    recurrence?: string | null;
+
+    /** Child events. Populated when fetched by id; the list form usually omits this. */
+    events?: UnifiedEvent[];
+
+    /** Canonical venue URL for the series. */
+    url?: string | null;
+
+    /** Venue-hosted image. */
+    image?: string | null;
+
+    /** The exchange this series originates from. Populated by the Router. */
+    sourceExchange?: string;
+
+    /** Raw venue-specific fields not promoted to first-class columns. */
+    sourceMetadata?: Record<string, unknown>;
 }
 
 /**

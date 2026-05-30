@@ -27,6 +27,7 @@ from pmxt_internal.exceptions import ApiException
 from .models import (
     UnifiedMarket,
     UnifiedEvent,
+    UnifiedSeries,
     MarketOutcome,
     MarketList,
     PriceCandle,
@@ -192,6 +193,13 @@ def _convert_event(raw: Dict[str, Any]) -> UnifiedEvent:
     """Convert raw API response to UnifiedEvent."""
     markets = MarketList(_convert_market(m) for m in raw.get("markets", []))
     return _auto_convert(UnifiedEvent, raw, markets=markets)
+
+
+def _convert_series(raw: Dict[str, Any]) -> UnifiedSeries:
+    """Convert raw API response to UnifiedSeries."""
+    raw_events = raw.get("events")
+    events = [_convert_event(e) for e in raw_events] if isinstance(raw_events, list) else raw_events
+    return _auto_convert(UnifiedSeries, raw, events=events)
 
 
 def _convert_candle(raw: Dict[str, Any]) -> PriceCandle:
@@ -828,6 +836,29 @@ class Exchange(ABC):
             response.read()
             data = self._handle_response(json.loads(response.data))
             return [_convert_event(e) for e in data]
+        except ApiException as e:
+            raise self._parse_api_exception(e) from None
+
+    def fetch_series(self, params: Optional[dict] = None, **kwargs) -> List[UnifiedSeries]:
+        try:
+            args = []
+            if kwargs:
+                params = {**(params or {}), **kwargs}
+            if params is not None:
+                args.append(params)
+            body: dict = {"args": args}
+            creds = self._get_credentials_dict()
+            if creds:
+                body["credentials"] = creds
+            url = f"{self._resolve_sidecar_host()}/api/{self.exchange_name}/fetchSeries"
+            headers = {"Content-Type": "application/json", "Accept": "application/json"}
+            headers.update(self._get_auth_headers())
+            response = self._fetch_with_retry(
+                lambda: self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)
+            )
+            response.read()
+            data = self._handle_response(json.loads(response.data))
+            return [_convert_series(e) for e in data]
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 

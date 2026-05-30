@@ -35,6 +35,10 @@ export interface HyperliquidExchangeOptions {
 }
 
 export class HyperliquidExchange extends PredictionMarketExchange {
+    protected override readonly capabilityOverrides = {
+        fetchSeries: false as const,
+    };
+
     private readonly config: HyperliquidApiConfig;
     private readonly fetcher: HyperliquidFetcher;
     private readonly normalizer: HyperliquidNormalizer;
@@ -117,6 +121,11 @@ export class HyperliquidExchange extends PredictionMarketExchange {
     protected async fetchEventsImpl(
         params: EventFetchParams,
     ): Promise<UnifiedEvent[]> {
+        // Venue does not expose a series concept; honoring `params.series` by returning [] rather than ignoring the filter.
+        if (params.series !== undefined) {
+            return [];
+        }
+
         const [rawQuestions, meta, mids] = await Promise.all([
             this.fetcher.fetchRawEvents(params),
             this.fetcher.fetchOutcomeMeta(),

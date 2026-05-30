@@ -13,6 +13,7 @@ import {
     Trade,
     UnifiedEvent,
     UnifiedMarket,
+    UnifiedSeries,
     UserTrade,
 } from './types';
 import { ExecutionPriceResult, getExecutionPrice, getExecutionPriceDetailed } from './utils/math';
@@ -113,12 +114,33 @@ export interface EventFetchParams {
     searchIn?: 'title' | 'description' | 'both';
     eventId?: string;    // Direct lookup by event ID
     slug?: string;       // Lookup by event slug
+    /** Filter events by their parent series. Accepts the venue-native series id / ticker / slug (e.g. Kalshi `"KXATPMATCH"`, Polymarket `"wta"`). Passed through to the vendor where supported, otherwise applied to `sourceMetadata` after fetch. */
+    series?: string;
     /** Optional client-side filter applied after fetching */
     filter?: EventFilterCriteria;
     /** Filter by category. Each event belongs to a venue-assigned category such as "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi). */
     category?: string;
     /** Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories -- for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump". */
     tags?: string[];
+}
+
+/**
+ * Parameters for `fetchSeries`. Venues that don't expose a series concept
+ * return an empty array regardless of the filters.
+ */
+export interface SeriesFetchParams {
+    /** Direct lookup by venue-native series id (e.g. "KXATPMATCH" on Kalshi, "atp" or "1" on Polymarket Gamma). When set, the result is the matching series with its events populated where the venue supports it. */
+    id?: string;
+    /** Lookup by series slug (e.g. "wta", "nfl"). */
+    slug?: string;
+    /** Keyword search across series title / description. */
+    query?: string;
+    /** Filter by recurrence cadence ('daily', 'weekly', 'annual', ...). */
+    recurrence?: string;
+    /** Maximum number of results to return. */
+    limit?: number;
+    /** Pagination offset. */
+    offset?: number;
 }
 
 /**
@@ -278,6 +300,8 @@ export interface ExchangeHas {
     fetchMarkets: ExchangeCapability;
     /** Whether this exchange supports fetching events. */
     fetchEvents: ExchangeCapability;
+    /** Whether this exchange exposes a recurring-series concept (Series -> Event -> Market -> Outcome). Venues without one return `false` and an empty array from `fetchSeries`. */
+    fetchSeries: ExchangeCapability;
     /** Whether this exchange supports fetching OHLCV candles. */
     fetchOHLCV: ExchangeCapability;
     /** Whether this exchange supports fetching the order book. */
@@ -794,6 +818,24 @@ export abstract class PredictionMarketExchange {
         const events = await this.fetchEventsImpl(venueParams);
         const start = offset ?? 0;
         return limit !== undefined ? events.slice(start, start + limit) : events.slice(start);
+    }
+
+    /**
+     * Fetch the recurring series (fourth tier above Event -> Market -> Outcome)
+     * that this venue exposes. Returns an empty array on venues without a
+     * series concept (Limitless, Smarkets, Probable, Metaculus, Baozi,
+     * Hyperliquid, SuiBets, Polymarket US).
+     *
+     * - `params.id` -> a single matching series with its events populated where supported.
+     * - no params -> the full list, typically without nested events for payload size.
+     *
+     * @returns Array of unified series. Always an array, including the singular-lookup case.
+     */
+    async fetchSeries(params?: SeriesFetchParams): Promise<UnifiedSeries[]> {
+        const { limit, offset, ...venueParams } = params ?? {};
+        const series = await this.fetchSeriesImpl(venueParams);
+        const start = offset ?? 0;
+        return limit !== undefined ? series.slice(start, start + limit) : series.slice(start);
     }
 
     /**
@@ -1594,6 +1636,16 @@ export abstract class PredictionMarketExchange {
     }
 
     /**
+     * @internal
+     * Implementation for fetching recurring series. Override in venue adapters
+     * that expose a series concept; the default returns an empty array so
+     * venues without one are silently a no-op.
+     */
+    protected async fetchSeriesImpl(_params: SeriesFetchParams): Promise<UnifiedSeries[]> {
+        return [];
+    }
+
+    /**
      * Call an implicit API method by its operationId (or auto-generated name).
      * Provides a typed entry point so unified methods can delegate to the implicit API
      * without casting to `any` everywhere.
@@ -1720,7 +1772,7 @@ export abstract class PredictionMarketExchange {
 
     /** All keys that appear in ExchangeHas -- kept in sync via the exhaustive check below. */
     private static readonly _capabilityKeys: readonly (keyof ExchangeHas)[] = [
-        'fetchMarkets', 'fetchEvents', 'fetchOHLCV', 'fetchOrderBook', 'fetchOrderBooks',
+        'fetchMarkets', 'fetchEvents', 'fetchSeries', 'fetchOHLCV', 'fetchOrderBook', 'fetchOrderBooks',
         'fetchTrades', 'createOrder', 'cancelOrder', 'fetchOrder',
         'fetchOpenOrders', 'fetchPositions', 'fetchBalance',
         'watchAddress', 'unwatchAddress', 'watchOrderBook', 'watchOrderBooks',
@@ -1733,7 +1785,7 @@ export abstract class PredictionMarketExchange {
     // Compile-time exhaustiveness check: fails tsc if a key exists in
     // ExchangeHas but is missing from _capabilityKeys above.
     private static readonly _exhaustiveCheck: Record<keyof ExchangeHas, true> = {
-        fetchMarkets: true, fetchEvents: true, fetchOHLCV: true,
+        fetchMarkets: true, fetchEvents: true, fetchSeries: true, fetchOHLCV: true,
         fetchOrderBook: true, fetchOrderBooks: true, fetchTrades: true, createOrder: true,
         cancelOrder: true, fetchOrder: true, fetchOpenOrders: true,
         fetchPositions: true, fetchBalance: true, watchAddress: true,
@@ -1753,6 +1805,7 @@ export abstract class PredictionMarketExchange {
     private static readonly _capabilityDelegates: Partial<Record<keyof ExchangeHas, string>> = {
         fetchMarkets: 'fetchMarketsImpl',
         fetchEvents: 'fetchEventsImpl',
+        fetchSeries: 'fetchSeriesImpl',
         watchOrderBooks: 'watchOrderBook',
         fetchMatches: 'fetchMarketMatches',
         fetchHedges: 'fetchRelatedMarkets',

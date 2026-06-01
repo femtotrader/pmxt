@@ -164,7 +164,7 @@ __all__ = [
     "Hyperliquid",
     "GeminiTitan",
     "SuiBets",
-    "Suibets",  # deprecated alias, retained for backwards compatibility
+    "Suibets",
     "Mock",
     "Router",
     "Exchange",

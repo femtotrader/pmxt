@@ -495,11 +495,6 @@ class SuiBets(Exchange):
         )
 
 
-# Deprecated alias kept for backwards compatibility with the lowercase-b spelling.
-# Remove in a future major version.
-Suibets = SuiBets
-
-
 class Mock(Exchange):
     """Mock exchange client."""
 
@@ -551,3 +546,4 @@ class Router(Exchange):
 
 # Backwards-compatible aliases for exchange classes generated before underscore handling.
 Polymarket_us = PolymarketUS
+Suibets = SuiBets

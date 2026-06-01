@@ -34,6 +34,12 @@ const OVERRIDES = {
             wallet_address: 'Wallet address (required for positions and balance)',
         },
     },
+    suibets: {
+        // Exchange name has no separator; force the canonical PascalCase used
+        // by the TypeScript SDK and core engine. The default-derived "Suibets"
+        // is emitted as a backwards-compatible alias.
+        className: 'SuiBets',
+    },
 };
 
 function toClassName(name) {
@@ -41,6 +47,14 @@ function toClassName(name) {
         .split(/[-_]/)
         .map(part => part.toLowerCase() === 'us' ? 'US' : part.charAt(0).toUpperCase() + part.slice(1))
         .join('');
+}
+
+// Resolve the canonical Python class name for an exchange wire key, honoring
+// any explicit override in OVERRIDES[name].className. Use this instead of
+// calling toClassName() directly so overrides apply everywhere consistently.
+function classNameFor(name) {
+    const ov = OVERRIDES[name] || {};
+    return ov.className || toClassName(name);
 }
 
 function toLegacyClassName(name) {
@@ -111,7 +125,7 @@ function build(name, block) {
 
 function generateClass(exchange) {
     const { name, creds } = exchange;
-    const className = toClassName(name);
+    const className = classNameFor(name);
     const ov = OVERRIDES[name] || {};
     const aliases = ov.paramAliases || {};
     const defaults = ov.defaults || {};
@@ -226,7 +240,7 @@ function generateClass(exchange) {
 const appTs = fs.readFileSync(APP_TS_PATH, 'utf8');
 const exchanges = parseExchanges(appTs);
 const legacyAliases = exchanges
-    .map(ex => ({ legacyName: toLegacyClassName(ex.name), className: toClassName(ex.name) }))
+    .map(ex => ({ legacyName: toLegacyClassName(ex.name), className: classNameFor(ex.name) }))
     .filter(alias => alias.legacyName !== alias.className);
 
 const header = [
@@ -256,14 +270,14 @@ const aliasBlock = legacyAliases.length
 fs.writeFileSync(OUTPUT_PATH, header + body + aliasBlock);
 console.log(`Generated ${exchanges.length} exchange classes -> ${path.relative(process.cwd(), OUTPUT_PATH)}`);
 for (const ex of exchanges) {
-    console.log(`  ${toClassName(ex.name)} (exchange_name="${ex.name}")`);
+    console.log(`  ${classNameFor(ex.name)} (exchange_name="${ex.name}")`);
 }
 
 // ---------------------------------------------------------------------------
 // Update __init__.py imports and __all__ to match generated exchanges
 // ---------------------------------------------------------------------------
 const classNames = exchanges.flatMap(ex => {
-    const className = toClassName(ex.name);
+    const className = classNameFor(ex.name);
     const legacyName = toLegacyClassName(ex.name);
     return legacyName === className ? [className] : [className, legacyName];
 });

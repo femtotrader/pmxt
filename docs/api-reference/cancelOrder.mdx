@@ -1,0 +1,99 @@
+---
+title: cancelOrder
+description: Cancel an open order. Hosted uses a two-call build -> sign -> cancel chain.
+---
+
+<Tabs>
+  <Tab title="Hosted (recommended)">
+    <Note>
+      The hosted path is a two-call chain: `POST trade.pmxt.dev/v0/orders/cancel/build`
+      returns EIP-712 typed data for the wallet to sign, then
+      `POST trade.pmxt.dev/v0/orders/cancel` submits the signature. The SDK's
+      `cancel_order()` chains both calls. Get a key at
+      [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        pmxt_api_key="YOUR_PMXT_API_KEY",
+        wallet_address="0xYourWallet",
+        private_key="0x...",
+    )
+    cancelled = client.cancel_order("order_abc123")
+    print(cancelled.id, cancelled.status)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      pmxtApiKey: "YOUR_PMXT_API_KEY",
+      walletAddress: "0xYourWallet",
+      privateKey: "0x...",
+    });
+
+    const cancelled = await client.cancelOrder("order_abc123");
+    console.log(cancelled.id, cancelled.status);
+    ```
+
+    ```bash curl
+    # Step 1: build
+    curl -X POST "https://trade.pmxt.dev/v0/orders/cancel/build" \
+      -H "Authorization: Bearer $PMXT_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"order_id":"order_abc123","user_address":"0xYourWallet"}'
+
+    # Step 2: sign the typed_data locally, then submit
+    curl -X POST "https://trade.pmxt.dev/v0/orders/cancel" \
+      -H "Authorization: Bearer $PMXT_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"cancel_id":"cnl_abc...","signature":"0x..."}'
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Self-hosted">
+    <Note>
+      The self-hosted path uses the local sidecar at
+      `POST localhost:3847/api/{exchange}/cancelOrder` with the venue-native order id.
+      The sidecar signs and submits the cancel directly to the venue. See
+      [Self-hosted](/guides/self-hosted) for setup.
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        api_key="YOUR_VENUE_API_KEY",
+        private_key="YOUR_PRIVATE_KEY",
+        proxy_address="YOUR_PROXY_ADDRESS",
+    )
+    cancelled = client.cancel_order("0xVenueOrderId")
+    print(cancelled.id, cancelled.status)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      apiKey: "YOUR_VENUE_API_KEY",
+      privateKey: "YOUR_PRIVATE_KEY",
+      proxyAddress: "YOUR_PROXY_ADDRESS",
+    });
+
+    const cancelled = await client.cancelOrder("0xVenueOrderId");
+    console.log(cancelled.id, cancelled.status);
+    ```
+
+    ```bash curl
+    curl -X POST "http://localhost:3847/api/polymarket/cancelOrder" \
+      -H "Content-Type: application/json" \
+      -d '{"args":["0xVenueOrderId"]}'
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>

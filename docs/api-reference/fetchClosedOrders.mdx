@@ -1,0 +1,82 @@
+---
+title: fetchClosedOrders
+description: Settled / cancelled orders. Hosted mode models these as trades; use fetchMyTrades.
+---
+
+<Tabs>
+  <Tab title="Hosted (recommended)">
+    <Warning>
+      **Not available in hosted mode.** Settled and cancelled orders are modelled as
+      trades -- use [`fetchMyTrades`](/api-reference/fetchMyTrades) for historical fills.
+      Calling `fetch_closed_orders()` in hosted mode raises `NotSupported`.
+    </Warning>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        pmxt_api_key="YOUR_PMXT_API_KEY",
+        wallet_address="0xYourWallet",
+    )
+    # Use fetch_my_trades() instead.
+    for trade in client.fetch_my_trades():
+        print(trade.id, trade.side, trade.amount, trade.price)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      pmxtApiKey: "YOUR_PMXT_API_KEY",
+      walletAddress: "0xYourWallet",
+    });
+
+    // Use fetchMyTrades() instead.
+    for (const trade of await client.fetchMyTrades()) {
+      console.log(trade.id, trade.side, trade.amount, trade.price);
+    }
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Self-hosted">
+    <Note>
+      The self-hosted path uses the local sidecar at
+      `GET localhost:3847/api/{exchange}/fetchClosedOrders` and returns the venue's
+      historical orders directly. See [Self-hosted](/guides/self-hosted) for setup.
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        api_key="YOUR_VENUE_API_KEY",
+        private_key="YOUR_PRIVATE_KEY",
+        proxy_address="YOUR_PROXY_ADDRESS",
+    )
+    for order in client.fetch_closed_orders():
+        print(order.id, order.status, order.filled)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      apiKey: "YOUR_VENUE_API_KEY",
+      privateKey: "YOUR_PRIVATE_KEY",
+      proxyAddress: "YOUR_PROXY_ADDRESS",
+    });
+
+    for (const order of await client.fetchClosedOrders()) {
+      console.log(order.id, order.status, order.filled);
+    }
+    ```
+
+    ```bash curl
+    curl "http://localhost:3847/api/polymarket/fetchClosedOrders"
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>

@@ -1,0 +1,84 @@
+---
+title: fetchOrder
+description: Look up a single order by ID (hosted) or via the local sidecar.
+---
+
+<Tabs>
+  <Tab title="Hosted (recommended)">
+    <Note>
+      The hosted path routes to `GET trade.pmxt.dev/v0/orders/{order_id}` and is the
+      default when `pmxt_api_key` is set. The `order_id` is the same unified id
+      returned by `fetchOpenOrdersHosted` / the submit response.
+      Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        pmxt_api_key="YOUR_PMXT_API_KEY",
+        wallet_address="0xYourWallet",
+    )
+    order = client.fetch_order("order_abc123")
+    print(order.id, order.status, order.filled, order.remaining)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      pmxtApiKey: "YOUR_PMXT_API_KEY",
+      walletAddress: "0xYourWallet",
+    });
+
+    const order = await client.fetchOrder("order_abc123");
+    console.log(order.id, order.status, order.filled, order.remaining);
+    ```
+
+    ```bash curl
+    curl "https://trade.pmxt.dev/v0/orders/order_abc123" \
+      -H "Authorization: Bearer $PMXT_API_KEY"
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Self-hosted">
+    <Note>
+      The self-hosted path uses the local sidecar at
+      `GET localhost:3847/api/{exchange}/fetchOrder?orderId={id}`. The id is the
+      venue-native order id. See [Self-hosted](/guides/self-hosted) for setup.
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        api_key="YOUR_VENUE_API_KEY",
+        private_key="YOUR_PRIVATE_KEY",
+        proxy_address="YOUR_PROXY_ADDRESS",
+    )
+    order = client.fetch_order("0xVenueOrderId")
+    print(order.id, order.status, order.filled, order.remaining)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      apiKey: "YOUR_VENUE_API_KEY",
+      privateKey: "YOUR_PRIVATE_KEY",
+      proxyAddress: "YOUR_PROXY_ADDRESS",
+    });
+
+    const order = await client.fetchOrder("0xVenueOrderId");
+    console.log(order.id, order.status, order.filled, order.remaining);
+    ```
+
+    ```bash curl
+    curl "http://localhost:3847/api/polymarket/fetchOrder?orderId=0xVenueOrderId"
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>

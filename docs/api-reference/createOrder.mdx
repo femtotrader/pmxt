@@ -1,0 +1,123 @@
+---
+title: createOrder
+description: Place an order. Hosted chains build -> sign -> submit; self-hosted hits the venue directly.
+---
+
+<Tabs>
+  <Tab title="Hosted (recommended)">
+    <Note>
+      The hosted path chains [`buildOrderHosted`](/api-reference/buildOrder) ->
+      local EIP-712 signing -> [`submitOrderHosted`](/api-reference/submitOrder)
+      inside the SDK. Pass catalog UUIDs (`market_id`, `outcome_id`), not venue-native
+      ids. Available on Polymarket and Opinion in hosted mode; other venues stay
+      self-hosted. See [hosted trading](/concepts/hosted-trading) for the end-to-end
+      flow. Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        pmxt_api_key="YOUR_PMXT_API_KEY",
+        wallet_address="0xYourWallet",
+        private_key="0x...",
+    )
+    order = client.create_order(
+        market_id="12345678-1234-1234-1234-123456789abc",
+        outcome_id="abcdef01-2345-6789-abcd-ef0123456789",
+        side="buy",
+        type="limit",
+        amount=10,
+        price=0.55,
+    )
+    print(order.id, order.status)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      pmxtApiKey: "YOUR_PMXT_API_KEY",
+      walletAddress: "0xYourWallet",
+      privateKey: "0x...",
+    });
+
+    const order = await client.createOrder({
+      marketId: "12345678-1234-1234-1234-123456789abc",
+      outcomeId: "abcdef01-2345-6789-abcd-ef0123456789",
+      side: "buy",
+      type: "limit",
+      amount: 10,
+      price: 0.55,
+    });
+    console.log(order.id, order.status);
+    ```
+
+    ```bash curl
+    # Raw HTTP requires manual build -> sign -> submit. See buildOrderHosted /
+    # submitOrderHosted in the openapi-hosted spec for the two-call shape.
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Self-hosted">
+    <Note>
+      The self-hosted path uses the local sidecar at
+      `POST localhost:3847/api/{exchange}/createOrder`. Pass venue-native
+      `marketId` / `outcomeId`. The sidecar holds venue credentials and signs locally
+      against the venue's CLOB. See [Self-hosted](/guides/self-hosted) for setup.
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        api_key="YOUR_VENUE_API_KEY",
+        api_secret="YOUR_VENUE_API_SECRET",
+        passphrase="YOUR_PASSPHRASE",
+        private_key="YOUR_PRIVATE_KEY",
+        proxy_address="YOUR_PROXY_ADDRESS",
+    )
+    order = client.create_order(
+        market_id="12345",
+        outcome_id="67890",
+        side="buy",
+        type="limit",
+        amount=10,
+        price=0.55,
+    )
+    print(order.id, order.status)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      apiKey: "YOUR_VENUE_API_KEY",
+      apiSecret: "YOUR_VENUE_API_SECRET",
+      passphrase: "YOUR_PASSPHRASE",
+      privateKey: "YOUR_PRIVATE_KEY",
+      proxyAddress: "YOUR_PROXY_ADDRESS",
+    });
+
+    const order = await client.createOrder({
+      marketId: "12345",
+      outcomeId: "67890",
+      side: "buy",
+      type: "limit",
+      amount: 10,
+      price: 0.55,
+    });
+    console.log(order.id, order.status);
+    ```
+
+    ```bash curl
+    curl -X POST "http://localhost:3847/api/polymarket/createOrder" \
+      -H "Content-Type: application/json" \
+      -d '{"args":[{"marketId":"12345","outcomeId":"67890","side":"buy","type":"limit","amount":10,"price":0.55}]}'
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>

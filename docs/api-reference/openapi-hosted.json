@@ -9,6 +9,10 @@
     {
       "url": "https://api.pmxt.dev",
       "description": "Production"
+    },
+    {
+      "url": "https://trade.pmxt.dev",
+      "description": "Hosted trading (v0)"
     }
   ],
   "security": [
@@ -16,7 +20,687 @@
       "bearerAuth": []
     }
   ],
+  "tags": [
+    {
+      "name": "Trading (Hosted)",
+      "description": "Hosted trading endpoints. Build / submit / cancel orders via `trade.pmxt.dev/v0/*`. Hosted-mode is the default when `pmxt_api_key` is set."
+    },
+    {
+      "name": "Orders & Positions (Hosted)",
+      "description": "Hosted account reads. Open orders, fills, balances, and positions via `trade.pmxt.dev/v0/*`. Requires `pmxt_api_key` + `wallet_address`."
+    },
+    {
+      "name": "MatchedMarkets",
+      "description": "Cross-venue matched market and event clusters."
+    },
+    {
+      "name": "SQL",
+      "description": "Direct read-only SQL access to the catalog (Enterprise)."
+    }
+  ],
   "paths": {
+    "/v0/trade/build-order": {
+      "post": {
+        "summary": "Build Order (Hosted)",
+        "description": "Build a hosted-mode order from catalog `market_id` + `outcome_id`. Returns EIP-712 typed data for the caller to sign locally and then submit via `submitOrderHosted`. The wallet always controls the signature; the hosted server only holds USDC in escrow on behalf of the caller.\n\nSee [hosted trading](/concepts/hosted-trading) and the [signing guide](/guides/signing) for end-to-end flow.\n",
+        "tags": [
+          "Trading (Hosted)"
+        ],
+        "operationId": "buildOrderHosted",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildOrderHostedRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Built order with typed data to sign.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuildOrderHostedResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing PMXT API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient escrow balance to back the requested order size.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Outcome not found in the catalog.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid order parameters (e.g. price out of range, denom mismatch).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Catalog unavailable -- temporary upstream failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "import pmxt\n\nclient = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    wallet_address=\"0xYourWallet\",\n    private_key=\"0x...\",\n)\nbuilt = client.build_order(\n    market_id=\"12345678-1234-1234-1234-123456789abc\",\n    outcome_id=\"abcdef01-2345-6789-abcd-ef0123456789\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n)\nprint(built.expiry, built.raw)\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "TypeScript",
+            "source": "import { Polymarket } from \"pmxtjs\";\n\nconst client = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  walletAddress: \"0xYourWallet\",\n  privateKey: \"0x...\",\n});\n\nconst built = await client.buildOrder({\n  marketId: \"12345678-1234-1234-1234-123456789abc\",\n  outcomeId: \"abcdef01-2345-6789-abcd-ef0123456789\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n});\nconsole.log(built.expiry, built.raw);\n"
+          }
+        ]
+      }
+    },
+    "/v0/trade/submit-order": {
+      "post": {
+        "summary": "Submit Order (Hosted)",
+        "description": "Submit a signed, previously-built order via `built_order_id`. The order must have been returned from `buildOrderHosted` within the expiry window. Returns the resulting `Order` once execution settles or queues.\n\nFor most callers, prefer `createOrderHosted`, which chains build -> sign -> submit in a single call.\n",
+        "tags": [
+          "Trading (Hosted)"
+        ],
+        "operationId": "submitOrderHosted",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitOrderHostedRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order accepted by the hosted backend.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderV0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing PMXT API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`built_order_id` expired before submission. Re-run `buildOrderHosted` and submit again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid signature or malformed payload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "import pmxt\n\nclient = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    wallet_address=\"0xYourWallet\",\n    private_key=\"0x...\",\n)\nbuilt = client.build_order(\n    market_id=\"12345678-1234-1234-1234-123456789abc\",\n    outcome_id=\"abcdef01-2345-6789-abcd-ef0123456789\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n)\norder = client.submit_order(built)\nprint(order.id, order.status)\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "TypeScript",
+            "source": "import { Polymarket } from \"pmxtjs\";\n\nconst client = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  walletAddress: \"0xYourWallet\",\n  privateKey: \"0x...\",\n});\n\nconst built = await client.buildOrder({\n  marketId: \"12345678-1234-1234-1234-123456789abc\",\n  outcomeId: \"abcdef01-2345-6789-abcd-ef0123456789\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n});\nconst order = await client.submitOrder(built);\nconsole.log(order.id, order.status);\n"
+          }
+        ]
+      }
+    },
+    "/v0/trade/create-order": {
+      "post": {
+        "summary": "Create Order (Hosted)",
+        "description": "Hosted-mode `createOrder` chains `buildOrderHosted` -> local signing -> `submitOrderHosted` inside the SDK. There is no single HTTP endpoint -- this entry documents the convenience call pattern for SDK users.\n\nIf you need to inspect the typed data before signing (e.g. to display order details to an end user before they approve), call `buildOrderHosted` and `submitOrderHosted` directly.\n",
+        "tags": [
+          "Trading (Hosted)"
+        ],
+        "operationId": "createOrderHosted",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildOrderHostedRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order accepted by the hosted backend.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderV0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing PMXT API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient escrow balance.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Outcome not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid order parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Catalog unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "import pmxt\n\nclient = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    wallet_address=\"0xYourWallet\",\n    private_key=\"0x...\",\n)\norder = client.create_order(\n    market_id=\"12345678-1234-1234-1234-123456789abc\",\n    outcome_id=\"abcdef01-2345-6789-abcd-ef0123456789\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n)\nprint(order.id, order.status)\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "TypeScript",
+            "source": "import { Polymarket } from \"pmxtjs\";\n\nconst client = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  walletAddress: \"0xYourWallet\",\n  privateKey: \"0x...\",\n});\n\nconst order = await client.createOrder({\n  marketId: \"12345678-1234-1234-1234-123456789abc\",\n  outcomeId: \"abcdef01-2345-6789-abcd-ef0123456789\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n});\nconsole.log(order.id, order.status);\n"
+          }
+        ]
+      }
+    },
+    "/v0/orders/cancel/build": {
+      "post": {
+        "summary": "Cancel Order -- Build (Hosted)",
+        "description": "Step 1 of the hosted cancel flow. Returns EIP-712 typed data for the caller to sign locally. Step 2 is `POST /v0/orders/cancel` with the resulting signature. The SDK's `cancelOrder()` chains both calls.\n",
+        "tags": [
+          "Trading (Hosted)"
+        ],
+        "operationId": "cancelOrderHosted",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelBuildHostedRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cancel build response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelBuildHostedResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing PMXT API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid order ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "import pmxt\n\nclient = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    wallet_address=\"0xYourWallet\",\n    private_key=\"0x...\",\n)\ncancelled = client.cancel_order(\"order_abc123\")\nprint(cancelled.id, cancelled.status)\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "TypeScript",
+            "source": "import { Polymarket } from \"pmxtjs\";\n\nconst client = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  walletAddress: \"0xYourWallet\",\n  privateKey: \"0x...\",\n});\n\nconst cancelled = await client.cancelOrder(\"order_abc123\");\nconsole.log(cancelled.id, cancelled.status);\n"
+          }
+        ]
+      }
+    },
+    "/v0/user/{address}/balances": {
+      "get": {
+        "summary": "Fetch Balance (Hosted)",
+        "description": "Returns the wallet's escrow USDC balance. Hosted `fetch_balance` returns USDC held inside the PMXT `PreFundedEscrow` contract on behalf of `address`, *not* the venue-native CLOB-proxy balance. See [hosted vs self-hosted](/concepts/hosted-vs-self-hosted) for the distinction.\n",
+        "tags": [
+          "Orders & Positions (Hosted)"
+        ],
+        "operationId": "fetchBalanceHosted",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "address",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "EVM wallet address (lowercase or checksum)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Balance for the wallet.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceV0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing PMXT API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Catalog or escrow indexer temporarily unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "import pmxt\n\nclient = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    wallet_address=\"0xYourWallet\",\n)\nbalance = client.fetch_balance()\nprint(balance.amount, balance.currency)\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "TypeScript",
+            "source": "import { Polymarket } from \"pmxtjs\";\n\nconst client = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  walletAddress: \"0xYourWallet\",\n});\n\nconst balance = await client.fetchBalance();\nconsole.log(balance.amount, balance.currency);\n"
+          }
+        ]
+      }
+    },
+    "/v0/user/{address}/positions": {
+      "get": {
+        "summary": "Fetch Positions (Hosted)",
+        "description": "Returns open positions held by `address` across hosted venues.\n",
+        "tags": [
+          "Orders & Positions (Hosted)"
+        ],
+        "operationId": "fetchPositionsHosted",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "address",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "EVM wallet address."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Positions list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PositionV0"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing PMXT API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Catalog or indexer temporarily unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "import pmxt\n\nclient = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    wallet_address=\"0xYourWallet\",\n)\nfor position in client.fetch_positions():\n    print(position.market_id, position.shares, position.current_value)\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "TypeScript",
+            "source": "import { Polymarket } from \"pmxtjs\";\n\nconst client = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  walletAddress: \"0xYourWallet\",\n});\n\nfor (const position of await client.fetchPositions()) {\n  console.log(position.marketId, position.shares, position.currentValue);\n}\n"
+          }
+        ]
+      }
+    },
+    "/v0/orders/open": {
+      "get": {
+        "summary": "Fetch Open Orders (Hosted)",
+        "description": "Returns resting limit orders owned by `address`. Optionally filter by `venue`.\n",
+        "tags": [
+          "Orders & Positions (Hosted)"
+        ],
+        "operationId": "fetchOpenOrdersHosted",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "address",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "EVM wallet address."
+          },
+          {
+            "in": "query",
+            "name": "venue",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "opinion"
+              ]
+            },
+            "description": "Restrict to a single hosted venue."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Open orders list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrderV0"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing PMXT API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "import pmxt\n\nclient = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    wallet_address=\"0xYourWallet\",\n)\nfor order in client.fetch_open_orders():\n    print(order.id, order.side, order.price, order.remaining)\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "TypeScript",
+            "source": "import { Polymarket } from \"pmxtjs\";\n\nconst client = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  walletAddress: \"0xYourWallet\",\n});\n\nfor (const order of await client.fetchOpenOrders()) {\n  console.log(order.id, order.side, order.price, order.remaining);\n}\n"
+          }
+        ]
+      }
+    },
+    "/v0/user/{address}/trades": {
+      "get": {
+        "summary": "Fetch My Trades (Hosted)",
+        "description": "Returns historical fills for `address`. In hosted mode, closed orders are modelled as trades -- use this endpoint instead of `fetchClosedOrders` / `fetchAllOrders` (which raise `NotSupported`).\n",
+        "tags": [
+          "Orders & Positions (Hosted)"
+        ],
+        "operationId": "fetchMyTradesHosted",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "address",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "EVM wallet address."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trade history.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserTradeV0"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing PMXT API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "import pmxt\n\nclient = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    wallet_address=\"0xYourWallet\",\n)\nfor trade in client.fetch_my_trades():\n    print(trade.id, trade.side, trade.amount, trade.price, trade.tx_hash)\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "TypeScript",
+            "source": "import { Polymarket } from \"pmxtjs\";\n\nconst client = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  walletAddress: \"0xYourWallet\",\n});\n\nfor (const trade of await client.fetchMyTrades()) {\n  console.log(trade.id, trade.side, trade.amount, trade.price, trade.txHash);\n}\n"
+          }
+        ]
+      }
+    },
+    "/v0/orders/{order_id}": {
+      "get": {
+        "summary": "Fetch Order (Hosted)",
+        "description": "Look up a single hosted order by its unified `order_id` (the same string returned by `fetchOpenOrdersHosted`).\n",
+        "tags": [
+          "Orders & Positions (Hosted)"
+        ],
+        "operationId": "fetchOrderHosted",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unified order id."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The order.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderV0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing PMXT API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "import pmxt\n\nclient = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n    wallet_address=\"0xYourWallet\",\n)\norder = client.fetch_order(\"order_abc123\")\nprint(order.id, order.status, order.filled, order.remaining)\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "TypeScript",
+            "source": "import { Polymarket } from \"pmxtjs\";\n\nconst client = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n  walletAddress: \"0xYourWallet\",\n});\n\nconst order = await client.fetchOrder(\"order_abc123\");\nconsole.log(order.id, order.status, order.filled, order.remaining);\n"
+          }
+        ]
+      }
+    },
     "/v0/matched-event-clusters": {
       "get": {
         "summary": "Fetch matched event clusters",
@@ -850,6 +1534,490 @@
           },
           "window": {
             "type": "string"
+          }
+        }
+      },
+      "HostedErrorResponse": {
+        "type": "object",
+        "description": "Error envelope returned by `trade.pmxt.dev/v0/*` endpoints. Mirrors the `ErrorDetail` shape used inside `BaseResponse.error` from the sidecar spec.",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string",
+                "description": "Stable hosted-mode error code.",
+                "enum": [
+                  "HOSTED_TRADING_ERROR",
+                  "INSUFFICIENT_ESCROW_BALANCE",
+                  "ORDER_SIZE_TOO_SMALL",
+                  "INVALID_API_KEY",
+                  "OUTCOME_NOT_FOUND",
+                  "CATALOG_UNAVAILABLE",
+                  "BUILT_ORDER_EXPIRED",
+                  "INVALID_SIGNATURE",
+                  "NO_LIQUIDITY",
+                  "MISSING_WALLET_ADDRESS",
+                  "ORDER_NOT_FOUND",
+                  "INVALID_ORDER"
+                ]
+              },
+              "retryable": {
+                "type": "boolean"
+              },
+              "exchange": {
+                "type": "string",
+                "nullable": true
+              },
+              "detail": {
+                "type": "object",
+                "additionalProperties": {},
+                "nullable": true
+              }
+            }
+          }
+        }
+      },
+      "BuildOrderHostedRequest": {
+        "type": "object",
+        "description": "Hosted build-order request. Keys mirror the SDK constructor of an `Order`: pass catalog UUIDs (`market_id`, `outcome_id`), not venue-native ids.",
+        "required": [
+          "market_id",
+          "outcome_id",
+          "side",
+          "amount",
+          "user_address"
+        ],
+        "properties": {
+          "market_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Catalog market UUID."
+          },
+          "outcome_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Catalog outcome UUID."
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "buy",
+              "sell"
+            ]
+          },
+          "order_type": {
+            "type": "string",
+            "enum": [
+              "market",
+              "limit"
+            ],
+            "default": "market"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Order size. For `market` buys, in USDC; for `market` sells / `limit`, in shares."
+          },
+          "denom": {
+            "type": "string",
+            "enum": [
+              "shares",
+              "usdc"
+            ],
+            "default": "shares"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "nullable": true,
+            "description": "Required for `limit` orders. Probability in [0, 1]."
+          },
+          "slippage_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "user_address": {
+            "type": "string",
+            "description": "EVM wallet address that will sign the resulting typed data."
+          }
+        }
+      },
+      "BuildOrderHostedResponse": {
+        "type": "object",
+        "description": "Hosted build-order response. The caller must sign `typed_data` locally (and `pull_typed_data` if present) and POST the signatures back via `submitOrderHosted` before the order expires.",
+        "required": [
+          "built_order_id",
+          "side",
+          "typed_data",
+          "quote"
+        ],
+        "properties": {
+          "built_order_id": {
+            "type": "string",
+            "description": "Opaque server-side key used by `submitOrderHosted` to look up the build context."
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "buy",
+              "sell"
+            ]
+          },
+          "typed_data": {
+            "type": "object",
+            "description": "EIP-712 typed data for the order. Sign locally with the wallet that matches `user_address`."
+          },
+          "pull_typed_data": {
+            "type": "object",
+            "nullable": true,
+            "description": "Optional secondary EIP-712 payload for venues that require a pull-authorization (e.g. Polymarket neg-risk markets)."
+          },
+          "quote": {
+            "type": "object",
+            "description": "Pre-trade quote: expected average fill price, slippage, and fees.",
+            "properties": {
+              "best_price": {
+                "type": "number"
+              },
+              "expected_avg_price": {
+                "type": "number"
+              },
+              "expected_slippage_pct": {
+                "type": "number"
+              },
+              "estimated_cost_or_proceeds": {
+                "type": "number"
+              },
+              "fillable": {
+                "type": "boolean"
+              },
+              "liquidity": {
+                "type": "number"
+              },
+              "fee_amount": {
+                "type": "number"
+              },
+              "tick_size": {
+                "type": "string"
+              }
+            }
+          },
+          "resolved": {
+            "type": "object",
+            "nullable": true,
+            "description": "Venue-native fields resolved from the catalog UUIDs (`venue`, `token_id`, `neg_risk`, `tick_size`).",
+            "properties": {
+              "venue": {
+                "type": "string",
+                "enum": [
+                  "polymarket",
+                  "opinion"
+                ]
+              },
+              "token_id": {
+                "type": "string"
+              },
+              "neg_risk": {
+                "type": "boolean"
+              },
+              "tick_size": {
+                "type": "number"
+              },
+              "opinion_market_id": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
+          }
+        }
+      },
+      "SubmitOrderHostedRequest": {
+        "type": "object",
+        "description": "Hosted submit-order request. `signature` is the local EIP-712 signature over `BuildOrderHostedResponse.typed_data`.",
+        "required": [
+          "built_order_id",
+          "signature"
+        ],
+        "properties": {
+          "built_order_id": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string",
+            "description": "Hex-encoded EIP-712 signature."
+          },
+          "pull_signature": {
+            "type": "string",
+            "nullable": true,
+            "description": "Signature for the secondary pull-authorization, required when `pull_typed_data` was returned."
+          },
+          "wait": {
+            "type": "boolean",
+            "default": false,
+            "description": "When `true`, the server waits for on-chain settlement before responding."
+          }
+        }
+      },
+      "CancelBuildHostedRequest": {
+        "type": "object",
+        "required": [
+          "order_id",
+          "user_address"
+        ],
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "description": "Unified order id, as returned by `fetchOpenOrdersHosted`."
+          },
+          "user_address": {
+            "type": "string"
+          }
+        }
+      },
+      "CancelBuildHostedResponse": {
+        "type": "object",
+        "required": [
+          "cancel_id",
+          "typed_data",
+          "deadline"
+        ],
+        "properties": {
+          "cancel_id": {
+            "type": "string"
+          },
+          "typed_data": {
+            "type": "object"
+          },
+          "pull_typed_data": {
+            "type": "object",
+            "nullable": true
+          },
+          "deadline": {
+            "type": "integer",
+            "description": "Unix epoch (s) after which the cancel build expires."
+          }
+        }
+      },
+      "OrderV0": {
+        "type": "object",
+        "description": "Hosted-mode `Order` shape. Mirrors `pmxt.Order` so the SDK can return it directly. `tx_hash`, `chain`, and `block_number` populate once execution settles on-chain.",
+        "required": [
+          "id",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "market_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "outcome_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "buy",
+              "sell"
+            ],
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "market",
+              "limit"
+            ],
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "nullable": true
+          },
+          "price": {
+            "type": "number",
+            "nullable": true
+          },
+          "filled": {
+            "type": "number"
+          },
+          "remaining": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "fee": {
+            "type": "number",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "nullable": true
+          },
+          "tx_hash": {
+            "type": "string",
+            "nullable": true,
+            "description": "On-chain transaction hash. Null until settled."
+          },
+          "chain": {
+            "type": "string",
+            "nullable": true
+          },
+          "block_number": {
+            "type": "integer",
+            "nullable": true
+          }
+        }
+      },
+      "UserTradeV0": {
+        "type": "object",
+        "description": "Hosted-mode `UserTrade` shape. Mirrors `pmxt.UserTrade`.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "market_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "outcome_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "buy",
+              "sell"
+            ],
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "nullable": true
+          },
+          "price": {
+            "type": "number",
+            "nullable": true
+          },
+          "fee": {
+            "type": "number",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "nullable": true
+          },
+          "tx_hash": {
+            "type": "string",
+            "nullable": true
+          },
+          "chain": {
+            "type": "string",
+            "nullable": true
+          },
+          "venue": {
+            "type": "string",
+            "enum": [
+              "polymarket",
+              "opinion"
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "PositionV0": {
+        "type": "object",
+        "description": "Hosted-mode `Position` shape. `current_price`, `current_value`, `entry_price`, `realized_pnl`, and `outcome_label` may be null when the server doesn't yet have the data.",
+        "required": [
+          "venue",
+          "shares"
+        ],
+        "properties": {
+          "market_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "outcome_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "venue": {
+            "type": "string",
+            "enum": [
+              "polymarket",
+              "opinion"
+            ]
+          },
+          "shares": {
+            "type": "number"
+          },
+          "current_price": {
+            "type": "number",
+            "nullable": true
+          },
+          "current_value": {
+            "type": "number",
+            "nullable": true
+          },
+          "outcome_label": {
+            "type": "string",
+            "nullable": true
+          },
+          "entry_price": {
+            "type": "number",
+            "nullable": true
+          },
+          "realized_pnl": {
+            "type": "number",
+            "nullable": true
+          }
+        }
+      },
+      "BalanceV0": {
+        "type": "object",
+        "description": "Hosted-mode `Balance` shape. Returns USDC held inside the PMXT `PreFundedEscrow` contract.",
+        "required": [
+          "currency",
+          "amount"
+        ],
+        "properties": {
+          "currency": {
+            "type": "string",
+            "default": "USDC"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "venue": {
+            "type": "string",
+            "enum": [
+              "polymarket",
+              "opinion"
+            ],
+            "nullable": true,
+            "description": "Set when the hosted backend returns a per-venue breakdown; null when balance is venue-agnostic."
           }
         }
       }

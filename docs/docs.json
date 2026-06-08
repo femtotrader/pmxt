@@ -172,23 +172,23 @@
           {
             "group": "Trading",
             "pages": [
-              "POST /api/{exchange}/createOrder",
-              "POST /api/{exchange}/buildOrder",
-              "POST /api/{exchange}/submitOrder",
-              "POST /api/{exchange}/cancelOrder"
+              "api-reference/createOrder",
+              "api-reference/buildOrder",
+              "api-reference/submitOrder",
+              "api-reference/cancelOrder"
             ],
             "openapi": "api-reference/openapi.json"
           },
           {
             "group": "Orders & Positions",
             "pages": [
-              "GET /api/{exchange}/fetchOrder",
-              "GET /api/{exchange}/fetchOpenOrders",
-              "GET /api/{exchange}/fetchMyTrades",
-              "GET /api/{exchange}/fetchClosedOrders",
-              "GET /api/{exchange}/fetchAllOrders",
-              "GET /api/{exchange}/fetchPositions",
-              "GET /api/{exchange}/fetchBalance"
+              "api-reference/fetchOrder",
+              "api-reference/fetchOpenOrders",
+              "api-reference/fetchMyTrades",
+              "api-reference/fetchClosedOrders",
+              "api-reference/fetchAllOrders",
+              "api-reference/fetchPositions",
+              "api-reference/fetchBalance"
             ],
             "openapi": "api-reference/openapi.json"
           },

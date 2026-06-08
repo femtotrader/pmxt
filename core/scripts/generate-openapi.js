@@ -461,6 +461,28 @@ const PARAM_OVERRIDES = {
     fetchRelatedMarkets: [{ name: 'marketId', value: '12345' }],
     fetchMatchedMarkets: [{ name: 'minDifference', value: 0.05 }],
     fetchMatchedPrices: [{ name: 'minDifference', value: 0.05 }],
+    // Self-hosted createOrder / buildOrder samples: limit order shape only.
+    // The auto-extracted shape mixed `type: "market"` with `price: 0.55`,
+    // which is incoherent (price is only meaningful for limit orders) and
+    // tacked on internal-only fields (fee, tickSize, negRisk, onBehalfOf)
+    // that the average reader shouldn't see. A clean limit-order example
+    // is the simplest correct shape.
+    createOrder: [
+        { name: 'marketId', value: '12345' },
+        { name: 'outcomeId', value: '67890' },
+        { name: 'side', value: 'buy' },
+        { name: 'type', value: 'limit' },
+        { name: 'amount', value: 10 },
+        { name: 'price', value: 0.55 },
+    ],
+    buildOrder: [
+        { name: 'marketId', value: '12345' },
+        { name: 'outcomeId', value: '67890' },
+        { name: 'side', value: 'buy' },
+        { name: 'type', value: 'limit' },
+        { name: 'amount', value: 10 },
+        { name: 'price', value: 0.55 },
+    ],
 };
 
 const FULL_OVERRIDES = {

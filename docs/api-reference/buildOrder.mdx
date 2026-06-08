@@ -1,0 +1,138 @@
+---
+title: buildOrder
+description: Build an order payload without submitting it. Hosted returns EIP-712 typed data to sign locally.
+---
+
+<Tabs>
+  <Tab title="Hosted (recommended)">
+    <Note>
+      The hosted path routes to `POST trade.pmxt.dev/v0/trade/build-order` and is
+      the default when `pmxt_api_key` is set. Returns a `built_order_id` plus EIP-712
+      typed data the wallet must sign before calling
+      [`submitOrder`](/api-reference/submitOrder). Pass catalog UUIDs
+      (`market_id`, `outcome_id`), not venue-native ids. See
+      [hosted trading](/concepts/hosted-trading) for the end-to-end flow.
+      Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        pmxt_api_key="YOUR_PMXT_API_KEY",
+        wallet_address="0xYourWallet",
+        private_key="0x...",
+    )
+    built = client.build_order(
+        market_id="12345678-1234-1234-1234-123456789abc",
+        outcome_id="abcdef01-2345-6789-abcd-ef0123456789",
+        side="buy",
+        type="limit",
+        amount=10,
+        price=0.55,
+    )
+    print(built.expiry, built.raw)
+    # Sign + submit later with client.submit_order(built).
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      pmxtApiKey: "YOUR_PMXT_API_KEY",
+      walletAddress: "0xYourWallet",
+      privateKey: "0x...",
+    });
+
+    const built = await client.buildOrder({
+      marketId: "12345678-1234-1234-1234-123456789abc",
+      outcomeId: "abcdef01-2345-6789-abcd-ef0123456789",
+      side: "buy",
+      type: "limit",
+      amount: 10,
+      price: 0.55,
+    });
+    console.log(built.expiry, built.raw);
+    // Sign + submit later with client.submitOrder(built).
+    ```
+
+    ```bash curl
+    curl -X POST "https://trade.pmxt.dev/v0/trade/build-order" \
+      -H "Authorization: Bearer $PMXT_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "market_id": "12345678-1234-1234-1234-123456789abc",
+        "outcome_id": "abcdef01-2345-6789-abcd-ef0123456789",
+        "side": "buy",
+        "order_type": "limit",
+        "amount": 10,
+        "denom": "shares",
+        "price": 0.55,
+        "user_address": "0xYourWallet"
+      }'
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Self-hosted">
+    <Note>
+      The self-hosted path uses the local sidecar at
+      `POST localhost:3847/api/{exchange}/buildOrder`. Returns the venue-native
+      signed order or request body for inspection or deferred submission via
+      [`submitOrder`](/api-reference/submitOrder). See
+      [Self-hosted](/guides/self-hosted) for setup.
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        api_key="YOUR_VENUE_API_KEY",
+        api_secret="YOUR_VENUE_API_SECRET",
+        passphrase="YOUR_PASSPHRASE",
+        private_key="YOUR_PRIVATE_KEY",
+        proxy_address="YOUR_PROXY_ADDRESS",
+    )
+    built = client.build_order(
+        market_id="12345",
+        outcome_id="67890",
+        side="buy",
+        type="limit",
+        amount=10,
+        price=0.55,
+    )
+    print(built.exchange, built.raw)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      apiKey: "YOUR_VENUE_API_KEY",
+      apiSecret: "YOUR_VENUE_API_SECRET",
+      passphrase: "YOUR_PASSPHRASE",
+      privateKey: "YOUR_PRIVATE_KEY",
+      proxyAddress: "YOUR_PROXY_ADDRESS",
+    });
+
+    const built = await client.buildOrder({
+      marketId: "12345",
+      outcomeId: "67890",
+      side: "buy",
+      type: "limit",
+      amount: 10,
+      price: 0.55,
+    });
+    console.log(built.exchange, built.raw);
+    ```
+
+    ```bash curl
+    curl -X POST "http://localhost:3847/api/polymarket/buildOrder" \
+      -H "Content-Type: application/json" \
+      -d '{"args":[{"marketId":"12345","outcomeId":"67890","side":"buy","type":"limit","amount":10,"price":0.55}]}'
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>

@@ -1,0 +1,93 @@
+---
+title: fetchBalance
+description: Read the wallet's escrow USDC balance (hosted) or venue-native balance (self-hosted).
+---
+
+<Tabs>
+  <Tab title="Hosted (recommended)">
+    <Note>
+      The hosted path routes to `GET trade.pmxt.dev/v0/user/{address}/balances` and is
+      the default for callers with a `pmxt_api_key`. The balance returned is USDC held
+      inside the PMXT `PreFundedEscrow` contract on behalf of the wallet.
+      Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        pmxt_api_key="YOUR_PMXT_API_KEY",
+        wallet_address="0xYourWallet",
+    )
+    balance = client.fetch_balance()
+    print(balance.amount, balance.currency)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      pmxtApiKey: "YOUR_PMXT_API_KEY",
+      walletAddress: "0xYourWallet",
+    });
+
+    const balance = await client.fetchBalance();
+    console.log(balance.amount, balance.currency);
+    ```
+
+    ```bash curl
+    curl -G "https://trade.pmxt.dev/v0/user/0xYourWallet/balances" \
+      -H "Authorization: Bearer $PMXT_API_KEY"
+    ```
+    </CodeGroup>
+
+    See the [hosted `fetchBalanceHosted` operation](#) for the full request and response
+    schema, or [Hosted vs Self-hosted](/concepts/hosted-vs-self-hosted) for how this
+    differs from the venue-native balance.
+  </Tab>
+
+  <Tab title="Self-hosted">
+    <Note>
+      The self-hosted path uses the local sidecar at
+      `GET localhost:3847/api/{exchange}/fetchBalance`. The balance returned is the
+      venue-native CLOB-proxy balance, not escrow USDC.
+      See [Self-hosted](/guides/self-hosted) for setup.
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        api_key="YOUR_VENUE_API_KEY",
+        api_secret="YOUR_VENUE_API_SECRET",
+        passphrase="YOUR_PASSPHRASE",
+        private_key="YOUR_PRIVATE_KEY",
+        proxy_address="YOUR_PROXY_ADDRESS",
+    )
+    balance = client.fetch_balance()
+    print(balance.amount, balance.currency)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      apiKey: "YOUR_VENUE_API_KEY",
+      apiSecret: "YOUR_VENUE_API_SECRET",
+      passphrase: "YOUR_PASSPHRASE",
+      privateKey: "YOUR_PRIVATE_KEY",
+      proxyAddress: "YOUR_PROXY_ADDRESS",
+    });
+
+    const balance = await client.fetchBalance();
+    console.log(balance.amount, balance.currency);
+    ```
+
+    ```bash curl
+    curl "http://localhost:3847/api/polymarket/fetchBalance"
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>

@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.49.2] - 2026-06-09
+
+Per-method docs follow-up to 2.49.1 — every Group A method (`createOrder`, `buildOrder`, `submitOrder`, `cancelOrder`, `fetchBalance`, `fetchPositions`, `fetchOpenOrders`, `fetchMyTrades`, `fetchOrder`, `fetchClosedOrders`, `fetchAllOrders`) now has a synchronized `Hosted (recommended)` / `Self-hosted` tab toggle on its reference page, so customers see the hosted endpoint and the v2.49 SDK constructor shape by default and can flip to the local-sidecar variant in place. Mintlify synchronizes tab selection across pages via shared label keys, so the choice persists as the user navigates the API Reference.
+
+### Added
+
+- **Docs (`docs/api-reference/`)**: 11 new shadow MDX files — one per Group A method — wrapping the existing OpenAPI auto-render in a `<Tabs>` toggle. `Hosted (recommended)` tab listed first on every page so it's the default; `Self-hosted` second. Tab labels are byte-identical across all 11 files for cross-page sync.
+- **Core (`openapi-hosted.json`)**: 9 new operations documenting the `trade.pmxt.dev/v0/*` trading surface — `buildOrderHosted` (POST `/v0/trade/build-order`), `submitOrderHosted` (POST `/v0/trade/submit-order`), `createOrderHosted` (SDK-convenience POST `/v0/trade/create-order` documentation entry), `cancelOrderHosted` (POST `/v0/orders/cancel/build`), `fetchBalanceHosted` (GET `/v0/user/{address}/balances`), `fetchPositionsHosted` (GET `/v0/user/{address}/positions`), `fetchOpenOrdersHosted` (GET `/v0/orders/open`), `fetchMyTradesHosted` (GET `/v0/user/{address}/trades`), `fetchOrderHosted` (GET `/v0/orders/{order_id}`). Each carries Python + TypeScript `x-codeSamples` using the v2.49 hosted constructor (`pmxtApiKey`, `walletAddress`, `privateKey`), error responses covering 401/403/404/410/422/503, and bearer auth via the existing `bearerAuth` security scheme. Plus 10 new component schemas for the v0 request/response shapes, all referencing existing components (`Order`, `Balance`, etc.) from 2.49.1.
+- **Docs (`docs.json`)**: Trading and "Orders & Positions" sidebar groups now reference the 11 shadow MDX slugs directly, so Mintlify renders the toggle pages instead of auto-generating from `openapi.json`.
+
+### Fixed
+
+- **Core (`createOrder` / `buildOrder` code samples)**: Pre-existing JSDoc rot — the auto-generated reference pages showed `type="market"` combined with `price=0.55`, an incoherent combination since price is only meaningful for limit orders. Replaced with coherent limit-order samples across all 16 venues (32 createOrder + 32 buildOrder samples, 64 line changes total). The fix lives in `core/scripts/generate-openapi.js`'s `PARAM_OVERRIDES` map so future regeneration emits the correct shape.
+
+### Not addressed (out of scope, flagged for follow-up)
+
+- **`fetchClosedOrdersHosted` / `fetchAllOrdersHosted`**: no underlying hosted endpoint exists — both methods raise `NotSupported` in hosted mode (closed orders are modeled as trades; use `fetchMyTrades` for historical fills). The shadow MDX files surface this via a `<Warning>` on the Hosted tab linking to `fetchMyTrades`.
+- **Escrow methods**: `client.escrow.{approve, deposit, withdraw, withdrawals}` aren't in Group A and so don't have toggle pages yet. They're hosted-only (no self-hosted variant exists), so a follow-up could add single-tab reference pages.
+- **Generator capability map gap**: `buildCapabilityMap()` in `core/scripts/generate-openapi.js` only instantiates 13 of the 16 exported exchange classes, omitting `Hyperliquid`, `GeminiTitan`, and `Mock`. Re-running the generator drops their `x-codeSamples`. The merged main spec retains the missing samples from a prior generator run; the surgical fix here didn't disturb them. Worth a real fix in a follow-up.
+
 ## [2.49.1] - 2026-06-08
 
 Positioning-shift patch on top of 2.49.0 — the hosted trading mode shipped in 2.49.0 but the docs, READMEs, and OpenAPI schemas still defaulted to the self-hosted sidecar path. This release flips the default everywhere the SDK + docs surface a customer hits: hosted PMXT is the primary experience; self-hosting becomes the advanced escape hatch. No SDK runtime behavior changes — pure documentation, schema, and copy work. Marketing-site changes ship separately in a sibling pmxt-website PR.

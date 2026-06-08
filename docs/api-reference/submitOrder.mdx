@@ -1,0 +1,134 @@
+---
+title: submitOrder
+description: Submit a previously-built order. Hosted requires a signed `built_order_id`.
+---
+
+<Tabs>
+  <Tab title="Hosted (recommended)">
+    <Note>
+      The hosted path routes to `POST trade.pmxt.dev/v0/trade/submit-order` and is
+      the default when `pmxt_api_key` is set. Pass the `built_order_id` from
+      [`buildOrder`](/api-reference/buildOrder) plus the local EIP-712 signature.
+      The order must be submitted before its `expiry`. See
+      [hosted trading](/concepts/hosted-trading) and the [signing guide](/guides/signing).
+      Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        pmxt_api_key="YOUR_PMXT_API_KEY",
+        wallet_address="0xYourWallet",
+        private_key="0x...",
+    )
+    built = client.build_order(
+        market_id="12345678-1234-1234-1234-123456789abc",
+        outcome_id="abcdef01-2345-6789-abcd-ef0123456789",
+        side="buy",
+        type="limit",
+        amount=10,
+        price=0.55,
+    )
+    order = client.submit_order(built)
+    print(order.id, order.status)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      pmxtApiKey: "YOUR_PMXT_API_KEY",
+      walletAddress: "0xYourWallet",
+      privateKey: "0x...",
+    });
+
+    const built = await client.buildOrder({
+      marketId: "12345678-1234-1234-1234-123456789abc",
+      outcomeId: "abcdef01-2345-6789-abcd-ef0123456789",
+      side: "buy",
+      type: "limit",
+      amount: 10,
+      price: 0.55,
+    });
+    const order = await client.submitOrder(built);
+    console.log(order.id, order.status);
+    ```
+
+    ```bash curl
+    curl -X POST "https://trade.pmxt.dev/v0/trade/submit-order" \
+      -H "Authorization: Bearer $PMXT_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "built_order_id": "blt_abc123...",
+        "signature": "0x...",
+        "wait": false
+      }'
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Self-hosted">
+    <Note>
+      The self-hosted path uses the local sidecar at
+      `POST localhost:3847/api/{exchange}/submitOrder`. The sidecar signs locally
+      against the venue's CLOB; the request body contains the venue-native built
+      order returned by [`buildOrder`](/api-reference/buildOrder). See
+      [Self-hosted](/guides/self-hosted) for setup.
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        api_key="YOUR_VENUE_API_KEY",
+        api_secret="YOUR_VENUE_API_SECRET",
+        passphrase="YOUR_PASSPHRASE",
+        private_key="YOUR_PRIVATE_KEY",
+        proxy_address="YOUR_PROXY_ADDRESS",
+    )
+    built = client.build_order(
+        market_id="12345",
+        outcome_id="67890",
+        side="buy",
+        type="limit",
+        amount=10,
+        price=0.55,
+    )
+    order = client.submit_order(built)
+    print(order.id, order.status)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      apiKey: "YOUR_VENUE_API_KEY",
+      apiSecret: "YOUR_VENUE_API_SECRET",
+      passphrase: "YOUR_PASSPHRASE",
+      privateKey: "YOUR_PRIVATE_KEY",
+      proxyAddress: "YOUR_PROXY_ADDRESS",
+    });
+
+    const built = await client.buildOrder({
+      marketId: "12345",
+      outcomeId: "67890",
+      side: "buy",
+      type: "limit",
+      amount: 10,
+      price: 0.55,
+    });
+    const order = await client.submitOrder(built);
+    console.log(order.id, order.status);
+    ```
+
+    ```bash curl
+    curl -X POST "http://localhost:3847/api/polymarket/submitOrder" \
+      -H "Content-Type: application/json" \
+      -d '{"args":[{"exchange":"polymarket","raw":{...}}]}'
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>

@@ -1,0 +1,87 @@
+---
+title: fetchOpenOrders
+description: List resting limit orders for the wallet (hosted) or via the local sidecar.
+---
+
+<Tabs>
+  <Tab title="Hosted (recommended)">
+    <Note>
+      The hosted path routes to `GET trade.pmxt.dev/v0/orders/open?address={address}`
+      and is the default when `pmxt_api_key` is set. Optionally filter by `venue`
+      (`polymarket` or `opinion`). Get a key at
+      [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        pmxt_api_key="YOUR_PMXT_API_KEY",
+        wallet_address="0xYourWallet",
+    )
+    for order in client.fetch_open_orders():
+        print(order.id, order.side, order.price, order.remaining)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      pmxtApiKey: "YOUR_PMXT_API_KEY",
+      walletAddress: "0xYourWallet",
+    });
+
+    for (const order of await client.fetchOpenOrders()) {
+      console.log(order.id, order.side, order.price, order.remaining);
+    }
+    ```
+
+    ```bash curl
+    curl -G "https://trade.pmxt.dev/v0/orders/open" \
+      -H "Authorization: Bearer $PMXT_API_KEY" \
+      --data-urlencode "address=0xYourWallet"
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Self-hosted">
+    <Note>
+      The self-hosted path uses the local sidecar at
+      `GET localhost:3847/api/{exchange}/fetchOpenOrders`. Optional `marketId` query
+      param filters by market. See [Self-hosted](/guides/self-hosted) for setup.
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        api_key="YOUR_VENUE_API_KEY",
+        private_key="YOUR_PRIVATE_KEY",
+        proxy_address="YOUR_PROXY_ADDRESS",
+    )
+    for order in client.fetch_open_orders():
+        print(order.id, order.side, order.price, order.remaining)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      apiKey: "YOUR_VENUE_API_KEY",
+      privateKey: "YOUR_PRIVATE_KEY",
+      proxyAddress: "YOUR_PROXY_ADDRESS",
+    });
+
+    for (const order of await client.fetchOpenOrders()) {
+      console.log(order.id, order.side, order.price, order.remaining);
+    }
+    ```
+
+    ```bash curl
+    curl "http://localhost:3847/api/polymarket/fetchOpenOrders"
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>

@@ -1,0 +1,87 @@
+---
+title: fetchMyTrades
+description: List historical fills for the wallet (hosted) or via the local sidecar.
+---
+
+<Tabs>
+  <Tab title="Hosted (recommended)">
+    <Note>
+      The hosted path routes to `GET trade.pmxt.dev/v0/user/{address}/trades` and is
+      the default when `pmxt_api_key` is set. In hosted mode, **closed orders are
+      modelled as trades** -- use this endpoint instead of `fetchClosedOrders` /
+      `fetchAllOrders` (which raise `NotSupported`).
+      Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        pmxt_api_key="YOUR_PMXT_API_KEY",
+        wallet_address="0xYourWallet",
+    )
+    for trade in client.fetch_my_trades():
+        print(trade.id, trade.side, trade.amount, trade.price, trade.tx_hash)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      pmxtApiKey: "YOUR_PMXT_API_KEY",
+      walletAddress: "0xYourWallet",
+    });
+
+    for (const trade of await client.fetchMyTrades()) {
+      console.log(trade.id, trade.side, trade.amount, trade.price, trade.txHash);
+    }
+    ```
+
+    ```bash curl
+    curl -G "https://trade.pmxt.dev/v0/user/0xYourWallet/trades" \
+      -H "Authorization: Bearer $PMXT_API_KEY"
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Self-hosted">
+    <Note>
+      The self-hosted path uses the local sidecar at
+      `GET localhost:3847/api/{exchange}/fetchMyTrades`. Trades are read directly from
+      the venue. See [Self-hosted](/guides/self-hosted) for setup.
+    </Note>
+
+    <CodeGroup>
+    ```python Python
+    import pmxt
+
+    client = pmxt.Polymarket(
+        api_key="YOUR_VENUE_API_KEY",
+        private_key="YOUR_PRIVATE_KEY",
+        proxy_address="YOUR_PROXY_ADDRESS",
+    )
+    for trade in client.fetch_my_trades():
+        print(trade.id, trade.side, trade.amount, trade.price)
+    ```
+
+    ```javascript TypeScript
+    import { Polymarket } from "pmxtjs";
+
+    const client = new Polymarket({
+      apiKey: "YOUR_VENUE_API_KEY",
+      privateKey: "YOUR_PRIVATE_KEY",
+      proxyAddress: "YOUR_PROXY_ADDRESS",
+    });
+
+    for (const trade of await client.fetchMyTrades()) {
+      console.log(trade.id, trade.side, trade.amount, trade.price);
+    }
+    ```
+
+    ```bash curl
+    curl "http://localhost:3847/api/polymarket/fetchMyTrades"
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>

@@ -123,13 +123,6 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "Reference",
-            "pages": [
-              "api-reference/errors",
-              "api-reference/configuration"
-            ]
-          },
-          {
             "group": "Overview",
             "pages": [
               "api-reference/overview"

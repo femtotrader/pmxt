@@ -173,24 +173,26 @@
           },
           {
             "group": "Trading",
-            "openapi": "api-reference/openapi-hosted-trading.json",
             "pages": [
-              "POST /v0/trade/create-order",
-              "POST /v0/trade/build-order",
-              "POST /v0/trade/submit-order",
-              "POST /v0/orders/cancel/build"
-            ]
+              "POST /api/{exchange}/createOrder",
+              "POST /api/{exchange}/buildOrder",
+              "POST /api/{exchange}/submitOrder",
+              "POST /api/{exchange}/cancelOrder"
+            ],
+            "openapi": "api-reference/openapi.json"
           },
           {
             "group": "Orders & Positions",
-            "openapi": "api-reference/openapi-hosted-trading.json",
             "pages": [
-              "GET /v0/orders/{order_id}",
-              "GET /v0/orders/open",
-              "GET /v0/user/{address}/trades",
-              "GET /v0/user/{address}/positions",
-              "GET /v0/user/{address}/balances"
-            ]
+              "GET /api/{exchange}/fetchOrder",
+              "GET /api/{exchange}/fetchOpenOrders",
+              "GET /api/{exchange}/fetchMyTrades",
+              "GET /api/{exchange}/fetchClosedOrders",
+              "GET /api/{exchange}/fetchAllOrders",
+              "GET /api/{exchange}/fetchPositions",
+              "GET /api/{exchange}/fetchBalance"
+            ],
+            "openapi": "api-reference/openapi.json"
           },
           {
             "group": "Realtime",
@@ -224,6 +226,27 @@
               "GET /api/{exchange}/fetchSeries"
             ],
             "openapi": "api-reference/openapi.json"
+          },
+          {
+            "group": "Trading",
+            "openapi": "api-reference/openapi-hosted-trading.json",
+            "pages": [
+              "POST /v0/trade/create-order",
+              "POST /v0/trade/build-order",
+              "POST /v0/trade/submit-order",
+              "POST /v0/orders/cancel/build"
+            ]
+          },
+          {
+            "group": "Orders & Positions",
+            "openapi": "api-reference/openapi-hosted-trading.json",
+            "pages": [
+              "GET /v0/orders/{order_id}",
+              "GET /v0/orders/open",
+              "GET /v0/user/{address}/trades",
+              "GET /v0/user/{address}/positions",
+              "GET /v0/user/{address}/balances"
+            ]
           },
           {
             "group": "Trading (Hosted)",

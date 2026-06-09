@@ -5048,6 +5048,12 @@ curl "https://api.pmxt.dev/api/polymarket/fetchMarket?slug=will-gavin-newsom-win
 </CodeGroup>
 
 
+## Trading
+
+
+## Orders & Positions
+
+
 ## Cross Exchange
 
 ### Fetch matched event clusters
@@ -6833,12 +6839,6 @@ const exchange = new Router({
 const result = await exchange.fetchSeries();
 ```
 
-
-
-## Trading
-
-
-## Orders & Positions
 
 
 ## Enterprise

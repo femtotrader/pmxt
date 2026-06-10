@@ -3362,6 +3362,9 @@ export class SuiBets extends Exchange {
     }
 }
 
+// Backwards-compatible casing alias matching the Python SDK export.
+export const Suibets = SuiBets;
+
 /**
  * Mock exchange client.
  *

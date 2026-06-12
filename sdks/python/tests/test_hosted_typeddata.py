@@ -525,9 +525,41 @@ def test_validate_economics_rejects_market_worst_price_outside_domain(pinned: in
         )
 
 
-def test_validate_economics_rejects_opinion_market_id_mismatch() -> None:
+def test_validate_economics_rejects_opinion_token_id_mismatch() -> None:
+    # The signed economic identity on Opinion is the outcome tokenId — a
+    # build response resolving a different token than the message must fail.
+    fixture = _fixture("opinion_buy")
+    response = _replace_path(fixture["build_response"], ("resolved", "token_id"), "7777")
+
+    with pytest.raises(InvalidSignature):
+        validate_economics(
+            route=fixture["route"],
+            build_request=_copy(fixture["build_request"]),
+            build_response=response,
+        )
+
+
+def test_validate_economics_ignores_params_market_id_when_message_has_no_field() -> None:
+    # Current API schema: the signed message carries tokenId only. A
+    # params/resolved opinion_market_id quirk must NOT block the order —
+    # requiring message.opinion_market_id blocked every real Opinion order.
     fixture = _fixture("opinion_buy")
     response = _replace_path(fixture["build_response"], ("params", "opinion_market_id"), 7_777)
+
+    validate_economics(
+        route=fixture["route"],
+        build_request=_copy(fixture["build_request"]),
+        build_response=response,
+    )
+
+
+def test_validate_economics_rejects_legacy_message_market_id_mismatch() -> None:
+    # Legacy schema: when the message DOES carry opinion_market_id it must
+    # still match the build response.
+    fixture = _fixture("opinion_buy")
+    response = _copy(fixture["build_response"])
+    response["typed_data"]["message"]["opinion_market_id"] = 1234
+    response["resolved"]["opinion_market_id"] = 7_777
 
     with pytest.raises(InvalidSignature):
         validate_economics(

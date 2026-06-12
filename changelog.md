@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.49.11] - 2026-06-12
+
+Hosted trading works from ESM apps and Opinion orders pass pre-sign validation. Two independent bugs each blocked all hosted writes for affected callers: the ESM build could not lazy-load ethers (bare `require` is undefined in ESM, and the failure was silently swallowed — the signer was dropped and every write died with "hosted write requires a signer" even when a `privateKey` was passed), and the client-side economics validator demanded `message.opinion_market_id` from a trading-API message schema that no longer carries it (the signed economic identity is the outcome `tokenId`). Both verified live against `trade.pmxt.dev` from an ESM consumer.
+
+### Fixed
+
+- **TS `pmxt/signers.ts`**: New `loadEthers()` helper used by `EthersSigner` — native `require` in the CJS build, `process.getBuiltinModule("node:module").createRequire(...)` in the ESM build (Node >= 20.16). Previously the ESM build's bare `require("ethers")` threw `ReferenceError`, which the lazy-signer bridge in the Exchange constructor caught and swallowed, silently discarding the caller's `privateKey`.
+- **TS `pmxt/hosted-typed-data.ts`**: signature verification now loads ethers via the same helper instead of bare `require`.
+- **TS `pmxt/hosted-typed-data.ts` + Python `pmxt/_hosted_typeddata.py`**: `validateOpinionMarketId` / `_validate_opinion_market_id` now validate `message.tokenId` against `resolved.token_id` — the field that is actually signed. The `opinion_market_id` equality check only applies when the message carries the field (legacy schema); requiring it unconditionally rejected every current-schema Opinion order pre-sign with `economic mismatch: message.opinion_market_id missing`.
+- **Python `tests/test_hosted_typeddata.py`**: opinion economics tests updated to the tokenId-based contract (mismatch rejection on `resolved.token_id`, params-only quirks no longer block, legacy `opinion_market_id` mismatch still rejected when present in the message).
+
 ## [2.49.10] - 2026-06-12
 
 Hosted custody docs now link to the public contract explorer pages instead of private GitHub source paths, and explicitly disclose that explorer source verification/public source publication is still pending.

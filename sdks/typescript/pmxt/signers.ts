@@ -39,6 +39,33 @@ const ETHERS_INSTALL_HINT =
     "hosted trading requires the optional 'ethers' peer dependency. Install with: npm install ethers";
 
 /**
+ * Load ethers lazily in BOTH module systems. The CJS build has native
+ * `require`; the ESM build does not — bare `require("ethers")` there threw
+ * ReferenceError, which callers swallowed, silently dropping the signer and
+ * killing every hosted write with "hosted write requires a signer".
+ */
+export function loadEthers(installHint: string = ETHERS_INSTALL_HINT): any {
+    if (typeof require === "function") {
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            return require("ethers");
+        } catch {
+            throw new Error(installHint);
+        }
+    }
+    // ESM: synthesize a require. getBuiltinModule is sync-safe in both
+    // module systems (Node >= 20.16).
+    const nodeModule = (globalThis as any).process?.getBuiltinModule?.("node:module");
+    const req = nodeModule?.createRequire?.(`${process.cwd()}/__pmxt_resolver__.js`);
+    if (!req) throw new Error(installHint);
+    try {
+        return req("ethers");
+    } catch {
+        throw new Error(installHint);
+    }
+}
+
+/**
  * Built-in signer backed by an ethers `Wallet`.
  *
  * `ethers` is imported lazily — a clear, install-hint-bearing error is thrown
@@ -49,13 +76,7 @@ export class EthersSigner implements Signer {
     readonly address: string;
 
     constructor(privateKey: string) {
-        let ethers: any;
-        try {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            ethers = require("ethers");
-        } catch {
-            throw new Error(ETHERS_INSTALL_HINT);
-        }
+        const ethers = loadEthers();
         this._wallet = new ethers.Wallet(privateKey);
         this.address = this._wallet.address;
     }

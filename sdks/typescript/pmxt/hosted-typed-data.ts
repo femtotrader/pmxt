@@ -11,7 +11,7 @@
 
 import { InvalidSignature } from "./hosted-errors";
 import { to6dec } from "./hosted-mappers";
-import { TypedData } from "./signers";
+import { TypedData, loadEthers } from "./signers";
 
 // The constants module is updated in a parallel-agent change to add these
 // allowlists. We import them at runtime so we don't hard-fail if the change
@@ -508,7 +508,33 @@ function validateOpinionMarketId(
     message: Record<string, unknown>,
     buildResponse: any,
 ): void {
-    const expected = firstPresent(
+    // The current trading-API Opinion message schema does not embed
+    // opinion_market_id — the signed economic identity is the outcome
+    // tokenId. Validate that against the build response's resolved token.
+    // The legacy opinion_market_id check only applies when the message
+    // actually carries the field (older API versions).
+    const expectedToken = firstPresent(
+        getPath(buildResponse, "resolved", "token_id"),
+        getPath(buildResponse, "resolved", "tokenId"),
+        getField(buildResponse, "token_id"),
+        getField(buildResponse, "tokenId"),
+    );
+    const actualToken = firstPresent(
+        getField(message, "tokenId"),
+        getField(message, "token_id"),
+    );
+    if (actualToken === MISSING) economicFail("message.tokenId missing");
+    if (expectedToken !== MISSING && idValue(actualToken) !== idValue(expectedToken)) {
+        economicFail(`tokenId expected ${expectedToken} got ${actualToken}`);
+    }
+
+    const actualMarketId = firstPresent(
+        getField(message, "opinion_market_id"),
+        getField(message, "opinionMarketId"),
+    );
+    if (actualMarketId === MISSING) return; // current schema: tokenId-only message
+
+    const expectedMarketId = firstPresent(
         getPath(buildResponse, "resolved", "opinion_market_id"),
         getPath(buildResponse, "resolved", "opinionMarketId"),
         getField(buildResponse, "opinion_market_id"),
@@ -516,16 +542,9 @@ function validateOpinionMarketId(
         getPath(buildResponse, "params", "opinion_market_id"),
         getPath(buildResponse, "params", "opinionMarketId"),
     );
-    if (expected === MISSING) economicFail("resolved.opinion_market_id missing");
-
-    const actual = firstPresent(
-        getField(message, "opinion_market_id"),
-        getField(message, "opinionMarketId"),
-    );
-    if (actual === MISSING) economicFail("message.opinion_market_id missing");
-
-    if (idValue(actual) !== idValue(expected)) {
-        economicFail(`opinion_market_id expected ${expected} got ${actual}`);
+    if (expectedMarketId === MISSING) economicFail("resolved.opinion_market_id missing");
+    if (idValue(actualMarketId) !== idValue(expectedMarketId)) {
+        economicFail(`opinion_market_id expected ${expectedMarketId} got ${actualMarketId}`);
     }
 }
 
@@ -575,12 +594,11 @@ export function verifySignature(
 
     let ethers: any;
     try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        ethers = require("ethers");
-    } catch {
+        ethers = loadEthers("ethers is required for hosted signature verification");
+    } catch (err) {
         throw new InvalidSignature(
             0,
-            "ethers is required for hosted signature verification",
+            err instanceof Error ? err.message : "ethers is required for hosted signature verification",
         );
     }
 

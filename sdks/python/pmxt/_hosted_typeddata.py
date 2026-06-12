@@ -480,6 +480,35 @@ def _validate_worst_price(
 
 
 def _validate_opinion_market_id(message: Mapping[str, Any], build_response: Any) -> None:
+    # The current trading-API Opinion message schema does not embed
+    # opinion_market_id — the signed economic identity is the outcome
+    # tokenId. Validate that against the build response's resolved token.
+    # The legacy opinion_market_id check only applies when the message
+    # actually carries the field (older API versions).
+    expected_token = _first_present(
+        _path(build_response, "resolved", "token_id"),
+        _path(build_response, "resolved", "tokenId"),
+        _value(build_response, "token_id"),
+        _value(build_response, "tokenId"),
+    )
+    actual_token = _first_present(
+        _value(message, "tokenId"),
+        _value(message, "token_id"),
+    )
+    if actual_token is _MISSING:
+        _economic_fail("message.tokenId missing")
+    if expected_token is not _MISSING and _id_value(
+        actual_token, "message.tokenId"
+    ) != _id_value(expected_token, "resolved.token_id"):
+        _economic_fail(f"tokenId expected {expected_token} got {actual_token}")
+
+    actual = _first_present(
+        _value(message, "opinion_market_id"),
+        _value(message, "opinionMarketId"),
+    )
+    if actual is _MISSING:
+        return  # current schema: tokenId-only message
+
     expected = _first_present(
         _path(build_response, "resolved", "opinion_market_id"),
         _path(build_response, "resolved", "opinionMarketId"),
@@ -490,15 +519,6 @@ def _validate_opinion_market_id(message: Mapping[str, Any], build_response: Any)
     )
     if expected is _MISSING:
         _economic_fail("resolved.opinion_market_id missing")
-
-    actual = _first_present(
-        _value(message, "opinion_market_id"),
-        _value(message, "opinionMarketId"),
-        _path(build_response, "params", "opinion_market_id"),
-        _path(build_response, "params", "opinionMarketId"),
-    )
-    if actual is _MISSING:
-        _economic_fail("message.opinion_market_id missing")
 
     if _id_value(actual, "message.opinion_market_id") != _id_value(
         expected,

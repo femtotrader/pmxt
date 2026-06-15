@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.50.2] - 2026-06-15
+
+Rain now actually works end-to-end through both `pmxtjs` and the Python SDK, and restores hosted-mode `createOrder` for every other venue (`polymarket`, `opinion`, `limitless`) which had been broken on `main` since PR #1058. Verified live: `new pmxt.Rain().fetchMarkets({ limit: 3 })` and `Rain().fetch_markets(limit=3)` both round-trip real markets (Khamenei binary, Bond actor 6-way, FIFA 16-way) through the sidecar.
+
+### Fixed
+
+- **`core/src/exchanges/rain/fetcher.ts` + `core/src/exchanges/rain/websocket.ts`**: `@buidlrrr/rain-sdk` is ESM-only (`"type": "module"`, no CJS export) and `tsc` with `module: "commonjs"` silently rewrites `await import('@buidlrrr/rain-sdk')` into `Promise.resolve().then(() => require('@buidlrrr/rain-sdk'))`, which throws `ERR_PACKAGE_PATH_NOT_EXPORTED` at runtime. Wrapping the loader in `new Function('return import("@buidlrrr/rain-sdk")')` keeps the real ESM `import()` opaque to the downleveller, so Node executes it natively. The same trap applies to the Opinion adapter on paper; its read path appears to escape it via existing bundling, but the Rain path lit it up because the trade-tx builders are called from the cold server start.
+- **`core/src/exchanges/rain/utils.ts` + `core/src/exchanges/rain/normalizer.ts`**: New `bigintsToStrings()` recursive converter is applied to the spread that feeds `buildSourceMetadata`. Rain's `MarketDetails` carries `bigint` for `startTime`, `endTime`, `oracleEndTime`, `allFunds`, `allVotes`, `totalLiquidity`, `numberOfOptions`, `winner`, `baseTokenDecimals`, etc., and the PMXT sidecar `JSON.stringify`s the response over HTTP — the unconverted spread threw "Do not know how to serialize a BigInt" and dropped every Rain market on the floor before it reached the SDKs.
+- **`sdks/typescript/pmxt/client.ts`**: Restored `_hostedSubmitOrder` (typed-data sign + economic validation + `/v0/trade/submit-order` POST) and `_hostedTypedDataRoute` / `_hostedCancelTypedDataRoute` helpers. PR #1058 (Limitless hosted wire-up, commit `e96801b`) removed all three methods but left their call sites and signing imports intact; this made `npx tsc` fail with `TS2551: Property '_hostedSubmitOrder' does not exist on type 'Exchange'` and silently broke hosted-mode `createOrder` on every venue at runtime (it would have thrown "this._hostedSubmitOrder is not a function" the moment a hosted user placed an order). The restored helper now also routes `limitless` through `limitless_buy` / `limitless_sell_polygon` / `limitless_sell_base_pull` / `cancel_limitless_*` schemas, matching the PR's stated scope.
+
 ## [2.50.1] - 2026-06-15
 
 Follow-up to 2.50.0. Rain is now wired through every consumer surface — the openapi enum source, the TS SDK class export, and the Python SDK class export — so `pmxtjs.Rain` and `pmxt.Rain` (Python) actually exist instead of being missing from the published packages. The CI exchange-drift check caught this on the 2.50.0 push; `ADDING_AN_EXCHANGE.md` only documents the core-server registration sites, not these SDK-facing ones.

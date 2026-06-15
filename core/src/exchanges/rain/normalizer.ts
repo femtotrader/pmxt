@@ -9,7 +9,7 @@ import {
     RainRawBalance, RainRawPriceHistory, RainRawTransactions, RainRawMarketTransactions,
 } from './fetcher';
 import {
-    priceBigIntToNumber, weiToNumber, mapRainStatus, rainMarketUrl, USDT_DECIMALS, resolveDecimals,
+    priceBigIntToNumber, weiToNumber, mapRainStatus, rainMarketUrl, USDT_DECIMALS, resolveDecimals, bigintsToStrings,
 } from './utils';
 
 const PROMOTED_MARKET_KEYS = [
@@ -83,7 +83,7 @@ export class RainNormalizer {
             contractAddress,
             tags,
             sourceMetadata: buildSourceMetadata(
-                { ...(details ?? {}), ...m } as Record<string, unknown>,
+                bigintsToStrings({ ...(details ?? {}), ...m }) as Record<string, unknown>,
                 PROMOTED_MARKET_KEYS,
             ),
         };

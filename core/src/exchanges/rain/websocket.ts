@@ -9,6 +9,11 @@ type RainSdk = typeof import('@buidlrrr/rain-sdk');
 type RainClient = InstanceType<RainSdk['Rain']>;
 type Unsubscribe = () => void;
 
+// See note in fetcher.ts on why we Function-wrap the import().
+const esmImportRainSdk: () => Promise<RainSdk> = new Function(
+    'return import("@buidlrrr/rain-sdk")',
+) as () => Promise<RainSdk>;
+
 export interface RainWebSocketConfig {
     wsRpcUrl: string;
     environment?: 'development' | 'stage' | 'production';
@@ -26,7 +31,7 @@ export class RainWebSocket {
 
     private async getClient(): Promise<RainClient> {
         if (!this.client) {
-            const sdk = await import('@buidlrrr/rain-sdk');
+            const sdk = await esmImportRainSdk();
             this.client = new sdk.Rain({
                 environment: this.config.environment ?? 'production',
                 wsRpcUrl: this.config.wsRpcUrl,

@@ -5,13 +5,21 @@
 import { rainErrorMapper } from './errors';
 import { logger } from '../../utils/logger';
 
-// ESM dynamic import (same pattern as Opinion adapter).
+// @buidlrrr/rain-sdk is ESM-only. TSC with module:"commonjs" rewrites a plain
+// `await import(...)` to `Promise.resolve().then(() => require(...))`, which
+// blows up at runtime on `"type": "module"` packages with no CJS export
+// (`ERR_PACKAGE_PATH_NOT_EXPORTED`). The Function-wrapped string keeps the
+// real ESM `import()` opaque to TSC's downleveller so Node executes it natively.
 type RainSdk = typeof import('@buidlrrr/rain-sdk');
 type RainClient = InstanceType<RainSdk['Rain']>;
 
+const esmImportRainSdk: () => Promise<RainSdk> = new Function(
+    'return import("@buidlrrr/rain-sdk")',
+) as () => Promise<RainSdk>;
+
 let sdkPromise: Promise<RainSdk> | undefined;
 function loadSdk(): Promise<RainSdk> {
-    if (!sdkPromise) sdkPromise = import('@buidlrrr/rain-sdk');
+    if (!sdkPromise) sdkPromise = esmImportRainSdk();
     return sdkPromise;
 }
 

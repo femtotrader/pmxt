@@ -59,3 +59,25 @@ export function mapRainStatus(status?: string): string | undefined {
 export function rainMarketUrl(marketId: string): string {
     return `https://rain.one/markets/${marketId}`;
 }
+
+/**
+ * Recursively convert bigints to strings so the value is JSON-serialisable.
+ * Rain's SDK returns bigints all over (timestamps, fund totals, prices), and
+ * the PMXT server JSON.stringifies sourceMetadata before returning over HTTP.
+ */
+export function bigintsToStrings<T>(value: T): T {
+    if (typeof value === 'bigint') {
+        return value.toString() as unknown as T;
+    }
+    if (Array.isArray(value)) {
+        return value.map(bigintsToStrings) as unknown as T;
+    }
+    if (value && typeof value === 'object') {
+        const out: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+            out[k] = bigintsToStrings(v);
+        }
+        return out as T;
+    }
+    return value;
+}

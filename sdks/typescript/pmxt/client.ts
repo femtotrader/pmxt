@@ -2238,6 +2238,87 @@ export abstract class Exchange {
     }
 
     /**
+     * Hosted-mode submitOrder: validate the stored build response, sign the
+     * typed_data (and pull_typed_data for cross-chain venue sells), then
+     * POST to `/v0/trade/submit-order`.
+     *
+     * Restored after PR #1058 (Limitless hosted wire-up) accidentally
+     * removed it but left the call site + signing imports intact.
+     */
+    private async _hostedSubmitOrder(built: BuiltOrder): Promise<Order> {
+        const signer = this.requireHostedSigner();
+        if (!this.walletAddress) {
+            throw new MissingWalletAddress(
+                "hosted submitOrder requires walletAddress",
+            );
+        }
+        const payload = built as unknown as Record<string, unknown>;
+        const typedData = payload["typed_data"] as TypedData | undefined;
+        if (!typedData) {
+            throw new HostedInvalidSignature(0, "typed_data missing from built order");
+        }
+        const buildRequest = (payload["build_request"] as Record<string, unknown> | undefined)
+            ?? ((payload["params"] as Record<string, unknown> | undefined)?.["build_request"] as Record<string, unknown> | undefined);
+
+        const side = String(buildRequest?.["side"] ?? "buy");
+        const primaryRoute = this._hostedTypedDataRoute(side, false);
+        validateTypedData(typedData, primaryRoute, this.walletAddress);
+        if (buildRequest) {
+            validateEconomics(typedData, primaryRoute, buildRequest, payload);
+        }
+
+        const signature = await signer.signTypedData(typedData);
+        verifySignature(typedData, signature, signer.address);
+
+        const body: Record<string, unknown> = {
+            built_order_id: payload["built_order_id"],
+            signature,
+        };
+
+        const pullTypedData = payload["pull_typed_data"] as TypedData | undefined;
+        if (pullTypedData) {
+            const pullRoute = this._hostedTypedDataRoute(side, true);
+            if (pullRoute) {
+                validateTypedData(pullTypedData, pullRoute, this.walletAddress);
+            }
+            const pullSig = await signer.signTypedData(pullTypedData);
+            verifySignature(pullTypedData, pullSig, signer.address);
+            body["pull_signature"] = pullSig;
+        }
+
+        const route = HOSTED_METHOD_ROUTES.get("submitOrder")!;
+        const data = await _tradingRequest(this, { method: route.method, path: route.path, body });
+        return orderFromV0(data as Record<string, unknown>);
+    }
+
+    /**
+     * Resolve the per-(venue, side, pull) typed-data schema route used by
+     * `validateTypedData` / `validateEconomics`. Returns the cross-chain
+     * pull-leg route name for Opinion sells and Limitless cross-chain orders.
+     */
+    private _hostedTypedDataRoute(side: string, isPull: boolean): string {
+        const venue = this.exchangeName;
+        const sideLower = side.toLowerCase();
+        if (venue === "polymarket") {
+            return sideLower === "sell" ? "polymarket_sell" : "polymarket_buy";
+        }
+        if (venue === "limitless") {
+            if (sideLower === "buy") return "limitless_buy";
+            return isPull ? "limitless_sell_base_pull" : "limitless_sell_polygon";
+        }
+        // opinion
+        if (sideLower === "buy") return "opinion_buy";
+        return isPull ? "opinion_sell_bsc_pull" : "opinion_sell_polygon";
+    }
+
+    private _hostedCancelTypedDataRoute(isPull: boolean): string {
+        const venue = this.exchangeName;
+        if (venue === "polymarket") return "cancel_polymarket";
+        if (venue === "limitless") return isPull ? "cancel_limitless_base_pull" : "cancel_limitless_polygon";
+        return isPull ? "cancel_opinion_bsc_pull" : "cancel_opinion_polygon";
+    }
+
+    /**
      * Construct the hosted build-order request body and validate inputs
      * locally per the v0 contract (denom/side compatibility, > 6-decimal
      * precision rejected via {@link to6dec}).

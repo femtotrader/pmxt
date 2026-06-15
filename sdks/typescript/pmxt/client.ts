@@ -46,6 +46,7 @@ import {
     UnifiedSeries,
     UserTrade,
     FirehoseEvent,
+    FetchMatchedMarketClustersParams,
 } from "./models.js";
 
 import { ServerManager } from "./server-manager.js";
@@ -1566,7 +1567,7 @@ export abstract class Exchange {
         }
     }
 
-    async fetchMatchedMarkets(params?: any): Promise<any[]> {
+    async fetchMatchedMarkets(params?: FetchMatchedMarketClustersParams): Promise<any[]> {
         await this.initPromise;
         try {
             const args: any[] = [];

@@ -178,6 +178,18 @@ paths:
           schema:
             type: number
           description: For semantic search (used by Limitless)
+        - in: query
+          name: sourceExchange
+          required: false
+          schema:
+            type: string
+          description: 'Filter by source venue (e.g. ''polymarket'', ''kalshi'', ''myriad''). `exchange` is an alias.'
+        - in: query
+          name: exchange
+          required: false
+          schema:
+            type: string
+          description: Alias for `sourceExchange`.
       responses:
         '200':
           description: Fetch Markets response
@@ -401,6 +413,18 @@ paths:
             Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories --
             for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common
             tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump".
+        - in: query
+          name: sourceExchange
+          required: false
+          schema:
+            type: string
+          description: 'Filter by source venue (e.g. ''polymarket'', ''kalshi'', ''myriad''). `exchange` is an alias.'
+        - in: query
+          name: exchange
+          required: false
+          schema:
+            type: string
+          description: Alias for `sourceExchange`.
       responses:
         '200':
           description: Fetch Events response
@@ -546,6 +570,18 @@ paths:
           schema:
             type: number
           description: For semantic search (used by Limitless)
+        - in: query
+          name: sourceExchange
+          required: false
+          schema:
+            type: string
+          description: 'Filter by source venue (e.g. ''polymarket'', ''kalshi'', ''myriad''). `exchange` is an alias.'
+        - in: query
+          name: exchange
+          required: false
+          schema:
+            type: string
+          description: Alias for `sourceExchange`.
       responses:
         '200':
           description: Fetch Market response
@@ -669,6 +705,18 @@ paths:
             Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories --
             for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common
             tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump".
+        - in: query
+          name: sourceExchange
+          required: false
+          schema:
+            type: string
+          description: 'Filter by source venue (e.g. ''polymarket'', ''kalshi'', ''myriad''). `exchange` is an alias.'
+        - in: query
+          name: exchange
+          required: false
+          schema:
+            type: string
+          description: Alias for `sourceExchange`.
       responses:
         '200':
           description: Fetch Event response
@@ -3676,6 +3724,12 @@ components:
         similarityThreshold:
           type: number
           description: For semantic search (used by Limitless)
+        sourceExchange:
+          type: string
+          description: 'Filter by source venue (e.g. ''polymarket'', ''kalshi'', ''myriad''). `exchange` is an alias.'
+        exchange:
+          type: string
+          description: Alias for `sourceExchange`.
     EventFetchParams:
       type: object
       properties:
@@ -3742,6 +3796,12 @@ components:
             Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories --
             for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common
             tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump".
+        sourceExchange:
+          type: string
+          description: 'Filter by source venue (e.g. ''polymarket'', ''kalshi'', ''myriad''). `exchange` is an alias.'
+        exchange:
+          type: string
+          description: Alias for `sourceExchange`.
     HistoryFilterParams:
       type: object
       description: Deprecated - use OHLCVParams or TradesParams instead. Resolution is optional for backward compatibility.

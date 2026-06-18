@@ -115,13 +115,13 @@ After the deposit transaction confirms on-chain, the balance shows up in escrow.
 ```python Python
 balances = client.fetch_balance()
 usdc = balances[0]
-print(f"Free: {usdc.free}, Used: {usdc.used}, Total: {usdc.total}")
+print(f"Available: {usdc.available}, Locked: {usdc.locked}, Total: {usdc.total}")
 ```
 
 ```typescript TypeScript
 const balances = await client.fetchBalance();
 const usdc = balances[0];
-console.log(`Free: ${usdc.free}, Used: ${usdc.used}, Total: ${usdc.total}`);
+console.log(`Available: ${usdc.available}, Locked: ${usdc.locked}, Total: ${usdc.total}`);
 ```
 </CodeGroup>
 

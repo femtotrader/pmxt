@@ -203,7 +203,7 @@ poly   = pmxt.Polymarket(private_key="0x...")
 clusters = router.fetch_matched_market_clusters(relation="identity", limit=20)
 
 # 2. Inspect the order book on a specific venue
-book = poly.fetch_order_book(market_id=clusters[0].markets[0].market_id)
+book = poly.fetch_order_book(outcome_id=clusters[0].markets[0].outcomes[0].outcome_id)
 
 # 3. Place an order locally (never proxied through PMXT)
 # poly.create_order(...)

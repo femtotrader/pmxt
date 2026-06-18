@@ -43,10 +43,10 @@ const order = await client.createOrder({
   marketId: "2eeb03dc-404b-41d5-bc57-6aeb37927ae6",
   outcomeId: "a114f052-1fd1-4bcd-b9cf-de019db81b67",
   side: "buy",
-  orderType: "market",
+  type: "market",
   amount: 5,
   denom: "usdc",
-  slippagePct: 30,
+  slippage_pct: 30,
 });
 ```
 </CodeGroup>
@@ -72,17 +72,19 @@ Because reads don't require a signature, anyone with the `pmxt_api_key` can read
 
 ## Advanced: bring your own signer
 
-If your key lives in a hardware wallet, HSM, MPC service, or anything that isn't a raw hex private key, skip `private_key` and use the lower-level `build_order` / `submit_order` flow. Any object that implements `sign_typed_data(domain, types, message) -> hex` works.
+If your key lives in a hardware wallet, HSM, MPC service, or anything that isn't a raw hex private key, skip `private_key` and inject a custom signer at construction. The SDK uses it transparently for every hosted write — you keep calling `create_order` as usual.
+
+The signer protocol is one method: `sign_typed_data(typed_data: dict) -> hex` (Python) or `signTypedData(typedData): Promise<string>` plus a readonly `address` (TypeScript).
 
 <CodeGroup>
 ```python Python
 client = pmxt.Polymarket(
     pmxt_api_key="pmxt_live_...",
     wallet_address="0xYourWallet...",
-    # no private_key
+    signer=my_custom_signer,  # exposes sign_typed_data(typed_data) -> hex
 )
 
-built = client.build_order(
+order = client.create_order(
     market_id="2eeb03dc-...",
     outcome_id="a114f052-...",
     side="buy",
@@ -91,43 +93,25 @@ built = client.build_order(
     denom="usdc",
     slippage_pct=30.0,
 )
-
-typed_data = built.raw["typed_data"]
-signature = my_custom_signer.sign_typed_data(
-    domain=typed_data["domain"],
-    types=typed_data["types"],
-    message=typed_data["message"],
-)
-built.signed_order = signature  # attach signature for submit
-order = client.submit_order(built)
 ```
 
 ```typescript TypeScript
 const client = new Polymarket({
   pmxtApiKey: "pmxt_live_...",
   walletAddress: "0xYourWallet...",
-  // no privateKey
+  signer: myCustomSigner,  // { address, signTypedData(typedData) -> Promise<hex> }
 });
 
-const built = await client.buildOrder({
+const order = await client.createOrder({
   marketId: "2eeb03dc-...",
   outcomeId: "a114f052-...",
   side: "buy",
-  orderType: "market",
+  type: "market",
   amount: 5,
   denom: "usdc",
-  slippagePct: 30,
+  slippage_pct: 30,
 });
-
-const typedData = built.raw.typed_data;
-const signature = await myCustomSigner.signTypedData(
-  typedData.domain,
-  typedData.types,
-  typedData.message,
-);
-built.signedOrder = signature;
-const order = await client.submitOrder(built);
 ```
 </CodeGroup>
 
-For Opinion, `built` carries two payloads (`typed_data` and `pull_typed_data`); sign both and pass `signature` + `pull_signature` to `submit_order`. The SDK's `EthAccountSigner` / `EthersSigner` are reference implementations of the signer protocol — ethers v6 supports Ledger out of the box; for MPC see Fireblocks / Privy / Turnkey docs.
+For Opinion's dual-signature flow, the same injected signer is invoked twice (once per payload) — no extra wiring. The SDK's `EthAccountSigner` (Python) / `EthersSigner` (TypeScript) are reference implementations; ethers v6 supports Ledger out of the box, and for MPC see Fireblocks / Privy / Turnkey docs.

@@ -151,12 +151,12 @@ Hardware-wallet signing is the most common cause — Ledger confirmations can ta
 ```python Python
 from pmxt._hosted_errors import BuiltOrderExpired
 
-def submit_with_retry(client, *, market_id, outcome_id, **kwargs):
+def submit_with_retry(client, **kwargs):
+    # In hosted mode, create_order handles build -> sign -> submit atomically.
+    # On BuiltOrderExpired the internal submit raced the 30s TTL; just call again.
     for attempt in range(2):
-        built = client.build_order(market_id=market_id, outcome_id=outcome_id, **kwargs)
-        built.signed_order = signer.sign_typed_data(built.raw["typed_data"])
         try:
-            return client.submit_order(built)
+            return client.create_order(**kwargs)
         except BuiltOrderExpired:
             if attempt == 1:
                 raise
@@ -165,23 +165,20 @@ def submit_with_retry(client, *, market_id, outcome_id, **kwargs):
 
 ```typescript TypeScript
 import { BuiltOrderExpired } from "pmxtjs";
+import type { CreateOrderParams, Order } from "pmxtjs";
 
-async function submitWithRetry(client, params) {
+async function submitWithRetry(client, params: CreateOrderParams): Promise<Order> {
+  // In hosted mode, createOrder handles build -> sign -> submit atomically.
+  // On BuiltOrderExpired the internal submit raced the 30s TTL; just call again.
   for (let attempt = 0; attempt < 2; attempt++) {
-    const built = await client.buildOrder(params);
-    const typedData = built.raw.typed_data;
-    built.signedOrder = await signer.signTypedData(
-      typedData.domain,
-      typedData.types,
-      typedData.message,
-    );
     try {
-      return await client.submitOrder(built);
+      return await client.createOrder(params);
     } catch (e) {
       if (e instanceof BuiltOrderExpired && attempt === 0) continue;
       throw e;
     }
   }
+  throw new Error("unreachable");
 }
 ```
 </CodeGroup>
@@ -211,7 +208,7 @@ except NoLiquidity:
 import { NoLiquidity } from "pmxtjs";
 
 try {
-  await client.createOrder({ orderType: "market", ... });
+  await client.createOrder({ type: "market", ... });
 } catch (e) {
   if (e instanceof NoLiquidity) {
     // Wait, retry against a different outcome, or post limits via self-hosted.

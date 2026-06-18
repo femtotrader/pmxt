@@ -1540,6 +1540,16 @@ class Exchange(ABC):
             raise self._parse_api_exception(e) from None
 
     def fetch_open_orders(self, market_id: Optional[str] = None) -> List[Order]:
+        if self.is_hosted:
+            resolved_address = resolve_wallet_address(self, None)
+            params: Dict[str, Any] = {"address": resolved_address}
+            if market_id is not None:
+                params["market_id"] = market_id
+            response = self._hosted_request(
+                "fetch_open_orders",
+                params=params,
+            )
+            return self._hosted_collection(response, "orders", order_from_v0)
         try:
             args = []
             if market_id is not None:

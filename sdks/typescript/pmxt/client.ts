@@ -1223,6 +1223,18 @@ export abstract class Exchange {
 
     async fetchOpenOrders(marketId?: string): Promise<Order[]> {
         await this.initPromise;
+        if (this.isHosted) {
+            const resolvedAddress = resolveWalletAddress(this, undefined);
+            const route = HOSTED_METHOD_ROUTES.get("fetchOpenOrders")!;
+            const path = formatRoutePath(route, {});
+            const params: Record<string, string> = { address: resolvedAddress };
+            if (marketId !== undefined) params.market_id = marketId;
+            const data = await _tradingRequest(this, { method: route.method, path, params });
+            const list = Array.isArray(data)
+                ? data
+                : (data && Array.isArray((data as any).orders) ? (data as any).orders : []);
+            return list.map((o: unknown) => orderFromV0(o as Record<string, unknown>));
+        }
         try {
             const args: any[] = [];
             if (marketId !== undefined) args.push(marketId);

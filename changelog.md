@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.50.16] - 2026-06-18
+
+### Fixed
+
+- **`sdks/python/pmxt/client.py` + `sdks/typescript/pmxt/client.ts` — `fetch_open_orders` / `fetchOpenOrders` missing hosted-mode routing branch.** Same class of bug as the 2.50.11-14 fixes for `fetch_balance` / `fetch_positions` / `fetch_order` / `fetch_my_trades` / `cancel_order`: hosted callers received `Trading operations require authentication. Initialize LimitlessExchange with credentials: ...` because the SDK fell through to the sidecar `/api/{exchange}/fetchOpenOrders` path instead of routing to the hosted `GET /v0/orders/open?address=...` endpoint. Added an `is_hosted` branch in both SDKs that resolves the wallet address, calls `_hosted_request("fetch_open_orders", params={"address": ...})`, and maps the response through `order_from_v0` / `orderFromV0`. The self-hosted/sidecar branch is preserved unchanged. Verified live against hosted Limitless: `fetch_open_orders()` returns `[]` cleanly and no longer raises.
+
 ## [2.50.15] - 2026-06-18
 
 ### Fixed

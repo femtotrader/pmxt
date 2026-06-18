@@ -21,7 +21,7 @@ Outcome prices are in the closed interval [0, 1] and are read as the market's im
 
 ### Catalog UUID vs venue ID
 
-PMXT assigns its own stable UUID to every market and outcome. The underlying venue (Polymarket, Kalshi, etc.) also has its own native ID — a hex condition ID, a ticker, a hash. Hosted trading requires the catalog UUID. Per-venue read endpoints return venue-native IDs. See [Catalog UUID vs Venue ID](/concepts/catalog-uuid-vs-venue-id) for which surfaces use which.
+PMXT assigns its own stable UUID to every market and outcome. The underlying venue (Polymarket, Kalshi, etc.) also has its own native ID — a hex condition ID, a ticker, a hash. The hosted trading API accepts either — pass whatever your code already has; the SDK picks the right wire field. Cross-venue identity (Router results, portfolio analytics) is the place where the catalog UUID matters. See [Catalog UUID vs Venue ID](/concepts/catalog-uuid-vs-venue-id).
 
 ## Crypto / EVM terms (for the non-crypto reader)
 

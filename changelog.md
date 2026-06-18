@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.50.5] - 2026-06-18
+
+### Docs
+
+- **`docs/concepts/prediction-markets-101.mdx`**: Fixed a third instance of the stale "hosted trading requires the catalog UUID" claim — the same lie that 2.50.3 fixed in `hosted-trading.mdx`. The 101 glossary still asserted catalog UUID was required for hosted trading and that venue-native IDs only came back from per-venue reads. The SDK has handled both forms since `_hosted_build_order_request` landed (`sdks/python/pmxt/client.py:764`): catalog UUIDs go on the wire as `outcome_id`, venue-native IDs go on as `(venue, venue_outcome_id)`. Reframed the paragraph to say the API accepts either and that the catalog UUID matters for cross-venue identity, not as a hosted-trading requirement. Missed by the strip pass because that pass operated by file ownership and the 101 page wasn't assigned to any of the three agents.
+
 ## [2.50.4] - 2026-06-18
 
 ### Docs

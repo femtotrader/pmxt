@@ -1,11 +1,12 @@
 ---
 title: SQL
-description: "Query raw tick-level orderbook history with SQL."
+description: "Historical data backend for your app's charts, dashboards, and analytics."
 ---
 
-The `/v0/sql` endpoint exposes a read-only SQL interface over PMXT's
-historical orderbook data. Currently this covers **Polymarket** tick data
-(BBO updates, trades, and full book snapshots) stored in ClickHouse.
+The `/v0/sql` endpoint is a read-only SQL interface over PMXT's historical
+orderbook data — the backend you point your app's charts, dashboards, and
+post-hoc analytics at. Today it covers **Polymarket** (BBO updates, trades,
+and full book snapshots) stored in ClickHouse.
 
 <Note>SQL access requires an Enterprise plan.</Note>
 
@@ -62,8 +63,10 @@ polymarket_orderbook_rust
 
 ## 1. Candlestick (OHLCV)
 
-Build price candles at any interval from `price_change` events. Filter by
-`asset_id` to get a specific outcome (Yes or No).
+The bread-and-butter query for an in-app price chart. Pull hourly candles
+for a single outcome over the last week — drop the result straight into
+Recharts, lightweight-charts, or whatever you render with. Filter by
+`asset_id` to pick the Yes or No side.
 
 ```sql
 SELECT

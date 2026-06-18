@@ -69,11 +69,8 @@
             "pages": [
               "concepts/prediction-markets-101",
               "concepts/unified-schema",
-              "concepts/catalog-vs-live",
               "concepts/venues",
               "concepts/hosted-trading",
-              "concepts/hosted-custody",
-              "concepts/hosted-vs-self-hosted",
               "concepts/catalog-uuid-vs-venue-id"
             ]
           },
@@ -107,8 +104,7 @@
           {
             "group": "Search",
             "pages": [
-              "router/events",
-              "router/markets"
+              "router/search"
             ]
           },
           {

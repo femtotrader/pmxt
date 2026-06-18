@@ -3,10 +3,10 @@ title: Trading Quickstart
 description: "Place your first hosted trade in 60 seconds — API key, escrow deposit, market order."
 ---
 
-This page walks you from a fresh `pmxt_api_key` to a confirmed position on Polymarket in under a minute. Hosted mode is the default: USDC sits in a non-custodial [`PreFundedEscrow`](/guides/escrow-lifecycle) smart contract that PMXT cannot move without your EIP-712 signature, and your wallet only ever signs typed-data payloads — no private key leaves your machine when you trade.
+From a fresh `pmxt_api_key` to a confirmed position on Polymarket in under a minute. For the full hosted model, see [Hosted trading](/concepts/hosted-trading).
 
 <Info>
-Hosted trading currently supports **Polymarket** (Polygon) and **Opinion** (cross-chain). Other venues are read-only via the hosted catalog. To trade on those, run the [self-hosted server](/guides/self-hosted) with raw venue credentials.
+Hosted writes today: **Polymarket** and **Opinion**. Other venues are read-only via the hosted catalog; use [self-hosted](/guides/self-hosted) to trade them.
 </Info>
 
 ## 1. Get an API key
@@ -62,9 +62,9 @@ echo "Use an SDK for the quickstart."
 ```
 </CodeGroup>
 
-<Warning>
-Use a **dedicated trading wallet**. The private key only stays on your machine for local signing, but treat the wallet as compromised if the host is ever compromised. Read [Security](/security) before funding production wallets.
-</Warning>
+<Note>
+PMXT is non-custodial by construction: the SDK signs locally and your key never leaves your machine. For production, a practical habit is to keep only the float you're actively trading in this wallet. See [Security](/security).
+</Note>
 
 ## 4. Approve and deposit USDC into escrow
 
@@ -161,12 +161,8 @@ echo "Use an SDK for create_order."
 The hosted trading API accepts either the venue-native identifier (returned by `client.fetch_markets`) or a catalog UUID (returned by [Router](/router/overview)) — whichever you have. The SDK picks the right wire field automatically. See [Catalog UUID vs Venue ID](/concepts/catalog-uuid-vs-venue-id) when cross-venue identity matters.
 </Note>
 
-<Warning>
-**Polymarket has a 5-share minimum per order.** At ~$0.78/share, a 5 USDC buy is ~6.4 shares — fine. But $2 at the same price is only 2.5 shares and will be rejected with `OrderSizeTooSmall`. Size up or switch to a cheaper outcome.
-</Warning>
-
 <Note>
-**Market orders are budget-capped, not price-capped.** A market buy spends exactly `amount` USDC and a market sell sells exactly `amount` shares — the on-chain authorization caps the spend, so `slippage_pct` is not needed (and is ignored) for market orders. Hosted **limit** orders are not yet available and currently return `501`; use the self-hosted server for resting limit orders.
+**What PMXT abstracts vs what leaks through from the venue.** PMXT unifies the order shape across venues, but a few Polymarket rules pass through as-is: orders have a **5-share minimum** (a $2 buy at $0.78 is 2.5 shares and is rejected with `OrderSizeTooSmall`), and market orders are **budget-capped** (a buy spends exactly `amount` USDC, a sell sells exactly `amount` shares — `slippage_pct` is ignored). Hosted **limit** orders are not yet available and return `501`; use [self-hosted](/guides/self-hosted) for resting limits.
 </Note>
 
 ## 6. Verify the fill

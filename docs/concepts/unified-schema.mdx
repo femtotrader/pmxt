@@ -15,6 +15,13 @@ Every response — from the local server, from the hosted Router, or from
 a hosted venue pass-through — uses the same field names. Write your client
 once, switch venues with a config change.
 
+<Note>
+  PMXT serves reads from a cached Postgres catalog for speed (~10&nbsp;ms),
+  or passes through live to the venue for freshness. The SDK chooses
+  per-method based on whether the catalog can safely answer; the response
+  envelope is identical either way.
+</Note>
+
 ## UnifiedMarket
 
 | Field             | Type              | Notes                                                     |

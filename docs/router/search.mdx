@@ -1,20 +1,26 @@
 ---
-title: Search Events
-description: "Search events across every venue in a single query."
+title: Search
+description: "Search events and markets across every venue in a single query."
 ---
 
 The **Router** is a catalog-backed, cross-venue search surface. It fans
 a single query across every venue PMXT ingests and returns a unified
-list of events, sorted by 24h volume.
+list, sorted by 24h volume.
 
 Unlike the venue pass-through (`POST /api/:exchange/:method`), the
 Router is `GET`-based, browser-friendly, and never falls through to a
 live venue call. It is always served from the Postgres catalog.
 
-## Endpoint
+Pick the shape by the endpoint you hit:
+
+- `GET /v0/events` — events with their child markets and outcomes nested inline.
+- `GET /v0/markets` — flat per-market rows with their outcomes inline.
+
+## Endpoints
 
 ```http
 GET https://api.pmxt.dev/v0/events
+GET https://api.pmxt.dev/v0/markets
 Authorization: Bearer pmxt_live_...
 ```
 
@@ -22,14 +28,14 @@ Authorization: Bearer pmxt_live_...
 
 | Parameter     | Type      | Default | Notes                                                    |
 | ------------- | --------- | ------- | -------------------------------------------------------- |
-| `query`       | `string`  | —       | Full-text ILIKE over event title and slug.               |
+| `query`       | `string`  | —       | Full-text ILIKE over title and slug.                     |
 | `limit`       | `integer` | `50`    | Max rows, capped at `500`.                               |
 | `offset`      | `integer` | `0`     | Standard pagination offset.                              |
-| `closed`      | `boolean` | `false` | Include events whose `closes_at` has passed.             |
+| `closed`      | `boolean` | `false` | Include closed / resolved rows.                          |
 | `category`    | `string`  | —       | Exact match on normalized category.                      |
 | `exchange`    | `string`  | —       | Filter to a single venue (`polymarket`, `kalshi`, ...).  |
 
-## Example
+## Events shape
 
 ```bash
 curl "https://api.pmxt.dev/v0/events?query=election&limit=2" \
@@ -59,9 +65,40 @@ curl "https://api.pmxt.dev/v0/events?query=election&limit=2" \
 }
 ```
 
-Every event comes back with its child markets **and** each market's
-outcomes, nested inline — no second fetch. Exactly the same shape as
-[`UnifiedEvent`](/concepts/unified-schema#unifiedevent).
+Exactly the same shape as [`UnifiedEvent`](/concepts/unified-schema#unifiedevent).
+
+## Markets shape
+
+```bash
+curl "https://api.pmxt.dev/v0/markets?query=election&limit=3" \
+  -H "Authorization: Bearer pmxt_live_..."
+```
+
+```json
+{
+  "data": [
+    {
+      "marketId": "d35bc8c6-5602-477d-af21-e9513af9d696",
+      "eventId":  "3b6432b6-c956-446e-a7a6-abda14e97aba",
+      "title":    "US forces enter Iran by April 30?",
+      "volume24h": 89757605.08,
+      "outcomes": [
+        { "outcomeId": "…", "label": "April 30",     "price": 0.9985, "priceChange24h":  0.002 },
+        { "outcomeId": "…", "label": "Not April 30", "price": 0.0015, "priceChange24h":  0.000 }
+      ]
+    }
+  ],
+  "meta": { "count": 3, "limit": 3, "offset": 0 }
+}
+```
+
+## Events vs markets
+
+| You want…                                       | Use                          |
+| ----------------------------------------------- | ---------------------------- |
+| A single answer for a topic with many questions | `GET /v0/events`             |
+| A flat list ranked across all events            | `GET /v0/markets`            |
+| The full venue surface (writes, OHLCV, ...)     | [`POST /api/:exchange/:method`](/api-reference/overview) |
 
 ## Latency
 
@@ -70,4 +107,4 @@ venue. Cross-venue fan-out that would take 2–5 seconds live is served
 by a single indexed SQL query against `prediction_markets.events` +
 `prediction_markets.markets` + `prediction_markets.outcomes`.
 
-See [Catalog vs Live](/concepts/catalog-vs-live) for the full rationale.
+See [Unified Schema](/concepts/unified-schema) for the full rationale.

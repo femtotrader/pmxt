@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Docs
+
+- **`docs/concepts/hosted-trading.mdx`**: Replaced the stale Warning that told users `fetch_markets` against a venue exchange returns venue-native IDs that must be reverse-resolved to catalog UUIDs before trading. The SDK has handled both forms transparently since the `_hosted_order_target` / `_hosted_build_order_request` path landed (`sdks/python/pmxt/client.py:653-780`): catalog UUIDs are forwarded as `outcome_id`, venue-native IDs are forwarded as `(venue, venue_outcome_id)`, and the backend resolver picks the right wire field. The doc now describes the actual behavior and points at [Catalog UUID vs venue ID](/concepts/catalog-uuid-vs-venue-id) (which was already correct) instead of describing a workaround that no longer exists. Contradicted [Trading Quickstart step 5](/trading-quickstart) ("pass any returned outcome straight to `create_order` — no UUID lookup required"); builders reading concepts-first would have written and shipped unnecessary reverse-resolution code.
+
 ## [2.50.2] - 2026-06-15
 
 Rain now actually works end-to-end through both `pmxtjs` and the Python SDK, and restores hosted-mode `createOrder` for every other venue (`polymarket`, `opinion`, `limitless`) which had been broken on `main` since PR #1058. Verified live: `new pmxt.Rain().fetchMarkets({ limit: 3 })` and `Rain().fetch_markets(limit=3)` both round-trip real markets (Khamenei binary, Bond actor 6-way, FIFA 16-way) through the sidecar.

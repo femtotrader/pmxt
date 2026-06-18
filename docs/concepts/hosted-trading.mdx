@@ -68,9 +68,9 @@ Every hosted endpoint speaks in **catalog UUIDs**, not venue-native IDs. A Polym
 
 The catalog UUIDs are the same ones returned by the Router (`/v0/markets`, `/v0/events`). They are stable across venue API changes and survive venue re-listings.
 
-<Warning>
-`fetch_markets` against a venue exchange (`pmxt.Polymarket(...).fetch_markets(...)`) currently returns **venue-native IDs**, not catalog UUIDs. To trade against those rows, you need to reverse-resolve to the UUID. See [Catalog UUID vs venue ID](/concepts/catalog-uuid-vs-venue-id) for the workaround.
-</Warning>
+<Note>
+The SDK accepts either form. Outcomes returned by `pmxt.Polymarket(...).fetch_markets(...)` carry a venue-native ID; outcomes returned by `pmxt.Router(...)` carry a catalog UUID. Pass either straight to `create_order` / `build_order` — the SDK forwards it as `outcome_id` (UUID) or `(venue, venue_outcome_id)` (venue-native) on the wire. Raw REST against `trade.pmxt.dev` follows the same shape. See [Catalog UUID vs venue ID](/concepts/catalog-uuid-vs-venue-id).
+</Note>
 
 ## Custody: PreFundedEscrow
 

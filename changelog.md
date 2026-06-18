@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.50.9] - 2026-06-18
+
+### Docs
+
+- **`docs/api-reference/openapi-hosted-trading.json`**: Nine occurrences of the "**Available on:** Polymarket, Opinion" callout that renders on every hosted trading endpoint reference page (build-order, submit-order, create-order, cancel/build, balances, etc.) were missing Limitless. Bulk-updated to "Polymarket, Opinion, Limitless". This file is the source-of-truth for those endpoint pages in this repo (not synced from hosted-pmxt — only `openapi-hosted.json` is in `docs-sync-check.yml`'s exclude list), so the change lands directly. Matches the SDK routing and the `/concepts/hosted-trading` page updated in 2.50.7.
+- **`docs/rate-limits.mdx`**: The "Need more?" card at the bottom of the page linked to `pmxt.dev/dashboard` with the copy "Reach out from the dashboard if you need higher limits." Wrong destination for the question being asked — a builder hitting their rate limit wants to see plans and limits, not the dashboard chrome. Retargeted the card to `pmxt.dev/pricing` and retitled to "Pricing" with copy "See plans and limits, or reach out for custom quotas." Every other dashboard link in the docs (create key, deposit USDC, rotate key) is correctly targeted and was left alone.
+
 ## [2.50.8] - 2026-06-18
 
 ### Docs

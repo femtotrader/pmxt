@@ -138,7 +138,7 @@
           }
         ],
         "x-mint": {
-          "content": "<Info>\n  **Available on:** Polymarket, Opinion. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Note>\n  **Before your first call:** deposit USDC on Polygon at [pmxt.dev/dashboard/wallet](https://pmxt.dev/dashboard/wallet) (one-time setup). For the programmatic flow, see [escrow lifecycle](/guides/escrow-lifecycle).\n</Note>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
+          "content": "<Info>\n  **Available on:** Polymarket, Opinion, Limitless. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Note>\n  **Before your first call:** deposit USDC on Polygon at [pmxt.dev/dashboard/wallet](https://pmxt.dev/dashboard/wallet) (one-time setup). For the programmatic flow, see [escrow lifecycle](/guides/escrow-lifecycle).\n</Note>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
         }
       }
     },
@@ -225,7 +225,7 @@
           }
         ],
         "x-mint": {
-          "content": "<Info>\n  **Available on:** Polymarket, Opinion. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Note>\n  **Before your first call:** deposit USDC on Polygon at [pmxt.dev/dashboard/wallet](https://pmxt.dev/dashboard/wallet) (one-time setup). For the programmatic flow, see [escrow lifecycle](/guides/escrow-lifecycle).\n</Note>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
+          "content": "<Info>\n  **Available on:** Polymarket, Opinion, Limitless. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Note>\n  **Before your first call:** deposit USDC on Polygon at [pmxt.dev/dashboard/wallet](https://pmxt.dev/dashboard/wallet) (one-time setup). For the programmatic flow, see [escrow lifecycle](/guides/escrow-lifecycle).\n</Note>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
         }
       }
     },
@@ -332,7 +332,7 @@
           }
         ],
         "x-mint": {
-          "content": "<Info>\n  **Available on:** Polymarket, Opinion. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Note>\n  **Before your first call:** deposit USDC on Polygon at [pmxt.dev/dashboard/wallet](https://pmxt.dev/dashboard/wallet) (one-time setup). For the programmatic flow, see [escrow lifecycle](/guides/escrow-lifecycle).\n</Note>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
+          "content": "<Info>\n  **Available on:** Polymarket, Opinion, Limitless. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Note>\n  **Before your first call:** deposit USDC on Polygon at [pmxt.dev/dashboard/wallet](https://pmxt.dev/dashboard/wallet) (one-time setup). For the programmatic flow, see [escrow lifecycle](/guides/escrow-lifecycle).\n</Note>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
         }
       }
     },
@@ -419,7 +419,7 @@
           }
         ],
         "x-mint": {
-          "content": "<Info>\n  **Available on:** Polymarket, Opinion. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Note>\n  **Before your first call:** deposit USDC on Polygon at [pmxt.dev/dashboard/wallet](https://pmxt.dev/dashboard/wallet) (one-time setup). For the programmatic flow, see [escrow lifecycle](/guides/escrow-lifecycle).\n</Note>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
+          "content": "<Info>\n  **Available on:** Polymarket, Opinion, Limitless. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Note>\n  **Before your first call:** deposit USDC on Polygon at [pmxt.dev/dashboard/wallet](https://pmxt.dev/dashboard/wallet) (one-time setup). For the programmatic flow, see [escrow lifecycle](/guides/escrow-lifecycle).\n</Note>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
         }
       }
     },
@@ -497,7 +497,7 @@
           }
         ],
         "x-mint": {
-          "content": "<Info>\n  **Available on:** Polymarket, Opinion. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
+          "content": "<Info>\n  **Available on:** Polymarket, Opinion, Limitless. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
         }
       }
     },
@@ -578,7 +578,7 @@
           }
         ],
         "x-mint": {
-          "content": "<Info>\n  **Available on:** Polymarket, Opinion. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
+          "content": "<Info>\n  **Available on:** Polymarket, Opinion, Limitless. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
         }
       }
     },
@@ -661,7 +661,7 @@
           }
         ],
         "x-mint": {
-          "content": "<Info>\n  **Available on:** Polymarket, Opinion. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
+          "content": "<Info>\n  **Available on:** Polymarket, Opinion, Limitless. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
         }
       }
     },
@@ -732,7 +732,7 @@
           }
         ],
         "x-mint": {
-          "content": "<Info>\n  **Available on:** Polymarket, Opinion. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
+          "content": "<Info>\n  **Available on:** Polymarket, Opinion, Limitless. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
         }
       }
     },
@@ -810,7 +810,7 @@
           }
         ],
         "x-mint": {
-          "content": "<Info>\n  **Available on:** Polymarket, Opinion. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
+          "content": "<Info>\n  **Available on:** Polymarket, Opinion, Limitless. Other venues raise `NotSupported` in hosted mode — for those, run a [local PMXT service](/guides/self-hosted).\n</Info>\n\n<Tip>\n  Use any EVM private key. Your USDC sits in a non-custodial PreFundedEscrow on Polygon — the single funding location for every hosted venue (including Opinion, which PMXT settles cross-chain for you). PMXT cannot move funds without your EIP-712 signature.\n</Tip>"
         }
       }
     }

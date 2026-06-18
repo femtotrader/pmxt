@@ -55,7 +55,7 @@ class NotFoundError(PmxtError):
 
 class OrderNotFound(NotFoundError):
     """404 Not Found - The requested order doesn't exist."""
-    def __init__(self, order_id: str, exchange: str | None = None):
+    def __init__(self, order_id: str, exchange: str | None = None, **_ignored: Any):
         super().__init__(
             _format_not_found_message("Order not found: ", order_id),
             code="ORDER_NOT_FOUND",
@@ -65,7 +65,7 @@ class OrderNotFound(NotFoundError):
 
 class MarketNotFound(NotFoundError):
     """404 Not Found - The requested market doesn't exist."""
-    def __init__(self, market_id: str, exchange: str | None = None):
+    def __init__(self, market_id: str, exchange: str | None = None, **_ignored: Any):
         super().__init__(
             _format_not_found_message("Market not found: ", market_id),
             code="MARKET_NOT_FOUND",
@@ -75,7 +75,7 @@ class MarketNotFound(NotFoundError):
 
 class EventNotFound(NotFoundError):
     """404 Not Found - The requested event doesn't exist."""
-    def __init__(self, identifier: str, exchange: str | None = None):
+    def __init__(self, identifier: str, exchange: str | None = None, **_ignored: Any):
         super().__init__(
             _format_not_found_message("Event not found: ", identifier),
             code="EVENT_NOT_FOUND",

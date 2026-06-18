@@ -51,7 +51,20 @@ const order = await client.createOrder({
 ```
 </CodeGroup>
 
-For Opinion's dual-signature cross-chain flow, the SDK signs both payloads with the same key automatically — no extra wiring.
+### Single-signature vs dual-signature flows
+
+Most hosted writes are **single-signature** — one EIP-712 payload, surfaced as `built.raw["typed_data"]`. This covers:
+
+- Polymarket buys and sells — `OrderParams` on the Polygon `PreFundedEscrow` domain.
+- Opinion BUY — `CrossChainOrderParams` on the Polygon `PreFundedEscrow` domain (the BSC delivery leg needs no user signature; the user is the recipient).
+- Limitless buys and sells — ERC-7683 order on the Polygon escrow domain.
+
+**Opinion SELL is the one dual-signature case.** The user gives up tokens custodied on BSC, so the SDK builds two payloads at once:
+
+- `built.raw["typed_data"]` — `CrossChainSellPayParams` on the Polygon `PreFundedEscrow` domain (the operator's pay leg into the user's Polygon balance).
+- `built.raw["pull_typed_data"]` — `CrossChainSellPullParams` on the BSC `VenueEscrow` domain (the operator's pull leg against the user's BSC outcome tokens).
+
+The SDK signs both with the same EVM private key automatically — no extra wiring. The two domains are distinct (`PreFundedEscrow` on chainId 137, `VenueEscrow` on chainId 56) and each signature only authorizes its own chain's leg.
 
 ## Why reads only need a wallet address
 
@@ -114,4 +127,4 @@ const order = await client.createOrder({
 ```
 </CodeGroup>
 
-For Opinion's dual-signature flow, the same injected signer is invoked twice (once per payload) — no extra wiring. The SDK's `EthAccountSigner` (Python) / `EthersSigner` (TypeScript) are reference implementations; ethers v6 supports Ledger out of the box, and for MPC see Fireblocks / Privy / Turnkey docs.
+For Opinion SELL's dual-signature flow, the same injected signer is invoked twice (once for the Polygon pay leg, once for the BSC pull leg) — no extra wiring. The SDK's `EthAccountSigner` (Python) / `EthersSigner` (TypeScript) are reference implementations; ethers v6 supports Ledger out of the box, and for MPC see Fireblocks / Privy / Turnkey docs.

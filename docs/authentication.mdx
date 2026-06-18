@@ -138,9 +138,16 @@ All revocations are logged under **Settings > Audit Log**.
 
 | Status | Body                                     | Meaning                                   | SDK exception |
 | ------ | ---------------------------------------- | ----------------------------------------- | ------------- |
-| `401`  | `{"error": "missing api key"}`           | No `Authorization` header on the request. | [`InvalidApiKey`](/api-reference/errors#invalidapikey) |
-| `401`  | `{"error": "invalid api key"}`           | Key unknown, revoked, or expired.         | [`InvalidApiKey`](/api-reference/errors#invalidapikey) |
+| `401`  | `{"error": "missing api key"}`           | No `Authorization` header on the request. | `PmxtError` (message: `missing api key`) |
+| `401`  | `{"error": "invalid api key"}`           | Key unknown, revoked, or expired.         | `PmxtError` (message: `invalid api key`) |
 | `429`  | `{"error": "rate_limit_exceeded", ... }` | See [Plans & Limits](/rate-limits).       | `RateLimitExceeded` |
+
+<Note>
+Today the SDKs raise the base `pmxt.errors.PmxtError` for both 401 cases
+— match on the message string. A dedicated `InvalidApiKey` subclass may
+be added in a future SDK release; this doc will be updated when that
+ships.
+</Note>
 
 See [API Reference / Errors](/api-reference/errors) for the full error
 class hierarchy.

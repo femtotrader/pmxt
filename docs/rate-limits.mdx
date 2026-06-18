@@ -12,16 +12,17 @@ and `trade.pmxt.dev`) — see [hosts](/authentication#hosts).
 ## Limits
 
 {/* HOSTED-AUTOGEN:rate-limits-table:START */}
-| Endpoint | Per-minute | Per-month |
-| -------- | ---------- | --------- |
-| `/v0/*` | 60 | 25,000 |
-| `/api/*` | 60 | 25,000 |
+| Plan | Monthly credits | Per-minute | WebSocket streams | Price |
+| ---- | --------------- | ---------- | ----------------- | ----- |
+| Free | 25,000 | 60 | 5 | $0/mo |
+| Starter | 250,000 | 300 | 20 | $29.99/mo |
+| Pro | 1,000,000 | 1,000 | 100 | $99.99/mo |
+| Enterprise | Custom | Custom | Custom | [Contact us](https://pmxt.dev/pricing) |
 {/* HOSTED-AUTOGEN:rate-limits-table:END */}
 
-The `/v0/*` row covers both `api.pmxt.dev/v0/*` (Router) and
-`trade.pmxt.dev/v0/*` (trading) — the same per-key limits apply across
-both hosts. Every request to `/v0/*` or `/api/*` counts as **1 request**,
-regardless of how much data it returns. Health checks are free.
+Limits apply per API key across both hosts (`api.pmxt.dev` and
+`trade.pmxt.dev`). Credit accounting: **1 REST call = 1 credit**, **1
+WebSocket message = 0.1 credits**. Health checks are free.
 
 ## Rate limit responses
 

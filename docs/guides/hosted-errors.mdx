@@ -231,6 +231,12 @@ try {
 </Warning>
 
 <Warning>
+**Marketable limit price selection.** The SDK's `_validate_worst_price` gate applies a slippage buffer on top of the book — it is NOT simply "must cross top-of-book". For an immediately-executable price:
+- **Marketable limit BUY:** use `price = best_ask` (a small +1-tick buffer works too).
+- **Marketable limit SELL:** use `price = best_ask` (i.e. at or above the ask), NOT `best_bid` or `best_bid - 0.01`. Posting at `best_bid` looks marketable in book terms, but the validator's slippage floor (currently `worst_price ≥ best_bid × 0.8 + 0.029`, see `_hosted_typeddata.py:519`) will reject it for thin books or low-price outcomes. Pricing at or above `best_ask` is the reliable rule.
+</Warning>
+
+<Warning>
 If you see `OutcomeNotFound` despite having a valid-looking ID, the SDK could not resolve it on either the catalog UUID or `(venue, venue_outcome_id)` path. Most commonly: the outcome was resolved against a different venue than the client's `exchange_name`, or the outcome has since been removed from the catalog. See [Catalog UUID vs venue ID](/concepts/catalog-uuid-vs-venue-id).
 </Warning>
 

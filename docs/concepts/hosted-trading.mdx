@@ -48,7 +48,12 @@ Step-by-step:
 1. **Build.** The SDK calls `POST /v0/trade/build-order` with the catalog UUIDs (`market_id`, `outcome_id`), side, and amount. The server resolves the venue-native fields (token IDs, salt, expiry, fees), packages them into the venue's EIP-712 typed-data shape, and returns a `built_order_id` plus the payload to sign.
 2. **Sign.** The SDK signs the typed-data payload locally with your `private_key`. This step never leaves your process. See [Signing](/guides/signing) for the exact shape.
 3. **Submit.** The SDK calls `POST /v0/trade/submit-order` with the `built_order_id` and the signature. The server attaches the signature to the prepared order and submits to the venue.
-4. **Settle.** The venue matches the order. On Polymarket, fills come from the CLOB and are settled on Polygon via the CTF exchange. On Opinion, settlement uses a dual-signature cross-chain flow into a BSC-side `VenueEscrow`. On Limitless, buys are settled on Polygon directly from escrow; sells use a Base-side pull leg that draws against the user's Polygon escrow.
+4. **Settle.** The venue matches the order. Settlement model varies by venue:
+
+   - **Polymarket** — same-chain on Polygon. The user signs one EIP-712 `OrderParams` against the Polygon `PreFundedEscrow` domain. Settlement is direct against the Polymarket CTF exchange. No oracle, no cross-chain hop.
+   - **Opinion BUY** — cross-chain Polygon → BSC, **single signature + oracle-attested delivery-versus-payment (DvP)**. The user signs one `CrossChainOrderParams` payload on the Polygon `PreFundedEscrow` domain, authorizing a capped spend of their USDC. The operator fronts BSC working capital, buys on Opinion's CLOB, and calls `depositForUser` on the BSC `VenueEscrow` to credit the user with the real outcome tokens. An independent **settlement oracle** observes the BSC delivery and signs a `DeliveryAttestation`. The operator submits the attestation to `settleCrossChainBuy` on Polygon, which verifies the user signature, the attestation binding (order, user, token, destination escrow), the oracle signature, a non-zero `tokensDelivered`, and a per-token worst-price check before releasing the user's USDC. The operator cannot pull USDC until it has provably delivered tokens. Trust assumption: honest oracle.
+   - **Opinion SELL** — cross-chain BSC → Polygon, **dual-signed parallel, no oracle**. The user signs two EIP-712 payloads at build time: a Polygon pay leg (`CrossChainSellPayParams` on the `PreFundedEscrow` domain) and a BSC pull leg (`CrossChainSellPullParams` on the `VenueEscrow` domain). The operator fires both in parallel: `settleCrossChainSellUSDC` credits the user's USDC on Polygon, `settleCrossChainSellTokens` pulls the outcome tokens from the user's BSC escrow. Time-to-tokens is roughly one block. The 2×2 outcome matrix's row 3 (pay failed, pull succeeded) is the operator-trusted gap today; a future bond backstop will close it.
+   - **Limitless** — cross-chain Polygon → Base, **v1 signature-gated front-and-reimburse** (ERC-7683). The user signs one ERC-7683 order via EIP-712 on the Polygon escrow domain: "buy ≥Y tokens, debit ≤X USDC, worstPrice, deadline, nonce". The operator fronts Base working capital, buys on Limitless' CLOB, delivers the real tokens to the user's Base escrow, then pulls the capped USDC on Polygon against the signature. **v1 trust asterisk:** the pull is gated by the signature alone, so reimbursement carries a delivery-performance trust point on the operator. v2 will gate the pull on a Base → Polygon delivery proof (UMA optimistic or ZK).
 
 `create_order` is a convenience wrapper that chains build → sign → submit in one call. `build_order` and `submit_order` are the lower-level primitives if you want to inspect or modify the typed-data before signing.
 
@@ -64,12 +69,15 @@ The SDK accepts either form. Outcomes returned by `pmxt.Polymarket(...).fetch_ma
 
 ## Custody: PreFundedEscrow
 
-**Non-custodial by construction** — the `PreFundedEscrow` contract enforces that funds can only move against an EIP-712 signature from the user's wallet. PMXT does not hold USDC in a hot wallet, an exchange-style omnibus account, or a multisig. USDC sits in the `PreFundedEscrow` smart contract on **Polygon** (chainId 137, sometimes called `HomeEscrow`). The same contract backs every hosted venue:
+**Non-custodial by construction** — escrow contracts enforce that funds can only move against an EIP-712 signature from the user's wallet (plus, for cross-chain buys, an oracle attestation). PMXT does not hold USDC in a hot wallet, an exchange-style omnibus account, or a multisig. The user's wallet retains beneficial ownership at all times.
 
-- **Polymarket** is on Polygon. Escrow-held USDC is spent directly via Polymarket's CTF exchange — same-chain settlement.
-- **Opinion** is on BSC (chainId 56). Escrow-held USDC funds a cross-chain settlement leg into a BSC-side `VenueEscrow` that holds Opinion [outcome](/concepts/prediction-markets-101#event-market-outcome) tokens. The user never deposits to or signs on BSC — PMXT operates the cross-chain hop, still gated by the user's signature on the Polygon side.
+USDC custody lives on **Polygon** in the `PreFundedEscrow` contract (chainId 137, sometimes called `HomeEscrow`). Outcome-token custody on non-Polygon venues lives on the venue's native chain:
 
-All EIP-712 order signatures use the Polygon `PreFundedEscrow` domain regardless of venue. The user's wallet retains beneficial ownership at all times. Funds enter via `client.escrow.deposit_tx(amount)`, exit via `client.escrow.withdraw_tx("request" | "claim" | "cancel", ...)`. Both build unsigned txs — your wallet signs and submits them. See [Escrow Lifecycle](/guides/escrow-lifecycle).
+- **Polygon `PreFundedEscrow`** holds the user's USDC (USDC.e, `0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174`) and serves every venue's payment leg. Polymarket CTF tokens are custodied here too — same-chain.
+- **BSC `VenueEscrow`** (chainId 56) holds Opinion [outcome](/concepts/prediction-markets-101#event-market-outcome) tokens. For Opinion BUYs the operator deposits tokens here on the user's behalf (no user signature on BSC). For Opinion SELLs the user signs a BSC-domain pull leg authorizing the operator to debit this escrow.
+- **Base escrow** holds Limitless outcome tokens. The operator delivers tokens here after buying on Limitless' CLOB; the user funds and signs only on Polygon.
+
+USDC enters via `client.escrow.deposit_tx(amount)` on Polygon, exits via `client.escrow.withdraw_tx("request" | "claim" | "cancel", ...)`. Both build unsigned txs — your wallet signs and submits them. See [Escrow Lifecycle](/guides/escrow-lifecycle).
 
 ### Deployed contracts
 

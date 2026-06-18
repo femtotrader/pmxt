@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.50.13] - 2026-06-18
+
+A second live-verification round + brain-reading session caught 11 more issues across SDK and docs. The brain-reading reframed Bug #6 (catalog UUID emission) and corrected the docs' settlement story — Opinion is NOT uniformly dual-signature; BUY is single sig + oracle DvP, SELL is dual-signed parallel.
+
+### Fixed (Python SDK)
+
+- **`sdks/python/pmxt/client.py:1492` — `cancel_order` missing hosted-mode routing branch.** Same class of bug as 2.50.11/12 fixed for `fetch_balance`, `fetch_positions`, `fetch_order`, `fetch_my_trades`. Added the hosted branch; it dispatches via the existing `_hosted_cancel_order` helper (which has been there at `client.py:998` all along). Cancel now goes through the hosted route in hosted mode instead of accidentally working via the legacy sidecar.
+- **`sdks/python/pmxt/_exchanges.py:78-110` — `Limitless` constructor rejected `wallet_address=` kwarg.** Polymarket accepts it; Limitless threw `TypeError: unexpected keyword argument 'wallet_address'`. Added `wallet_address` and `signer` params to `Limitless.__init__` and forwarded to `super().__init__()`, matching the Polymarket shape. The Python exchange-class generator template (`core/scripts/generate-python-exchanges.js`) needs the same fix or this regression returns on the next regen.
+- **`sdks/python/pmxt/errors.py:66-73` — `MarketNotFound.__init__()` raised `TypeError: unexpected keyword argument 'code'`.** Every Limitless `fetch_order_book(outcome_id=...)` call hit this and crashed. `from_server_error` at line 165 passes `code=` and `retryable=` to whatever class it instantiates, but `MarketNotFound` / `OrderNotFound` / `EventNotFound` all had strict 2-arg `__init__`. Added `**_ignored` to absorb the extras (the classes hardcode their own code internally). All three NotFound classes patched preemptively.
+- **`sdks/python/pmxt/client.py:1395-1401` — `fetch_market("market_id_string")` raised `AttributeError: 'str' object has no attribute 'items'`.** Signature now accepts a string positional arg and coerces to `{"market_id": params}` before camelCase conversion. Doc examples that pass a string id no longer crash. TS strict typing already prevents this.
+- **`sdks/python/pmxt/_hosted_mappers.py:80-103` — Limitless trade `fee` field returned as raw micro-USDC.** Polymarket trades report `fee=0.0012` (USDC); Limitless reported `fee=6136` (raw 6-decimal). Normalized in `user_trade_from_v0` when `venue == "limitless"`: divide by 1e6. Inverse multiply added to `user_trade_to_v0` at line 106-128. Limitless core normalizer doesn't set `fee` at all on `UserTrade` — the raw 6136 was coming from the hosted v0 wire (`trade.pmxt.dev`), so the fix lives in the hosted mapper, not the sidecar normalizer.
+
+### Fixed (TypeScript SDK)
+
+- **`sdks/typescript/pmxt/client.ts:1163-1170,2344` — `cancelOrder` missing hosted-mode routing branch.** Same fix as Python; added `if (this.isHosted) return this._hostedCancelOrder(orderId);` and a new `_hostedCancelOrder` method mirroring the Python helper (build → sign → cancel using `cancelOrderBuild` / `cancelOrder` routes from `hosted-routing.ts`). TS `Limitless` already accepts `walletAddress` via `ExchangeOptions` — no change needed there.
+
+### Docs — settlement architecture rewrite (Opinion + Limitless)
+
+The brain (`docs/engineering/architecture/Cross-Chain Settlement (Buy + Sell).md`, `docs/engineering/decisions/oracle-attested-dvp-settlement.md`) is the source of truth. The docs were uniformly wrong about Opinion ("dual-signature cross-chain" applied to both directions) and oversimplified for Limitless.
+
+- **`docs/concepts/hosted-trading.mdx` — Settle step (line 51).** Rewrote to per-venue model with correct trust gates:
+  - **Polymarket** — same-chain Polygon, single EIP-712 `OrderParams` on `PreFundedEscrow`, CTF exchange.
+  - **Opinion BUY** — Polygon→BSC, single `CrossChainOrderParams` + oracle-attested DvP via `settleCrossChainBuy`. Operator fronts BSC, settlement oracle signs `DeliveryAttestation`, contract checks bind/oracle sig/`tokensDelivered != 0`/worst-price before releasing the user's USDC. Trust assumption: honest oracle.
+  - **Opinion SELL** — BSC→Polygon, dual-signed parallel (`CrossChainSellPayParams` on Polygon + `CrossChainSellPullParams` on BSC `VenueEscrow`). `settleCrossChainSellUSDC` ‖ `settleCrossChainSellTokens`. 2×2 outcome matrix: row 3 (pay✗, pull✓) is the operator-trusted gap today, bond-backstopped later.
+  - **Limitless** — Polygon→Base, ERC-7683 single sig, v1 signature-gated front-and-reimburse with explicit trust asterisk; v2 will use delivery proof.
+- **`docs/concepts/hosted-trading.mdx` — Custody section (lines 65-72).** Rewrote from a Polygon-only frame to a three-chain custody story: Polygon `PreFundedEscrow` (USDC + CTF), BSC `VenueEscrow` (Opinion tokens), Base escrow (Limitless tokens). Notes that Opinion BUYs need no BSC user signature (user is the recipient on the `depositForUser` leg) while Opinion SELLs require a BSC-domain pull signature.
+- **`docs/guides/signing.mdx`** — added a "Single-signature vs dual-signature flows" subsection. Single-sig: Polymarket buy+sell, Opinion BUY, Limitless buy+sell — one payload at `built.raw["typed_data"]`. Dual-sig: Opinion SELL ONLY — `built.raw["typed_data"]` (Polygon `CrossChainSellPayParams` on `PreFundedEscrow`) plus `built.raw["pull_typed_data"]` (BSC `CrossChainSellPullParams` on `VenueEscrow`). Same EVM key signs both; domains distinct (chainId 137 vs 56). Custom-signer note at line 117 scoped to Opinion SELL with the two legs named explicitly.
+
+### Docs — operational fixes from the verification round
+
+- **`docs/rate-limits.mdx`** — replaced the single-row 60/min table with the actual three-tier table from `docs/engineering/repos/hosted-pmxt.md` (verified 2026-05-29 against pmxt.dev/pricing): Free (60/min, 25K credits), Starter (300/min, 250K credits, $29.99/mo), Pro (1000/min, 1M credits, $99.99/mo), Enterprise (custom). Added the credit accounting rule (1 REST = 1 credit; 1 WS message = 0.1 credits). This explains why our test key didn't trigger 429 at 120 req/42.7s — it's on a higher tier than Free.
+- **`docs/authentication.mdx:141-146`** — the documented `InvalidApiKey` SDK exception class doesn't actually exist; live test confirmed both 401 cases raise the base `pmxt.errors.PmxtError` with message "missing api key" / "invalid api key". Updated the error table to reflect reality + added a `<Note>` flagging this as a temporary doc accommodation pending a future SDK release that may add the subclass.
+- **`docs/guides/escrow-lifecycle.mdx` + `docs/trading-quickstart.mdx`** — escrow tx builders (`approve_tx`, `deposit_tx`, `withdraw_tx`) return `{"tx": {...}}`, not a flat tx dict. Every code block that accessed `tx.to` / `tx.value` directly was rewritten to unwrap via `result["tx"]` (Python) or `const { tx } = await client.escrow.X()` (TS). Comments now show the envelope shape including `chainId`, `gas`, `maxFeePerGas`, `maxPriorityFeePerGas`, `nonce`. ~10 examples fixed across the two files.
+- **`docs/trading-quickstart.mdx`** — added a Note that `outcome=` requires a `MarketOutcome` instance (the object you get from `client.fetch_markets()[0].outcomes[i]`). Passing a bare dict raises `AttributeError`. Pointed at the string-id alternative: `client.create_order(market_id="...", outcome_id="...", side="buy", ...)`.
+- **`docs/guides/hosted-errors.mdx`** — added a Warning clarifying the marketable-limit price gates. Marketable BUY: `price = best_ask` (small +1-tick buffer works). Marketable SELL: `price = best_ask` (at or above ask), NOT `best_bid` or `best_bid - 0.01`. The SDK's `_validate_worst_price` enforces `worst_price ≥ best_bid × 0.8 + 0.029` at `_hosted_typeddata.py:519`; the practical floor for a marketable SELL on Spain @ $0.138 is at the ask, not below the bid.
+
+### Skipped / in flight
+
+- **Bug #6 (catalog UUID emission for Myriad rows in `/v0/markets`)** — background agent stopped because the brain doc's `/opt/data/repos/hosted-pmxt` path doesn't exist on the actual server (`65.109.107.152`). hosted-pmxt is deployed to GCP Cloud Run and there's no Hetzner checkout. A local clone at `/Users/samueltinnerholm/Documents/GitHub/hosted-pmxt` exists but the agent's sandbox can't operate there. Needs a different working location to proceed — tracked for a follow-up.
+
 ## [2.50.12] - 2026-06-18
 
 A live-verification sweep across Router methods, the catalog-UUID path, fetch_my_trades, curl examples, the self-hosted path, hosted SELL, hosted limit orders, and Limitless hosted writes turned up 7 HIGH-severity bugs. Six are fixed and verified live in this patch; the seventh needs a design call before any change. Plus one security note: see the bottom.

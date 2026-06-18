@@ -1162,6 +1162,9 @@ export abstract class Exchange {
 
     async cancelOrder(orderId: string): Promise<Order> {
         await this.initPromise;
+        if (this.isHosted) {
+            return this._hostedCancelOrder(orderId);
+        }
         try {
             const args: any[] = [];
             args.push(orderId);
@@ -2339,6 +2342,56 @@ export abstract class Exchange {
         // opinion
         if (sideLower === "buy") return "opinion_buy";
         return isPull ? "opinion_sell_bsc_pull" : "opinion_sell_polygon";
+    }
+
+    /**
+     * Hosted-mode cancelOrder: build → sign → cancel single-call wrapper.
+     * Mirrors the Python SDK's `_hosted_cancel_order`.
+     */
+    private async _hostedCancelOrder(orderId: string): Promise<Order> {
+        const signer = this.requireHostedSigner();
+        if (!this.walletAddress) {
+            throw new MissingWalletAddress("hosted cancelOrder requires walletAddress");
+        }
+        const buildRequest = { order_id: orderId, user_address: this.walletAddress };
+        const buildRoute = HOSTED_METHOD_ROUTES.get("cancelOrderBuild")!;
+        const buildPayload = await _tradingRequest(this, {
+            method: buildRoute.method,
+            path: buildRoute.path,
+            body: buildRequest,
+        }) as Record<string, unknown>;
+
+        const typedData = buildPayload["typed_data"] as TypedData | undefined;
+        if (!typedData) {
+            throw new HostedInvalidSignature(0, "typed_data missing from hosted cancel build response");
+        }
+        const primaryRoute = this._hostedCancelTypedDataRoute(false);
+        validateTypedData(typedData, primaryRoute, this.walletAddress);
+        const signature = await signer.signTypedData(typedData);
+        verifySignature(typedData, signature, signer.address);
+
+        const cancelId = buildPayload["cancel_id"];
+        if (!cancelId) {
+            throw new HostedInvalidSignature(0, "cancel_id missing from hosted cancel build response");
+        }
+        const body: Record<string, unknown> = { cancel_id: cancelId, signature };
+
+        const pullTypedData = buildPayload["pull_typed_data"] as TypedData | undefined;
+        if (pullTypedData) {
+            const pullRoute = this._hostedCancelTypedDataRoute(true);
+            validateTypedData(pullTypedData, pullRoute, this.walletAddress);
+            const pullSig = await signer.signTypedData(pullTypedData);
+            verifySignature(pullTypedData, pullSig, signer.address);
+            body["pull_signature"] = pullSig;
+        }
+
+        const cancelRoute = HOSTED_METHOD_ROUTES.get("cancelOrder")!;
+        const data = await _tradingRequest(this, {
+            method: cancelRoute.method,
+            path: cancelRoute.path,
+            body,
+        });
+        return orderFromV0(data as Record<string, unknown>);
     }
 
     private _hostedCancelTypedDataRoute(isPull: boolean): string {

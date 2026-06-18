@@ -1392,9 +1392,11 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_market(self, params: Optional[dict] = None, **kwargs) -> UnifiedMarket:
+    def fetch_market(self, params: Optional[Union[dict, str]] = None, **kwargs) -> UnifiedMarket:
         try:
             args = []
+            if isinstance(params, str):
+                params = {"market_id": params}
             if kwargs:
                 params = {**(params or {}), **kwargs}
             if params is not None:
@@ -1490,6 +1492,8 @@ class Exchange(ABC):
             raise self._parse_api_exception(e) from None
 
     def cancel_order(self, order_id: str) -> Order:
+        if self.is_hosted:
+            return self._hosted_cancel_order(order_id)
         try:
             args = []
             args.append(order_id)

@@ -89,11 +89,12 @@ If you're scripting deposits (CI, treasury automation, custom wallet integration
 <CodeGroup>
 ```python Python
 # 1. Build an unsigned ERC-20 approval tx for USDC
-approve_tx = client.escrow.approve_tx("usdc")
+approve_tx = client.escrow.approve_tx("usdc")["tx"]
 # Sign and send approve_tx with your wallet library...
+# (escrow builders return {"tx": {...}}; unwrap with ["tx"])
 
 # 2. Build an unsigned deposit tx for 10 USDC
-deposit_tx = client.escrow.deposit_tx(amount=10.0)
+deposit_tx = client.escrow.deposit_tx(amount=10.0)["tx"]
 # Sign and send deposit_tx with your wallet library...
 
 # 3. Confirm the deposit landed
@@ -103,11 +104,12 @@ print(f"Escrow USDC: {balances[0].available}")
 
 ```typescript TypeScript
 // 1. Build an unsigned ERC-20 approval tx for USDC
-const approveTx = await client.escrow.approveTx("usdc");
+const { tx: approveTx } = await client.escrow.approveTx("usdc");
 // Sign and send approveTx with your wallet library...
+// (escrow builders return { tx: {...} }; destructure as shown)
 
 // 2. Build an unsigned deposit tx for 10 USDC
-const depositTx = await client.escrow.depositTx(10);
+const { tx: depositTx } = await client.escrow.depositTx(10);
 // Sign and send depositTx with your wallet library...
 
 // 3. Confirm the deposit landed
@@ -159,6 +161,10 @@ echo "Use an SDK for create_order."
 
 <Note>
 The hosted trading API accepts either the venue-native identifier (returned by `client.fetch_markets`) or a catalog UUID (returned by [Router](/router/overview)) — whichever you have. The SDK picks the right wire field automatically. See [Catalog UUID vs Venue ID](/concepts/catalog-uuid-vs-venue-id) when cross-venue identity matters.
+</Note>
+
+<Note>
+**`outcome=` requires a `MarketOutcome` instance**, not a bare dict — passing a raw dict raises `AttributeError`. Use the object you got from `client.fetch_markets()[i].outcomes[j]` (or `router.fetch_markets()[i].outcomes[j]`) as shown above. If you only have string ids, pass them explicitly instead: `client.create_order(market_id="...", outcome_id="...", side="buy", ...)`.
 </Note>
 
 <Note>

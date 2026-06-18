@@ -34,7 +34,7 @@ New to prediction markets? Start at the [101](https://pmxt.dev/docs/concepts/pre
 
 It runs two ways:
 
-- **Hosted (default)** — `api.pmxt.dev` and `trade.pmxt.dev` give you a
+- **Hosted (default)** — PMXT's [hosts](https://pmxt.dev/docs/authentication#hosts) give you a
   shared catalog, cross-venue search, and end-to-end [hosted
   trading](https://pmxt.dev/docs/concepts/hosted-trading) with [PreFundedEscrow](https://pmxt.dev/docs/concepts/prediction-markets-101#prefundedescrow) custody. Set
   an API key and the SDK is fully operational.
@@ -48,7 +48,7 @@ The code is identical either way:
 ```python
 import pmxt
 
-# Hosted (default): talks to api.pmxt.dev / trade.pmxt.dev
+# Hosted (default): talks to PMXT's hosts — see /authentication#hosts
 poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
 
 markets = poly.fetch_markets(query="fed rate cut", limit=5)
@@ -438,6 +438,17 @@ That's it — you placed a real trade through hosted PMXT. From here:
 
 Source: https://pmxt.dev/docs/authentication
 
+#### Hosts
+
+PMXT serves two hostnames.
+
+- `api.pmxt.dev` — reads, catalog search via Router, MCP server, venue passthrough (`/api/*`).
+- `trade.pmxt.dev` — hosted writes (build / submit / cancel) and hosted account state (orders, positions, balances, trades) via `/v0/trade/*`, `/v0/user/*`, and `/v0/orders/*`.
+
+The same `pmxt_api_key` authenticates against both — no separate credentials.
+
+Reads and writes have different latency and availability profiles; the trading host is the hot path for signed-order submission and is operated independently.
+
 #### API key
 
 Every request to `https://api.pmxt.dev` needs a Bearer token. Get one
@@ -700,6 +711,9 @@ Source: https://pmxt.dev/docs/rate-limits
 Every API key includes the full surface — cross-venue search, unified
 schema, and the complete venue pass-through.
 
+Limits are **per API key** and apply across both hosts (`api.pmxt.dev`
+and `trade.pmxt.dev`) — see [hosts](https://pmxt.dev/docs/authentication#hosts).
+
 #### Limits
 
 
@@ -709,8 +723,10 @@ schema, and the complete venue pass-through.
 | `/api/*` | 60 | 25,000 |
 
 
-Every request to `/v0/*` or `/api/*` counts as **1 request**, regardless
-of how much data it returns. Health checks are free.
+The `/v0/*` row covers both `api.pmxt.dev/v0/*` (Router) and
+`trade.pmxt.dev/v0/*` (trading) — the same per-key limits apply across
+both hosts. Every request to `/v0/*` or `/api/*` counts as **1 request**,
+regardless of how much data it returns. Health checks are free.
 
 #### Rate limit responses
 
@@ -2103,8 +2119,8 @@ Source: https://pmxt.dev/docs/sdk/server
 
 > **Note:**
 This page covers the **self-hosted** local server. If you're using a
-`pmxt_api_key`, you can ignore this page — the SDK talks to
-`api.pmxt.dev` / `trade.pmxt.dev` directly and never spawns a local
+`pmxt_api_key`, you can ignore this page — the SDK talks to PMXT's
+[hosts](https://pmxt.dev/docs/authentication#hosts) directly and never spawns a local
 process. See [Hosted trading](https://pmxt.dev/docs/concepts/hosted-trading).
 
 

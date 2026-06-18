@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.50.15] - 2026-06-18
+
+### Fixed
+
+- **`sdks/python/pmxt/constants.py` + `sdks/typescript/pmxt/constants.ts` — Opinion SELL was fully blocked on hosted clients with `InvalidSignature: typed_data schema mismatch: no allowlisted verifyingContract configured for chain 56`.** Per the brain (`docs/engineering/architecture/Cross-Chain Settlement (Buy + Sell).md`, `docs/knowledge/pitfalls/cross-chain-eip712-domain.md`), Opinion SELL is a dual-signed parallel flow: the Polygon "pay" leg (`CrossChainSellPayParams`) signs against the Polygon `PreFundedEscrow` domain, and the BSC "pull" leg (`CrossChainSellPullParams`) signs against the BSC `VenueEscrow` domain — `ecrecover` runs on BSC for that leg, so the typed-data domain MUST use chainId 56 with the BSC contract's address. The SDK's `_VENUE_DOMAIN` schema for `opinion_sell_bsc_pull` correctly references chain 56 with `verifyingContract` allowlist `VENUE_ESCROW_ADDRESSES`, but both Python and TS constants files declared `VENUE_ESCROW_ADDRESSES` as an empty set with a "TODO: add the BSC VenueEscrow address" comment. Any hosted Opinion SELL hit the empty allowlist and was rejected client-side before submit. Added the BSC VenueEscrow address `0x6a273643d84edbb603b808d8a724fb963c7a298a` to both constants files. Verified live: order id `375`, position `0bf83067-…` on Spain market closed from 15.171726 → 0, USDC balance went 48.056457 → 49.735623 (Δ +1.679166 USDC; ~15.17 shares × ~$0.111 effective fill price).
+
 ## [2.50.14] - 2026-06-18
 
 ### Fixed

@@ -88,6 +88,10 @@ export interface MarketFilterParams {
     eventId?: string;     // Find markets belonging to an event
     page?: number;   // For pagination (used by Limitless)
     similarityThreshold?: number; // For semantic search (used by Limitless)
+    /** Filter by source venue (e.g. 'polymarket', 'kalshi', 'myriad'). `exchange` is an alias. */
+    sourceExchange?: string;
+    /** Alias for `sourceExchange`. */
+    exchange?: string;
 }
 
 export interface MarketFetchParams extends MarketFilterParams {
@@ -122,6 +126,10 @@ export interface EventFetchParams {
     category?: string;
     /** Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories -- for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump". */
     tags?: string[];
+    /** Filter by source venue (e.g. 'polymarket', 'kalshi', 'myriad'). `exchange` is an alias. */
+    sourceExchange?: string;
+    /** Alias for `sourceExchange`. */
+    exchange?: string;
 }
 
 /**

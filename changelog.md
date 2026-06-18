@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.50.14] - 2026-06-18
+
+### Fixed
+
+- **`core/src/BaseExchange.ts` + `core/src/router/Router.ts` — Router silently dropped the venue filter.** Discovered while verifying the Bug #6 fix on hosted-pmxt: `router.fetch_markets(query="...", exchange="polymarket")` was returning Myriad rows (or anything else, depending on what the catalog ranked first by volume). Root cause: `MarketFilterParams` (and `EventFetchParams`) did not declare `sourceExchange` / `exchange` fields at all. So when a caller passed `exchange="polymarket"` as a kwarg, the value reached `Router.fetchMarketsImpl` but was dropped — `searchMarkets` / `searchEvents` accept `sourceExchange` as a query param, but `fetchMarketsImpl` only forwarded `query`, `category`, `limit`, `offset`, `closed`. The filter was effectively a no-op.
+  - Added `sourceExchange?: string` and `exchange?: string` (alias) to both `MarketFilterParams` (which `MarketFetchParams` extends) and `EventFetchParams`.
+  - Updated `Router.fetchMarketsImpl` and `Router.fetchEventsImpl` to forward `params?.sourceExchange ?? params?.exchange` to the underlying `searchMarkets` / `searchEvents` calls.
+  - hosted-pmxt's `/v0/markets` and `/v0/events` raw REST routes only accepted `?sourceExchange=`; updated on branch `fix/v0-emit-catalog-uuid-as-outcomeid` to also accept `?exchange=` as an alias. Same Cloud Build trigger that deployed the Bug #6 fix will redeploy with this change.
+  - Per `RouterMarketSearchParams` / `RouterEventSearchParams` (types.ts:152-168), the search client interface already declared `sourceExchange` — the wiring was just missing in the Router layer.
+  - The bug was masked until 2.50.13 + hosted-pmxt Bug #6 fix: before the catalog-UUID emission fix, every Polymarket-shaped wire response *looked* Polymarket-shaped, so a missing filter just returned irrelevant Polymarket-ish rows. After the fix, the wire surfaces the true `sourceExchange`, and the filter being broken became visible (Polymarket-filter query returned Myriad rows tagged as such).
+
 ## [2.50.13] - 2026-06-18
 
 A second live-verification round + brain-reading session caught 11 more issues across SDK and docs. The brain-reading reframed Bug #6 (catalog UUID emission) and corrected the docs' settlement story — Opinion is NOT uniformly dual-signature; BUY is single sig + oracle DvP, SELL is dual-signed parallel.

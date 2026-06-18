@@ -51,7 +51,7 @@ For on-chain venues (Polymarket, Limitless, Probable, Opinion, Baozi), "venue cr
 
 Credential type is a property of the venue, not of PMXT. See [Supported Venues](/concepts/venues) for the full credential matrix. The difference between modes is **where the credential lives**:
 
-- **Hosted (Polymarket, Opinion):** PMXT never sees the venue private key. You sign EIP-712 locally against the `PreFundedEscrow` domain; PMXT's operator submits with its own key for gas. See [Hosted trading](/concepts/hosted-trading).
+- **Hosted (Polymarket, Opinion, Limitless):** PMXT never sees the venue private key. You sign EIP-712 locally against the `PreFundedEscrow` domain; PMXT's operator submits with its own key for gas. See [Hosted trading](/concepts/hosted-trading).
 - **Self-hosted (any venue):** the venue credential lives on your machine, in your `pmxt-core` process.
 
 ## Recommendations

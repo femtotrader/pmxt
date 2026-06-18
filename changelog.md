@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.50.7] - 2026-06-18
+
+### Fixed
+
+- **`sdks/typescript/pmxt/hosted-routing.ts`** + **`sdks/python/pmxt/_hosted_routing.py`**: `HOSTED_TRADING_VENUES` includes `limitless` (since 2.50.3 wired the `limitless_buy` / `limitless_sell_polygon` / `limitless_sell_base_pull` / `cancel_limitless_*` schemas), but the `NotSupported` error message thrown to callers attempting hosted trading on an unsupported venue still said "Hosted trading is only supported for Polymarket and Opinion". A caller who hit the error would believe Limitless was unsupported even though it would have worked, and anyone reading the SDK source to figure out which venues are hosted-tradable saw a directly contradictory pair (the set says yes, the error string says no). Updated both SDKs to "Polymarket, Opinion, and Limitless".
+
+### Docs
+
+- **Limitless hosted writes documented across the docs surface.** The 2.50.3 release wired Limitless through the hosted trading path but no doc page reflected it, so the docs collectively asserted Limitless was read-only / self-hosted-writes-only. Updated nine claim sites across six files:
+  - `docs/trading-quickstart.mdx:9` — "Hosted writes today: Polymarket, Opinion, and Limitless."
+  - `docs/authentication.mdx:83` — same.
+  - `docs/security.mdx:54` — "Hosted (Polymarket, Opinion, Limitless): PMXT never sees the venue private key."
+  - `docs/guides/escrow-lifecycle.mdx:9` — escrow funding line now lists Polymarket, Opinion, and Limitless as the "today" set.
+  - `docs/guides/escrow-lifecycle.mdx:20` — "Hosted exchange clients (Polymarket, Opinion, Limitless) expose an `escrow` namespace."
+  - `docs/guides/self-hosted.mdx:15` — hosted-writes list updated; Limitless removed from the self-hosted-only list of venues.
+  - `docs/guides/self-hosted.mdx:20` — "consumer app against Polymarket, Opinion, or Limitless".
+  - `docs/concepts/hosted-trading.mdx:9` — "trade Polymarket, Opinion, and Limitless" in the funding-once paragraph.
+  - `docs/concepts/hosted-trading.mdx:18` — "trading across Polymarket, Opinion, and Limitless".
+  - `docs/concepts/hosted-trading.mdx:51` — added a Limitless settlement sentence: "buys are settled on Polygon directly from escrow; sells use a Base-side pull leg that draws against the user's Polygon escrow" (the Polymarket and Opinion settlement descriptions were already there).
+  - `docs/concepts/hosted-trading.mdx:119` — Hosted-vs-self-hosted comparison table: "Trading venues | Polymarket, Opinion, Limitless".
+  - `docs/concepts/hosted-trading.mdx:131` — "What's supported today" table: added a Limitless row (Yes / Yes / "Polygon buy leg, Base pull-sell leg") and removed Limitless from the Kalshi/Smarkets/etc. read-only row.
+- **`docs/concepts/hosted-trading.mdx:89` — operator multisig wording.** The previous wording said "A multisig replacement is planned but not yet deployed" on one line while line 93 said `operator` is `immutable`. Read straight through, that reads like an in-place rotation that the contract design forbids. Rewrote to "Because `operator` is `immutable` on the deployed contracts, switching to a multisig would mean deploying new escrow contracts and migrating user balances — not an in-place rotation." Same facts, no contradiction.
+
 ## [2.50.6] - 2026-06-18
 
 ### Docs

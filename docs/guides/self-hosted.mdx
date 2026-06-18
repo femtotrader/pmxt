@@ -12,12 +12,12 @@ Pick self-hosted if **any** of these apply:
 - **Sub-100ms latency** — local submission removes a network hop. Matters for latency-sensitive arb / market-making.
 - **Raw venue credentials** — Polymarket L2 API keys, Kalshi RSA, Smarkets session cookies. Hosted mode doesn't accept these.
 - **Regulatory custody** — you must be the direct counterparty with no intermediary in the custody path.
-- **Venues hosted mode can't write to yet** — hosted writes are Polymarket + Opinion. Self-hosted writes work on every venue PMXT supports (Kalshi, Limitless, Smarkets, Probable, Myriad, Metaculus, etc.).
+- **Venues hosted mode can't write to yet** — hosted writes are Polymarket, Opinion, and Limitless. Self-hosted writes work on every venue PMXT supports (Kalshi, Smarkets, Probable, Myriad, Metaculus, etc.).
 - **OSS contribution** — you're hacking on `pmxt-core` itself.
 
 ## When hosted is still the better choice
 
-Everyone else. [Hosted](/concepts/hosted-trading) is simpler to deploy (no local process), gives you on-chain custody you control via the timelock, and PMXT's server never sees a private key. If you're building a consumer app, a research notebook, or any non-latency-critical service against Polymarket or Opinion, stop here and use hosted.
+Everyone else. [Hosted](/concepts/hosted-trading) is simpler to deploy (no local process), gives you on-chain custody you control via the timelock, and PMXT's server never sees a private key. If you're building a consumer app, a research notebook, or any non-latency-critical service against Polymarket, Opinion, or Limitless, stop here and use hosted.
 
 ## 1. Install pmxt-core
 

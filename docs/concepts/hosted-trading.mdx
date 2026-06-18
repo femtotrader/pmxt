@@ -6,7 +6,7 @@ description: "The hosted-default execution path — how PMXT routes orders, the 
 Hosted trading is PMXT's default execution path. You provide an API key and a wallet; your [USDC](/concepts/prediction-markets-101#usdc) sits in a non-custodial [`PreFundedEscrow`](/concepts/prediction-markets-101#prefundedescrow) smart contract on [Polygon](/concepts/prediction-markets-101#polygon) that can only move funds against an EIP-712 signature from your wallet; orders are built server-side, signed in your browser/server with your private key, and submitted by PMXT to the underlying venue. You never run a local server, never integrate with venue-specific signature schemes, and never expose your private key over the wire.
 
 <Info>
-  **One chain to fund: Polygon.** All hosted trading uses a single Polygon-based `PreFundedEscrow` contract for every supported venue. Fund USDC on Polygon once and your same wallet and key trade Polymarket *and* Opinion (and future venues). For non-Polygon venues like Opinion (on BSC), PMXT handles cross-chain settlement transparently — you never sign anything on a chain other than Polygon. Pass any EVM-compatible private key.
+  **One chain to fund: Polygon.** All hosted trading uses a single Polygon-based `PreFundedEscrow` contract for every supported venue. Fund USDC on Polygon once and your same wallet and key trade Polymarket, Opinion, *and* Limitless (and future venues). For non-Polygon venues like Opinion (on BSC), PMXT handles cross-chain settlement transparently — you never sign anything on a chain other than Polygon. Pass any EVM-compatible private key.
 </Info>
 
 ## When hosted mode is right
@@ -15,7 +15,7 @@ Hosted is the right default for:
 
 - **Web and mobile apps** — your backend holds the `pmxt_api_key`; users keep their own private keys on their devices.
 - **Trading bots that don't need sub-100ms latency** — typical hosted round-trip is ~150–300ms including the venue submit.
-- **Multi-venue strategies** — you stay on one HTTP surface even when you're trading across Polymarket and Opinion.
+- **Multi-venue strategies** — you stay on one HTTP surface even when you're trading across Polymarket, Opinion, and Limitless.
 - **Anyone who doesn't want to operate infrastructure.**
 
 A hosted trade has three actors: **your client** (holding the `pmxt_api_key` and, for writes, the user's `private_key`), **`trade.pmxt.dev`** (PMXT's hosted trading API — routes orders, operates against the escrow contract under user-signed authorization, talks to the venue), and **the venue** (Polymarket's CLOB, Opinion's matching engine, etc. — sees PMXT as the submitter).
@@ -48,7 +48,7 @@ Step-by-step:
 1. **Build.** The SDK calls `POST /v0/trade/build-order` with the catalog UUIDs (`market_id`, `outcome_id`), side, and amount. The server resolves the venue-native fields (token IDs, salt, expiry, fees), packages them into the venue's EIP-712 typed-data shape, and returns a `built_order_id` plus the payload to sign.
 2. **Sign.** The SDK signs the typed-data payload locally with your `private_key`. This step never leaves your process. See [Signing](/guides/signing) for the exact shape.
 3. **Submit.** The SDK calls `POST /v0/trade/submit-order` with the `built_order_id` and the signature. The server attaches the signature to the prepared order and submits to the venue.
-4. **Settle.** The venue matches the order. On Polymarket, fills come from the CLOB and are settled on Polygon via the CTF exchange. On Opinion, settlement uses a dual-signature cross-chain flow.
+4. **Settle.** The venue matches the order. On Polymarket, fills come from the CLOB and are settled on Polygon via the CTF exchange. On Opinion, settlement uses a dual-signature cross-chain flow into a BSC-side `VenueEscrow`. On Limitless, buys are settled on Polygon directly from escrow; sells use a Base-side pull leg that draws against the user's Polygon escrow.
 
 `create_order` is a convenience wrapper that chains build → sign → submit in one call. `build_order` and `submit_order` are the lower-level primitives if you want to inspect or modify the typed-data before signing.
 
@@ -86,7 +86,7 @@ Current operator addresses (immutable on the deployed contracts above):
 - BSC `VenueEscrow.operator`: `0x84194eae9c63C1e3A769976bb762506d3443156d`
 - Polygon `PreFundedEscrow.settlementOracle`: `0x8aD93c0D15bC655b460dD700B1E25C86D1a728EE`
 
-The operator address is currently an EOA controlled by PMXT. A multisig replacement is planned but not yet deployed; this page will be updated when it lands.
+The operator address is an EOA controlled by PMXT. Because `operator` is `immutable` on the deployed contracts, switching to a multisig would mean deploying new escrow contracts and migrating user balances — not an in-place rotation.
 
 ### Trust model
 
@@ -116,7 +116,7 @@ Self-hosted runs `pmxt-core` on your own machine; the SDK talks to `localhost`. 
 | **Writes** | `trade.pmxt.dev/v0/trade/{build,submit}-order` | Direct to the venue API |
 | **Custody** | Non-custodial: USDC in `PreFundedEscrow`, movable only against your EIP-712 signature | You retain venue-native custody |
 | **Latency** | ~150–300ms round-trip | Limited by venue + your network |
-| **Trading venues** | Polymarket, Opinion | Every venue PMXT supports |
+| **Trading venues** | Polymarket, Opinion, Limitless | Every venue PMXT supports |
 | **Read-only venues** | All catalog venues via Router | All catalog venues via Router |
 | **Infra to run** | None | One local process |
 | **Regulatory posture** | Non-custodial escrow; user retains beneficial ownership and unilateral withdrawal | You as direct counterparty to the venue |
@@ -129,7 +129,8 @@ Choose self-hosted when you need **sub-100ms latency**, want to use **raw venue 
 | ----- | ------------- | ------------ | ----- |
 | Polymarket | Yes | Yes | Polygon escrow, CLOB exchange |
 | Opinion | Yes | Yes | Cross-chain (BSC settlement, dual-signature) |
-| Kalshi, Limitless, Smarkets, Probable, Myriad, Metaculus, etc. | No | Read-only via catalog | Use [self-hosted](/guides/self-hosted) for writes |
+| Limitless | Yes | Yes | Polygon buy leg, Base pull-sell leg |
+| Kalshi, Smarkets, Probable, Myriad, Metaculus, etc. | No | Read-only via catalog | Use [self-hosted](/guides/self-hosted) for writes |
 
 If a venue you need isn't here, run pmxt-core locally and pass raw venue credentials — see [Self-hosted](/guides/self-hosted).
 

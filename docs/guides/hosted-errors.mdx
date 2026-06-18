@@ -59,9 +59,14 @@ try {
 
 ## OrderSizeTooSmall
 
-**When it fires:** the resolved share count is below the venue's minimum. Polymarket's minimum is **5 shares per order**. A $2 buy at $0.78/share is only 2.5 shares — rejected.
+**When it fires:** the resolved order is below one of Polymarket's two independent venue-side minimums on marketable BUY orders. Both rules are enforced by the venue itself (not PMXT), and the **higher of the two binds**:
 
-**Detail string:** `Order size 2.564 below the minimum 5 shares for venue polymarket`.
+- **5-share minimum.** A $2 buy at $0.78/share is only 2.5 shares — rejected.
+- **$1 notional minimum (marketable BUY).** A 5-share buy at $0.138/share is $0.69 — passes the 5-share rule but is rejected by the venue with the literal error `invalid amount for a marketable BUY order ($0.69), min size: 1`. The effective minimum at that price is ~8 shares (~$1.10).
+
+**Detail string (5-share rule):** `Order size 2.564 below the minimum 5 shares for venue polymarket`.
+
+**Detail string ($1 rule, passed through from venue):** `invalid amount for a marketable BUY order ($X), min size: 1`.
 
 **Parent classes:** `InvalidOrder`, `HostedTradingError`.
 

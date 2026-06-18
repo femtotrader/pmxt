@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.50.11] - 2026-06-18
+
+End-to-end live verification of the 2.50.10 doc claims surfaced two real SDK routing bugs and one hosted-API response-shape bug. All three fixed in parallel and verified live against `trade.pmxt.dev` with the test wallet `0xcb856a79c3E6490e0cFD7934eB59326E593C0cD1`.
+
+### Fixed (Python SDK — `sdks/python/pmxt/client.py`)
+
+- **`fetch_balance` (line 1643), `fetch_positions` (line 1622), `fetch_order` (line 1512) now route through the hosted v0 endpoints in hosted mode.** Previously all three punted to the legacy sidecar (`POST /api/polymarket/fetchBalance` and equivalents), which calls Polymarket CLOB's `getBalanceAllowance` and an on-chain `balanceOf` on pUSD at `0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB` — the WRONG token (pUSD instead of USDC.e) at the WRONG contract (CLOB collateral, not PreFundedEscrow). Any wallet that funded a hosted account via the dashboard's Deposit flow saw `available=0`, `total=0`, `chain=None`, `venue=None` from `fetch_balance` while their USDC.e was sitting safely in `PreFundedEscrow.balances(wallet)`. Same root cause for `fetch_positions` (returned `[]` for wallets with real positions) and for `fetch_order` (forwarded the PMXT-internal task_id straight to Polymarket's CLOB, which surfaced the misleading error `Invalid orderID [Polymarket]`).
+- All three now dispatch via `_hosted_request("fetch_balance" | "fetch_positions" | "fetch_order", ...)` in hosted mode, using existing mappers `balance_from_v0` / `position_from_v0` / `order_from_v0` from `_hosted_mappers.py`. Self-hosted branches preserved unchanged — they continue to use the sidecar, which is correct in self-hosted mode.
+
+### Fixed (TypeScript SDK — `sdks/typescript/pmxt/client.ts`)
+
+- **`fetchOrder` (line 1189), `fetchPositions` (line 1319), `fetchBalance` (line 1345)**: same bug, same fix. Hosted-mode branches added that dispatch via `_tradingRequest` with `HOSTED_METHOD_ROUTES.get("fetchOrder" | "fetchPositions" | "fetchBalance")` and the `orderFromV0` / `positionFromV0` / `balanceFromV0` mappers from `hosted-mappers.ts`.
+
+### Live verification
+
+Same three calls, before and after, against the same wallet on `trade.pmxt.dev`:
+
+| Method | Before | After | On-chain truth |
+| - | - | - | - |
+| `fetch_balance()` | `total=0, available=0, chain=None, venue=None` | `total=52.094842, available=52.094842` | `PreFundedEscrow.balances(0xcb856…) = 52.094842 USDC.e` (verified via direct contract call to `0x3ad326f78b1390b9a5dc5f00e7f62f8632de23e2`) |
+| `fetch_positions()` | `[]` | 25 real positions | Wallet has historical positions; SDK now sees them |
+| `fetch_order("364")` | `BadRequest: Invalid orderID [Polymarket]` (CLOB rejected an internal task_id it never assigned) | `HostedTradingError: invalid amount for a marketable BUY order ($0.77), min size: 1` (the real venue error surfaced through the hosted route) | `GET /v0/orders/364` returns `status="failed"` with the literal CLOB error string |
+
+### Docs
+
+- **`docs/trading-quickstart.mdx`** — The "What PMXT abstracts" Note in Step 5 was incomplete. Polymarket has TWO minimums that fire independently: the 5-share minimum (already documented) AND a $1 minimum on marketable BUY orders (previously undocumented). At $0.138/share, the 5-share rule says `0.69` is enough — but the $1 marketable-BUY rule rejects with `invalid amount for a marketable BUY order ($0.77), min size: 1`. The Note now describes both rules and works the example. Surfaced because the live test placed exactly this rejection.
+- **`docs/trading-quickstart.mdx` Step 6 ("Verify the fill")** — added a Note clarifying that the `id` returned by hosted `create_order` is a PMXT internal task_id (not a Polymarket order id), must be looked up via `client.fetch_order(id)` (which now actually works after the SDK fix above), and that fresh orders return `status="queued"` because venue submission is async. The "queued" wording aligns with the server-side change applied on the trading-api server (branch `fix/submit-order-queued-not-accepted` on `/root/pmxt-trading`, commit `1576a03` — not yet pushed to production).
+- **`docs/guides/hosted-errors.mdx`** — the `OrderSizeTooSmall` section was rewritten to split the 5-share rule from the $1 marketable-BUY rule, quote the literal CLOB error string `invalid amount for a marketable BUY order ($X), min size: 1`, and explicitly note this is the venue's check, not PMXT's.
+
+### Investigated but NOT bugs
+
+- **Initial misattribution to a degraded Polygon RPC.** A first-pass investigation pointed at `lb.drpc.live` and 172 "USDC balance call failed in multicall" warnings on the server, claiming a silent-zero on RPC failure. Martin pushed back, correctly: drpc is healthy. Independent verification (direct `eth_call` to `lb.drpc.live`) returns `52.094842 USDC.e` for the test wallet immediately. The 172 warnings are noise: `batch_user_escrow_balances` in `trading_api/core/multicall3.py` is reused across the Polygon HomeEscrow (which implements `balances(address)`) and the BSC + Base VenueEscrow contracts (which do NOT — every `balances()` call to them reverts with `execution reverted: 0x` by design). The caller intentionally discards those sub-call results (`escrow.py:73-74`) but the wrapper logs WARN on every call. Cosmetic log-level bug, separately tracked, not the cause of the SDK reading 0. The SDK bug was that it never asked the hosted v0 endpoint in the first place — it routed to the sidecar which queried the wrong contract.
+
 ## [2.50.10] - 2026-06-18
 
 ### Fixed

@@ -1188,6 +1188,12 @@ export abstract class Exchange {
 
     async fetchOrder(orderId: string): Promise<Order> {
         await this.initPromise;
+        if (this.isHosted) {
+            const route = HOSTED_METHOD_ROUTES.get("fetchOrder")!;
+            const path = formatRoutePath(route, { order_id: orderId });
+            const data = await _tradingRequest(this, { method: route.method, path });
+            return orderFromV0(data as Record<string, unknown>);
+        }
         try {
             const args: any[] = [];
             args.push(orderId);
@@ -1318,6 +1324,14 @@ export abstract class Exchange {
 
     async fetchPositions(address?: string): Promise<Position[]> {
         await this.initPromise;
+        if (this.isHosted) {
+            const resolvedAddress = resolveWalletAddress(this, address);
+            const route = HOSTED_METHOD_ROUTES.get("fetchPositions")!;
+            const path = formatRoutePath(route, { address: resolvedAddress });
+            const data = await _tradingRequest(this, { method: route.method, path });
+            const list = Array.isArray(data) ? data : [];
+            return list.map((p) => positionFromV0(p as Record<string, unknown>));
+        }
         try {
             const args: any[] = [];
             if (address !== undefined) args.push(address);
@@ -1344,6 +1358,14 @@ export abstract class Exchange {
 
     async fetchBalance(address?: string): Promise<Balance[]> {
         await this.initPromise;
+        if (this.isHosted) {
+            const resolvedAddress = resolveWalletAddress(this, address);
+            const route = HOSTED_METHOD_ROUTES.get("fetchBalance")!;
+            const path = formatRoutePath(route, { address: resolvedAddress });
+            const data = await _tradingRequest(this, { method: route.method, path });
+            const list = Array.isArray(data) ? data : [];
+            return list.map((b) => balanceFromV0(b as Record<string, unknown>));
+        }
         try {
             const args: any[] = [];
             if (address !== undefined) args.push(address);

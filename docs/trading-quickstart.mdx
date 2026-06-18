@@ -162,12 +162,17 @@ The hosted trading API accepts either the venue-native identifier (returned by `
 </Note>
 
 <Note>
-**What PMXT abstracts vs what leaks through from the venue.** PMXT unifies the order shape across venues, but a few Polymarket rules pass through as-is: orders have a **5-share minimum** (a $2 buy at $0.78 is 2.5 shares and is rejected with `OrderSizeTooSmall`), and market orders are **budget-capped** (a buy spends exactly `amount` USDC, a sell sells exactly `amount` shares — `slippage_pct` is ignored). Hosted **limit** orders are not yet available and return `501`; use [self-hosted](/guides/self-hosted) for resting limits.
+**What PMXT abstracts vs what leaks through from the venue.** PMXT unifies the order shape across venues, but a few Polymarket rules pass through as-is. Polymarket enforces **two independent minimums on marketable BUY orders** — a **5-share minimum** AND a **$1 notional minimum** — and the higher of the two binds. At $0.138/share the 5-share rule alone would only require $0.69, but the $1 rule raises the effective minimum to ~8 shares (~$1.10); a 5-share buy at that price is rejected by the venue with `invalid amount for a marketable BUY order ($0.69), min size: 1` and PMXT surfaces it as `OrderSizeTooSmall`. Market orders are **budget-capped** (a buy spends exactly `amount` USDC, a sell sells exactly `amount` shares — `slippage_pct` is ignored). Hosted **limit** orders are not yet available and return `501`; use [self-hosted](/guides/self-hosted) for resting limits.
 </Note>
 
 ## 6. Verify the fill
 
 Hosted positions appear immediately on `fetch_positions`. The position's `size` is your share count; the remaining USDC sits in `fetch_balance`.
+
+<Note>
+The `id` returned by hosted `create_order` is a **PMXT internal task id**, not a Polymarket (or other venue) order id. Calling Polymarket's own order-lookup with it will return nothing. Use `client.fetch_order(id)` — the hosted SDK knows how to resolve the task and reports the live status (`queued`, `fulfilling`, `fulfilled`, `failed`, `no_fill`). A fresh `create_order` returns `status="queued"` because the venue submit happens asynchronously; poll `fetch_order` (or pass `wait=true`) to get the venue-confirmed outcome.
+</Note>
+
 
 <CodeGroup>
 ```python Python

@@ -1510,6 +1510,12 @@ class Exchange(ABC):
             raise self._parse_api_exception(e) from None
 
     def fetch_order(self, order_id: str) -> Order:
+        if self.is_hosted:
+            response = self._hosted_request(
+                "fetch_order",
+                path_params={"order_id": order_id},
+            )
+            return self._hosted_single(response, "order", order_from_v0)
         try:
             args = []
             args.append(order_id)
@@ -1620,6 +1626,13 @@ class Exchange(ABC):
             raise self._parse_api_exception(e) from None
 
     def fetch_positions(self, address: Optional[str] = None) -> List[Position]:
+        if self.is_hosted:
+            resolved_address = resolve_wallet_address(self, address)
+            response = self._hosted_request(
+                "fetch_positions",
+                path_params={"address": resolved_address},
+            )
+            return self._hosted_collection(response, "positions", position_from_v0)
         try:
             args = []
             if address is not None:
@@ -1641,6 +1654,13 @@ class Exchange(ABC):
             raise self._parse_api_exception(e) from None
 
     def fetch_balance(self, address: Optional[str] = None) -> List[Balance]:
+        if self.is_hosted:
+            resolved_address = resolve_wallet_address(self, address)
+            response = self._hosted_request(
+                "fetch_balance",
+                path_params={"address": resolved_address},
+            )
+            return self._hosted_collection(response, "balances", balance_from_v0)
         try:
             args = []
             if address is not None:

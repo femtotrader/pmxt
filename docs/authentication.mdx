@@ -3,6 +3,17 @@ title: Authentication
 description: "API keys, SDK setup, and venue credentials."
 ---
 
+## Hosts
+
+PMXT serves two hostnames.
+
+- `api.pmxt.dev` — reads, catalog search via Router, MCP server, venue passthrough (`/api/*`).
+- `trade.pmxt.dev` — hosted writes (build / submit / cancel) and hosted account state (orders, positions, balances, trades) via `/v0/trade/*`, `/v0/user/*`, and `/v0/orders/*`.
+
+The same `pmxt_api_key` authenticates against both — no separate credentials.
+
+Reads and writes have different latency and availability profiles; the trading host is the hot path for signed-order submission and is operated independently.
+
 ## API key
 
 Every request to `https://api.pmxt.dev` needs a Bearer token. Get one

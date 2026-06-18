@@ -20,7 +20,7 @@ New to prediction markets? Start at the [101](/concepts/prediction-markets-101) 
 
 It runs two ways:
 
-- **Hosted (default)** — `api.pmxt.dev` and `trade.pmxt.dev` give you a
+- **Hosted (default)** — PMXT's [hosts](/authentication#hosts) give you a
   shared catalog, cross-venue search, and end-to-end [hosted
   trading](/concepts/hosted-trading) with [PreFundedEscrow](/concepts/prediction-markets-101#prefundedescrow) custody. Set
   an API key and the SDK is fully operational.
@@ -34,7 +34,7 @@ The code is identical either way:
 ```python
 import pmxt
 
-# Hosted (default): talks to api.pmxt.dev / trade.pmxt.dev
+# Hosted (default): talks to PMXT's hosts — see /authentication#hosts
 poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
 
 markets = poly.fetch_markets(query="fed rate cut", limit=5)

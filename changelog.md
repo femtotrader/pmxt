@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.50.8] - 2026-06-18
+
+### Docs
+
+- **Canonical "Hosts" section.** PMXT serves two hostnames — `api.pmxt.dev` (reads, Router, MCP, venue passthrough) and `trade.pmxt.dev` (hosted writes + hosted account state) — and the docs explained that split in different words on `docs/introduction.mdx`, `docs/sdk/server.mdx`, and implicitly across hosted-trading/security/migrate. A builder reading any one page in isolation couldn't see the full picture; a builder reading `docs/authentication.mdx` or `docs/rate-limits.mdx` (which only mentioned `api.pmxt.dev`) couldn't tell `trade.pmxt.dev` existed. Three parallel agents pinned this to one canonical location.
+- **`docs/authentication.mdx`**: Added a `## Hosts` section at the top of the page (slug `#hosts`). Nine lines: lists both hosts and what each serves, confirms the same `pmxt_api_key` authenticates against both, one line on why the split exists (latency and availability profile for the signed-order submission hot path).
+- **`docs/rate-limits.mdx`**: Disambiguated which limits apply to which host. Added a line after the intro stating the per-API-key limits apply across both hosts (linking to `/authentication#hosts`), and clarified below the table that the `/v0/*` row covers both `api.pmxt.dev/v0/*` (Router) and `trade.pmxt.dev/v0/*` (trading) under the same per-key budget.
+- **`docs/introduction.mdx`**: Replaced the bullet that listed both hosts inline with a link to the canonical section, and replaced the matching code comment. Two single-line edits.
+- **`docs/sdk/server.mdx`**: Replaced one inline mention of both hosts with a link to the canonical section.
+- **Files reviewed but not edited (host being USED, not re-explained):** `quickstart.mdx`, `mcp.mdx`, `security.mdx`, `concepts/hosted-trading.mdx`, `concepts/catalog-uuid-vs-venue-id.mdx`, `guides/hosted-errors.mdx`, `guides/migrate-to-hosted-trading.mdx`, `guides/self-hosted.mdx`, `router/search.mdx`, `router/matching.mdx`, `router/event-matching.mdx`. 24 hostname mentions reviewed across all docs; 3 edited across 2 files (plus the canonical section + rate-limits clarification). Every other mention was the host being called in a code example or named in a flow diagram — those stay.
+
 ## [2.50.7] - 2026-06-18
 
 ### Fixed

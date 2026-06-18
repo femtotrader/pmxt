@@ -69,7 +69,7 @@ The SDK accepts either form. Outcomes returned by `pmxt.Polymarket(...).fetch_ma
 - **Polymarket** is on Polygon. Escrow-held USDC is spent directly via Polymarket's CTF exchange — same-chain settlement.
 - **Opinion** is on BSC (chainId 56). Escrow-held USDC funds a cross-chain settlement leg into a BSC-side `VenueEscrow` that holds Opinion [outcome](/concepts/prediction-markets-101#event-market-outcome) tokens. The user never deposits to or signs on BSC — PMXT operates the cross-chain hop, still gated by the user's signature on the Polygon side.
 
-All EIP-712 order signatures use the Polygon `PreFundedEscrow` domain regardless of venue. The user's wallet retains beneficial ownership at all times. Funds enter via `client.escrow.deposit()`, exit via `client.escrow.withdraw()`. Both are unsigned-tx builders — your wallet signs and submits them. See [Escrow Lifecycle](/guides/escrow-lifecycle).
+All EIP-712 order signatures use the Polygon `PreFundedEscrow` domain regardless of venue. The user's wallet retains beneficial ownership at all times. Funds enter via `client.escrow.deposit_tx(amount)`, exit via `client.escrow.withdraw_tx("request" | "claim" | "cancel", ...)`. Both build unsigned txs — your wallet signs and submits them. See [Escrow Lifecycle](/guides/escrow-lifecycle).
 
 ### Deployed contracts
 

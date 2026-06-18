@@ -92,16 +92,14 @@ built = client.build_order(
     slippage_pct=30.0,
 )
 
+typed_data = built.raw["typed_data"]
 signature = my_custom_signer.sign_typed_data(
-    domain=built.typed_data["domain"],
-    types=built.typed_data["types"],
-    message=built.typed_data["message"],
+    domain=typed_data["domain"],
+    types=typed_data["types"],
+    message=typed_data["message"],
 )
-
-order = client.submit_order(
-    built_order_id=built.built_order_id,
-    signature=signature,
-)
+built.signed_order = signature  # attach signature for submit
+order = client.submit_order(built)
 ```
 
 ```typescript TypeScript
@@ -121,16 +119,14 @@ const built = await client.buildOrder({
   slippagePct: 30,
 });
 
+const typedData = built.raw.typed_data;
 const signature = await myCustomSigner.signTypedData(
-  built.typedData.domain,
-  built.typedData.types,
-  built.typedData.message,
+  typedData.domain,
+  typedData.types,
+  typedData.message,
 );
-
-const order = await client.submitOrder({
-  builtOrderId: built.builtOrderId,
-  signature,
-});
+built.signedOrder = signature;
+const order = await client.submitOrder(built);
 ```
 </CodeGroup>
 

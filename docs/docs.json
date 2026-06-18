@@ -60,8 +60,7 @@
               "authentication",
               "mcp",
               "security",
-              "rate-limits",
-              "sql"
+              "rate-limits"
             ]
           },
           {
@@ -225,7 +224,6 @@
             "group": "Enterprise",
             "openapi": "api-reference/openapi-hosted.json",
             "pages": [
-              "sql",
               "POST /v0/sql"
             ]
           }

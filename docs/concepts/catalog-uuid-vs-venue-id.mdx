@@ -53,7 +53,7 @@ clusters = router.fetch_matched_market_clusters(
 catalog_uuid = clusters[0].market_id
 ```
 
-For batch workflows, the [SQL endpoint](/sql) gives you direct access to `prediction_markets.markets` and `prediction_markets.outcomes` with the canonical UUID alongside the venue-native fields (`venue_market_id`, `venue_outcome_id` / `token_id`).
+For batch workflows, `POST /v0/sql` gives you direct access to `prediction_markets.markets` and `prediction_markets.outcomes` with the canonical UUID alongside the venue-native fields (`venue_market_id`, `venue_outcome_id` / `token_id`).
 
 ## Examples (the two ids for one market)
 

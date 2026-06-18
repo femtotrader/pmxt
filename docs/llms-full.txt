@@ -109,7 +109,7 @@ Polymarket or Kalshi.
 
 Without PMXT, getting cross-venue prediction market data means:
 
-- **11 venue integrations** — each with its own auth, pagination, field
+- **15+ venue integrations** — each with its own auth, pagination, field
   names, and rate limits. Polymarket uses CLOB token IDs. Kalshi uses
   tickers. Smarkets uses contract IDs. You normalize all of it.
 - **A data pipeline** — to ingest, deduplicate, and keep fresh as markets
@@ -756,208 +756,6 @@ is what's being counted.
 
 - **[Contact us](https://pmxt.dev/dashboard)** — Reach out from the dashboard if you need higher limits.
 
-### SQL
-
-Source: https://pmxt.dev/docs/sql
-
-The `/v0/sql` endpoint is a read-only SQL interface over PMXT's historical
-orderbook data — the backend you point your app's charts, dashboards, and
-post-hoc analytics at. Today it covers **Polymarket** (BBO updates, trades,
-and full book snapshots) stored in ClickHouse.
-
-
-> **Note:**SQL access requires an Enterprise plan.
-
-#### Connecting IDs
-
-PMXT markets carry two fields that map directly to the orderbook history:
-
-| PMXT field | SQL column | What it is |
-| --- | --- | --- |
-| `market.contractAddress` | `market` | Polymarket condition ID (hex) |
-| `outcome.outcomeId` | `JSON: asset_id` | Polymarket CLOB token ID |
-
-Grab them from any PMXT market response:
-
-
-
-**Python:**
-
-```python
-import pmxt
-
-poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
-markets = poly.fetch_markets(query="bitcoin", limit=1)
-
-m = markets[0]
-condition_id = m.contract_address       # "0xa0f4c492..."
-yes_token    = m.yes.outcome_id         # "1391568931..."
-```
-
-
-**curl:**
-
-```bash
-curl -s "https://api.pmxt.dev/api/polymarket/fetchMarkets" \
-  -H "Authorization: Bearer pmxt_live_..." \
-  -H "Content-Type: application/json" \
-  -d '{"args": [{"query": "bitcoin", "limit": 1}]}'
-```
-
-In the response, read `data[0].contractAddress` and
-`data[0].yes.outcomeId`.
-
-
-
-#### Table schema
-
-```
-polymarket_orderbook_rust
-├── timestamp           DateTime64(3)   — event timestamp
-├── timestamp_received  DateTime64(3)   — ingestion timestamp
-├── market              String          — condition ID (primary key)
-├── event_type          String          — "price_change" | "book" | "last_trade_price"
-└── data                String (JSON)   — full event payload
-```
-
-**Always filter by `market`** — it is the primary key. Queries without a
-`market` filter will time out.
-
-#### 1. Candlestick (OHLCV)
-
-The bread-and-butter query for an in-app price chart. Pull hourly candles
-for a single outcome over the last week — drop the result straight into
-Recharts, lightweight-charts, or whatever you render with. Filter by
-`asset_id` to pick the Yes or No side.
-
-```sql
-SELECT
-  toStartOfHour(timestamp)                                          AS hour,
-  argMin(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS open,
-  argMax(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS close,
-  min(toFloat64OrZero(JSONExtractString(data, 'best_bid')))         AS low,
-  max(toFloat64OrZero(JSONExtractString(data, 'best_bid')))         AS high,
-  count()                                                           AS ticks
-FROM polymarket_orderbook_rust
-WHERE market = '{contractAddress}'
-  AND event_type = 'price_change'
-  AND JSONExtractString(data, 'asset_id') = '{outcomeId}'
-  AND timestamp >= now() - INTERVAL 7 DAY
-GROUP BY hour
-ORDER BY hour
-```
-
-Change `toStartOfHour` to `toStartOfMinute`, `toStartOfFiveMinutes`,
-or `toStartOfDay` for different granularities.
-
-
-
-**Python:**
-
-```python
-import requests
-
-resp = requests.post(
-    "https://api.pmxt.dev/v0/sql",
-    headers={"Authorization": "Bearer pmxt_live_..."},
-    json={"query": f"""
-        SELECT
-          toStartOfHour(timestamp) AS hour,
-          argMin(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS open,
-          argMax(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS close,
-          min(toFloat64OrZero(JSONExtractString(data, 'best_bid'))) AS low,
-          max(toFloat64OrZero(JSONExtractString(data, 'best_bid'))) AS high,
-          count() AS ticks
-        FROM polymarket_orderbook_rust
-        WHERE market = '{condition_id}'
-          AND event_type = 'price_change'
-          AND JSONExtractString(data, 'asset_id') = '{yes_token}'
-          AND timestamp >= now() - INTERVAL 7 DAY
-        GROUP BY hour ORDER BY hour
-    """},
-)
-candles = resp.json()["data"]
-```
-
-
-**curl:**
-
-```bash
-curl "https://api.pmxt.dev/v0/sql" \
-  -H "Authorization: Bearer pmxt_live_..." \
-  -H "Content-Type: application/json" \
-  -d '{"query": "SELECT toStartOfHour(timestamp) AS hour, argMin(...) AS open, argMax(...) AS close, min(...) AS low, max(...) AS high, count() AS ticks FROM polymarket_orderbook_rust WHERE market = '\''YOUR_CONDITION_ID'\'' AND event_type = '\''price_change'\'' AND JSONExtractString(data, '\''asset_id'\'') = '\''YOUR_OUTCOME_ID'\'' AND timestamp >= now() - INTERVAL 7 DAY GROUP BY hour ORDER BY hour"}'
-```
-
-
-
-#### 2. Historical orderbook snapshots
-
-Full book snapshots are stored as `book` events. Each contains the
-complete `bids` and `asks` arrays at that point in time.
-
-```sql
-SELECT
-  timestamp,
-  JSONExtractString(data, 'asset_id')      AS token,
-  JSONExtractRaw(data, 'bids')             AS bids,
-  JSONExtractRaw(data, 'asks')             AS asks
-FROM polymarket_orderbook_rust
-WHERE market = '{contractAddress}'
-  AND event_type = 'book'
-  AND JSONExtractString(data, 'asset_id') = '{outcomeId}'
-ORDER BY timestamp DESC
-LIMIT 10
-```
-
-Each level in `bids` / `asks` is a `[price, size]` pair.
-
-To get just the depth count over time:
-
-```sql
-SELECT
-  timestamp,
-  JSONLength(JSONExtractRaw(data, 'bids')) AS bid_levels,
-  JSONLength(JSONExtractRaw(data, 'asks')) AS ask_levels
-FROM polymarket_orderbook_rust
-WHERE market = '{contractAddress}'
-  AND event_type = 'book'
-ORDER BY timestamp DESC
-LIMIT 50
-```
-
-#### Response shape
-
-Every query returns:
-
-```json
-{
-  "data": [
-{ "hour": "2026-04-24 17:00:00", "open": 0.37, "close": 0.39, "low": 0.34, "high": 0.39, "ticks": 3788 },
-{ "hour": "2026-04-24 18:00:00", "open": 0.39, "close": 0.36, "low": 0.33, "high": 0.40, "ticks": 4386 },
-{ "hour": "2026-04-24 19:00:00", "open": 0.36, "close": 0.39, "low": 0.33, "high": 0.40, "ticks": 4776 }
-  ],
-  "meta": {
-"columns": [
-  { "name": "hour", "type": "DateTime" },
-  { "name": "open", "type": "Float64" },
-  { "name": "close", "type": "Float64" },
-  { "name": "low", "type": "Float64" },
-  { "name": "high", "type": "Float64" },
-  { "name": "ticks", "type": "UInt64" }
-],
-"rows": 168,
-"statistics": { "elapsed": 0.44, "rows_read": 18192766 }
-  }
-}
-```
-
-#### Limits
-
-- **5-second query timeout** — always scope queries to a single market.
-- **10,000 row cap** — use `LIMIT` or time filters to stay under.
-- **Read-only** — only `SELECT`, `WITH`, `SHOW`, `DESCRIBE`, and `EXPLAIN`.
-
 
 ## Concepts
 
@@ -1001,7 +799,7 @@ A specific EVM-compatible chain (chainId 137). PMXT's `PreFundedEscrow` contract
 
 ##### USDC
 
-A US-dollar-pegged stablecoin (1 USDC ≈ $1) issued on many chains. PMXT uses the **Polygon-native** USDC for hosted trading. Bridged versions on other chains are not interchangeable.
+A US-dollar-pegged stablecoin (1 USDC ≈ $1) issued on many chains. PMXT hosted trading settles in **USDC.e on Polygon** (`0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174`) — the bridged token Polymarket's CTF exchange uses. Native Polygon USDC and bridged USDC on other chains are not interchangeable.
 
 ##### EIP-712
 
@@ -1263,7 +1061,7 @@ The SDK accepts either form. Outcomes returned by `pmxt.Polymarket(...).fetch_ma
 - **Polymarket** is on Polygon. Escrow-held USDC is spent directly via Polymarket's CTF exchange — same-chain settlement.
 - **Opinion** is on BSC (chainId 56). Escrow-held USDC funds a cross-chain settlement leg into a BSC-side `VenueEscrow` that holds Opinion [outcome](https://pmxt.dev/docs/concepts/prediction-markets-101#event-market-outcome) tokens. The user never deposits to or signs on BSC — PMXT operates the cross-chain hop, still gated by the user's signature on the Polygon side.
 
-All EIP-712 order signatures use the Polygon `PreFundedEscrow` domain regardless of venue. The user's wallet retains beneficial ownership at all times. Funds enter via `client.escrow.deposit()`, exit via `client.escrow.withdraw()`. Both are unsigned-tx builders — your wallet signs and submits them. See [Escrow Lifecycle](https://pmxt.dev/docs/guides/escrow-lifecycle).
+All EIP-712 order signatures use the Polygon `PreFundedEscrow` domain regardless of venue. The user's wallet retains beneficial ownership at all times. Funds enter via `client.escrow.deposit_tx(amount)`, exit via `client.escrow.withdraw_tx("request" | "claim" | "cancel", ...)`. Both build unsigned txs — your wallet signs and submits them. See [Escrow Lifecycle](https://pmxt.dev/docs/guides/escrow-lifecycle).
 
 ##### Deployed contracts
 
@@ -1387,7 +1185,7 @@ venue_market_id="0xc704f74e2f9dfae70f770cb253ffadde10768eeab41233098bf5ac67995a9
 catalog_uuid = clusters[0].market_id
 ```
 
-For batch workflows, the [SQL endpoint](https://pmxt.dev/docs/sql) gives you direct access to `prediction_markets.markets` and `prediction_markets.outcomes` with the canonical UUID alongside the venue-native fields (`venue_market_id`, `venue_outcome_id` / `token_id`).
+For batch workflows, `POST /v0/sql` gives you direct access to `prediction_markets.markets` and `prediction_markets.outcomes` with the canonical UUID alongside the venue-native fields (`venue_market_id`, `venue_outcome_id` / `token_id`).
 
 #### Examples (the two ids for one market)
 
@@ -1523,13 +1321,15 @@ After the deposit transaction confirms on-chain, the balance shows up in escrow.
 
 <CodeGroup>
 ```python Python
-balance = client.fetch_balance()
-print(f"Free: {balance.free}, Used: {balance.used}, Total: {balance.total}")
+balances = client.fetch_balance()
+usdc = balances[0]
+print(f"Free: {usdc.free}, Used: {usdc.used}, Total: {usdc.total}")
 ```
 
 ```typescript TypeScript
-const balance = await client.fetchBalance();
-console.log(`Free: ${balance.free}, Used: ${balance.used}, Total: ${balance.total}`);
+const balances = await client.fetchBalance();
+const usdc = balances[0];
+console.log(`Free: ${usdc.free}, Used: ${usdc.used}, Total: ${usdc.total}`);
 ```
 </CodeGroup>
 
@@ -1746,16 +1546,14 @@ denom="usdc",
 slippage_pct=30.0,
 )
 
+typed_data = built.raw["typed_data"]
 signature = my_custom_signer.sign_typed_data(
-domain=built.typed_data["domain"],
-types=built.typed_data["types"],
-message=built.typed_data["message"],
+domain=typed_data["domain"],
+types=typed_data["types"],
+message=typed_data["message"],
 )
-
-order = client.submit_order(
-built_order_id=built.built_order_id,
-signature=signature,
-)
+built.signed_order = signature  # attach signature for submit
+order = client.submit_order(built)
 ```
 
 ```typescript TypeScript
@@ -1775,16 +1573,14 @@ const built = await client.buildOrder({
   slippagePct: 30,
 });
 
+const typedData = built.raw.typed_data;
 const signature = await myCustomSigner.signTypedData(
-  built.typedData.domain,
-  built.typedData.types,
-  built.typedData.message,
+  typedData.domain,
+  typedData.types,
+  typedData.message,
 );
-
-const order = await client.submitOrder({
-  builtOrderId: built.builtOrderId,
-  signature,
-});
+built.signedOrder = signature;
+const order = await client.submitOrder(built);
 ```
 </CodeGroup>
 
@@ -1947,12 +1743,9 @@ from pmxt._hosted_errors import BuiltOrderExpired
 def submit_with_retry(client, *, market_id, outcome_id, **kwargs):
 for attempt in range(2):
     built = client.build_order(market_id=market_id, outcome_id=outcome_id, **kwargs)
-    sig = signer.sign_typed_data(built.typed_data)
+    built.signed_order = signer.sign_typed_data(built.raw["typed_data"])
     try:
-        return client.submit_order(
-            built_order_id=built.built_order_id,
-            signature=sig,
-        )
+        return client.submit_order(built)
     except BuiltOrderExpired:
         if attempt == 1:
             raise
@@ -1965,16 +1758,14 @@ import { BuiltOrderExpired } from "pmxtjs";
 async function submitWithRetry(client, params) {
   for (let attempt = 0; attempt < 2; attempt++) {
 const built = await client.buildOrder(params);
-const sig = await signer.signTypedData(
-  built.typedData.domain,
-  built.typedData.types,
-  built.typedData.message,
+const typedData = built.raw.typed_data;
+built.signedOrder = await signer.signTypedData(
+  typedData.domain,
+  typedData.types,
+  typedData.message,
 );
 try {
-  return await client.submitOrder({
-    builtOrderId: built.builtOrderId,
-    signature: sig,
-  });
+  return await client.submitOrder(built);
 } catch (e) {
   if (e instanceof BuiltOrderExpired && attempt === 0) continue;
   throw e;
@@ -1992,7 +1783,7 @@ try {
 
 **Parent classes:** `InvalidOrder`, `HostedTradingError`.
 
-**Recovery:** wait for liquidity, post a limit order instead of a market order, or pick a different outcome.
+**Recovery:** wait for liquidity, pick a different outcome, or run [self-hosted](https://pmxt.dev/docs/guides/self-hosted) for resting limit orders (hosted limit orders are not yet available).
 
 <CodeGroup>
 ```python Python
@@ -2001,8 +1792,8 @@ from pmxt._hosted_errors import NoLiquidity
 try:
 client.create_order(order_type="market", ...)
 except NoLiquidity:
-# Fall back to a limit order at a price you'd accept
-client.create_order(order_type="limit", price=0.50, ...)
+# Wait, retry against a different outcome, or post limits via self-hosted.
+pass
 ```
 
 ```typescript TypeScript
@@ -2012,7 +1803,7 @@ try {
   await client.createOrder({ orderType: "market", ... });
 } catch (e) {
   if (e instanceof NoLiquidity) {
-await client.createOrder({ orderType: "limit", price: 0.5, ... });
+// Wait, retry against a different outcome, or post limits via self-hosted.
   } else {
 throw e;
   }
@@ -2028,7 +1819,7 @@ throw e;
 
 
 > **Warning:**
-**`fetch_markets` returns venue-native IDs**, but `create_order` needs catalog UUIDs. If you see `OutcomeNotFound` despite having a valid-looking ID, you are almost certainly passing a venue-native ID to a hosted endpoint. See [Catalog UUID vs venue ID](https://pmxt.dev/docs/concepts/catalog-uuid-vs-venue-id).
+If you see `OutcomeNotFound` despite having a valid-looking ID, the SDK could not resolve it on either the catalog UUID or `(venue, venue_outcome_id)` path. Most commonly: the outcome was resolved against a different venue than the client's `exchange_name`, or the outcome has since been removed from the catalog. See [Catalog UUID vs venue ID](https://pmxt.dev/docs/concepts/catalog-uuid-vs-venue-id).
 
 
 #### Catching everything hosted
@@ -5791,208 +5582,6 @@ const result = await exchange.fetchSeries();
 
 
 ## Enterprise
-
-### SQL
-
-Source: https://pmxt.dev/docs/sql
-
-The `/v0/sql` endpoint is a read-only SQL interface over PMXT's historical
-orderbook data — the backend you point your app's charts, dashboards, and
-post-hoc analytics at. Today it covers **Polymarket** (BBO updates, trades,
-and full book snapshots) stored in ClickHouse.
-
-
-> **Note:**SQL access requires an Enterprise plan.
-
-#### Connecting IDs
-
-PMXT markets carry two fields that map directly to the orderbook history:
-
-| PMXT field | SQL column | What it is |
-| --- | --- | --- |
-| `market.contractAddress` | `market` | Polymarket condition ID (hex) |
-| `outcome.outcomeId` | `JSON: asset_id` | Polymarket CLOB token ID |
-
-Grab them from any PMXT market response:
-
-
-
-**Python:**
-
-```python
-import pmxt
-
-poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
-markets = poly.fetch_markets(query="bitcoin", limit=1)
-
-m = markets[0]
-condition_id = m.contract_address       # "0xa0f4c492..."
-yes_token    = m.yes.outcome_id         # "1391568931..."
-```
-
-
-**curl:**
-
-```bash
-curl -s "https://api.pmxt.dev/api/polymarket/fetchMarkets" \
-  -H "Authorization: Bearer pmxt_live_..." \
-  -H "Content-Type: application/json" \
-  -d '{"args": [{"query": "bitcoin", "limit": 1}]}'
-```
-
-In the response, read `data[0].contractAddress` and
-`data[0].yes.outcomeId`.
-
-
-
-#### Table schema
-
-```
-polymarket_orderbook_rust
-├── timestamp           DateTime64(3)   — event timestamp
-├── timestamp_received  DateTime64(3)   — ingestion timestamp
-├── market              String          — condition ID (primary key)
-├── event_type          String          — "price_change" | "book" | "last_trade_price"
-└── data                String (JSON)   — full event payload
-```
-
-**Always filter by `market`** — it is the primary key. Queries without a
-`market` filter will time out.
-
-#### 1. Candlestick (OHLCV)
-
-The bread-and-butter query for an in-app price chart. Pull hourly candles
-for a single outcome over the last week — drop the result straight into
-Recharts, lightweight-charts, or whatever you render with. Filter by
-`asset_id` to pick the Yes or No side.
-
-```sql
-SELECT
-  toStartOfHour(timestamp)                                          AS hour,
-  argMin(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS open,
-  argMax(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS close,
-  min(toFloat64OrZero(JSONExtractString(data, 'best_bid')))         AS low,
-  max(toFloat64OrZero(JSONExtractString(data, 'best_bid')))         AS high,
-  count()                                                           AS ticks
-FROM polymarket_orderbook_rust
-WHERE market = '{contractAddress}'
-  AND event_type = 'price_change'
-  AND JSONExtractString(data, 'asset_id') = '{outcomeId}'
-  AND timestamp >= now() - INTERVAL 7 DAY
-GROUP BY hour
-ORDER BY hour
-```
-
-Change `toStartOfHour` to `toStartOfMinute`, `toStartOfFiveMinutes`,
-or `toStartOfDay` for different granularities.
-
-
-
-**Python:**
-
-```python
-import requests
-
-resp = requests.post(
-    "https://api.pmxt.dev/v0/sql",
-    headers={"Authorization": "Bearer pmxt_live_..."},
-    json={"query": f"""
-        SELECT
-          toStartOfHour(timestamp) AS hour,
-          argMin(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS open,
-          argMax(toFloat64OrZero(JSONExtractString(data, 'best_bid')), timestamp) AS close,
-          min(toFloat64OrZero(JSONExtractString(data, 'best_bid'))) AS low,
-          max(toFloat64OrZero(JSONExtractString(data, 'best_bid'))) AS high,
-          count() AS ticks
-        FROM polymarket_orderbook_rust
-        WHERE market = '{condition_id}'
-          AND event_type = 'price_change'
-          AND JSONExtractString(data, 'asset_id') = '{yes_token}'
-          AND timestamp >= now() - INTERVAL 7 DAY
-        GROUP BY hour ORDER BY hour
-    """},
-)
-candles = resp.json()["data"]
-```
-
-
-**curl:**
-
-```bash
-curl "https://api.pmxt.dev/v0/sql" \
-  -H "Authorization: Bearer pmxt_live_..." \
-  -H "Content-Type: application/json" \
-  -d '{"query": "SELECT toStartOfHour(timestamp) AS hour, argMin(...) AS open, argMax(...) AS close, min(...) AS low, max(...) AS high, count() AS ticks FROM polymarket_orderbook_rust WHERE market = '\''YOUR_CONDITION_ID'\'' AND event_type = '\''price_change'\'' AND JSONExtractString(data, '\''asset_id'\'') = '\''YOUR_OUTCOME_ID'\'' AND timestamp >= now() - INTERVAL 7 DAY GROUP BY hour ORDER BY hour"}'
-```
-
-
-
-#### 2. Historical orderbook snapshots
-
-Full book snapshots are stored as `book` events. Each contains the
-complete `bids` and `asks` arrays at that point in time.
-
-```sql
-SELECT
-  timestamp,
-  JSONExtractString(data, 'asset_id')      AS token,
-  JSONExtractRaw(data, 'bids')             AS bids,
-  JSONExtractRaw(data, 'asks')             AS asks
-FROM polymarket_orderbook_rust
-WHERE market = '{contractAddress}'
-  AND event_type = 'book'
-  AND JSONExtractString(data, 'asset_id') = '{outcomeId}'
-ORDER BY timestamp DESC
-LIMIT 10
-```
-
-Each level in `bids` / `asks` is a `[price, size]` pair.
-
-To get just the depth count over time:
-
-```sql
-SELECT
-  timestamp,
-  JSONLength(JSONExtractRaw(data, 'bids')) AS bid_levels,
-  JSONLength(JSONExtractRaw(data, 'asks')) AS ask_levels
-FROM polymarket_orderbook_rust
-WHERE market = '{contractAddress}'
-  AND event_type = 'book'
-ORDER BY timestamp DESC
-LIMIT 50
-```
-
-#### Response shape
-
-Every query returns:
-
-```json
-{
-  "data": [
-{ "hour": "2026-04-24 17:00:00", "open": 0.37, "close": 0.39, "low": 0.34, "high": 0.39, "ticks": 3788 },
-{ "hour": "2026-04-24 18:00:00", "open": 0.39, "close": 0.36, "low": 0.33, "high": 0.40, "ticks": 4386 },
-{ "hour": "2026-04-24 19:00:00", "open": 0.36, "close": 0.39, "low": 0.33, "high": 0.40, "ticks": 4776 }
-  ],
-  "meta": {
-"columns": [
-  { "name": "hour", "type": "DateTime" },
-  { "name": "open", "type": "Float64" },
-  { "name": "close", "type": "Float64" },
-  { "name": "low", "type": "Float64" },
-  { "name": "high", "type": "Float64" },
-  { "name": "ticks", "type": "UInt64" }
-],
-"rows": 168,
-"statistics": { "elapsed": 0.44, "rows_read": 18192766 }
-  }
-}
-```
-
-#### Limits
-
-- **5-second query timeout** — always scope queries to a single market.
-- **10,000 row cap** — use `LIMIT` or time filters to stay under.
-- **Read-only** — only `SELECT`, `WITH`, `SHOW`, `DESCRIBE`, and `EXPLAIN`.
 
 ### Execute a read-only SQL query against ClickHouse
 

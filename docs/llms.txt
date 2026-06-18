@@ -16,7 +16,6 @@ GitHub: https://github.com/pmxt-dev/pmxt
 - [MCP Server](https://pmxt.dev/docs/mcp): Give AI assistants access to prediction markets via the Model Context Protocol.
 - [Security & Credential Handling](https://pmxt.dev/docs/security): How PMXT handles credentials in hosted vs self-hosted modes, what risks to understand, and how to protect yourself.
 - [Rate Limits](https://pmxt.dev/docs/rate-limits): How much traffic your API key gives you.
-- [SQL](https://pmxt.dev/docs/sql): Historical data backend for your app's charts, dashboards, and analytics.
 - [Prediction Markets 101](https://pmxt.dev/docs/concepts/prediction-markets-101): What a prediction market is, what an outcome is, and what 'price' means here.
 - [Unified Schema](https://pmxt.dev/docs/concepts/unified-schema): One shape for events, markets, and outcomes — across every venue.
 - [Supported Venues](https://pmxt.dev/docs/concepts/venues): Every venue PMXT currently speaks.
@@ -67,7 +66,6 @@ GitHub: https://github.com/pmxt-dev/pmxt
 - [Fetch Oracle History](https://pmxt.dev/docs/api-reference/feedFetchOracleHistory): Returns historical Chainlink oracle rounds for a price feed.
 - [Fetch Historical Prices](https://pmxt.dev/docs/api-reference/feedFetchHistoricalPrices): Returns historical price data as tickers within a time range.
 - [Fetch Series](https://pmxt.dev/docs/api-reference/fetchSeries): Fetch the recurring series (fourth tier above Event -> Market -> Outcome) that this venue exposes. Returns an empty array on venues without a series concept (Limitless, Smarkets, Probable, Metaculus, Baozi, Hyperliquid, SuiBets, Polymarket US). - `params.id` -> a single matching series with its events populated where supported. - no params -> the full list, typically without nested events for payload size.
-- [SQL](https://pmxt.dev/docs/sql): Historical data backend for your app's charts, dashboards, and analytics.
 - [Execute a read-only SQL query against ClickHouse](https://pmxt.dev/docs/api-reference/postV0Sql)
 
 ## Full documentation

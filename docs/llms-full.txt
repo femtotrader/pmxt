@@ -543,7 +543,7 @@ directly:
 order = poly.create_order(
 outcome=market.yes,
 side="buy",
-type="limit",
+order_type="limit",
 price=0.42,
 amount=100,
 )
@@ -1194,15 +1194,16 @@ In [self-hosted mode](https://pmxt.dev/docs/guides/self-hosted) — `POST /api/{
 
 If you already have a venue-native id (e.g. a saved database of Polymarket `conditionId`s) and want the catalog UUID for cross-venue work:
 
-```python
-clusters = router.fetch_matched_market_clusters(
-venue="polymarket",
-venue_market_id="0xc704f74e2f9dfae70f770cb253ffadde10768eeab41233098bf5ac67995a94b5",
-)
-catalog_uuid = clusters[0].market_id
+The SDK does not expose a single-shot `venue_market_id` -> catalog UUID kwarg today. For batch or one-off reverse lookups, query the catalog directly via `POST /v0/sql`:
+
+```sql
+SELECT market_id
+FROM prediction_markets.markets
+WHERE venue = 'polymarket'
+  AND venue_market_id = '0xc704f74e2f9dfae70f770cb253ffadde10768eeab41233098bf5ac67995a94b5';
 ```
 
-For batch workflows, `POST /v0/sql` gives you direct access to `prediction_markets.markets` and `prediction_markets.outcomes` with the canonical UUID alongside the venue-native fields (`venue_market_id`, `venue_outcome_id` / `token_id`).
+`prediction_markets.markets` and `prediction_markets.outcomes` carry the canonical UUID alongside the venue-native fields (`venue_market_id`, `venue_outcome_id` / `token_id`), so the same query shape covers outcomes too.
 
 #### Examples (the two ids for one market)
 
@@ -1340,13 +1341,13 @@ After the deposit transaction confirms on-chain, the balance shows up in escrow.
 ```python Python
 balances = client.fetch_balance()
 usdc = balances[0]
-print(f"Free: {usdc.free}, Used: {usdc.used}, Total: {usdc.total}")
+print(f"Available: {usdc.available}, Locked: {usdc.locked}, Total: {usdc.total}")
 ```
 
 ```typescript TypeScript
 const balances = await client.fetchBalance();
 const usdc = balances[0];
-console.log(`Free: ${usdc.free}, Used: ${usdc.used}, Total: ${usdc.total}`);
+console.log(`Available: ${usdc.available}, Locked: ${usdc.locked}, Total: ${usdc.total}`);
 ```
 </CodeGroup>
 
@@ -1513,10 +1514,10 @@ const order = await client.createOrder({
   marketId: "2eeb03dc-404b-41d5-bc57-6aeb37927ae6",
   outcomeId: "a114f052-1fd1-4bcd-b9cf-de019db81b67",
   side: "buy",
-  orderType: "market",
+  type: "market",
   amount: 5,
   denom: "usdc",
-  slippagePct: 30,
+  slippage_pct: 30,
 });
 ```
 </CodeGroup>
@@ -1543,17 +1544,19 @@ Because reads don't require a signature, anyone with the `pmxt_api_key` can read
 
 #### Advanced: bring your own signer
 
-If your key lives in a hardware wallet, HSM, MPC service, or anything that isn't a raw hex private key, skip `private_key` and use the lower-level `build_order` / `submit_order` flow. Any object that implements `sign_typed_data(domain, types, message) -> hex` works.
+If your key lives in a hardware wallet, HSM, MPC service, or anything that isn't a raw hex private key, skip `private_key` and inject a custom signer at construction. The SDK uses it transparently for every hosted write — you keep calling `create_order` as usual.
+
+The signer protocol is one method: `sign_typed_data(typed_data: dict) -> hex` (Python) or `signTypedData(typedData): Promise<string>` plus a readonly `address` (TypeScript).
 
 <CodeGroup>
 ```python Python
 client = pmxt.Polymarket(
 pmxt_api_key="pmxt_live_...",
 wallet_address="0xYourWallet...",
-# no private_key
+signer=my_custom_signer,  # exposes sign_typed_data(typed_data) -> hex
 )
 
-built = client.build_order(
+order = client.create_order(
 market_id="2eeb03dc-...",
 outcome_id="a114f052-...",
 side="buy",
@@ -1562,46 +1565,28 @@ amount=5.0,
 denom="usdc",
 slippage_pct=30.0,
 )
-
-typed_data = built.raw["typed_data"]
-signature = my_custom_signer.sign_typed_data(
-domain=typed_data["domain"],
-types=typed_data["types"],
-message=typed_data["message"],
-)
-built.signed_order = signature  # attach signature for submit
-order = client.submit_order(built)
 ```
 
 ```typescript TypeScript
 const client = new Polymarket({
   pmxtApiKey: "pmxt_live_...",
   walletAddress: "0xYourWallet...",
-  // no privateKey
+  signer: myCustomSigner,  // { address, signTypedData(typedData) -> Promise<hex> }
 });
 
-const built = await client.buildOrder({
+const order = await client.createOrder({
   marketId: "2eeb03dc-...",
   outcomeId: "a114f052-...",
   side: "buy",
-  orderType: "market",
+  type: "market",
   amount: 5,
   denom: "usdc",
-  slippagePct: 30,
+  slippage_pct: 30,
 });
-
-const typedData = built.raw.typed_data;
-const signature = await myCustomSigner.signTypedData(
-  typedData.domain,
-  typedData.types,
-  typedData.message,
-);
-built.signedOrder = signature;
-const order = await client.submitOrder(built);
 ```
 </CodeGroup>
 
-For Opinion, `built` carries two payloads (`typed_data` and `pull_typed_data`); sign both and pass `signature` + `pull_signature` to `submit_order`. The SDK's `EthAccountSigner` / `EthersSigner` are reference implementations of the signer protocol — ethers v6 supports Ledger out of the box; for MPC see Fireblocks / Privy / Turnkey docs.
+For Opinion's dual-signature flow, the same injected signer is invoked twice (once per payload) — no extra wiring. The SDK's `EthAccountSigner` (Python) / `EthersSigner` (TypeScript) are reference implementations; ethers v6 supports Ledger out of the box, and for MPC see Fireblocks / Privy / Turnkey docs.
 
 ### Handling Hosted Errors
 
@@ -1757,12 +1742,12 @@ Hardware-wallet signing is the most common cause — Ledger confirmations can ta
 ```python Python
 from pmxt._hosted_errors import BuiltOrderExpired
 
-def submit_with_retry(client, *, market_id, outcome_id, **kwargs):
+def submit_with_retry(client, **kwargs):
+# In hosted mode, create_order handles build -> sign -> submit atomically.
+# On BuiltOrderExpired the internal submit raced the 30s TTL; just call again.
 for attempt in range(2):
-    built = client.build_order(market_id=market_id, outcome_id=outcome_id, **kwargs)
-    built.signed_order = signer.sign_typed_data(built.raw["typed_data"])
     try:
-        return client.submit_order(built)
+        return client.create_order(**kwargs)
     except BuiltOrderExpired:
         if attempt == 1:
             raise
@@ -1771,23 +1756,20 @@ for attempt in range(2):
 
 ```typescript TypeScript
 import { BuiltOrderExpired } from "pmxtjs";
+import type { CreateOrderParams, Order } from "pmxtjs";
 
-async function submitWithRetry(client, params) {
+async function submitWithRetry(client, params: CreateOrderParams): Promise<Order> {
+  // In hosted mode, createOrder handles build -> sign -> submit atomically.
+  // On BuiltOrderExpired the internal submit raced the 30s TTL; just call again.
   for (let attempt = 0; attempt < 2; attempt++) {
-const built = await client.buildOrder(params);
-const typedData = built.raw.typed_data;
-built.signedOrder = await signer.signTypedData(
-  typedData.domain,
-  typedData.types,
-  typedData.message,
-);
 try {
-  return await client.submitOrder(built);
+  return await client.createOrder(params);
 } catch (e) {
   if (e instanceof BuiltOrderExpired && attempt === 0) continue;
   throw e;
 }
   }
+  throw new Error("unreachable");
 }
 ```
 </CodeGroup>
@@ -1817,7 +1799,7 @@ pass
 import { NoLiquidity } from "pmxtjs";
 
 try {
-  await client.createOrder({ orderType: "market", ... });
+  await client.createOrder({ type: "market", ... });
 } catch (e) {
   if (e instanceof NoLiquidity) {
 // Wait, retry against a different outcome, or post limits via self-hosted.
@@ -2033,7 +2015,7 @@ poly = pmxt.Polymarket(private_key="0xYourPrivateKey...")
 order = poly.create_order(
 outcome=market.yes,
 side="buy",
-type="limit",
+order_type="limit",
 price=0.42,
 amount=100,
 )
@@ -3073,7 +3055,7 @@ poly   = pmxt.Polymarket(private_key="0x...")
 clusters = router.fetch_matched_market_clusters(relation="identity", limit=20)
 
 # 2. Inspect the order book on a specific venue
-book = poly.fetch_order_book(market_id=clusters[0].markets[0].market_id)
+book = poly.fetch_order_book(outcome_id=clusters[0].markets[0].outcomes[0].outcome_id)
 
 # 3. Place an order locally (never proxied through PMXT)
 # poly.create_order(...)
@@ -3969,7 +3951,7 @@ main();
 Source: https://pmxt.dev/docs/api-reference/fetch-ohlcv
 
 > **Note:**
-**More data with an API key** — Without an API key, OHLCV is limited to Polymarket's native API: short history windows, no volume, and venue-specific rate limits. With a PMXT API key you get volume, 1+ years of history, and normalized candles across venues. Kalshi, Limitless, and more are coming soon. [Get your API key](https://pmxt.dev/docs/dashboard).
+**More data with an API key** — Without an API key, OHLCV is limited to Polymarket's native API: short history windows, no volume, and venue-specific rate limits. With a PMXT API key you get volume, 1+ years of history, and normalized candles across venues. Kalshi, Limitless, and more are coming soon. [Get your API key](https://pmxt.dev/dashboard).
 
 
 #### Use cases

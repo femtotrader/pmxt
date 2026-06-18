@@ -399,7 +399,7 @@ The hosted trading API accepts either the venue-native identifier (returned by `
 
 
 > **Note:**
-**What PMXT abstracts vs what leaks through from the venue.** PMXT unifies the order shape across venues, but a few Polymarket rules pass through as-is. Polymarket enforces **two independent minimums on marketable BUY orders** — a **5-share minimum** AND a **$1 notional minimum** — and the higher of the two binds. At $0.138/share the 5-share rule alone would only require $0.69, but the $1 rule raises the effective minimum to ~8 shares (~$1.10); a 5-share buy at that price is rejected by the venue with `invalid amount for a marketable BUY order ($0.69), min size: 1` and PMXT surfaces it as `OrderSizeTooSmall`. Market orders are **budget-capped** (a buy spends exactly `amount` USDC, a sell sells exactly `amount` shares — `slippage_pct` is ignored). Hosted **limit** orders are not yet available and return `501`; use [self-hosted](https://pmxt.dev/docs/guides/self-hosted) for resting limits.
+**What PMXT abstracts vs what leaks through from the venue.** PMXT unifies the order shape across venues, but a few Polymarket rules pass through as-is. Polymarket enforces **two independent minimums on marketable BUY orders** — a **5-share minimum** AND a **$1 notional minimum** — and the higher of the two binds. At $0.138/share the 5-share rule alone would only require $0.69, but the $1 rule raises the effective minimum to ~8 shares (~$1.10); a 5-share buy at that price is rejected by the venue with `invalid amount for a marketable BUY order ($0.69), min size: 1` and PMXT surfaces it as `OrderSizeTooSmall`. Market orders are **budget-capped** (a buy spends exactly `amount` USDC, a sell sells exactly `amount` shares — `slippage_pct` is ignored). Hosted **limit** orders are supported via `client.create_order(order_type="limit", price=..., amount=...)` and the same 5-share and $1 marketable-BUY minimums apply; limit BUY is currently being patched for an SDK denom mismatch, limit SELL is live.
 
 
 #### 6. Verify the fill
@@ -1792,7 +1792,7 @@ try {
 
 **Parent classes:** `InvalidOrder`, `HostedTradingError`.
 
-**Recovery:** wait for liquidity, pick a different outcome, or run [self-hosted](https://pmxt.dev/docs/guides/self-hosted) for resting limit orders (hosted limit orders are not yet available).
+**Recovery:** wait for liquidity, pick a different outcome, or post a resting limit order via `client.create_order(order_type="limit", price=..., amount=...)` (limit SELL is live; limit BUY is being patched for an SDK denom mismatch).
 
 <CodeGroup>
 ```python Python
@@ -2927,12 +2927,14 @@ is a subset or superset of the target market.
 **Python:**
 
 ```python
-related = router.fetch_related_markets(market_id="d35bc8c6-...")
+# Positional dict, camelCase keys. Returns a list of plain dicts
+# (not typed dataclasses like compare_market_prices).
+related = router.fetch_related_markets({"marketId": "d35bc8c6-..."})
 
 for r in related:
-    print(f"{r.relation:10s} {r.venue:12s}  {r.market.title}")
-    print(f"           confidence {r.confidence:.0%}  bid {r.best_bid}  ask {r.best_ask}")
-    print(f"           {r.reasoning}")
+    print(f"{r['relation']:10s} {r['venue']:12s}  {r['market']['title']}")
+    print(f"           confidence {r['confidence']:.0%}  bid {r['bestBid']}  ask {r['bestAsk']}")
+    print(f"           {r['reasoning']}")
 ```
 
 ```
@@ -3343,9 +3345,9 @@ curl "https://api.pmxt.dev/api/polymarket/fetchEvents?tags=Geopolitics&tags=Midd
 ```
 </CodeGroup>
 
-##### Sort by volume
+##### Filter active by category
 
-Find the highest-volume active sports events:
+Find active sports events:
 
 <CodeGroup>
 ```python Python
@@ -3354,7 +3356,6 @@ import pmxt
 api = pmxt.Polymarket()
 events = api.fetch_events(
 category="Sports",
-sort="volume",
 status="active",
 limit=5,
 )
@@ -3366,14 +3367,13 @@ import { Polymarket } from "pmxtjs";
 const api = new Polymarket();
 const events = await api.fetchEvents({
   category: "Sports",
-  sort: "volume",
   status: "active",
   limit: 5,
 });
 ```
 
 ```bash curl
-curl "https://api.pmxt.dev/api/polymarket/fetchEvents?category=Sports&sort=volume&status=active&limit=5" \
+curl "https://api.pmxt.dev/api/polymarket/fetchEvents?category=Sports&status=active&limit=5" \
   -H "Authorization: Bearer $PMXT_API_KEY"
 ```
 </CodeGroup>
@@ -3614,9 +3614,9 @@ curl "https://api.pmxt.dev/api/polymarket/fetchMarkets?tags=Elections&tags=Trump
 ```
 </CodeGroup>
 
-##### Sort by volume
+##### Filter by status
 
-Find the highest-volume active markets on Limitless:
+Find active markets on Limitless:
 
 <CodeGroup>
 ```python Python
@@ -3624,7 +3624,6 @@ import pmxt
 
 api = pmxt.Limitless()
 markets = api.fetch_markets(
-sort="volume",
 status="active",
 limit=5,
 )
@@ -3635,14 +3634,13 @@ import { Limitless } from "pmxtjs";
 
 const api = new Limitless();
 const markets = await api.fetchMarkets({
-  sort: "volume",
   status: "active",
   limit: 5,
 });
 ```
 
 ```bash curl
-curl "https://api.pmxt.dev/api/limitless/fetchMarkets?sort=volume&status=active&limit=5" \
+curl "https://api.pmxt.dev/api/limitless/fetchMarkets?status=active&limit=5" \
   -H "Authorization: Bearer $PMXT_API_KEY"
 ```
 </CodeGroup>

@@ -399,12 +399,17 @@ The hosted trading API accepts either the venue-native identifier (returned by `
 
 
 > **Note:**
-**What PMXT abstracts vs what leaks through from the venue.** PMXT unifies the order shape across venues, but a few Polymarket rules pass through as-is: orders have a **5-share minimum** (a $2 buy at $0.78 is 2.5 shares and is rejected with `OrderSizeTooSmall`), and market orders are **budget-capped** (a buy spends exactly `amount` USDC, a sell sells exactly `amount` shares — `slippage_pct` is ignored). Hosted **limit** orders are not yet available and return `501`; use [self-hosted](https://pmxt.dev/docs/guides/self-hosted) for resting limits.
+**What PMXT abstracts vs what leaks through from the venue.** PMXT unifies the order shape across venues, but a few Polymarket rules pass through as-is. Polymarket enforces **two independent minimums on marketable BUY orders** — a **5-share minimum** AND a **$1 notional minimum** — and the higher of the two binds. At $0.138/share the 5-share rule alone would only require $0.69, but the $1 rule raises the effective minimum to ~8 shares (~$1.10); a 5-share buy at that price is rejected by the venue with `invalid amount for a marketable BUY order ($0.69), min size: 1` and PMXT surfaces it as `OrderSizeTooSmall`. Market orders are **budget-capped** (a buy spends exactly `amount` USDC, a sell sells exactly `amount` shares — `slippage_pct` is ignored). Hosted **limit** orders are not yet available and return `501`; use [self-hosted](https://pmxt.dev/docs/guides/self-hosted) for resting limits.
 
 
 #### 6. Verify the fill
 
 Hosted positions appear immediately on `fetch_positions`. The position's `size` is your share count; the remaining USDC sits in `fetch_balance`.
+
+
+> **Note:**
+The `id` returned by hosted `create_order` is a **PMXT internal task id**, not a Polymarket (or other venue) order id. Calling Polymarket's own order-lookup with it will return nothing. Use `client.fetch_order(id)` — the hosted SDK knows how to resolve the task and reports the live status (`queued`, `fulfilling`, `fulfilled`, `failed`, `no_fill`). A fresh `create_order` returns `status="queued"` because the venue submit happens asynchronously; poll `fetch_order` (or pass `wait=true`) to get the venue-confirmed outcome.
+
 
 <CodeGroup>
 ```python Python
@@ -1648,9 +1653,14 @@ throw e;
 
 #### OrderSizeTooSmall
 
-**When it fires:** the resolved share count is below the venue's minimum. Polymarket's minimum is **5 shares per order**. A $2 buy at $0.78/share is only 2.5 shares — rejected.
+**When it fires:** the resolved order is below one of Polymarket's two independent venue-side minimums on marketable BUY orders. Both rules are enforced by the venue itself (not PMXT), and the **higher of the two binds**:
 
-**Detail string:** `Order size 2.564 below the minimum 5 shares for venue polymarket`.
+- **5-share minimum.** A $2 buy at $0.78/share is only 2.5 shares — rejected.
+- **$1 notional minimum (marketable BUY).** A 5-share buy at $0.138/share is $0.69 — passes the 5-share rule but is rejected by the venue with the literal error `invalid amount for a marketable BUY order ($0.69), min size: 1`. The effective minimum at that price is ~8 shares (~$1.10).
+
+**Detail string (5-share rule):** `Order size 2.564 below the minimum 5 shares for venue polymarket`.
+
+**Detail string ($1 rule, passed through from venue):** `invalid amount for a marketable BUY order ($X), min size: 1`.
 
 **Parent classes:** `InvalidOrder`, `HostedTradingError`.
 

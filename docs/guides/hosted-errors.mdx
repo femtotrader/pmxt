@@ -196,7 +196,7 @@ async function submitWithRetry(client, params: CreateOrderParams): Promise<Order
 
 **Parent classes:** `InvalidOrder`, `HostedTradingError`.
 
-**Recovery:** wait for liquidity, pick a different outcome, or run [self-hosted](/guides/self-hosted) for resting limit orders (hosted limit orders are not yet available).
+**Recovery:** wait for liquidity, pick a different outcome, or post a resting limit order via `client.create_order(order_type="limit", price=..., amount=...)` (limit SELL is live; limit BUY is being patched for an SDK denom mismatch).
 
 <CodeGroup>
 ```python Python

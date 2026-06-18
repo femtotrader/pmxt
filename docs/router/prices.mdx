@@ -72,12 +72,14 @@ is a subset or superset of the target market.
 <Tabs>
   <Tab title="Python">
     ```python
-    related = router.fetch_related_markets(market_id="d35bc8c6-...")
+    # Positional dict, camelCase keys. Returns a list of plain dicts
+    # (not typed dataclasses like compare_market_prices).
+    related = router.fetch_related_markets({"marketId": "d35bc8c6-..."})
 
     for r in related:
-        print(f"{r.relation:10s} {r.venue:12s}  {r.market.title}")
-        print(f"           confidence {r.confidence:.0%}  bid {r.best_bid}  ask {r.best_ask}")
-        print(f"           {r.reasoning}")
+        print(f"{r['relation']:10s} {r['venue']:12s}  {r['market']['title']}")
+        print(f"           confidence {r['confidence']:.0%}  bid {r['bestBid']}  ask {r['bestAsk']}")
+        print(f"           {r['reasoning']}")
     ```
 
     ```

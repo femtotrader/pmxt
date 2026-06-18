@@ -1246,6 +1246,14 @@ export abstract class Exchange {
 
     async fetchMyTrades(params?: MyTradesParams): Promise<UserTrade[]> {
         await this.initPromise;
+        if (this.isHosted) {
+            const resolvedAddress = resolveWalletAddress(this, undefined);
+            const route = HOSTED_METHOD_ROUTES.get("fetchMyTrades")!;
+            const path = formatRoutePath(route, { address: resolvedAddress });
+            const data = await _tradingRequest(this, { method: route.method, path });
+            const list = Array.isArray(data) ? data : (data && Array.isArray((data as any).trades) ? (data as any).trades : []);
+            return list.map((t: unknown) => userTradeFromV0(t as Record<string, unknown>));
+        }
         try {
             const args: any[] = [];
             if (params !== undefined) args.push(params);

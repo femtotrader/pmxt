@@ -1557,6 +1557,13 @@ class Exchange(ABC):
             raise self._parse_api_exception(e) from None
 
     def fetch_my_trades(self, params: Optional[dict] = None, **kwargs) -> List[UserTrade]:
+        if self.is_hosted:
+            resolved_address = resolve_wallet_address(self, None)
+            response = self._hosted_request(
+                "fetch_my_trades",
+                path_params={"address": resolved_address},
+            )
+            return self._hosted_collection(response, "trades", user_trade_from_v0)
         try:
             args = []
             if kwargs:

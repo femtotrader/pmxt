@@ -325,11 +325,12 @@ If you're scripting deposits (CI, treasury automation, custom wallet integration
 <CodeGroup>
 ```python Python
 # 1. Build an unsigned ERC-20 approval tx for USDC
-approve_tx = client.escrow.approve_tx("usdc")
+approve_tx = client.escrow.approve_tx("usdc")["tx"]
 # Sign and send approve_tx with your wallet library...
+# (escrow builders return {"tx": {...}}; unwrap with ["tx"])
 
 # 2. Build an unsigned deposit tx for 10 USDC
-deposit_tx = client.escrow.deposit_tx(amount=10.0)
+deposit_tx = client.escrow.deposit_tx(amount=10.0)["tx"]
 # Sign and send deposit_tx with your wallet library...
 
 # 3. Confirm the deposit landed
@@ -339,11 +340,12 @@ print(f"Escrow USDC: {balances[0].available}")
 
 ```typescript TypeScript
 // 1. Build an unsigned ERC-20 approval tx for USDC
-const approveTx = await client.escrow.approveTx("usdc");
+const { tx: approveTx } = await client.escrow.approveTx("usdc");
 // Sign and send approveTx with your wallet library...
+// (escrow builders return { tx: {...} }; destructure as shown)
 
 // 2. Build an unsigned deposit tx for 10 USDC
-const depositTx = await client.escrow.depositTx(10);
+const { tx: depositTx } = await client.escrow.depositTx(10);
 // Sign and send depositTx with your wallet library...
 
 // 3. Confirm the deposit landed
@@ -396,6 +398,10 @@ echo "Use an SDK for create_order."
 
 > **Note:**
 The hosted trading API accepts either the venue-native identifier (returned by `client.fetch_markets`) or a catalog UUID (returned by [Router](https://pmxt.dev/docs/router/overview)) — whichever you have. The SDK picks the right wire field automatically. See [Catalog UUID vs Venue ID](https://pmxt.dev/docs/concepts/catalog-uuid-vs-venue-id) when cross-venue identity matters.
+
+
+> **Note:**
+**`outcome=` requires a `MarketOutcome` instance**, not a bare dict — passing a raw dict raises `AttributeError`. Use the object you got from `client.fetch_markets()[i].outcomes[j]` (or `router.fetch_markets()[i].outcomes[j]`) as shown above. If you only have string ids, pass them explicitly instead: `client.create_order(market_id="...", outcome_id="...", side="buy", ...)`.
 
 
 > **Note:**
@@ -584,9 +590,17 @@ All revocations are logged under **Settings > Audit Log**.
 
 | Status | Body                                     | Meaning                                   | SDK exception |
 | ------ | ---------------------------------------- | ----------------------------------------- | ------------- |
-| `401`  | `{"error": "missing api key"}`           | No `Authorization` header on the request. | [`InvalidApiKey`](https://pmxt.dev/docs/api-reference/errors#invalidapikey) |
-| `401`  | `{"error": "invalid api key"}`           | Key unknown, revoked, or expired.         | [`InvalidApiKey`](https://pmxt.dev/docs/api-reference/errors#invalidapikey) |
+| `401`  | `{"error": "missing api key"}`           | No `Authorization` header on the request. | `PmxtError` (message: `missing api key`) |
+| `401`  | `{"error": "invalid api key"}`           | Key unknown, revoked, or expired.         | `PmxtError` (message: `invalid api key`) |
 | `429`  | `{"error": "rate_limit_exceeded", ... }` | See [Plans & Limits](https://pmxt.dev/docs/rate-limits).       | `RateLimitExceeded` |
+
+
+> **Note:**
+Today the SDKs raise the base `pmxt.errors.PmxtError` for both 401 cases
+— match on the message string. A dedicated `InvalidApiKey` subclass may
+be added in a future SDK release; this doc will be updated when that
+ships.
+
 
 See [API Reference / Errors](https://pmxt.dev/docs/api-reference/errors) for the full error
 class hierarchy.
@@ -722,16 +736,17 @@ and `trade.pmxt.dev`) — see [hosts](https://pmxt.dev/docs/authentication#hosts
 #### Limits
 
 
-| Endpoint | Per-minute | Per-month |
-| -------- | ---------- | --------- |
-| `/v0/*` | 60 | 25,000 |
-| `/api/*` | 60 | 25,000 |
+| Plan | Monthly credits | Per-minute | WebSocket streams | Price |
+| ---- | --------------- | ---------- | ----------------- | ----- |
+| Free | 25,000 | 60 | 5 | $0/mo |
+| Starter | 250,000 | 300 | 20 | $29.99/mo |
+| Pro | 1,000,000 | 1,000 | 100 | $99.99/mo |
+| Enterprise | Custom | Custom | Custom | [Contact us](https://pmxt.dev/pricing) |
 
 
-The `/v0/*` row covers both `api.pmxt.dev/v0/*` (Router) and
-`trade.pmxt.dev/v0/*` (trading) — the same per-key limits apply across
-both hosts. Every request to `/v0/*` or `/api/*` counts as **1 request**,
-regardless of how much data it returns. Health checks are free.
+Limits apply per API key across both hosts (`api.pmxt.dev` and
+`trade.pmxt.dev`). Credit accounting: **1 REST call = 1 credit**, **1
+WebSocket message = 0.1 credits**. Health checks are free.
 
 #### Rate limit responses
 
@@ -1060,7 +1075,12 @@ Step-by-step:
 1. **Build.** The SDK calls `POST /v0/trade/build-order` with the catalog UUIDs (`market_id`, `outcome_id`), side, and amount. The server resolves the venue-native fields (token IDs, salt, expiry, fees), packages them into the venue's EIP-712 typed-data shape, and returns a `built_order_id` plus the payload to sign.
 2. **Sign.** The SDK signs the typed-data payload locally with your `private_key`. This step never leaves your process. See [Signing](https://pmxt.dev/docs/guides/signing) for the exact shape.
 3. **Submit.** The SDK calls `POST /v0/trade/submit-order` with the `built_order_id` and the signature. The server attaches the signature to the prepared order and submits to the venue.
-4. **Settle.** The venue matches the order. On Polymarket, fills come from the CLOB and are settled on Polygon via the CTF exchange. On Opinion, settlement uses a dual-signature cross-chain flow into a BSC-side `VenueEscrow`. On Limitless, buys are settled on Polygon directly from escrow; sells use a Base-side pull leg that draws against the user's Polygon escrow.
+4. **Settle.** The venue matches the order. Settlement model varies by venue:
+
+   - **Polymarket** — same-chain on Polygon. The user signs one EIP-712 `OrderParams` against the Polygon `PreFundedEscrow` domain. Settlement is direct against the Polymarket CTF exchange. No oracle, no cross-chain hop.
+   - **Opinion BUY** — cross-chain Polygon → BSC, **single signature + oracle-attested delivery-versus-payment (DvP)**. The user signs one `CrossChainOrderParams` payload on the Polygon `PreFundedEscrow` domain, authorizing a capped spend of their USDC. The operator fronts BSC working capital, buys on Opinion's CLOB, and calls `depositForUser` on the BSC `VenueEscrow` to credit the user with the real outcome tokens. An independent **settlement oracle** observes the BSC delivery and signs a `DeliveryAttestation`. The operator submits the attestation to `settleCrossChainBuy` on Polygon, which verifies the user signature, the attestation binding (order, user, token, destination escrow), the oracle signature, a non-zero `tokensDelivered`, and a per-token worst-price check before releasing the user's USDC. The operator cannot pull USDC until it has provably delivered tokens. Trust assumption: honest oracle.
+   - **Opinion SELL** — cross-chain BSC → Polygon, **dual-signed parallel, no oracle**. The user signs two EIP-712 payloads at build time: a Polygon pay leg (`CrossChainSellPayParams` on the `PreFundedEscrow` domain) and a BSC pull leg (`CrossChainSellPullParams` on the `VenueEscrow` domain). The operator fires both in parallel: `settleCrossChainSellUSDC` credits the user's USDC on Polygon, `settleCrossChainSellTokens` pulls the outcome tokens from the user's BSC escrow. Time-to-tokens is roughly one block. The 2×2 outcome matrix's row 3 (pay failed, pull succeeded) is the operator-trusted gap today; a future bond backstop will close it.
+   - **Limitless** — cross-chain Polygon → Base, **v1 signature-gated front-and-reimburse** (ERC-7683). The user signs one ERC-7683 order via EIP-712 on the Polygon escrow domain: "buy ≥Y tokens, debit ≤X USDC, worstPrice, deadline, nonce". The operator fronts Base working capital, buys on Limitless' CLOB, delivers the real tokens to the user's Base escrow, then pulls the capped USDC on Polygon against the signature. **v1 trust asterisk:** the pull is gated by the signature alone, so reimbursement carries a delivery-performance trust point on the operator. v2 will gate the pull on a Base → Polygon delivery proof (UMA optimistic or ZK).
 
 `create_order` is a convenience wrapper that chains build → sign → submit in one call. `build_order` and `submit_order` are the lower-level primitives if you want to inspect or modify the typed-data before signing.
 
@@ -1077,12 +1097,15 @@ The SDK accepts either form. Outcomes returned by `pmxt.Polymarket(...).fetch_ma
 
 #### Custody: PreFundedEscrow
 
-**Non-custodial by construction** — the `PreFundedEscrow` contract enforces that funds can only move against an EIP-712 signature from the user's wallet. PMXT does not hold USDC in a hot wallet, an exchange-style omnibus account, or a multisig. USDC sits in the `PreFundedEscrow` smart contract on **Polygon** (chainId 137, sometimes called `HomeEscrow`). The same contract backs every hosted venue:
+**Non-custodial by construction** — escrow contracts enforce that funds can only move against an EIP-712 signature from the user's wallet (plus, for cross-chain buys, an oracle attestation). PMXT does not hold USDC in a hot wallet, an exchange-style omnibus account, or a multisig. The user's wallet retains beneficial ownership at all times.
 
-- **Polymarket** is on Polygon. Escrow-held USDC is spent directly via Polymarket's CTF exchange — same-chain settlement.
-- **Opinion** is on BSC (chainId 56). Escrow-held USDC funds a cross-chain settlement leg into a BSC-side `VenueEscrow` that holds Opinion [outcome](https://pmxt.dev/docs/concepts/prediction-markets-101#event-market-outcome) tokens. The user never deposits to or signs on BSC — PMXT operates the cross-chain hop, still gated by the user's signature on the Polygon side.
+USDC custody lives on **Polygon** in the `PreFundedEscrow` contract (chainId 137, sometimes called `HomeEscrow`). Outcome-token custody on non-Polygon venues lives on the venue's native chain:
 
-All EIP-712 order signatures use the Polygon `PreFundedEscrow` domain regardless of venue. The user's wallet retains beneficial ownership at all times. Funds enter via `client.escrow.deposit_tx(amount)`, exit via `client.escrow.withdraw_tx("request" | "claim" | "cancel", ...)`. Both build unsigned txs — your wallet signs and submits them. See [Escrow Lifecycle](https://pmxt.dev/docs/guides/escrow-lifecycle).
+- **Polygon `PreFundedEscrow`** holds the user's USDC (USDC.e, `0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174`) and serves every venue's payment leg. Polymarket CTF tokens are custodied here too — same-chain.
+- **BSC `VenueEscrow`** (chainId 56) holds Opinion [outcome](https://pmxt.dev/docs/concepts/prediction-markets-101#event-market-outcome) tokens. For Opinion BUYs the operator deposits tokens here on the user's behalf (no user signature on BSC). For Opinion SELLs the user signs a BSC-domain pull leg authorizing the operator to debit this escrow.
+- **Base escrow** holds Limitless outcome tokens. The operator delivers tokens here after buying on Limitless' CLOB; the user funds and signs only on Polygon.
+
+USDC enters via `client.escrow.deposit_tx(amount)` on Polygon, exits via `client.escrow.withdraw_tx("request" | "claim" | "cancel", ...)`. Both build unsigned txs — your wallet signs and submits them. See [Escrow Lifecycle](https://pmxt.dev/docs/guides/escrow-lifecycle).
 
 ##### Deployed contracts
 
@@ -1283,29 +1306,36 @@ If you're scripting deposits (CI, treasury automation, custom wallet integration
 <CodeGroup>
 ```python Python
 # Unlimited approval for USDC (most common)
-tx = client.escrow.approve_tx("usdc")
-# tx is a dict like:
-#   { "to": "0x...", "data": "0x...", "value": "0", "chain_id": 137 }
-# Sign and broadcast it with your preferred wallet library.
+result = client.escrow.approve_tx("usdc")
+# result is a dict wrapping the unsigned tx, e.g.:
+#   { "tx": { "to": "0x...", "data": "0x...", "value": "0",
+#             "chainId": 137, "gas": "...", "maxFeePerGas": "...",
+#             "maxPriorityFeePerGas": "...", "nonce": "..." } }
+tx = result["tx"]
+# Sign and broadcast `tx` with your preferred wallet library.
 
 # Or scope the approval to a specific wei amount
-tx = client.escrow.approve_tx("usdc", amount_wei=1_000_000_000)  # 1,000 USDC
+result = client.escrow.approve_tx("usdc", amount_wei=1_000_000_000)  # 1,000 USDC
+tx = result["tx"]
 
 # Approve the Polymarket CTF token (only needed for direct CTF transfers)
-tx = client.escrow.approve_tx("ctf")
+result = client.escrow.approve_tx("ctf")
+tx = result["tx"]
 ```
 
 ```typescript TypeScript
 // Unlimited approval for USDC (most common)
-const tx = await client.escrow.approveTx("usdc");
-// tx is an object like:
-//   { to: "0x...", data: "0x...", value: "0", chainId: 137 }
+const { tx } = await client.escrow.approveTx("usdc");
+// The returned object wraps the unsigned tx, e.g.:
+//   { tx: { to: "0x...", data: "0x...", value: "0", chainId: 137,
+//           gas: "...", maxFeePerGas: "...",
+//           maxPriorityFeePerGas: "...", nonce: "..." } }
 
 // Or scope the approval to a specific wei amount (bigint)
-const txScoped = await client.escrow.approveTx("usdc", 1_000_000_000n);
+const { tx: txScoped } = await client.escrow.approveTx("usdc", 1_000_000_000n);
 
 // Approve the CTF token
-const ctfTx = await client.escrow.approveTx("ctf");
+const { tx: ctfTx } = await client.escrow.approveTx("ctf");
 ```
 </CodeGroup>
 
@@ -1316,19 +1346,20 @@ Amounts are in **whole USDC** (6 decimals); the SDK validates precision and reje
 <CodeGroup>
 ```python Python
 # Deposit 10 USDC
-tx = client.escrow.deposit_tx(amount=10.0)
-# Sign and send with your wallet library.
+result = client.escrow.deposit_tx(amount=10.0)
+tx = result["tx"]
+# Sign and send `tx` with your wallet library.
 
 # Decimals up to 6 places are supported
-tx = client.escrow.deposit_tx(amount=10.5)
-tx = client.escrow.deposit_tx(amount=10.123456)
+tx = client.escrow.deposit_tx(amount=10.5)["tx"]
+tx = client.escrow.deposit_tx(amount=10.123456)["tx"]
 ```
 
 ```typescript TypeScript
 // Deposit 10 USDC — number, decimal string, or wei BigInt all accepted
-const tx = await client.escrow.depositTx(10);
-const tx2 = await client.escrow.depositTx("10.5");
-const tx3 = await client.escrow.depositTx(10_500_000n); // wei micro-USDC
+const { tx } = await client.escrow.depositTx(10);
+const { tx: tx2 } = await client.escrow.depositTx("10.5");
+const { tx: tx3 } = await client.escrow.depositTx(10_500_000n); // wei micro-USDC
 ```
 </CodeGroup>
 
@@ -1401,12 +1432,12 @@ For scripted withdrawals, `client.escrow.withdraw_tx` builds **unsigned** reques
 
 <CodeGroup>
 ```python Python
-tx = client.escrow.withdraw_tx("request", amount=10.0)
-# Sign and send. After the timelock, the funds become claimable.
+tx = client.escrow.withdraw_tx("request", amount=10.0)["tx"]
+# Sign and send `tx`. After the timelock, the funds become claimable.
 ```
 
 ```typescript TypeScript
-const tx = await client.escrow.withdrawTx("request", 10);
+const { tx } = await client.escrow.withdrawTx("request", 10);
 ```
 </CodeGroup>
 
@@ -1435,11 +1466,11 @@ Once `claimable_at` has passed, claim the funds — they move from escrow to you
 
 <CodeGroup>
 ```python Python
-tx = client.escrow.withdraw_tx("claim")
+tx = client.escrow.withdraw_tx("claim")["tx"]
 ```
 
 ```typescript TypeScript
-const tx = await client.escrow.withdrawTx("claim");
+const { tx } = await client.escrow.withdrawTx("claim");
 ```
 </CodeGroup>
 
@@ -1454,11 +1485,11 @@ If you change your mind during the timelock window, cancel a pending request and
 
 <CodeGroup>
 ```python Python
-tx = client.escrow.withdraw_tx("cancel")
+tx = client.escrow.withdraw_tx("cancel")["tx"]
 ```
 
 ```typescript TypeScript
-const tx = await client.escrow.withdrawTx("cancel");
+const { tx } = await client.escrow.withdrawTx("cancel");
 ```
 </CodeGroup>
 </Accordion>
@@ -1527,7 +1558,20 @@ const order = await client.createOrder({
 ```
 </CodeGroup>
 
-For Opinion's dual-signature cross-chain flow, the SDK signs both payloads with the same key automatically — no extra wiring.
+##### Single-signature vs dual-signature flows
+
+Most hosted writes are **single-signature** — one EIP-712 payload, surfaced as `built.raw["typed_data"]`. This covers:
+
+- Polymarket buys and sells — `OrderParams` on the Polygon `PreFundedEscrow` domain.
+- Opinion BUY — `CrossChainOrderParams` on the Polygon `PreFundedEscrow` domain (the BSC delivery leg needs no user signature; the user is the recipient).
+- Limitless buys and sells — ERC-7683 order on the Polygon escrow domain.
+
+**Opinion SELL is the one dual-signature case.** The user gives up tokens custodied on BSC, so the SDK builds two payloads at once:
+
+- `built.raw["typed_data"]` — `CrossChainSellPayParams` on the Polygon `PreFundedEscrow` domain (the operator's pay leg into the user's Polygon balance).
+- `built.raw["pull_typed_data"]` — `CrossChainSellPullParams` on the BSC `VenueEscrow` domain (the operator's pull leg against the user's BSC outcome tokens).
+
+The SDK signs both with the same EVM private key automatically — no extra wiring. The two domains are distinct (`PreFundedEscrow` on chainId 137, `VenueEscrow` on chainId 56) and each signature only authorizes its own chain's leg.
 
 #### Why reads only need a wallet address
 
@@ -1591,7 +1635,7 @@ const order = await client.createOrder({
 ```
 </CodeGroup>
 
-For Opinion's dual-signature flow, the same injected signer is invoked twice (once per payload) — no extra wiring. The SDK's `EthAccountSigner` (Python) / `EthersSigner` (TypeScript) are reference implementations; ethers v6 supports Ledger out of the box, and for MPC see Fireblocks / Privy / Turnkey docs.
+For Opinion SELL's dual-signature flow, the same injected signer is invoked twice (once for the Polygon pay leg, once for the BSC pull leg) — no extra wiring. The SDK's `EthAccountSigner` (Python) / `EthersSigner` (TypeScript) are reference implementations; ethers v6 supports Ledger out of the box, and for MPC see Fireblocks / Privy / Turnkey docs.
 
 ### Handling Hosted Errors
 
@@ -1825,6 +1869,12 @@ throw e;
 
 > **Warning:**
 **Use aggressive `slippage_pct` until the upstream economic validator tightens its `worst_price` checks.** Pragmatic defaults: `slippage_pct=30` for buys, `slippage_pct=99.9` for sells. Lower values frequently trip a precision check that has nothing to do with actual slippage. This will tighten once the validator ships its fix.
+
+
+> **Warning:**
+**Marketable limit price selection.** The SDK's `_validate_worst_price` gate applies a slippage buffer on top of the book — it is NOT simply "must cross top-of-book". For an immediately-executable price:
+- **Marketable limit BUY:** use `price = best_ask` (a small +1-tick buffer works too).
+- **Marketable limit SELL:** use `price = best_ask` (i.e. at or above the ask), NOT `best_bid` or `best_bid - 0.01`. Posting at `best_bid` looks marketable in book terms, but the validator's slippage floor (currently `worst_price ≥ best_bid × 0.8 + 0.029`, see `_hosted_typeddata.py:519`) will reject it for thin books or low-price outcomes. Pricing at or above `best_ask` is the reliable rule.
 
 
 > **Warning:**

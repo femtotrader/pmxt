@@ -770,7 +770,7 @@ is what's being counted.
 
 #### Need more?
 
-- **[Contact us](https://pmxt.dev/dashboard)** — Reach out from the dashboard if you need higher limits.
+- **[Pricing](https://pmxt.dev/pricing)** — See plans and limits, or reach out for custom quotas.
 
 
 ## Concepts

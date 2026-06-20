@@ -2911,7 +2911,6 @@ components:
           - hyperliquid
           - suibets
           - rain
-          - hunch
           - mock
           - router
       required: true
@@ -4810,6 +4809,17 @@ x-sdk-constructors:
         description: PMXT API key for hosted access
   rain:
     className: Rain
+    params:
+      - name: pmxt_api_key
+        tsName: pmxtApiKey
+        type: string
+        description: PMXT API key for hosted access
+      - name: private_key
+        tsName: privateKey
+        type: string
+        description: Private key for authentication
+  hunch:
+    className: Hunch
     params:
       - name: pmxt_api_key
         tsName: pmxtApiKey

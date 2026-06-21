@@ -3432,6 +3432,12 @@ components:
         orderId:
           type: string
           description: 'The order that produced this trade, if known.'
+        marketId:
+          type: string
+          description: 'The market this trade belongs to, when the venue exposes it (e.g. derivable from the fill''s coin/asset).'
+        fee:
+          type: number
+          description: 'Trading fee paid by the user for this fill, when the venue exposes it.'
         txHash:
           type: string
           nullable: true

@@ -282,7 +282,9 @@ class TestHostedReadDispatch:
                         "id": "trade-1",
                         "timestamp": "2026-01-01T00:00:00Z",
                         "price": 0.5,
-                        "amount": 2.0,
+                        # The v0 wire sends trade amounts in 6-dec micro-shares;
+                        # user_trade_from_v0 normalizes to decimal shares.
+                        "amount": 2_000_000,
                         "side": "buy",
                         "order_id": "order-1",
                         "market_id": MARKET_ID,

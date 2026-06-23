@@ -1,6 +1,6 @@
 # Prediction Market API Reference
 
-A unified interface for interacting with multiple prediction market exchanges (Kalshi, Polymarket) identically.
+A unified interface for interacting with multiple prediction market exchanges and venues through one interface.
 
 ## Installation & Usage
 
@@ -299,7 +299,7 @@ import pmxt, {
 
 ## Authentication & Trading
 
-Both Polymarket and Kalshi support authenticated trading operations. You must provide credentials when initializing the exchange.
+Authenticated trading is available on venues that expose trading APIs. You must provide the venue-specific credentials when initializing the exchange; the examples below show Polymarket and Kalshi.
 
 ### Polymarket Authentication
 

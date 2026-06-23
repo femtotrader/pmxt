@@ -499,6 +499,23 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     expect(coreApiReference).toContain("const market = await kalshi.fetchMarket({ slug: 'INVALID-TICKER' });");
   });
 
+  test('core API reference describes the current venue scope', () => {
+    const coreApiReference = readDoc('core/API_REFERENCE.md');
+
+    expect(coreApiReference).not.toContain(
+      'multiple prediction market exchanges (Kalshi, Polymarket) identically',
+    );
+    expect(coreApiReference).not.toContain(
+      'Both Polymarket and Kalshi support authenticated trading operations.',
+    );
+    expect(coreApiReference).toContain(
+      'multiple prediction market exchanges and venues through one interface',
+    );
+    expect(coreApiReference).toContain(
+      'Authenticated trading is available on venues that expose trading APIs.',
+    );
+  });
+
   test('SDK API references include account history and firehose methods', () => {
     const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
     const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');

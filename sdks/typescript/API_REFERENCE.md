@@ -2098,6 +2098,8 @@ side: string; // Order side: buy or sell.
 type: string; // Order type: market (execute immediately) or limit (resting at a price).
 amount: number; // Size of the order in contracts/shares.
 price?: number; // Required for limit orders
+denom?: string; // Hosted mode amount unit: usdc for market buys, shares for market sells and limit orders.
+slippage_pct?: number; // Hosted mode maximum market-order slippage percentage.
 fee?: number; // Optional fee rate (e.g., 1000 for 0.1%)
 tickSize?: number; // Optional override for Limitless/Polymarket
 negRisk?: boolean; // Optional override to skip neg-risk lookup (Polymarket)

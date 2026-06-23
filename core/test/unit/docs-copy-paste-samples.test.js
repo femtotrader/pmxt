@@ -116,4 +116,14 @@ describe('Documentation copy-paste samples', () => {
     expect(readme).toContain('import { Polymarket } from "pmxtjs";');
     expect(readme).not.toContain('Named imports do not work in ESM');
   });
+
+  test('hosted TypeScript trading snippets do not require unsafe any casts', () => {
+    const rootReadme = readDoc('readme.md');
+    const typescriptReadme = readDoc('sdks/typescript/README.md');
+
+    expect(rootReadme).toContain('slippage_pct: 30.0');
+    expect(typescriptReadme).toContain('slippage_pct: 30.0');
+    expect(rootReadme).not.toContain('} as any);');
+    expect(typescriptReadme).not.toContain('} as any);');
+  });
 });

@@ -120,7 +120,7 @@ const order = await trader.createOrder({
   amount: 5.0,
   denom: "usdc",
   slippage_pct: 30.0,
-} as any);
+});
 console.log(`Order status: ${order.status}`);
 ```
 

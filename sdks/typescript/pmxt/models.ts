@@ -549,6 +549,12 @@ export interface CreateOrderParams {
     /** Limit price (required for limit orders, 0.0-1.0) */
     price?: number;
 
+    /** Hosted mode: unit that amount is denominated in. Market buys use usdc; market sells and limit orders use shares. */
+    denom?: "usdc" | "shares";
+
+    /** Hosted mode: maximum slippage percentage for market orders. */
+    slippage_pct?: number;
+
     /** Optional fee rate (e.g., 1000 for 0.1%) */
     fee?: number;
 

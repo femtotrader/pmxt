@@ -54,12 +54,17 @@ describe('LLMS docs generation', () => {
     const selfHosted = fs.readFileSync(path.join(repoRoot, 'docs/guides/self-hosted.mdx'), 'utf8');
     const tradingQuickstart = fs.readFileSync(path.join(repoRoot, 'docs/trading-quickstart.mdx'), 'utf8');
     const hostedTrading = fs.readFileSync(path.join(repoRoot, 'docs/concepts/hosted-trading.mdx'), 'utf8');
+    const migrateToHostedTrading = fs.readFileSync(
+      path.join(repoRoot, 'docs/guides/migrate-to-hosted-trading.mdx'),
+      'utf8',
+    );
     const predictionMarkets101 = fs.readFileSync(
       path.join(repoRoot, 'docs/concepts/prediction-markets-101.mdx'),
       'utf8',
     );
     const rateLimits = fs.readFileSync(path.join(repoRoot, 'docs/rate-limits.mdx'), 'utf8');
     const hostedWriteDocs = `${selfHosted}\n${tradingQuickstart}\n${hostedTrading}\n${llmsFull}`;
+    const hostedIdentifierDocs = `${hostedTrading}\n${migrateToHostedTrading}\n${llmsFull}`;
     const predictionMarkets101Docs = `${predictionMarkets101}\n${llmsFull}`;
     const rateLimitDocs = `${rateLimits}\n${llmsFull}`;
     const fetchOhlcv = fs.readFileSync(path.join(repoRoot, 'docs/api-reference/fetch-ohlcv.mdx'), 'utf8');
@@ -177,6 +182,22 @@ describe('LLMS docs generation', () => {
     expect(hostedWriteDocs).not.toContain('| **Trading venues** | Polymarket, Opinion, Limitless | Every venue PMXT supports |');
     expect(hostedWriteDocs).toContain('where the venue exposes writes');
     expect(hostedWriteDocs).toContain('Feature Support & Compliance');
+    expect(hostedIdentifierDocs).not.toContain(
+      'Every hosted endpoint speaks in **catalog UUIDs**, not venue-native IDs',
+    );
+    expect(hostedIdentifierDocs).not.toContain(
+      'none of those work directly against `trade.pmxt.dev`',
+    );
+    expect(hostedIdentifierDocs).not.toContain(
+      '`trade.pmxt.dev` requires **catalog UUIDs**, not Polymarket-native `conditionId` / `tokenId`',
+    );
+    expect(hostedIdentifierDocs).toContain('Catalog UUIDs are the shared address space');
+    expect(hostedIdentifierDocs).toContain(
+      'Raw REST can use catalog UUIDs or an explicit `venue` + `venue_outcome_id` pair',
+    );
+    expect(hostedIdentifierDocs).toContain(
+      'Bare Polymarket `conditionId` / `tokenId` strings are not enough by themselves',
+    );
     expect(predictionMarkets101Docs).not.toContain(
       'venue-agnostic trading and read methods that work identically across every hosted venue',
     );

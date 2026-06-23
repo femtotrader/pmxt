@@ -45,7 +45,7 @@ Reads (`fetch_balance`, `fetch_positions`, `fetch_my_trades`, etc.) only need th
 
 Step-by-step:
 
-1. **Build.** The SDK calls `POST /v0/trade/build-order` with the catalog UUIDs (`market_id`, `outcome_id`), side, and amount. The server resolves the venue-native fields (token IDs, salt, expiry, fees), packages them into the venue's EIP-712 typed-data shape, and returns a `built_order_id` plus the payload to sign.
+1. **Build.** The SDK calls `POST /v0/trade/build-order` with the outcome target, side, and amount. Catalog UUIDs go on the wire as `outcome_id`; venue-native outcomes go on the wire as `venue` + `venue_outcome_id`. The server resolves the venue-native fields (token IDs, salt, expiry, fees), packages them into the venue's EIP-712 typed-data shape, and returns a `built_order_id` plus the payload to sign.
 2. **Sign.** The SDK signs the typed-data payload locally with your `private_key`. This step never leaves your process. See [Signing](/guides/signing) for the exact shape.
 3. **Submit.** The SDK calls `POST /v0/trade/submit-order` with the `built_order_id` and the signature. The server attaches the signature to the prepared order and submits to the venue.
 4. **Settle.** The venue matches the order. Settlement model varies by venue:
@@ -57,9 +57,11 @@ Step-by-step:
 
 `create_order` is a convenience wrapper that chains build → sign → submit in one call. `build_order` and `submit_order` are the lower-level primitives if you want to inspect or modify the typed-data before signing.
 
-## Catalog UUIDs are the address space
+## Catalog UUIDs are the shared address space
 
-Every hosted endpoint speaks in **catalog UUIDs**, not venue-native IDs. A Polymarket condition ID, a Kalshi ticker, an Opinion market hash — none of those work directly against `trade.pmxt.dev`. Instead, PMXT's catalog assigns a stable UUID to every `prediction_markets.markets` row and every `prediction_markets.outcomes` row, and the trading API uses those UUIDs as the addressable identifiers.
+Catalog UUIDs are the most portable identifiers for hosted trading. PMXT's catalog assigns a stable UUID to every `prediction_markets.markets` row and every `prediction_markets.outcomes` row, so those IDs are the right choice for Router results, cross-venue analytics, and records you want to survive venue API changes.
+
+Raw REST can use catalog UUIDs or an explicit `venue` + `venue_outcome_id` pair. Bare Polymarket `conditionId` / `tokenId` strings are not enough by themselves; include the venue tuple so the backend can reverse-resolve the catalog row.
 
 The catalog UUIDs are the same ones returned by the Router (`/v0/markets`, `/v0/events`). They are stable across venue API changes and survive venue re-listings.
 

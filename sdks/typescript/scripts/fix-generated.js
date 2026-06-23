@@ -2,9 +2,10 @@ const fs = require('fs');
 const path = require('path');
 
 const generatedModelsDir = path.resolve(__dirname, '../generated/src/models');
+const generatedDocsDir = path.resolve(__dirname, '../generated/docs');
 
-function fixOneOfFile(typeName) {
-    const targetFile = path.join(generatedModelsDir, `${typeName}.ts`);
+function fixOneOfFile(typeName, modelsDir = generatedModelsDir) {
+    const targetFile = path.join(modelsDir, `${typeName}.ts`);
     const functionName = `instanceOf${typeName}`;
 
     if (!fs.existsSync(targetFile)) {
@@ -54,7 +55,7 @@ export function ${functionName}(value: any): value is ${typeName} {
     return true;
 }
 
-function fixFilterRequestsTypeIssue() {
+function fixFilterRequestsTypeIssue(modelsDir = generatedModelsDir) {
     // Fix type narrowing issues in Filter*RequestArgsInner files
     const filesToFix = [
         'FilterEventsRequestArgsInner',
@@ -62,7 +63,7 @@ function fixFilterRequestsTypeIssue() {
     ];
 
     for (const fileName of filesToFix) {
-        const filePath = path.join(generatedModelsDir, `${fileName}.ts`);
+        const filePath = path.join(modelsDir, `${fileName}.ts`);
         if (!fs.existsSync(filePath)) continue;
 
         let content = fs.readFileSync(filePath, 'utf8');
@@ -101,26 +102,75 @@ function fixFilterRequestsTypeIssue() {
     }
 }
 
-console.log('Fixing generated code...');
+function stripGeneratedModelDocExample(content) {
+    return content.replace(
+        /\n## Example\n\n```typescript\n[\s\S]*?```\n\n(?=\[\[Back to top\]\])/,
+        '\n'
+    );
+}
 
-// Fix all OneOf files that the generator creates
-const oneOfFiles = [
-    'FilterMarketsRequestArgsInnerOneOf',
-    'FetchOHLCVRequestArgsInnerOneOf',
-    'FetchTradesRequestArgsInnerOneOf'
-];
-
-let fixed = 0;
-for (const file of oneOfFiles) {
-    if (fixOneOfFile(file)) {
-        console.log(`Added missing instanceOf function to ${file}.ts`);
-        fixed++;
+function removeGeneratedModelDocExamples(docsDir = generatedDocsDir) {
+    if (!fs.existsSync(docsDir)) {
+        return 0;
     }
+
+    const fileNames = fs
+        .readdirSync(docsDir)
+        .filter(fileName => fileName.endsWith('.md'))
+        .filter(fileName => !fileName.endsWith('Api.md'));
+
+    const changedFiles = fileNames
+        .map(fileName => {
+            const filePath = path.join(docsDir, fileName);
+            const content = fs.readFileSync(filePath, 'utf8');
+            const fixedContent = stripGeneratedModelDocExample(content);
+            return { filePath, content, fixedContent };
+        })
+        .filter(file => file.fixedContent !== file.content);
+
+    for (const file of changedFiles) {
+        fs.writeFileSync(file.filePath, file.fixedContent, 'utf8');
+    }
+
+    return changedFiles.length;
 }
 
-fixFilterRequestsTypeIssue();
+function run() {
+    console.log('Fixing generated code...');
 
-if (fixed === 0 && !fs.existsSync(path.join(generatedModelsDir, 'FilterEventsRequestArgsInner.ts'))) {
-    console.log('No files needed fixing');
+    // Fix all OneOf files that the generator creates
+    const oneOfFiles = [
+        'FilterMarketsRequestArgsInnerOneOf',
+        'FetchOHLCVRequestArgsInnerOneOf',
+        'FetchTradesRequestArgsInnerOneOf'
+    ];
+
+    let fixed = 0;
+    for (const file of oneOfFiles) {
+        if (fixOneOfFile(file)) {
+            console.log(`Added missing instanceOf function to ${file}.ts`);
+            fixed++;
+        }
+    }
+
+    fixFilterRequestsTypeIssue();
+
+    const strippedDocExamples = removeGeneratedModelDocExamples();
+    if (strippedDocExamples > 0) {
+        console.log(`Removed placeholder examples from ${strippedDocExamples} generated model docs`);
+    }
+
+    if (fixed === 0 && !fs.existsSync(path.join(generatedModelsDir, 'FilterEventsRequestArgsInner.ts'))) {
+        console.log('No files needed fixing');
+    }
+    console.log('Generated code fixes complete.');
 }
-console.log('Generated code fixes complete.');
+
+if (require.main === module) {
+    run();
+}
+
+module.exports = {
+    removeGeneratedModelDocExamples,
+    stripGeneratedModelDocExample,
+};

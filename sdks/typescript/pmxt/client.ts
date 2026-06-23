@@ -1225,7 +1225,10 @@ export abstract class Exchange {
             const route = HOSTED_METHOD_ROUTES.get("fetchOrder")!;
             const path = formatRoutePath(route, { order_id: orderId });
             const data = await _tradingRequest(this, { method: route.method, path });
-            return orderFromV0(data as Record<string, unknown>);
+            const payload = data && typeof data === "object" && "order" in data
+                ? (data as { order: unknown }).order
+                : data;
+            return orderFromV0(payload as Record<string, unknown>);
         }
         try {
             const args: any[] = [];
@@ -1325,6 +1328,9 @@ export abstract class Exchange {
 
     async fetchClosedOrders(params?: OrderHistoryParams): Promise<Order[]> {
         await this.initPromise;
+        if (this.isHosted) {
+            throw new NotSupported("fetchClosedOrders is not available in hosted trading mode.");
+        }
         try {
             const args: any[] = [];
             if (params !== undefined) args.push(params);
@@ -1351,6 +1357,9 @@ export abstract class Exchange {
 
     async fetchAllOrders(params?: OrderHistoryParams): Promise<Order[]> {
         await this.initPromise;
+        if (this.isHosted) {
+            throw new NotSupported("fetchAllOrders is not available in hosted trading mode.");
+        }
         try {
             const args: any[] = [];
             if (params !== undefined) args.push(params);
@@ -1382,7 +1391,9 @@ export abstract class Exchange {
             const route = HOSTED_METHOD_ROUTES.get("fetchPositions")!;
             const path = formatRoutePath(route, { address: resolvedAddress });
             const data = await _tradingRequest(this, { method: route.method, path });
-            const list = Array.isArray(data) ? data : [];
+            const list: unknown[] = Array.isArray(data)
+                ? data
+                : (data && Array.isArray((data as any).positions) ? (data as any).positions : []);
             return list.map((p) => positionFromV0(p as Record<string, unknown>));
         }
         try {
@@ -1416,7 +1427,9 @@ export abstract class Exchange {
             const route = HOSTED_METHOD_ROUTES.get("fetchBalance")!;
             const path = formatRoutePath(route, { address: resolvedAddress });
             const data = await _tradingRequest(this, { method: route.method, path });
-            const list = Array.isArray(data) ? data : [];
+            const list: unknown[] = Array.isArray(data)
+                ? data
+                : (data && Array.isArray((data as any).balances) ? (data as any).balances : []);
             return list.map((b) => balanceFromV0(b as Record<string, unknown>));
         }
         try {

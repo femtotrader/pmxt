@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
+const generatedRootDir = path.resolve(__dirname, '../generated');
 const generatedModelsDir = path.resolve(__dirname, '../generated/src/models');
 const generatedDocsDir = path.resolve(__dirname, '../generated/docs');
 
@@ -116,6 +117,13 @@ function stripGeneratedApiDocExamples(content) {
     );
 }
 
+function stripGeneratedReadmeUsageExample(content) {
+    return content.replace(
+        /\nNext, try it out\.\n\n\n```(?:ts|typescript)\n[\s\S]*?```\n+(?=## Documentation)/,
+        '\n'
+    );
+}
+
 function removeGeneratedModelDocExamples(docsDir = generatedDocsDir) {
     if (!fs.existsSync(docsDir)) {
         return 0;
@@ -167,6 +175,22 @@ function removeGeneratedApiDocExamples(docsDir = generatedDocsDir) {
     return changedFiles.length;
 }
 
+function removeGeneratedReadmeUsageExample(rootDir = generatedRootDir) {
+    const readmePath = path.join(rootDir, 'README.md');
+    if (!fs.existsSync(readmePath)) {
+        return 0;
+    }
+
+    const content = fs.readFileSync(readmePath, 'utf8');
+    const fixedContent = stripGeneratedReadmeUsageExample(content);
+    if (fixedContent === content) {
+        return 0;
+    }
+
+    fs.writeFileSync(readmePath, fixedContent, 'utf8');
+    return 1;
+}
+
 function run() {
     console.log('Fixing generated code...');
 
@@ -197,6 +221,11 @@ function run() {
         console.log(`Removed placeholder examples from ${strippedApiExamples} generated API docs`);
     }
 
+    const strippedReadmeExample = removeGeneratedReadmeUsageExample();
+    if (strippedReadmeExample > 0) {
+        console.log('Removed placeholder usage example from generated README');
+    }
+
     if (fixed === 0 && !fs.existsSync(path.join(generatedModelsDir, 'FilterEventsRequestArgsInner.ts'))) {
         console.log('No files needed fixing');
     }
@@ -210,6 +239,8 @@ if (require.main === module) {
 module.exports = {
     removeGeneratedApiDocExamples,
     removeGeneratedModelDocExamples,
+    removeGeneratedReadmeUsageExample,
     stripGeneratedApiDocExamples,
     stripGeneratedModelDocExample,
+    stripGeneratedReadmeUsageExample,
 };

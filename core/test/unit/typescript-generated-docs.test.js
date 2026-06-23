@@ -6,8 +6,10 @@ const repoRoot = path.resolve(__dirname, '../../..');
 const {
   removeGeneratedApiDocExamples,
   removeGeneratedModelDocExamples,
+  removeGeneratedReadmeUsageExample,
   stripGeneratedApiDocExamples,
   stripGeneratedModelDocExample,
+  stripGeneratedReadmeUsageExample,
 } = require(path.join(repoRoot, 'sdks/typescript/scripts/fix-generated.js'));
 
 const modelDocWithPlaceholder = `# UnifiedMarket
@@ -47,6 +49,31 @@ const body = {
 ### Parameters
 
 This endpoint does not need any parameter.
+`;
+
+const readmeWithUsageExample = `# pmxtjs@2.17.1
+
+## Usage
+
+First, install the SDK from npm.
+
+\`\`\`bash
+npm install pmxtjs --save
+\`\`\`
+
+Next, try it out.
+
+
+\`\`\`ts
+const body = {
+  feed: feed_example,
+  symbol: symbol_example,
+} satisfies FeedFetchHistoricalPricesRequest;
+\`\`\`
+
+## Documentation
+
+### API Endpoints
 `;
 
 describe('TypeScript generated model docs', () => {
@@ -103,6 +130,29 @@ describe('TypeScript generated model docs', () => {
       expect(fs.readFileSync(modelPath, 'utf8')).toBe(modelDocWithPlaceholder);
     } finally {
       fs.rmSync(docsDir, { recursive: true, force: true });
+    }
+  });
+
+  test('strips generated README usage example placeholders', () => {
+    const fixed = stripGeneratedReadmeUsageExample(readmeWithUsageExample);
+
+    expect(fixed).toContain('npm install pmxtjs --save');
+    expect(fixed).toContain('## Documentation');
+    expect(fixed).not.toContain('Next, try it out.');
+    expect(fixed).not.toContain('feed_example');
+  });
+
+  test('removes generated README usage example from a docs directory', () => {
+    const docsRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pmxt-typescript-generated-readme-'));
+
+    try {
+      const readmePath = path.join(docsRoot, 'README.md');
+      fs.writeFileSync(readmePath, readmeWithUsageExample, 'utf8');
+
+      expect(removeGeneratedReadmeUsageExample(docsRoot)).toBe(1);
+      expect(fs.readFileSync(readmePath, 'utf8')).not.toContain('feed_example');
+    } finally {
+      fs.rmSync(docsRoot, { recursive: true, force: true });
     }
   });
 });

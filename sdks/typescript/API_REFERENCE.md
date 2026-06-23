@@ -633,6 +633,97 @@ await exchange.fetchOpenOrders("12345")
 
 
 ---
+### `fetchMyTrades`
+
+Fetch authenticated user trade history.
+
+
+**Signature:**
+
+```typescript
+async fetchMyTrades(params?: MyTradesParams): Promise<UserTrade[]>
+```
+
+**Parameters:**
+
+- `params` ([MyTradesParams](#mytradesparams)) - **Optional**: Optional trade history filters
+  - `params.outcomeId` - Filter by outcome token ID
+  - `params.marketId` - Filter by market ID or ticker
+  - `params.since` - Start timestamp or ISO date
+  - `params.until` - End timestamp or ISO date
+  - `params.limit` - Maximum number of trades
+  - `params.cursor` - Pagination cursor
+
+**Returns:** Promise<[UserTrade](#usertrade)[]> - Array of user trades
+
+**Example:**
+
+```typescript
+await exchange.fetchMyTrades({ limit: 10 })
+```
+
+
+---
+### `fetchClosedOrders`
+
+Fetch authenticated closed orders.
+
+
+**Signature:**
+
+```typescript
+async fetchClosedOrders(params?: OrderHistoryParams): Promise<Order[]>
+```
+
+**Parameters:**
+
+- `params` ([OrderHistoryParams](#orderhistoryparams)) - **Optional**: Optional order history filters
+  - `params.marketId` - Filter by market ID or ticker
+  - `params.since` - Start timestamp or ISO date
+  - `params.until` - End timestamp or ISO date
+  - `params.limit` - Maximum number of orders
+  - `params.cursor` - Pagination cursor
+
+**Returns:** Promise<[Order](#order)[]> - Array of closed orders
+
+**Example:**
+
+```typescript
+await exchange.fetchClosedOrders({ marketId: "12345", limit: 10 })
+```
+
+
+---
+### `fetchAllOrders`
+
+Fetch authenticated order history across open and closed orders.
+
+
+**Signature:**
+
+```typescript
+async fetchAllOrders(params?: OrderHistoryParams): Promise<Order[]>
+```
+
+**Parameters:**
+
+- `params` ([OrderHistoryParams](#orderhistoryparams)) - **Optional**: Optional order history filters
+  - `params.marketId` - Filter by market ID or ticker
+  - `params.since` - Start timestamp or ISO date
+  - `params.until` - End timestamp or ISO date
+  - `params.limit` - Maximum number of orders
+  - `params.cursor` - Pagination cursor
+
+**Returns:** Promise<[Order](#order)[]> - Array of orders
+
+**Example:**
+
+```typescript
+await exchange.fetchAllOrders({ marketId: "12345", limit: 10 })
+```
+
+
+---
 ### `fetchPositions`
 
 Fetch current user positions across all markets.
@@ -1387,6 +1478,56 @@ async getEventBySlug(slug: string): Promise<UnifiedEvent | null>
 
 ```typescript
 await exchange.getEventBySlug("will-trump-win")
+```
+
+
+---
+### `watchAllOrderBooks`
+
+Stream all orderbook updates across venues via the hosted WebSocket API.
+
+
+**Signature:**
+
+```typescript
+async watchAllOrderBooks(venues?: string[]): Promise<FirehoseEvent>
+```
+
+**Parameters:**
+
+- `venues` (string[]) - **Optional**: Optional venue filter. Defaults to this exchange's venue
+
+**Returns:** Promise<FirehoseEvent> - Next event with source, symbol, and orderbook
+
+**Example:**
+
+```typescript
+await exchange.watchAllOrderBooks(["polymarket", "limitless"])
+```
+
+
+---
+### `firehose`
+
+Stream all orderbook updates across venues.
+
+
+**Signature:**
+
+```typescript
+async firehose(venues?: string[]): Promise<FirehoseEvent>
+```
+
+**Parameters:**
+
+- `venues` (string[]) - **Optional**: Optional venue filter
+
+**Returns:** Promise<FirehoseEvent> - Next event with source, symbol, and orderbook
+
+**Example:**
+
+```typescript
+await exchange.firehose(["polymarket", "limitless"])
 ```
 
 

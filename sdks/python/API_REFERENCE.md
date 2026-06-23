@@ -630,6 +630,97 @@ exchange.fetch_open_orders(market_id="12345")
 
 
 ---
+### `fetch_my_trades`
+
+Fetch authenticated user trade history.
+
+
+**Signature:**
+
+```python
+def fetch_my_trades(params: Optional[MyTradesParams] = None) -> List[UserTrade]:
+```
+
+**Parameters:**
+
+- `params` ([MyTradesParams](#mytradesparams)) - **Optional**: Optional trade history filters
+  - `params.outcome_id` - Filter by outcome token ID
+  - `params.market_id` - Filter by market ID or ticker
+  - `params.since` - Start timestamp or ISO date
+  - `params.until` - End timestamp or ISO date
+  - `params.limit` - Maximum number of trades
+  - `params.cursor` - Pagination cursor
+
+**Returns:** List[[UserTrade](#usertrade)] - Array of user trades
+
+**Example:**
+
+```python
+exchange.fetch_my_trades(limit=10)
+```
+
+
+---
+### `fetch_closed_orders`
+
+Fetch authenticated closed orders.
+
+
+**Signature:**
+
+```python
+def fetch_closed_orders(params: Optional[OrderHistoryParams] = None) -> List[Order]:
+```
+
+**Parameters:**
+
+- `params` ([OrderHistoryParams](#orderhistoryparams)) - **Optional**: Optional order history filters
+  - `params.market_id` - Filter by market ID or ticker
+  - `params.since` - Start timestamp or ISO date
+  - `params.until` - End timestamp or ISO date
+  - `params.limit` - Maximum number of orders
+  - `params.cursor` - Pagination cursor
+
+**Returns:** List[[Order](#order)] - Array of closed orders
+
+**Example:**
+
+```python
+exchange.fetch_closed_orders(market_id="12345", limit=10)
+```
+
+
+---
+### `fetch_all_orders`
+
+Fetch authenticated order history across open and closed orders.
+
+
+**Signature:**
+
+```python
+def fetch_all_orders(params: Optional[OrderHistoryParams] = None) -> List[Order]:
+```
+
+**Parameters:**
+
+- `params` ([OrderHistoryParams](#orderhistoryparams)) - **Optional**: Optional order history filters
+  - `params.market_id` - Filter by market ID or ticker
+  - `params.since` - Start timestamp or ISO date
+  - `params.until` - End timestamp or ISO date
+  - `params.limit` - Maximum number of orders
+  - `params.cursor` - Pagination cursor
+
+**Returns:** List[[Order](#order)] - Array of orders
+
+**Example:**
+
+```python
+exchange.fetch_all_orders(market_id="12345", limit=10)
+```
+
+
+---
 ### `fetch_positions`
 
 Fetch current user positions across all markets.
@@ -1390,6 +1481,56 @@ def get_event_by_slug(slug: str) -> Optional[UnifiedEvent]:
 
 ```python
 exchange.get_event_by_slug(slug="will-trump-win")
+```
+
+
+---
+### `watch_all_order_books`
+
+Stream all orderbook updates across venues via the hosted WebSocket API.
+
+
+**Signature:**
+
+```python
+def watch_all_order_books(venues: Optional[List[str]] = None) -> FirehoseEvent:
+```
+
+**Parameters:**
+
+- `venues` (List[str]) - **Optional**: Optional venue filter. Defaults to this exchange's venue
+
+**Returns:** FirehoseEvent - Next event with source, symbol, and orderbook
+
+**Example:**
+
+```python
+exchange.watch_all_order_books(venues=["polymarket", "limitless"])
+```
+
+
+---
+### `firehose`
+
+Stream all orderbook updates across venues.
+
+
+**Signature:**
+
+```python
+def firehose(venues: Optional[List[str]] = None) -> FirehoseEvent:
+```
+
+**Parameters:**
+
+- `venues` (List[str]) - **Optional**: Optional venue filter
+
+**Returns:** FirehoseEvent - Next event with source, symbol, and orderbook
+
+**Example:**
+
+```python
+exchange.firehose(venues=["polymarket", "limitless"])
 ```
 
 

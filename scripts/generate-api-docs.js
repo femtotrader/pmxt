@@ -51,6 +51,7 @@ function toSnakeCase(str) {
     // 2. Preceded by uppercase AND followed by lowercase (XMLParser -> xml_parser)
     return str
         .replace(/By(?=[A-Z])/g, 'By_')
+        .replace(/My(?=[A-Z])/g, 'My_')
         .replace(/(?<![A-Z])([a-z])([A-Z])/g, '$1_$2')  // aB -> a_B, but not after uppercase
         .replace(/([A-Z])([A-Z][a-z])/g, '$1_$2')       // ABc -> A_Bc
         .toLowerCase();
@@ -298,8 +299,13 @@ const PYTHON_METHOD_EXAMPLE_OVERRIDES = {
         ')',
         'exchange.submit_order(built)',
     ].join('\n'),
+    fetchMyTrades: 'exchange.fetch_my_trades(limit=10)',
+    fetchClosedOrders: 'exchange.fetch_closed_orders(market_id="12345", limit=10)',
+    fetchAllOrders: 'exchange.fetch_all_orders(market_id="12345", limit=10)',
     watchOrderBook: 'exchange.watch_order_book(outcome_id="abc123", limit=10, params={})',
     watchOrderBooks: 'exchange.watch_order_books(outcome_ids=["12345"], limit=10, params={})',
+    watchAllOrderBooks: 'exchange.watch_all_order_books(venues=["polymarket", "limitless"])',
+    firehose: 'exchange.firehose(venues=["polymarket", "limitless"])',
     watchTrades: 'exchange.watch_trades(outcome_id="abc123", address="0xabc...", since=1710000000000, limit=50)',
     watchAddress: 'exchange.watch_address(address="0xabc...", types=["trades"])',
     watchPrices: [
@@ -375,8 +381,13 @@ const TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES = {
         '});',
         'await exchange.submitOrder(built)',
     ].join('\n'),
+    fetchMyTrades: 'await exchange.fetchMyTrades({ limit: 10 })',
+    fetchClosedOrders: 'await exchange.fetchClosedOrders({ marketId: "12345", limit: 10 })',
+    fetchAllOrders: 'await exchange.fetchAllOrders({ marketId: "12345", limit: 10 })',
     watchOrderBook: 'await exchange.watchOrderBook("abc123", 10, {})',
     watchOrderBooks: 'await exchange.watchOrderBooks(["12345"], 10, {})',
+    watchAllOrderBooks: 'await exchange.watchAllOrderBooks(["polymarket", "limitless"])',
+    firehose: 'await exchange.firehose(["polymarket", "limitless"])',
     watchTrades: 'await exchange.watchTrades("abc123", "0xabc...", 1710000000000, 50)',
     watchAddress: 'await exchange.watchAddress("0xabc...", ["trades"])',
     watchPrices: 'await exchange.watchPrices("0xabc...", (data) => { void data })',

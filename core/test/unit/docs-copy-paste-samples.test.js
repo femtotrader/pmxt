@@ -444,4 +444,64 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     expect(pythonApiReference).toContain('has: ExchangeHas');
     expect(pythonApiReference).toContain('exchange.has');
   });
+
+  test('SDK API references include account history and firehose methods', () => {
+    const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
+    const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');
+
+    const expectedTypeScriptMethods = [
+      '### `fetchMyTrades`',
+      '### `fetchClosedOrders`',
+      '### `fetchAllOrders`',
+      '### `watchAllOrderBooks`',
+      '### `firehose`',
+    ];
+    const expectedPythonMethods = [
+      '### `fetch_my_trades`',
+      '### `fetch_closed_orders`',
+      '### `fetch_all_orders`',
+      '### `watch_all_order_books`',
+      '### `firehose`',
+    ];
+
+    for (const heading of expectedTypeScriptMethods) {
+      expect(typescriptApiReference).toContain(heading);
+    }
+
+    for (const heading of expectedPythonMethods) {
+      expect(pythonApiReference).toContain(heading);
+    }
+
+    expect(typescriptApiReference).toContain(
+      'async fetchMyTrades(params?: MyTradesParams): Promise<UserTrade[]>',
+    );
+    expect(typescriptApiReference).toContain(
+      'async fetchClosedOrders(params?: OrderHistoryParams): Promise<Order[]>',
+    );
+    expect(typescriptApiReference).toContain(
+      'async fetchAllOrders(params?: OrderHistoryParams): Promise<Order[]>',
+    );
+    expect(typescriptApiReference).toContain(
+      'async watchAllOrderBooks(venues?: string[]): Promise<FirehoseEvent>',
+    );
+    expect(typescriptApiReference).toContain(
+      'async firehose(venues?: string[]): Promise<FirehoseEvent>',
+    );
+
+    expect(pythonApiReference).toContain(
+      'def fetch_my_trades(params: Optional[MyTradesParams] = None) -> List[UserTrade]:',
+    );
+    expect(pythonApiReference).toContain(
+      'def fetch_closed_orders(params: Optional[OrderHistoryParams] = None) -> List[Order]:',
+    );
+    expect(pythonApiReference).toContain(
+      'def fetch_all_orders(params: Optional[OrderHistoryParams] = None) -> List[Order]:',
+    );
+    expect(pythonApiReference).toContain(
+      'def watch_all_order_books(venues: Optional[List[str]] = None) -> FirehoseEvent:',
+    );
+    expect(pythonApiReference).toContain(
+      'def firehose(venues: Optional[List[str]] = None) -> FirehoseEvent:',
+    );
+  });
 });

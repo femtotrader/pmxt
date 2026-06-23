@@ -2011,7 +2011,13 @@ export abstract class Exchange {
         throw this.wsTransportUnavailableError("watchAllOrderBooks");
     }
 
-    /** @deprecated Use {@link watchAllOrderBooks} instead. */
+    /**
+     * Stream all orderbook updates across venues.
+     *
+     * @deprecated Use {@link watchAllOrderBooks} instead.
+     * @param venues - Optional venue filter
+     * @returns Next event with source, symbol, and orderbook
+     */
     async firehose(venues?: string[]): Promise<FirehoseEvent> {
         return this.watchAllOrderBooks(venues);
     }

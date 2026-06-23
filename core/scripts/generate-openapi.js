@@ -44,6 +44,7 @@ const HOSTED_TITLE = 'PMXT Hosted API';
 const HOSTED_DESCRIPTION =
     'One API for every prediction market. Cross-venue search in under 10ms, a single unified schema, and the complete venue surface from reads to trades.';
 const INTERNAL_HOSTED_EXCHANGE_KEYS = new Set(['mock']);
+const EXAMPLE_EVM_ADDRESS = '0x1111111111111111111111111111111111111111';
 const ROUTER_BACKED_SAMPLE_OPERATIONS = new Set([
     'fetchMarkets',
     'fetchEvents',
@@ -381,7 +382,7 @@ function exampleValue(name, schema) {
     if (lowerName === 'amount') return 10;
     if (lowerName === 'price') return 0.55;
     if (lowerName === 'symbol' || lowerName === 'slug') return 'BTC-USD';
-    if (lowerName === 'address') return '0xabc...';
+    if (lowerName === 'address') return EXAMPLE_EVM_ADDRESS;
     if (lowerName === 'resolution') return '1h';
     if (lowerName.includes('id')) return '12345';
 
@@ -504,8 +505,8 @@ const PARAM_OVERRIDES = {
     cancelOrder: [{ name: 'orderId', value: 'ord-001' }],
     watchOrderBook: [{ name: 'id', value: '12345' }],
     watchTrades: [{ name: 'id', value: '12345' }],
-    watchAddress: [{ name: 'address', value: '0xabc...' }],
-    unwatchAddress: [{ name: 'address', value: '0xabc...' }],
+    watchAddress: [{ name: 'address', value: EXAMPLE_EVM_ADDRESS }],
+    unwatchAddress: [{ name: 'address', value: EXAMPLE_EVM_ADDRESS }],
     getExecutionPrice: [
         { name: 'orderBook', value: 'orderBook' },
         { name: 'side', value: 'buy' },
@@ -554,6 +555,28 @@ const PARAM_OVERRIDES = {
 };
 
 const FULL_OVERRIDES = {
+    fetchOHLCV: {
+        pythonBody: [
+            'result = exchange.fetch_ohlcv(',
+            '    "67890",',
+            '    resolution="1h",',
+            '    start=datetime(2026, 1, 1, tzinfo=timezone.utc),',
+            '    end=datetime(2026, 1, 31, tzinfo=timezone.utc),',
+            '    limit=10,',
+            ')',
+        ],
+        typescriptBody: [
+            'const result = await exchange.fetchOHLCV(',
+            '  "67890",',
+            '  {',
+            '    resolution: "1h",',
+            '    start: new Date("2026-01-01T00:00:00Z"),',
+            '    end: new Date("2026-01-31T00:00:00Z"),',
+            '    limit: 10,',
+            '  },',
+            ');',
+        ],
+    },
     fetchOrderBook: {
         pythonBody: [
             'result = exchange.fetch_order_book(',
@@ -578,6 +601,26 @@ const FULL_OVERRIDES = {
             'const result = await exchange.fetchOrderBooks(["67890"]);',
         ],
     },
+    fetchTrades: {
+        pythonBody: [
+            'result = exchange.fetch_trades(',
+            '    "67890",',
+            '    start="2026-01-01T00:00:00Z",',
+            '    end="2026-01-31T00:00:00Z",',
+            '    limit=10,',
+            ')',
+        ],
+        typescriptBody: [
+            'const result = await exchange.fetchTrades(',
+            '  "67890",',
+            '  {',
+            '    start: new Date("2026-01-01T00:00:00Z"),',
+            '    end: new Date("2026-01-31T00:00:00Z"),',
+            '    limit: 10,',
+            '  },',
+            ');',
+        ],
+    },
     submitOrder: {
         pythonBody: [
             'built = exchange.build_order(market_id="12345", outcome_id="67890", side="buy", type="limit", amount=10, price=0.55)',
@@ -586,6 +629,80 @@ const FULL_OVERRIDES = {
         typescriptBody: [
             'const built = await exchange.buildOrder({ marketId: "12345", outcomeId: "67890", side: "buy", type: "limit", amount: 10, price: 0.55 });',
             'const result = await exchange.submitOrder(built);',
+        ],
+    },
+    cancelOrder: {
+        pythonBody: [
+            'result = exchange.cancel_order("ord-001")',
+        ],
+        typescriptBody: [
+            'const result = await exchange.cancelOrder("ord-001");',
+        ],
+    },
+    fetchOrder: {
+        pythonBody: [
+            'result = exchange.fetch_order("ord-001")',
+        ],
+        typescriptBody: [
+            'const result = await exchange.fetchOrder("ord-001");',
+        ],
+    },
+    fetchOpenOrders: {
+        pythonBody: [
+            'result = exchange.fetch_open_orders("12345")',
+        ],
+        typescriptBody: [
+            'const result = await exchange.fetchOpenOrders("12345");',
+        ],
+    },
+    fetchPositions: {
+        pythonBody: [
+            `result = exchange.fetch_positions(address="${EXAMPLE_EVM_ADDRESS}")`,
+        ],
+        typescriptBody: [
+            `const result = await exchange.fetchPositions("${EXAMPLE_EVM_ADDRESS}");`,
+        ],
+    },
+    fetchBalance: {
+        pythonBody: [
+            `result = exchange.fetch_balance(address="${EXAMPLE_EVM_ADDRESS}")`,
+        ],
+        typescriptBody: [
+            `const result = await exchange.fetchBalance("${EXAMPLE_EVM_ADDRESS}");`,
+        ],
+    },
+    getExecutionPrice: {
+        pythonBody: [
+            'order_book = pmxt.OrderBook(',
+            '    bids=[pmxt.OrderLevel(price=0.52, size=100)],',
+            '    asks=[pmxt.OrderLevel(price=0.54, size=100)],',
+            ')',
+            'result = exchange.get_execution_price(order_book, "buy", 10)',
+        ],
+        typescriptBody: [
+            'const orderBook = {',
+            '  bids: [{ price: 0.52, size: 100 }],',
+            '  asks: [{ price: 0.54, size: 100 }],',
+            '  timestamp: Date.now(),',
+            '};',
+            'const result = exchange.getExecutionPrice(orderBook, "buy", 10);',
+        ],
+    },
+    getExecutionPriceDetailed: {
+        pythonBody: [
+            'order_book = pmxt.OrderBook(',
+            '    bids=[pmxt.OrderLevel(price=0.52, size=100)],',
+            '    asks=[pmxt.OrderLevel(price=0.54, size=100)],',
+            ')',
+            'result = exchange.get_execution_price_detailed(order_book, "buy", 10)',
+        ],
+        typescriptBody: [
+            'const orderBook = {',
+            '  bids: [{ price: 0.52, size: 100 }],',
+            '  asks: [{ price: 0.54, size: 100 }],',
+            '  timestamp: Date.now(),',
+            '};',
+            'const result = await exchange.getExecutionPriceDetailed(orderBook, "buy", 10);',
         ],
     },
 };
@@ -616,7 +733,11 @@ const WRITE_METHODS = new Set([
 ]);
 
 function buildPyPreamble(exchangeInfo, operationId) {
-    const lines = ['import pmxt', ''];
+    const lines = ['import pmxt'];
+    if (operationId === 'fetchOHLCV') {
+        lines.push('from datetime import datetime, timezone');
+    }
+    lines.push('');
     const tag = TAG_MAP[operationId];
 
     if (tag === 'Local Only') {

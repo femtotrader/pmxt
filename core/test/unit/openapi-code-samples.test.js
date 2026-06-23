@@ -201,6 +201,85 @@ describe('OpenAPI SDK code samples', () => {
     });
   });
 
+  test('use positional TypeScript SDK calls for positional OpenAPI methods', () => {
+    withGeneratedSpec((spec) => {
+      const exampleAddress = '0x1111111111111111111111111111111111111111';
+      const positionalExpectations = [
+        ['fetchOrder', 'const result = await exchange.fetchOrder("ord-001");', 'exchange.fetchOrder({'],
+        ['cancelOrder', 'const result = await exchange.cancelOrder("ord-001");', 'exchange.cancelOrder({'],
+        ['fetchOpenOrders', 'const result = await exchange.fetchOpenOrders("12345");', 'exchange.fetchOpenOrders({'],
+        ['fetchPositions', `const result = await exchange.fetchPositions("${exampleAddress}");`, 'exchange.fetchPositions({'],
+        ['fetchBalance', `const result = await exchange.fetchBalance("${exampleAddress}");`, 'exchange.fetchBalance({'],
+      ];
+
+      for (const [operationId, expected, unexpected] of positionalExpectations) {
+        const samples = collectOperationSamples(spec, operationId, 'javascript');
+        expect(samples.length).toBeGreaterThan(0);
+        for (const sample of samples) {
+          expect(sample).toContain(expected);
+          expect(sample).not.toContain(unexpected);
+          expect(sample).not.toContain('0xabc...');
+        }
+      }
+
+      for (const sample of collectOperationSamples(spec, 'fetchOHLCV', 'javascript')) {
+        expect(sample).toContain('const result = await exchange.fetchOHLCV(');
+        expect(sample).toContain('"67890",');
+        expect(sample).toContain('start: new Date("2026-01-01T00:00:00Z"),');
+        expect(sample).toContain('end: new Date("2026-01-31T00:00:00Z"),');
+        expect(sample).not.toContain('exchange.fetchOHLCV({');
+      }
+
+      for (const sample of collectOperationSamples(spec, 'fetchTrades', 'javascript')) {
+        expect(sample).toContain('const result = await exchange.fetchTrades(');
+        expect(sample).toContain('"67890",');
+        expect(sample).toContain('start: new Date("2026-01-01T00:00:00Z"),');
+        expect(sample).toContain('end: new Date("2026-01-31T00:00:00Z"),');
+        expect(sample).not.toContain('exchange.fetchTrades({');
+      }
+    });
+  });
+
+  test('use concrete order books for execution-price SDK samples', () => {
+    withGeneratedSpec((spec) => {
+      const executionPriceTypeScript = collectOperationSamples(spec, 'getExecutionPrice', 'javascript');
+      const detailedTypeScript = collectOperationSamples(spec, 'getExecutionPriceDetailed', 'javascript');
+      const executionPricePython = collectOperationSamples(spec, 'getExecutionPrice', 'python');
+      const detailedPython = collectOperationSamples(spec, 'getExecutionPriceDetailed', 'python');
+
+      expect(executionPriceTypeScript.length).toBeGreaterThan(0);
+      expect(detailedTypeScript.length).toBeGreaterThan(0);
+      expect(executionPricePython.length).toBeGreaterThan(0);
+      expect(detailedPython.length).toBeGreaterThan(0);
+
+      for (const sample of executionPriceTypeScript) {
+        expect(sample).toContain('const orderBook = {');
+        expect(sample).toContain('const result = exchange.getExecutionPrice(orderBook, "buy", 10);');
+        expect(sample).not.toContain('await exchange.getExecutionPrice({');
+        expect(sample).not.toContain('orderBook: "orderBook"');
+      }
+
+      for (const sample of detailedTypeScript) {
+        expect(sample).toContain('const orderBook = {');
+        expect(sample).toContain('const result = await exchange.getExecutionPriceDetailed(orderBook, "buy", 10);');
+        expect(sample).not.toContain('exchange.getExecutionPriceDetailed({');
+        expect(sample).not.toContain('orderBook: "orderBook"');
+      }
+
+      for (const sample of executionPricePython) {
+        expect(sample).toContain('order_book = pmxt.OrderBook(');
+        expect(sample).toContain('result = exchange.get_execution_price(order_book, "buy", 10)');
+        expect(sample).not.toContain('order_book="orderBook"');
+      }
+
+      for (const sample of detailedPython) {
+        expect(sample).toContain('order_book = pmxt.OrderBook(');
+        expect(sample).toContain('result = exchange.get_execution_price_detailed(order_book, "buy", 10)');
+        expect(sample).not.toContain('order_book="orderBook"');
+      }
+    });
+  });
+
   test('include outcome ids in submit-order build samples', () => {
     withGeneratedSpec((spec) => {
       const submitTypeScript = collectOperationSamples(spec, 'submitOrder', 'javascript');
@@ -255,7 +334,7 @@ describe('OpenAPI SDK code samples', () => {
     });
   });
 
-  test('use ISO date-time values for date filter samples', () => {
+  test('use SDK-native date-time values for date filter samples', () => {
     withGeneratedSpec((spec) => {
       const sinceUntilOperationIds = ['fetchMyTrades', 'fetchClosedOrders', 'fetchAllOrders'];
       const startEndOperationIds = ['fetchOHLCV', 'fetchTrades'];
@@ -292,15 +371,20 @@ describe('OpenAPI SDK code samples', () => {
         for (const sample of typeScriptSamples) {
           expect(sample).not.toContain('start: "value"');
           expect(sample).not.toContain('end: "value"');
-          expect(sample).toContain('start: "2026-01-01T00:00:00Z"');
-          expect(sample).toContain('end: "2026-01-31T00:00:00Z"');
+          expect(sample).toContain('start: new Date("2026-01-01T00:00:00Z")');
+          expect(sample).toContain('end: new Date("2026-01-31T00:00:00Z")');
         }
 
         for (const sample of pythonSamples) {
           expect(sample).not.toContain('start="value"');
           expect(sample).not.toContain('end="value"');
-          expect(sample).toContain('start="2026-01-01T00:00:00Z"');
-          expect(sample).toContain('end="2026-01-31T00:00:00Z"');
+          if (operationId === 'fetchOHLCV') {
+            expect(sample).toContain('start=datetime(2026, 1, 1, tzinfo=timezone.utc)');
+            expect(sample).toContain('end=datetime(2026, 1, 31, tzinfo=timezone.utc)');
+          } else {
+            expect(sample).toContain('start="2026-01-01T00:00:00Z"');
+            expect(sample).toContain('end="2026-01-31T00:00:00Z"');
+          }
         }
       }
     });

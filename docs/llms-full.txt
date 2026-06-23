@@ -4742,7 +4742,7 @@ exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_trades(
-    outcome_id="67890",
+    "67890",
     start="2026-01-01T00:00:00Z",
     end="2026-01-31T00:00:00Z",
     limit=10,
@@ -4757,12 +4757,14 @@ import { Kalshi } from "pmxtjs";
 const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
-const result = await exchange.fetchTrades({
-  outcomeId: "67890",
-  start: "2026-01-01T00:00:00Z",
-  end: "2026-01-31T00:00:00Z",
-  limit: 10,
-});
+const result = await exchange.fetchTrades(
+  "67890",
+  {
+    start: new Date("2026-01-01T00:00:00Z"),
+    end: new Date("2026-01-31T00:00:00Z"),
+    limit: 10,
+  },
+);
 ```
 
 
@@ -4782,11 +4784,11 @@ import pmxt
 exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
-result = exchange.get_execution_price(
-    order_book="orderBook",
-    side="buy",
-    amount=10,
+order_book = pmxt.OrderBook(
+    bids=[pmxt.OrderLevel(price=0.52, size=100)],
+    asks=[pmxt.OrderLevel(price=0.54, size=100)],
 )
+result = exchange.get_execution_price(order_book, "buy", 10)
 ```
 
 **TypeScript:**
@@ -4797,11 +4799,12 @@ import { Kalshi } from "pmxtjs";
 const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
-const result = await exchange.getExecutionPrice({
-  orderBook: "orderBook",
-  side: "buy",
-  amount: 10,
-});
+const orderBook = {
+  bids: [{ price: 0.52, size: 100 }],
+  asks: [{ price: 0.54, size: 100 }],
+  timestamp: Date.now(),
+};
+const result = exchange.getExecutionPrice(orderBook, "buy", 10);
 ```
 
 
@@ -4821,11 +4824,11 @@ import pmxt
 exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
-result = exchange.get_execution_price_detailed(
-    order_book="orderBook",
-    side="buy",
-    amount=10,
+order_book = pmxt.OrderBook(
+    bids=[pmxt.OrderLevel(price=0.52, size=100)],
+    asks=[pmxt.OrderLevel(price=0.54, size=100)],
 )
+result = exchange.get_execution_price_detailed(order_book, "buy", 10)
 ```
 
 **TypeScript:**
@@ -4836,11 +4839,12 @@ import { Kalshi } from "pmxtjs";
 const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
-const result = await exchange.getExecutionPriceDetailed({
-  orderBook: "orderBook",
-  side: "buy",
-  amount: 10,
-});
+const orderBook = {
+  bids: [{ price: 0.52, size: 100 }],
+  asks: [{ price: 0.54, size: 100 }],
+  timestamp: Date.now(),
+};
+const result = await exchange.getExecutionPriceDetailed(orderBook, "buy", 10);
 ```
 
 

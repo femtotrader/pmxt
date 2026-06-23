@@ -140,7 +140,7 @@ Calculate the volume-weighted average price for a given amount. Returns `0` if t
 
 ```typescript
 const orderBook = await polymarket.fetchOrderBook(outcomeId);
-const price = await polymarket.getExecutionPrice(orderBook, 'buy', 100);
+const price = polymarket.getExecutionPrice(orderBook, 'buy', 100);
 console.log(`Average price for 100 shares: ${price}`);
 ```
 
@@ -148,7 +148,7 @@ console.log(`Average price for 100 shares: ${price}`);
 Calculate detailed execution price information, including partial fills.
 
 ```typescript
-const detailed = await polymarket.getExecutionPriceDetailed(orderBook, 'buy', 100);
+const detailed = polymarket.getExecutionPriceDetailed(orderBook, 'buy', 100);
 console.log(`Average Price: ${detailed.price}`);
 console.log(`Filled Amount: ${detailed.filledAmount}`);
 console.log(`Fully Filled: ${detailed.fullyFilled}`);

@@ -455,6 +455,36 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     expect(pythonApiReference).toContain('exchange.has');
   });
 
+  test('execution price docs await only async TypeScript helpers', () => {
+    const coreApiReference = readDoc('core/API_REFERENCE.md');
+    const typescriptExecutionExample = readDoc(
+      'sdks/typescript/examples/market-data/execution_price.ts',
+    );
+
+    expect(coreApiReference).not.toContain(
+      "const price = await polymarket.getExecutionPrice(orderBook, 'buy', 100);",
+    );
+    expect(coreApiReference).not.toContain(
+      "const detailed = await polymarket.getExecutionPriceDetailed(orderBook, 'buy', 100);",
+    );
+    expect(coreApiReference).toContain(
+      "const price = polymarket.getExecutionPrice(orderBook, 'buy', 100);",
+    );
+    expect(coreApiReference).toContain(
+      "const detailed = polymarket.getExecutionPriceDetailed(orderBook, 'buy', 100);",
+    );
+
+    expect(typescriptExecutionExample).not.toContain(
+      "const price = await api.getExecutionPrice(orderBook, 'buy', 100);",
+    );
+    expect(typescriptExecutionExample).toContain(
+      "const price = api.getExecutionPrice(orderBook, 'buy', 100);",
+    );
+    expect(typescriptExecutionExample).toContain(
+      "const detailed = await api.getExecutionPriceDetailed(orderBook, 'buy', 100);",
+    );
+  });
+
   test('SDK API references include account history and firehose methods', () => {
     const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
     const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');

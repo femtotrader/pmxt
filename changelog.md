@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.51.2] - 2026-06-23
+
+### Fixed
+
+- **Hunch list ingestion now surfaces live binary prices instead of zero-priced markets.** The Hunch list/catalog item now carries `raw.odds`; the normalizer uses those YES/NO cents on the bare list path while still letting explicit detail/quote odds win. This unblocks Hunch markets from price-gated cross-venue features such as compare, arbitrage, hedge, and matched-prices.
+- **Hunch `volume24h` now passes through `raw.volume24hUsd`.** The previous hard-zero made the recency/ranking signal unusable for Hunch even when the venue provided a trailing-24h figure.
+- **Hunch category and tags now map into PMXT taxonomy.** Native Hunch categories roll up to top-level PMXT categories (`Crypto` by default, `event` → `Culture`) and add granular tags such as `Market Cap`, `Price`, and the token symbol so `?category=` filters and market matching work with higher confidence.
+- **Hunch catalog crawls now follow `nextCursor`.** `fetchRawMarkets()` drains the full paginated catalogue when no explicit limit is supplied, with a 50-page safety backstop; explicit limit calls still fetch a single page.
+- **Consumer SDK/generated surfaces were synced for Hunch.** Added Hunch to the Python and TypeScript SDK exports and made the client-method generators preserve existing hosted-mode overrides while codegen catches up, so the generated-sync checks stay green without regressing hosted routing.
+
 ## [2.51.1] - 2026-06-23
 
 Followup to the Hunch venue ship in 2.51.0: the adapter was wired into the runtime (factory, registry, exports) but `hunch` was missing from the `ExchangeParam` enum in `core/scripts/generate-openapi.js`. That enum is the source of truth for `docs/concepts/venues.mdx` (auto-generated), the OpenAPI path enum, and `COMPLIANCE.md`, so Hunch was invisible on pmxt.dev/docs/concepts/venues and absent from the compliance matrix.

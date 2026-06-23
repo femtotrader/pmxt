@@ -102,7 +102,10 @@ export function createExchange(
         apiKey: credentials?.apiKey || process.env.OPINION_API_KEY,
         privateKey:
           credentials?.privateKey || process.env.OPINION_PRIVATE_KEY,
-        funderAddress: credentials?.funderAddress,
+        funderAddress:
+          credentials?.funderAddress ||
+          process.env.OPINION_FUNDER_ADDRESS ||
+          process.env.OPINION_PROXY_ADDRESS,
       });
     case "metaculus":
       return new MetaculusExchange({

@@ -300,6 +300,21 @@ const PYTHON_METHOD_EXAMPLE_OVERRIDES = {
     watchOrderBooks: 'exchange.watch_order_books(outcome_ids=["12345"], limit=10, params={})',
     watchTrades: 'exchange.watch_trades(outcome_id="abc123", address="0xabc...", since=1710000000000, limit=50)',
     watchAddress: 'exchange.watch_address(address="0xabc...", types=["trades"])',
+    watchPrices: [
+        'def handle_price_update(data):',
+        '    pass',
+        'exchange.watch_prices(market_address="0xabc...", callback=handle_price_update)',
+    ].join('\n'),
+    watchUserPositions: [
+        'def handle_position_update(data):',
+        '    pass',
+        'exchange.watch_user_positions(callback=handle_position_update)',
+    ].join('\n'),
+    watchUserTransactions: [
+        'def handle_transaction_update(data):',
+        '    pass',
+        'exchange.watch_user_transactions(callback=handle_transaction_update)',
+    ].join('\n'),
 };
 
 const TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES = {
@@ -361,6 +376,9 @@ const TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES = {
     watchOrderBooks: 'await exchange.watchOrderBooks(["12345"], 10, {})',
     watchTrades: 'await exchange.watchTrades("abc123", "0xabc...", 1710000000000, 50)',
     watchAddress: 'await exchange.watchAddress("0xabc...", ["trades"])',
+    watchPrices: 'await exchange.watchPrices("0xabc...", (data) => { void data })',
+    watchUserPositions: 'await exchange.watchUserPositions((data) => { void data })',
+    watchUserTransactions: 'await exchange.watchUserTransactions((data) => { void data })',
 };
 
 const TYPESCRIPT_PARAM_TYPE_OVERRIDES = {
@@ -523,13 +541,17 @@ function linkify(type) {
 }
 
 function scalarPythonType(type, includeLinks) {
-    const map = { string: 'str', number: 'float', integer: 'int', boolean: 'bool', any: 'Any' };
+    const map = { string: 'str', number: 'float', integer: 'int', boolean: 'bool', any: 'Any', void: 'None' };
     if (map[type]) return map[type];
     return includeLinks ? linkify(type) : type;
 }
 
 function formatPythonType(type, includeLinks) {
     if (!type) return 'Any';
+
+    if (/^\(\w+:\s*any\)$/.test(type)) {
+        return 'Callable[[Any], None]';
+    }
 
     // Handle Arrays: UnifiedMarket[] -> List[UnifiedMarket]
     if (type.endsWith('[]')) {
@@ -572,6 +594,10 @@ Handlebars.registerHelper('pythonParams', (params) => {
 
 Handlebars.registerHelper('tsType', (type) => {
     if (!type) return 'any';
+
+    if (/^\(\w+:\s*any\)$/.test(type)) {
+        return `${type} => void`;
+    }
 
     if (type.endsWith('[]')) {
         const inner = type.slice(0, -2);

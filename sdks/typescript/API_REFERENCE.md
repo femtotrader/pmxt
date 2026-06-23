@@ -1236,20 +1236,20 @@ Watch AMM price updates for a market address (Limitless only).
 **Signature:**
 
 ```typescript
-async watchPrices(marketAddress: string, callback: (data: any)): Promise<void>
+async watchPrices(marketAddress: string, callback: (data: any) => void): Promise<void>
 ```
 
 **Parameters:**
 
 - `marketAddress` (string): Market contract address
-- `callback` ((data: any)): Callback for price updates
+- `callback` ((data: any) => void): Callback for price updates
 
 **Returns:** Promise<void> - Result
 
 **Example:**
 
 ```typescript
-await exchange.watchPrices("...", "...")
+await exchange.watchPrices("0xabc...", (data) => { void data })
 ```
 
 
@@ -1264,19 +1264,19 @@ Watch user positions in real-time (Limitless only).
 **Signature:**
 
 ```typescript
-async watchUserPositions(callback: (data: any)): Promise<void>
+async watchUserPositions(callback: (data: any) => void): Promise<void>
 ```
 
 **Parameters:**
 
-- `callback` ((data: any)): Callback for position updates
+- `callback` ((data: any) => void): Callback for position updates
 
 **Returns:** Promise<void> - Result
 
 **Example:**
 
 ```typescript
-await exchange.watchUserPositions("...")
+await exchange.watchUserPositions((data) => { void data })
 ```
 
 
@@ -1291,19 +1291,19 @@ Watch user transactions in real-time (Limitless only).
 **Signature:**
 
 ```typescript
-async watchUserTransactions(callback: (data: any)): Promise<void>
+async watchUserTransactions(callback: (data: any) => void): Promise<void>
 ```
 
 **Parameters:**
 
-- `callback` ((data: any)): Callback for transaction updates
+- `callback` ((data: any) => void): Callback for transaction updates
 
 **Returns:** Promise<void> - Result
 
 **Example:**
 
 ```typescript
-await exchange.watchUserTransactions("...")
+await exchange.watchUserTransactions((data) => { void data })
 ```
 
 

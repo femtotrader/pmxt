@@ -347,4 +347,48 @@ exchange.filter_events(events=events, criteria="Trump")`);
     );
     expect(pythonApiReference).toContain('exchange.watch_address(address="0xabc...", types=["trades"])');
   });
+
+  test('SDK API reference callback examples pass callables', () => {
+    const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
+    const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');
+
+    expect(typescriptApiReference).not.toContain('await exchange.watchPrices("...", "...")');
+    expect(typescriptApiReference).not.toContain('await exchange.watchUserPositions("...")');
+    expect(typescriptApiReference).not.toContain('await exchange.watchUserTransactions("...")');
+
+    expect(pythonApiReference).not.toContain(
+      'exchange.watch_prices(market_address="...", callback="...")',
+    );
+    expect(pythonApiReference).not.toContain('exchange.watch_user_positions(callback="...")');
+    expect(pythonApiReference).not.toContain('exchange.watch_user_transactions(callback="...")');
+    expect(typescriptApiReference).not.toContain('callback: (data: any)): Promise<void>');
+    expect(pythonApiReference).not.toContain('callback: (data: any)');
+    expect(pythonApiReference).not.toContain('-> void:');
+
+    expect(typescriptApiReference).toContain(
+      'await exchange.watchPrices("0xabc...", (data) => { void data })',
+    );
+    expect(typescriptApiReference).toContain(
+      'await exchange.watchUserPositions((data) => { void data })',
+    );
+    expect(typescriptApiReference).toContain(
+      'await exchange.watchUserTransactions((data) => { void data })',
+    );
+
+    expect(pythonApiReference).toContain(`def handle_price_update(data):
+    pass
+exchange.watch_prices(market_address="0xabc...", callback=handle_price_update)`);
+    expect(pythonApiReference).toContain(`def handle_position_update(data):
+    pass
+exchange.watch_user_positions(callback=handle_position_update)`);
+    expect(pythonApiReference).toContain(`def handle_transaction_update(data):
+    pass
+exchange.watch_user_transactions(callback=handle_transaction_update)`);
+    expect(pythonApiReference).toContain(
+      'def watch_prices(market_address: str, callback: Callable[[Any], None]) -> None:',
+    );
+    expect(typescriptApiReference).toContain(
+      'async watchPrices(marketAddress: string, callback: (data: any) => void): Promise<void>',
+    );
+  });
 });

@@ -877,14 +877,14 @@ Unsubscribe from a previously watched order book stream.
 **Signature:**
 
 ```python
-def unwatch_order_book(outcome_id: str) -> void:
+def unwatch_order_book(outcome_id: str) -> None:
 ```
 
 **Parameters:**
 
 - `outcome_id` (str): The Outcome ID to stop watching
 
-**Returns:** void - Result
+**Returns:** None - Result
 
 **Example:**
 
@@ -956,14 +956,14 @@ Stop watching a previously registered wallet address and release its resource up
 **Signature:**
 
 ```python
-def unwatch_address(address: str) -> void:
+def unwatch_address(address: str) -> None:
 ```
 
 **Parameters:**
 
 - `address` (str): Public wallet address to stop watching
 
-**Returns:** void - Result
+**Returns:** None - Result
 
 **Example:**
 
@@ -981,14 +981,14 @@ Close all WebSocket connections and clean up resources.
 **Signature:**
 
 ```python
-def close() -> void:
+def close() -> None:
 ```
 
 **Parameters:**
 
 - None
 
-**Returns:** void - Result
+**Returns:** None - Result
 
 **Example:**
 
@@ -1233,20 +1233,22 @@ Watch AMM price updates for a market address (Limitless only).
 **Signature:**
 
 ```python
-def watch_prices(market_address: str, callback: (data: any)) -> void:
+def watch_prices(market_address: str, callback: Callable[[Any], None]) -> None:
 ```
 
 **Parameters:**
 
 - `market_address` (str): Market contract address
-- `callback` ((data: any)): Callback for price updates
+- `callback` (Callable[[Any], None]): Callback for price updates
 
-**Returns:** void - Result
+**Returns:** None - Result
 
 **Example:**
 
 ```python
-exchange.watch_prices(market_address="...", callback="...")
+def handle_price_update(data):
+    pass
+exchange.watch_prices(market_address="0xabc...", callback=handle_price_update)
 ```
 
 
@@ -1261,19 +1263,21 @@ Watch user positions in real-time (Limitless only).
 **Signature:**
 
 ```python
-def watch_user_positions(callback: (data: any)) -> void:
+def watch_user_positions(callback: Callable[[Any], None]) -> None:
 ```
 
 **Parameters:**
 
-- `callback` ((data: any)): Callback for position updates
+- `callback` (Callable[[Any], None]): Callback for position updates
 
-**Returns:** void - Result
+**Returns:** None - Result
 
 **Example:**
 
 ```python
-exchange.watch_user_positions(callback="...")
+def handle_position_update(data):
+    pass
+exchange.watch_user_positions(callback=handle_position_update)
 ```
 
 
@@ -1288,19 +1292,21 @@ Watch user transactions in real-time (Limitless only).
 **Signature:**
 
 ```python
-def watch_user_transactions(callback: (data: any)) -> void:
+def watch_user_transactions(callback: Callable[[Any], None]) -> None:
 ```
 
 **Parameters:**
 
-- `callback` ((data: any)): Callback for transaction updates
+- `callback` (Callable[[Any], None]): Callback for transaction updates
 
-**Returns:** void - Result
+**Returns:** None - Result
 
 **Example:**
 
 ```python
-exchange.watch_user_transactions(callback="...")
+def handle_transaction_update(data):
+    pass
+exchange.watch_user_transactions(callback=handle_transaction_update)
 ```
 
 
@@ -1315,14 +1321,14 @@ Initialize L2 API credentials for implicit API signing.
 **Signature:**
 
 ```python
-def init_auth() -> void:
+def init_auth() -> None:
 ```
 
 **Parameters:**
 
 - None
 
-**Returns:** void - Result
+**Returns:** None - Result
 
 **Example:**
 
@@ -1342,14 +1348,14 @@ Pre-warm the SDK's internal caches for a market outcome.
 **Signature:**
 
 ```python
-def pre_warm_market(outcome_id: str) -> void:
+def pre_warm_market(outcome_id: str) -> None:
 ```
 
 **Parameters:**
 
 - `outcome_id` (str): The CLOB Token ID for the outcome (use `outcome.outcomeId`)
 
-**Returns:** void - Result
+**Returns:** None - Result
 
 **Example:**
 

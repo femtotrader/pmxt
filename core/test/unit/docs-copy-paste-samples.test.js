@@ -126,4 +126,15 @@ describe('Documentation copy-paste samples', () => {
     expect(rootReadme).not.toContain('} as any);');
     expect(typescriptReadme).not.toContain('} as any);');
   });
+
+  test('hosted limit-order docs do not carry stale SDK denom mismatch caveats', () => {
+    const tradingQuickstart = readDoc('docs/trading-quickstart.mdx');
+    const hostedErrors = readDoc('docs/guides/hosted-errors.mdx');
+    const hostedDocs = `${tradingQuickstart}\n${hostedErrors}`;
+
+    expect(hostedDocs).not.toMatch(/limit BUY is (currently )?being patched for an SDK denom mismatch/);
+    expect(hostedDocs).not.toContain('post limits via self-hosted');
+    expect(tradingQuickstart).toContain('limit BUY and SELL are supported');
+    expect(hostedErrors).toMatch(/Limit BUY and SELL are supported/);
+  });
 });

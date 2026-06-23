@@ -409,7 +409,7 @@ The hosted trading API accepts either the venue-native identifier (returned by `
 
 
 > **Note:**
-**What PMXT abstracts vs what leaks through from the venue.** PMXT unifies the order shape across venues, but a few Polymarket rules pass through as-is. Polymarket enforces **two independent minimums on marketable BUY orders** — a **5-share minimum** AND a **$1 notional minimum** — and the higher of the two binds. At $0.138/share the 5-share rule alone would only require $0.69, but the $1 rule raises the effective minimum to ~8 shares (~$1.10); a 5-share buy at that price is rejected by the venue with `invalid amount for a marketable BUY order ($0.69), min size: 1` and PMXT surfaces it as `OrderSizeTooSmall`. Market orders are **budget-capped** (a buy spends exactly `amount` USDC, a sell sells exactly `amount` shares — `slippage_pct` is ignored). Hosted **limit** orders are supported via `client.create_order(order_type="limit", price=..., amount=...)` and the same 5-share and $1 marketable-BUY minimums apply; limit BUY is currently being patched for an SDK denom mismatch, limit SELL is live.
+**What PMXT abstracts vs what leaks through from the venue.** PMXT unifies the order shape across venues, but a few Polymarket rules pass through as-is. Polymarket enforces **two independent minimums on marketable BUY orders** — a **5-share minimum** AND a **$1 notional minimum** — and the higher of the two binds. At $0.138/share the 5-share rule alone would only require $0.69, but the $1 rule raises the effective minimum to ~8 shares (~$1.10); a 5-share buy at that price is rejected by the venue with `invalid amount for a marketable BUY order ($0.69), min size: 1` and PMXT surfaces it as `OrderSizeTooSmall`. Market orders are **budget-capped** (a buy spends exactly `amount` USDC, a sell sells exactly `amount` shares — `slippage_pct` is ignored). Hosted **limit** orders are supported via `client.create_order(order_type="limit", price=..., amount=...)` and the same 5-share and $1 marketable-BUY minimums apply; limit BUY and SELL are supported, and both use `denom="shares"` in hosted SDK requests.
 
 
 #### 6. Verify the fill
@@ -1849,7 +1849,7 @@ try {
 
 **Parent classes:** `InvalidOrder`, `HostedTradingError`.
 
-**Recovery:** wait for liquidity, pick a different outcome, or post a resting limit order via `client.create_order(order_type="limit", price=..., amount=...)` (limit SELL is live; limit BUY is being patched for an SDK denom mismatch).
+**Recovery:** wait for liquidity, pick a different outcome, or post a resting limit order via `client.create_order(order_type="limit", price=..., amount=...)`. Limit BUY and SELL are supported, and both use `denom="shares"` in hosted SDK requests.
 
 <CodeGroup>
 ```python Python
@@ -1858,7 +1858,7 @@ from pmxt._hosted_errors import NoLiquidity
 try:
 client.create_order(order_type="market", ...)
 except NoLiquidity:
-# Wait, retry against a different outcome, or post limits via self-hosted.
+# Wait, retry against a different outcome, or post a hosted limit order.
 pass
 ```
 
@@ -1869,7 +1869,7 @@ try {
   await client.createOrder({ type: "market", ... });
 } catch (e) {
   if (e instanceof NoLiquidity) {
-// Wait, retry against a different outcome, or post limits via self-hosted.
+// Wait, retry against a different outcome, or post a hosted limit order.
   } else {
 throw e;
   }

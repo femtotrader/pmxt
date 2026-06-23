@@ -568,6 +568,20 @@ export interface CreateOrderParams {
     onBehalfOf?: number;
 }
 
+/**
+ * Public order input accepted by createOrder/buildOrder.
+ *
+ * Callers can either pass explicit marketId/outcomeId fields, or pass an
+ * outcome object returned by fetchMarkets and let the SDK infer those ids.
+ */
+export type CreateOrderInput =
+    | (CreateOrderParams & { outcome?: never })
+    | (Omit<CreateOrderParams, 'marketId' | 'outcomeId'> & {
+        outcome: MarketOutcome;
+        marketId?: never;
+        outcomeId?: never;
+    });
+
 /** Alias matching the core MarketFetchParams name. */
 export type MarketFetchParams = MarketFilterParams;
 

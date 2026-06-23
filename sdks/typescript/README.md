@@ -176,8 +176,11 @@ const limitless = new Limitless({
 - `createOrder(params)` - Place a new order
   ```typescript
   // Using outcome shorthand (recommended)
+  const yes = market.yes;
+  if (!yes) throw new Error("Market has no YES outcome");
+
   await poly.createOrder({
-      outcome: market.yes,
+      outcome: yes,
       side: 'buy',
       type: 'limit',
       amount: 10,

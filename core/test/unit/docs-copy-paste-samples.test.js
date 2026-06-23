@@ -147,4 +147,20 @@ describe('Documentation copy-paste samples', () => {
     expect(hostedErrors).toContain('console.log(`Need to deposit. ${e.detail}`);');
     expect(errorReference).toContain('console.log(e.status, e.detail);');
   });
+
+  test('TypeScript order shorthand docs use the public create-order input type', () => {
+    const hostedErrors = readDoc('docs/guides/hosted-errors.mdx');
+    const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');
+
+    expect(hostedErrors).toContain('import type { CreateOrderInput, Order } from "pmxtjs";');
+    expect(hostedErrors).toContain('params: CreateOrderInput');
+    expect(typescriptApiReference).toContain(
+      'async createOrder(params: CreateOrderInput): Promise<Order>',
+    );
+    expect(typescriptApiReference).toContain(
+      'async buildOrder(params: CreateOrderInput): Promise<BuiltOrder>',
+    );
+    expect(typescriptApiReference).toContain('type CreateOrderInput =');
+    expect(typescriptApiReference).toContain('outcome: MarketOutcome;');
+  });
 });

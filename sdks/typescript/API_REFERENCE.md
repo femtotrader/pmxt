@@ -494,12 +494,12 @@ Place a new order on the exchange.
 **Signature:**
 
 ```typescript
-async createOrder(params: CreateOrderParams): Promise<Order>
+async createOrder(params: CreateOrderInput): Promise<Order>
 ```
 
 **Parameters:**
 
-- `params` ([CreateOrderParams](#createorderparams)): Order parameters
+- `params` ([CreateOrderInput](#createorderinput)): Order parameters
 
 **Returns:** Promise<[Order](#order)> - The created order
 
@@ -519,12 +519,12 @@ Build an order payload without submitting it to the exchange.
 **Signature:**
 
 ```typescript
-async buildOrder(params: CreateOrderParams): Promise<BuiltOrder>
+async buildOrder(params: CreateOrderInput): Promise<BuiltOrder>
 ```
 
 **Parameters:**
 
-- `params` ([CreateOrderParams](#createorderparams)): Order parameters (same as createOrder)
+- `params` ([CreateOrderInput](#createorderinput)): Order parameters (same as createOrder)
 
 **Returns:** Promise<[BuiltOrder](#builtorder)> - A BuiltOrder containing the exchange-native payload
 
@@ -1408,14 +1408,16 @@ console.log(`Available: $${balance.available}`);
 const markets = await exchange.fetchMarkets({ query: 'Trump' });
 const market = markets[0];
 const outcome = market.yes;
+if (!outcome) {
+  throw new Error('Market has no YES outcome');
+}
 
 console.log(market.title);
 console.log(`Price: ${(outcome.price * 100).toFixed(1)}%`);
 
 // 3. Place a limit order
 const order = await exchange.createOrder({
-  marketId: market.marketId,
-  outcomeId: outcome.outcomeId,
+  outcome,
   side: 'buy',
   type: 'limit',
   amount: 10,
@@ -2105,6 +2107,32 @@ tickSize?: number; // Optional override for Limitless/Polymarket
 negRisk?: boolean; // Optional override to skip neg-risk lookup (Polymarket)
 onBehalfOf?: number; // Limitless delegated signing: profile ID to trade on behalf of
 }
+```
+
+---
+### `CreateOrderInput`
+
+`createOrder` and `buildOrder` accept either explicit `marketId` / `outcomeId`
+fields or an outcome object returned by `fetchMarkets`.
+
+```typescript
+type CreateOrderInput =
+  | (CreateOrderParams & { outcome?: never })
+  | {
+      outcome: MarketOutcome;
+      side: string;
+      type: string;
+      amount: number;
+      price?: number;
+      denom?: string;
+      slippage_pct?: number;
+      fee?: number;
+      tickSize?: number;
+      negRisk?: boolean;
+      onBehalfOf?: number;
+      marketId?: never;
+      outcomeId?: never;
+    };
 ```
 
 ---

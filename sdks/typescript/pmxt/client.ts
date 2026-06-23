@@ -17,7 +17,7 @@ import {
 import {
     Balance,
     BuiltOrder,
-    CreateOrderParams,
+    CreateOrderInput,
     EventFetchParams,
     EventFilterCriteria,
     EventFilterFunction,
@@ -2148,15 +2148,18 @@ export abstract class Exchange {
      * const order = await exchange.submitOrder(built);
      *
      * // Using outcome shorthand:
+     * const yes = market.yes;
+     * if (!yes) throw new Error("Market has no YES outcome");
+     *
      * const built2 = await exchange.buildOrder({
-     *   outcome: market.yes,
+     *   outcome: yes,
      *   side: "buy",
      *   type: "market",
      *   amount: 10
      * });
      * ```
      */
-    async buildOrder(params: CreateOrderParams & { outcome?: MarketOutcome }): Promise<BuiltOrder> {
+    async buildOrder(params: CreateOrderInput): Promise<BuiltOrder> {
         if (this.isHostedTradingMode()) {
             return this._hostedBuildOrder(params);
         }
@@ -2310,7 +2313,7 @@ export abstract class Exchange {
      * at submit time.
      */
     private async _hostedBuildOrder(
-        params: CreateOrderParams & { outcome?: MarketOutcome },
+        params: CreateOrderInput,
     ): Promise<BuiltOrder> {
         const body = this._hostedBuildOrderBody(params);
         const route = HOSTED_METHOD_ROUTES.get("buildOrder")!;
@@ -2328,7 +2331,7 @@ export abstract class Exchange {
     /**
      * Hosted-mode createOrder: build → sign → submit single-call wrapper.
      */
-    private async _hostedCreateOrder(params: any): Promise<Order> {
+    private async _hostedCreateOrder(params: CreateOrderInput): Promise<Order> {
         const built = await this._hostedBuildOrder(params);
         return this._hostedSubmitOrder(built);
     }
@@ -2470,7 +2473,7 @@ export abstract class Exchange {
      * precision rejected via {@link to6dec}).
      */
     private _hostedBuildOrderBody(
-        params: CreateOrderParams & { outcome?: MarketOutcome },
+        params: CreateOrderInput,
     ): Record<string, unknown> {
         let marketId: string | undefined = params.marketId;
         let outcomeId: string | undefined = params.outcomeId;
@@ -2592,7 +2595,7 @@ export abstract class Exchange {
      * });
      * ```
      */
-    async createOrder(params: CreateOrderParams & { outcome?: MarketOutcome }): Promise<Order> {
+    async createOrder(params: CreateOrderInput): Promise<Order> {
         // SOR escape path (preserved): legacy hosted SOR flow uses a venue-side
         // SDK to execute the legs, only when a privateKey is present.
         if (this.isHosted && this.exchangeName === 'sor' && this.privateKey) {

@@ -170,9 +170,9 @@ def submit_with_retry(client, **kwargs):
 
 ```typescript TypeScript
 import { BuiltOrderExpired } from "pmxtjs";
-import type { CreateOrderParams, Order } from "pmxtjs";
+import type { CreateOrderInput, Order } from "pmxtjs";
 
-async function submitWithRetry(client, params: CreateOrderParams): Promise<Order> {
+async function submitWithRetry(client, params: CreateOrderInput): Promise<Order> {
   // In hosted mode, createOrder handles build -> sign -> submit atomically.
   // On BuiltOrderExpired the internal submit raced the 30s TTL; just call again.
   for (let attempt = 0; attempt < 2; attempt++) {

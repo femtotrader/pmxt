@@ -1,6 +1,6 @@
 # PMXT
 
-> One API for every prediction market. Unified data, cross-venue search, and trading across Polymarket, Kalshi, Limitless, Smarkets, and 8 more venues.
+> One API for every prediction market. Unified data, cross-venue search, and trading across Polymarket, Kalshi, Limitless, Smarkets, and 12 more venues.
 
 Docs: https://pmxt.dev/docs
 API Base: https://api.pmxt.dev

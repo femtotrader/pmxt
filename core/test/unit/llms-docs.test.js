@@ -5,7 +5,10 @@ const path = require('node:path');
 const repoRoot = path.resolve(__dirname, '../../..');
 const llmsPath = path.join(repoRoot, 'docs/llms.txt');
 const llmsFullPath = path.join(repoRoot, 'docs/llms-full.txt');
+const supportedVenuesPath = path.join(repoRoot, 'docs/concepts/venues.mdx');
 const generatedPaths = [llmsPath, llmsFullPath];
+
+const namedVenueCount = 4;
 
 function snapshotGeneratedFiles() {
   return new Map(
@@ -42,6 +45,14 @@ describe('LLMS docs generation', () => {
 
     const llmsFull = snapshot.get(llmsFullPath);
     const llmsIndex = snapshot.get(llmsPath);
+    const supportedVenues = fs.readFileSync(supportedVenuesPath, 'utf8');
+    const introduction = fs.readFileSync(path.join(repoRoot, 'docs/introduction.mdx'), 'utf8');
+    const routerOverview = fs.readFileSync(path.join(repoRoot, 'docs/router/overview.mdx'), 'utf8');
+    const venueRows = Array.from(
+      supportedVenues.matchAll(/^\| [^|]+ \| `[^`]+` \| `POST \/api\/[^`]+\/:method` \|$/gm),
+    );
+    const additionalVenueCount = venueRows.length - namedVenueCount;
+    const additionalVenuePhrase = `${additionalVenueCount} more venues`;
     const expectedRows = [
       '| Gemini Titan | `gemini-titan` |',
       '| Hyperliquid | `hyperliquid` |',
@@ -70,5 +81,14 @@ describe('LLMS docs generation', () => {
     expect(llmsFull).toContain('`POST /v0/orders/cancel/build`');
     expect(llmsFull).toContain('`GET /v0/orders/{order_id}`');
     expect(llmsFull).toContain('`GET /v0/user/{address}/balances`');
+
+    expect(venueRows.length).toBeGreaterThan(namedVenueCount);
+    expect(introduction).toContain(`Smarkets, and [${additionalVenuePhrase}](/concepts/venues).`);
+    expect(routerOverview).toContain(`Smarkets, and [${additionalVenuePhrase}](/concepts/venues)`);
+    expect(llmsIndex).toContain(`Smarkets, and ${additionalVenuePhrase}.`);
+    expect(llmsFull).toContain(`Smarkets, and ${additionalVenuePhrase}.`);
+    expect(`${introduction}\n${routerOverview}\n${llmsIndex}\n${llmsFull}`).not.toContain(
+      '8 more venues',
+    );
   });
 });

@@ -1,6 +1,6 @@
 # PMXT — Full Documentation
 
-> One API for every prediction market. Unified data, cross-venue search, and trading across Polymarket, Kalshi, Limitless, Smarkets, and 8 more venues.
+> One API for every prediction market. Unified data, cross-venue search, and trading across Polymarket, Kalshi, Limitless, Smarkets, and 12 more venues.
 
 Docs: https://pmxt.dev/docs
 API Base: https://api.pmxt.dev
@@ -23,7 +23,7 @@ Source: https://pmxt.dev/docs/introduction
 
 
 PMXT is a unified API for every major prediction market — Polymarket,
-Kalshi, Limitless, Smarkets, and [8 more venues](https://pmxt.dev/docs/concepts/venues). Same
+Kalshi, Limitless, Smarkets, and [12 more venues](https://pmxt.dev/docs/concepts/venues). Same
 SDK methods, same response shape, regardless of which venue you're
 talking to.
 
@@ -2213,8 +2213,8 @@ Source: https://pmxt.dev/docs/router/overview
 
 The Router is PMXT's cross-venue intelligence layer. One API key gives
 you a unified view of every prediction market — Polymarket, Kalshi,
-Limitless, and [8 more venues](https://pmxt.dev/docs/concepts/venues) — through a single
-interface.
+Limitless, Smarkets, and [12 more venues](https://pmxt.dev/docs/concepts/venues) — through
+a single interface.
 
 
 

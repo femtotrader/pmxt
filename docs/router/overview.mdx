@@ -1,12 +1,11 @@
 ---
 title: What is the Router?
-description: "One API key. Every prediction market. Cross-venue search, matching, and price comparison."
+description: "One API key. Hosted catalog search, matching, and price comparison."
 ---
 
 The Router is PMXT's cross-venue intelligence layer. One API key gives
-you a unified view of every prediction market — Polymarket, Kalshi,
-Limitless, Smarkets, and [12 more venues](/concepts/venues) — through
-a single interface.
+you a unified view of the hosted catalog venues through a single
+interface.
 
 <Tabs>
   <Tab title="Python">
@@ -15,7 +14,7 @@ a single interface.
 
     router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 
-    # Search every venue at once
+    # Search catalog venues at once
     markets = router.fetch_markets(query="fed rate cut", limit=5)
 
     # Find the same market on other venues
@@ -31,7 +30,7 @@ a single interface.
 
     const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
 
-    // Search every venue at once
+    // Search catalog venues at once
     const markets = await router.fetchMarkets({ query: "fed rate cut", limit: 5 });
 
     // Find the same market on other venues
@@ -50,7 +49,7 @@ required for search, matching, or price analysis.
 
 <CardGroup cols={2}>
   <Card title="Cross-venue search" icon="magnifying-glass" href="/router/search">
-    Search markets and events across every venue in a single query.
+    Search markets and events across the hosted catalog in a single query.
     Results come from a shared catalog — ~10ms, not one call per venue.
   </Card>
   <Card title="Market matching" icon="link" href="/router/matching">

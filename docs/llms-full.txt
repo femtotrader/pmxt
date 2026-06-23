@@ -73,15 +73,15 @@ the methods and response shapes stay the same.
 #### The Router — cross-venue intelligence
 
 The **[Router](https://pmxt.dev/docs/router/overview)** is PMXT's cross-venue intelligence
-layer. Search, match, and compare prices across every venue — all from
-a single PMXT API key:
+layer. Search, match, and compare prices across the hosted catalog — all
+from a single PMXT API key:
 
 ```python
 import pmxt
 
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 
-# Search every venue at once
+# Search catalog venues at once
 markets = router.fetch_markets(query="fed rate cut")
 
 # Find the cluster of matching markets on other venues
@@ -92,7 +92,7 @@ top_clusters = router.fetch_matched_market_clusters(sort="volume", min_venues=2,
 ```
 
 
-  - **[Cross-venue search](https://pmxt.dev/docs/router/search)** — One query fans out across every venue. Results in ~10ms from a shared catalog.
+  - **[Cross-venue search](https://pmxt.dev/docs/router/search)** — One query searches the hosted catalog. Results in ~10ms from a shared index.
   - **[Market matching](https://pmxt.dev/docs/router/matching)** — Find clusters of the same or related market across venues with relation types and confidence scores.
   - **[Price comparison](https://pmxt.dev/docs/router/prices)** — Compare bid/ask across venues and find related markets.
   - **[Compose with venues](https://pmxt.dev/docs/router/prices#composing-with-venue-exchanges)** — Discover with the Router, trade on venue exchanges. Same schema, same `marketId`.
@@ -187,11 +187,11 @@ markets.forEach((m) => console.log(m.title, m.outcomes[0].price));
 Switch venues by swapping the class — `pmxt.Kalshi(...)`, `pmxt.Limitless(...)`,
 etc. The methods and response shapes are identical.
 
-#### 3. Search across every venue
+#### 3. Search the hosted catalog
 
 The **Router** is PMXT's cross-venue search layer — and the foundation
-for a full smart order router for prediction markets. One query fans out
-across every venue PMXT ingests and returns ranked, unified results.
+for a full smart order router for prediction markets. One query searches
+across the hosted catalog and returns ranked, unified results.
 
 ```bash
 curl "https://api.pmxt.dev/v0/markets?query=election&limit=3" \
@@ -2213,9 +2213,8 @@ and environment variables, see the
 Source: https://pmxt.dev/docs/router/overview
 
 The Router is PMXT's cross-venue intelligence layer. One API key gives
-you a unified view of every prediction market — Polymarket, Kalshi,
-Limitless, Smarkets, and [12 more venues](https://pmxt.dev/docs/concepts/venues) — through
-a single interface.
+you a unified view of the hosted catalog venues through a single
+interface.
 
 
 
@@ -2226,7 +2225,7 @@ import pmxt
 
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 
-# Search every venue at once
+# Search catalog venues at once
 markets = router.fetch_markets(query="fed rate cut", limit=5)
 
 # Find the same market on other venues
@@ -2244,7 +2243,7 @@ import pmxt from "pmxtjs";
 
 const router = new pmxt.Router({ pmxtApiKey: "pmxt_live_..." });
 
-// Search every venue at once
+// Search catalog venues at once
 const markets = await router.fetchMarkets({ query: "fed rate cut", limit: 5 });
 
 // Find the same market on other venues
@@ -2262,7 +2261,7 @@ required for search, matching, or price analysis.
 #### What you can do
 
 
-  - **[Cross-venue search](https://pmxt.dev/docs/router/search)** — Search markets and events across every venue in a single query. Results come from a shared catalog — ~10ms, not one call per venue.
+  - **[Cross-venue search](https://pmxt.dev/docs/router/search)** — Search markets and events across the hosted catalog in a single query. Results come from a shared catalog — ~10ms, not one call per venue.
   - **[Market matching](https://pmxt.dev/docs/router/matching)** — Given a market on any venue, find the cluster of matching markets across other venues. Each cluster has relation types and confidence scores.
   - **[Price comparison](https://pmxt.dev/docs/router/prices#comparemarketprices)** — Side-by-side bid/ask for the same market on every venue. See where it's cheapest to buy and where it pays the most to sell.
   - **[Related markets](https://pmxt.dev/docs/router/prices#fetchrelatedmarkets)** — Find markets whose resolution conditions are subsets or supersets of a target market — narrower or broader markets on other venues.
@@ -2354,9 +2353,9 @@ a venue exchange when you're ready to trade.
 
 Source: https://pmxt.dev/docs/router/search
 
-The **Router** is a catalog-backed, cross-venue search surface. It fans
-a single query across every venue PMXT ingests and returns a unified
-list, sorted by 24h volume.
+The **Router** is a catalog-backed, cross-venue search surface. It
+searches across the hosted catalog and returns a unified list, sorted by
+24h volume.
 
 Unlike the venue pass-through (`POST /api/:exchange/:method`), the
 Router is `GET`-based, browser-friendly, and never falls through to a

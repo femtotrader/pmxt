@@ -27,8 +27,8 @@ GitHub: https://github.com/pmxt-dev/pmxt
 - [Coming from Polymarket's official SDK](https://pmxt.dev/docs/guides/migrate-to-hosted-trading): Credential and signatureType mapping for users moving off @polymarket/clob-client.
 - [Self-hosted (Advanced)](https://pmxt.dev/docs/guides/self-hosted): Run pmxt-core on your own machine when hosted mode isn't the right fit.
 - [Server Management](https://pmxt.dev/docs/sdk/server): The SDK auto-spawns and manages pmxt-core when running self-hosted.
-- [What is the Router?](https://pmxt.dev/docs/router/overview): One API key. Every prediction market. Cross-venue search, matching, and price comparison.
-- [Search](https://pmxt.dev/docs/router/search): Search events and markets across every venue in a single query.
+- [What is the Router?](https://pmxt.dev/docs/router/overview): One API key. Hosted catalog search, matching, and price comparison.
+- [Search](https://pmxt.dev/docs/router/search): Search events and markets across the hosted catalog in a single query.
 - [Find Similar Events](https://pmxt.dev/docs/router/event-matching): Discover cross-venue event clusters and the markets inside each matched event.
 - [Find Similar Markets](https://pmxt.dev/docs/router/matching): Discover cross-venue market clusters with relation types, confidence scores, and source markets.
 - [Compare Prices Across Venues](https://pmxt.dev/docs/router/prices): Compare prices across venues and find related markets.

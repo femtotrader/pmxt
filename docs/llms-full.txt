@@ -3473,11 +3473,7 @@ import pmxt
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
-result = exchange.fetch_events_paginated(
-    limit=10,
-    cursor="abc123",
-    filter="value",
-)
+result = exchange.fetch_events_paginated(limit=10, cursor="abc123")
 ```
 
 **TypeScript:**
@@ -3488,11 +3484,7 @@ import { Router } from "pmxtjs";
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
-const result = await exchange.fetchEventsPaginated({
-  limit: 10,
-  cursor: "abc123",
-  filter: "value",
-});
+const result = await exchange.fetchEventsPaginated({ limit: 10, cursor: "abc123" });
 ```
 
 
@@ -3740,11 +3732,7 @@ import pmxt
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
-result = exchange.fetch_markets_paginated(
-    limit=10,
-    cursor="abc123",
-    filter="value",
-)
+result = exchange.fetch_markets_paginated(limit=10, cursor="abc123")
 ```
 
 **TypeScript:**
@@ -3755,11 +3743,7 @@ import { Router } from "pmxtjs";
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
-const result = await exchange.fetchMarketsPaginated({
-  limit: 10,
-  cursor: "abc123",
-  filter: "value",
-});
+const result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: "abc123" });
 ```
 
 

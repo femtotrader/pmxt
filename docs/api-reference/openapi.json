@@ -721,182 +721,182 @@
           {
             "lang": "python",
             "label": "Polymarket",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Limitless",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Kalshi",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Kalshi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Kalshi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "KalshiDemo",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.KalshiDemo(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.KalshiDemo(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Probable",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Probable(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Probable(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Baozi",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Myriad",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Opinion",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Smarkets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "PolymarketUS",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "SuiBets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Rain",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Rain(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Rain(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Hunch",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hunch(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hunch(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "javascript",
             "label": "Polymarket",
-            "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Limitless",
-            "source": "import { Limitless } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Limitless({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Limitless } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Limitless({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Kalshi",
-            "source": "import { Kalshi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Kalshi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Kalshi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Kalshi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "KalshiDemo",
-            "source": "import { KalshiDemo } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new KalshiDemo({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { KalshiDemo } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new KalshiDemo({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Probable",
-            "source": "import { Probable } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Probable({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Probable } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Probable({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Baozi",
-            "source": "import { Baozi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Baozi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Myriad",
-            "source": "import { Myriad } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Myriad } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Opinion",
-            "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Smarkets",
-            "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "PolymarketUS",
-            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "SuiBets",
-            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Rain",
-            "source": "import { Rain } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Rain({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Rain } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Rain({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Hunch",
-            "source": "import { Hunch } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hunch({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Hunch } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hunch({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: \"abc123\" });"
           }
         ]
       }
@@ -967,182 +967,182 @@
           {
             "lang": "python",
             "label": "Polymarket",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Limitless",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Kalshi",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Kalshi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Kalshi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "KalshiDemo",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.KalshiDemo(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.KalshiDemo(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Probable",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Probable(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Probable(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Baozi",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Myriad",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Opinion",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Smarkets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "PolymarketUS",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "SuiBets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Rain",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Rain(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Rain(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Hunch",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hunch(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hunch(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "python",
             "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(limit=10, cursor=\"abc123\")"
           },
           {
             "lang": "javascript",
             "label": "Polymarket",
-            "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Limitless",
-            "source": "import { Limitless } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Limitless({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Limitless } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Limitless({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Kalshi",
-            "source": "import { Kalshi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Kalshi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Kalshi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Kalshi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "KalshiDemo",
-            "source": "import { KalshiDemo } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new KalshiDemo({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { KalshiDemo } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new KalshiDemo({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Probable",
-            "source": "import { Probable } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Probable({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Probable } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Probable({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Baozi",
-            "source": "import { Baozi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Baozi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Myriad",
-            "source": "import { Myriad } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Myriad } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Opinion",
-            "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Smarkets",
-            "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "PolymarketUS",
-            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "SuiBets",
-            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Rain",
-            "source": "import { Rain } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Rain({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Rain } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Rain({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Hunch",
-            "source": "import { Hunch } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hunch({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Hunch } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hunch({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           },
           {
             "lang": "javascript",
             "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({ limit: 10, cursor: \"abc123\" });"
           }
         ]
       }

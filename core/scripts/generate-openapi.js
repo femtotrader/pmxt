@@ -438,6 +438,14 @@ function extractPostParamsSdk(operation, spec) {
 const PARAM_OVERRIDES = {
     fetchMarket: [{ name: 'marketId', value: '12345' }],
     fetchEvent: [{ name: 'eventId', value: '12345' }],
+    fetchMarketsPaginated: [
+        { name: 'limit', value: 10 },
+        { name: 'cursor', value: 'abc123' },
+    ],
+    fetchEventsPaginated: [
+        { name: 'limit', value: 10 },
+        { name: 'cursor', value: 'abc123' },
+    ],
     cancelOrder: [{ name: 'orderId', value: 'ord-001' }],
     watchOrderBook: [{ name: 'id', value: '12345' }],
     watchTrades: [{ name: 'id', value: '12345' }],

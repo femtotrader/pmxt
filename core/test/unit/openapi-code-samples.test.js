@@ -292,4 +292,30 @@ describe('OpenAPI SDK code samples', () => {
       }
     });
   });
+
+  test('omit generic filter placeholders from paginated list samples', () => {
+    withGeneratedSpec((spec) => {
+      const operationIds = ['fetchMarketsPaginated', 'fetchEventsPaginated'];
+
+      for (const operationId of operationIds) {
+        const typeScriptSamples = collectOperationSamples(spec, operationId, 'javascript');
+        const pythonSamples = collectOperationSamples(spec, operationId, 'python');
+
+        expect(typeScriptSamples.length).toBeGreaterThan(0);
+        expect(pythonSamples.length).toBeGreaterThan(0);
+
+        for (const sample of typeScriptSamples) {
+          expect(sample).toContain('limit: 10');
+          expect(sample).toContain('cursor: "abc123"');
+          expect(sample).not.toContain('filter: "value"');
+        }
+
+        for (const sample of pythonSamples) {
+          expect(sample).toContain('limit=10');
+          expect(sample).toContain('cursor="abc123"');
+          expect(sample).not.toContain('filter="value"');
+        }
+      }
+    });
+  });
 });

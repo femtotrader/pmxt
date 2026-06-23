@@ -1,7 +1,7 @@
 # pmxt [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=The%20ccxt%20for%20prediction%20markets.&url=https://github.com/pmxt-dev/pmxt&hashtags=predictionmarkets,trading)  [![DOI](https://zenodo.org/badge/1130657894.svg)](https://doi.org/10.5281/zenodo.19111315)
 
 
-**The [ccxt](https://github.com/ccxt/ccxt) for prediction markets.** Hosted unified API for prediction markets — trade Polymarket, Kalshi, Opinion, and more from one API key. Open-source SDK and self-host option included.
+**The [ccxt](https://github.com/ccxt/ccxt) for prediction markets.** Hosted unified API for prediction-market data and supported hosted trading — Polymarket, Opinion, and Limitless writes today. Open-source SDKs and a self-host option for venue-native credentials included.
 
 
 <img width="3840" height="2160" alt="plot" src="https://github.com/user-attachments/assets/ed77d244-c95f-4fe0-a7a7-89af713c053f" />
@@ -90,7 +90,7 @@ Different prediction market platforms have different APIs, data formats, and con
 - **Open source (MIT).** Self-host the local server for full control — your keys, your machine, no PMXT in the loop. See [Self-hosted](#self-hosted).
 - **Language-agnostic.** Python and TypeScript SDKs today, with HTTP access for any other language. No lock-in to a single ecosystem.
 - **Drop-in Dome API replacement.** Automatic codemod (`dome-to-pmxt`) for teams migrating after the Polymarket acquisition.
-- **Unified trading, not just data.** Place orders across Polymarket, Kalshi, and Limitless with a single interface.
+- **Unified trading, not just data.** Hosted writes cover Polymarket, Opinion, and Limitless today; self-host for venue-native writes such as Kalshi where supported.
 - **[MCP-native](https://pmxt.dev/mcp).** Use pmxt directly from Claude, Cursor, and other AI agents.
   
 

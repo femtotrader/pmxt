@@ -137,6 +137,17 @@ describe('Documentation copy-paste samples', () => {
     expect(typescriptReadme).not.toContain('} as any);');
   });
 
+  test('root README scopes hosted trading venue support', () => {
+    const readme = readDoc('readme.md');
+
+    expect(readme).not.toContain('trade Polymarket, Kalshi, Opinion, and more from one API key');
+    expect(readme).not.toContain(
+      'Place orders across Polymarket, Kalshi, and Limitless with a single interface',
+    );
+    expect(readme).toContain('Polymarket, Opinion, and Limitless writes today');
+    expect(readme).toContain('self-host for venue-native writes such as Kalshi where supported');
+  });
+
   test('hosted limit-order docs do not carry stale SDK denom mismatch caveats', () => {
     const tradingQuickstart = readDoc('docs/trading-quickstart.mdx');
     const hostedErrors = readDoc('docs/guides/hosted-errors.mdx');

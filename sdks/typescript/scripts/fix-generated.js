@@ -109,6 +109,13 @@ function stripGeneratedModelDocExample(content) {
     );
 }
 
+function stripGeneratedApiDocExamples(content) {
+    return content.replace(
+        /\n### Example\n\n```(?:ts|typescript)\n[\s\S]*?```\n\n(?=### Parameters)/g,
+        '\n'
+    );
+}
+
 function removeGeneratedModelDocExamples(docsDir = generatedDocsDir) {
     if (!fs.existsSync(docsDir)) {
         return 0;
@@ -124,6 +131,31 @@ function removeGeneratedModelDocExamples(docsDir = generatedDocsDir) {
             const filePath = path.join(docsDir, fileName);
             const content = fs.readFileSync(filePath, 'utf8');
             const fixedContent = stripGeneratedModelDocExample(content);
+            return { filePath, content, fixedContent };
+        })
+        .filter(file => file.fixedContent !== file.content);
+
+    for (const file of changedFiles) {
+        fs.writeFileSync(file.filePath, file.fixedContent, 'utf8');
+    }
+
+    return changedFiles.length;
+}
+
+function removeGeneratedApiDocExamples(docsDir = generatedDocsDir) {
+    if (!fs.existsSync(docsDir)) {
+        return 0;
+    }
+
+    const fileNames = fs
+        .readdirSync(docsDir)
+        .filter(fileName => fileName.endsWith('Api.md'));
+
+    const changedFiles = fileNames
+        .map(fileName => {
+            const filePath = path.join(docsDir, fileName);
+            const content = fs.readFileSync(filePath, 'utf8');
+            const fixedContent = stripGeneratedApiDocExamples(content);
             return { filePath, content, fixedContent };
         })
         .filter(file => file.fixedContent !== file.content);
@@ -160,6 +192,11 @@ function run() {
         console.log(`Removed placeholder examples from ${strippedDocExamples} generated model docs`);
     }
 
+    const strippedApiExamples = removeGeneratedApiDocExamples();
+    if (strippedApiExamples > 0) {
+        console.log(`Removed placeholder examples from ${strippedApiExamples} generated API docs`);
+    }
+
     if (fixed === 0 && !fs.existsSync(path.join(generatedModelsDir, 'FilterEventsRequestArgsInner.ts'))) {
         console.log('No files needed fixing');
     }
@@ -171,6 +208,8 @@ if (require.main === module) {
 }
 
 module.exports = {
+    removeGeneratedApiDocExamples,
     removeGeneratedModelDocExamples,
+    stripGeneratedApiDocExamples,
     stripGeneratedModelDocExample,
 };

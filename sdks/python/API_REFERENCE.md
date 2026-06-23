@@ -394,7 +394,7 @@ def fetch_ohlcv(outcome_id: str, params: OHLCVParams) -> List[PriceCandle]:
 **Example:**
 
 ```python
-exchange.fetch_ohlcv(outcome_id="abc123", params="...")
+exchange.fetch_ohlcv(outcome_id="abc123", resolution="1h", limit=100)
 ```
 
 **Notes:**
@@ -476,7 +476,7 @@ def fetch_trades(outcome_id: str, params: TradesParams | HistoryFilterParams) ->
 **Example:**
 
 ```python
-exchange.fetch_trades(outcome_id="abc123", params="...")
+exchange.fetch_trades(outcome_id="abc123", limit=50)
 ```
 
 **Notes:**
@@ -727,7 +727,8 @@ def get_execution_price(order_book: OrderBook, side: 'buy' | 'sell', amount: flo
 **Example:**
 
 ```python
-exchange.get_execution_price(order_book="...", side="buy", amount=50)
+order_book = exchange.fetch_order_book(outcome_id="abc123")
+exchange.get_execution_price(order_book=order_book, side="buy", amount=50)
 ```
 
 
@@ -754,7 +755,8 @@ def get_execution_price_detailed(order_book: OrderBook, side: 'buy' | 'sell', am
 **Example:**
 
 ```python
-exchange.get_execution_price_detailed(order_book="...", side="buy", amount=50)
+order_book = exchange.fetch_order_book(outcome_id="abc123")
+exchange.get_execution_price_detailed(order_book=order_book, side="buy", amount=50)
 ```
 
 
@@ -780,7 +782,8 @@ def filter_markets(markets: List[UnifiedMarket], criteria: string | MarketFilter
 **Example:**
 
 ```python
-exchange.filter_markets(markets="...", criteria="...")
+markets = exchange.fetch_markets(query="Trump")
+exchange.filter_markets(markets=markets, criteria="Trump")
 ```
 
 
@@ -806,7 +809,8 @@ def filter_events(events: List[UnifiedEvent], criteria: string | EventFilterCrit
 **Example:**
 
 ```python
-exchange.filter_events(events="...", criteria="...")
+events = exchange.fetch_events(query="Trump")
+exchange.filter_events(events=events, criteria="Trump")
 ```
 
 
@@ -913,7 +917,7 @@ def watch_trades(outcome_id: str, address: Optional[str] = None, since: Optional
 **Example:**
 
 ```python
-exchange.watch_trades(outcome_id="abc123", address="0xabc...", since="...")
+exchange.watch_trades(outcome_id="abc123", address="0xabc...", since=1710000000000, limit=50)
 ```
 
 
@@ -939,7 +943,7 @@ def watch_address(address: str, types: Optional[List[SubscriptionOption]] = None
 **Example:**
 
 ```python
-exchange.watch_address(address="0xabc...", types="...")
+exchange.watch_address(address="0xabc...", types=["trades"])
 ```
 
 

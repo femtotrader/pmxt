@@ -245,8 +245,26 @@ const EXAMPLE_VALUES = {
 };
 
 const PYTHON_METHOD_EXAMPLE_OVERRIDES = {
+    fetchOHLCV: 'exchange.fetch_ohlcv(outcome_id="abc123", resolution="1h", limit=100)',
     fetchOrderBook: 'exchange.fetch_order_book(outcome_id="abc123", limit=10, params={})',
     fetchOrderBooks: 'exchange.fetch_order_books(outcome_ids=["12345"])',
+    fetchTrades: 'exchange.fetch_trades(outcome_id="abc123", limit=50)',
+    getExecutionPrice: [
+        'order_book = exchange.fetch_order_book(outcome_id="abc123")',
+        'exchange.get_execution_price(order_book=order_book, side="buy", amount=50)',
+    ].join('\n'),
+    getExecutionPriceDetailed: [
+        'order_book = exchange.fetch_order_book(outcome_id="abc123")',
+        'exchange.get_execution_price_detailed(order_book=order_book, side="buy", amount=50)',
+    ].join('\n'),
+    filterMarkets: [
+        'markets = exchange.fetch_markets(query="Trump")',
+        'exchange.filter_markets(markets=markets, criteria="Trump")',
+    ].join('\n'),
+    filterEvents: [
+        'events = exchange.fetch_events(query="Trump")',
+        'exchange.filter_events(events=events, criteria="Trump")',
+    ].join('\n'),
     createOrder: [
         'exchange.create_order(',
         '    market_id="12345",',
@@ -280,14 +298,34 @@ const PYTHON_METHOD_EXAMPLE_OVERRIDES = {
     ].join('\n'),
     watchOrderBook: 'exchange.watch_order_book(outcome_id="abc123", limit=10, params={})',
     watchOrderBooks: 'exchange.watch_order_books(outcome_ids=["12345"], limit=10, params={})',
+    watchTrades: 'exchange.watch_trades(outcome_id="abc123", address="0xabc...", since=1710000000000, limit=50)',
+    watchAddress: 'exchange.watch_address(address="0xabc...", types=["trades"])',
 };
 
 const TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES = {
+    fetchOHLCV: 'await exchange.fetchOHLCV("abc123", { resolution: "1h", limit: 100 })',
     fetchOrderBook: 'await exchange.fetchOrderBook("abc123", 10, {})',
     fetchOrderBooks: 'await exchange.fetchOrderBooks(["12345"])',
+    fetchTrades: 'await exchange.fetchTrades("abc123", { limit: 50 })',
     fetchOpenOrders: 'await exchange.fetchOpenOrders("12345")',
     fetchPositions: 'await exchange.fetchPositions("0xabc...")',
     fetchBalance: 'await exchange.fetchBalance("0xabc...")',
+    getExecutionPrice: [
+        'const orderBook = await exchange.fetchOrderBook("abc123")',
+        'await exchange.getExecutionPrice(orderBook, "buy", 50)',
+    ].join('\n'),
+    getExecutionPriceDetailed: [
+        'const orderBook = await exchange.fetchOrderBook("abc123")',
+        'await exchange.getExecutionPriceDetailed(orderBook, "buy", 50)',
+    ].join('\n'),
+    filterMarkets: [
+        'const markets = await exchange.fetchMarkets({ query: "Trump" })',
+        'await exchange.filterMarkets(markets, "Trump")',
+    ].join('\n'),
+    filterEvents: [
+        'const events = await exchange.fetchEvents({ query: "Trump" })',
+        'await exchange.filterEvents(events, "Trump")',
+    ].join('\n'),
     createOrder: [
         'await exchange.createOrder({',
         '  marketId: "12345",',
@@ -321,6 +359,8 @@ const TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES = {
     ].join('\n'),
     watchOrderBook: 'await exchange.watchOrderBook("abc123", 10, {})',
     watchOrderBooks: 'await exchange.watchOrderBooks(["12345"], 10, {})',
+    watchTrades: 'await exchange.watchTrades("abc123", "0xabc...", 1710000000000, 50)',
+    watchAddress: 'await exchange.watchAddress("0xabc...", ["trades"])',
 };
 
 const TYPESCRIPT_PARAM_TYPE_OVERRIDES = {

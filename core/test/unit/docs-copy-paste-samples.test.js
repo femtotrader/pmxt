@@ -280,4 +280,71 @@ exchange.submit_order(built)`);
       'exchange.watch_order_books(outcome_ids=["12345"], limit=10, params={})',
     );
   });
+
+  test('SDK API reference object and list examples avoid string placeholders', () => {
+    const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
+    const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');
+
+    expect(typescriptApiReference).not.toContain('await exchange.fetchOHLCV("abc123", "...")');
+    expect(typescriptApiReference).not.toContain('await exchange.fetchTrades("abc123", "...")');
+    expect(typescriptApiReference).not.toContain('await exchange.getExecutionPrice("...", "buy", 50)');
+    expect(typescriptApiReference).not.toContain(
+      'await exchange.getExecutionPriceDetailed("...", "buy", 50)',
+    );
+    expect(typescriptApiReference).not.toContain('await exchange.filterMarkets("...", "...")');
+    expect(typescriptApiReference).not.toContain('await exchange.filterEvents("...", "...")');
+    expect(typescriptApiReference).not.toContain(
+      'await exchange.watchTrades("abc123", { address: "0xabc...", since: "..." })',
+    );
+    expect(typescriptApiReference).not.toContain(
+      'await exchange.watchAddress("0xabc...", { types: "..." })',
+    );
+
+    expect(pythonApiReference).not.toContain('exchange.fetch_ohlcv(outcome_id="abc123", params="...")');
+    expect(pythonApiReference).not.toContain('exchange.fetch_trades(outcome_id="abc123", params="...")');
+    expect(pythonApiReference).not.toContain(
+      'exchange.get_execution_price(order_book="...", side="buy", amount=50)',
+    );
+    expect(pythonApiReference).not.toContain(
+      'exchange.get_execution_price_detailed(order_book="...", side="buy", amount=50)',
+    );
+    expect(pythonApiReference).not.toContain('exchange.filter_markets(markets="...", criteria="...")');
+    expect(pythonApiReference).not.toContain('exchange.filter_events(events="...", criteria="...")');
+    expect(pythonApiReference).not.toContain('exchange.watch_trades(outcome_id="abc123", address="0xabc...", since="...")');
+    expect(pythonApiReference).not.toContain('exchange.watch_address(address="0xabc...", types="...")');
+
+    expect(typescriptApiReference).toContain(
+      'await exchange.fetchOHLCV("abc123", { resolution: "1h", limit: 100 })',
+    );
+    expect(typescriptApiReference).toContain('await exchange.fetchTrades("abc123", { limit: 50 })');
+    expect(typescriptApiReference).toContain(`const orderBook = await exchange.fetchOrderBook("abc123")
+await exchange.getExecutionPrice(orderBook, "buy", 50)`);
+    expect(typescriptApiReference).toContain(`const orderBook = await exchange.fetchOrderBook("abc123")
+await exchange.getExecutionPriceDetailed(orderBook, "buy", 50)`);
+    expect(typescriptApiReference).toContain(`const markets = await exchange.fetchMarkets({ query: "Trump" })
+await exchange.filterMarkets(markets, "Trump")`);
+    expect(typescriptApiReference).toContain(`const events = await exchange.fetchEvents({ query: "Trump" })
+await exchange.filterEvents(events, "Trump")`);
+    expect(typescriptApiReference).toContain(
+      'await exchange.watchTrades("abc123", "0xabc...", 1710000000000, 50)',
+    );
+    expect(typescriptApiReference).toContain('await exchange.watchAddress("0xabc...", ["trades"])');
+
+    expect(pythonApiReference).toContain(
+      'exchange.fetch_ohlcv(outcome_id="abc123", resolution="1h", limit=100)',
+    );
+    expect(pythonApiReference).toContain('exchange.fetch_trades(outcome_id="abc123", limit=50)');
+    expect(pythonApiReference).toContain(`order_book = exchange.fetch_order_book(outcome_id="abc123")
+exchange.get_execution_price(order_book=order_book, side="buy", amount=50)`);
+    expect(pythonApiReference).toContain(`order_book = exchange.fetch_order_book(outcome_id="abc123")
+exchange.get_execution_price_detailed(order_book=order_book, side="buy", amount=50)`);
+    expect(pythonApiReference).toContain(`markets = exchange.fetch_markets(query="Trump")
+exchange.filter_markets(markets=markets, criteria="Trump")`);
+    expect(pythonApiReference).toContain(`events = exchange.fetch_events(query="Trump")
+exchange.filter_events(events=events, criteria="Trump")`);
+    expect(pythonApiReference).toContain(
+      'exchange.watch_trades(outcome_id="abc123", address="0xabc...", since=1710000000000, limit=50)',
+    );
+    expect(pythonApiReference).toContain('exchange.watch_address(address="0xabc...", types=["trades"])');
+  });
 });

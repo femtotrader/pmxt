@@ -397,7 +397,7 @@ async fetchOHLCV(outcomeId: string, params: OHLCVParams): Promise<PriceCandle[]>
 **Example:**
 
 ```typescript
-await exchange.fetchOHLCV("abc123", "...")
+await exchange.fetchOHLCV("abc123", { resolution: "1h", limit: 100 })
 ```
 
 **Notes:**
@@ -479,7 +479,7 @@ async fetchTrades(outcomeId: string, params: TradesParams | HistoryFilterParams)
 **Example:**
 
 ```typescript
-await exchange.fetchTrades("abc123", "...")
+await exchange.fetchTrades("abc123", { limit: 50 })
 ```
 
 **Notes:**
@@ -730,7 +730,8 @@ async getExecutionPrice(orderBook: OrderBook, side: 'buy' | 'sell', amount: numb
 **Example:**
 
 ```typescript
-await exchange.getExecutionPrice("...", "buy", 50)
+const orderBook = await exchange.fetchOrderBook("abc123")
+await exchange.getExecutionPrice(orderBook, "buy", 50)
 ```
 
 
@@ -757,7 +758,8 @@ async getExecutionPriceDetailed(orderBook: OrderBook, side: 'buy' | 'sell', amou
 **Example:**
 
 ```typescript
-await exchange.getExecutionPriceDetailed("...", "buy", 50)
+const orderBook = await exchange.fetchOrderBook("abc123")
+await exchange.getExecutionPriceDetailed(orderBook, "buy", 50)
 ```
 
 
@@ -783,7 +785,8 @@ async filterMarkets(markets: UnifiedMarket[], criteria: string | MarketFilterCri
 **Example:**
 
 ```typescript
-await exchange.filterMarkets("...", "...")
+const markets = await exchange.fetchMarkets({ query: "Trump" })
+await exchange.filterMarkets(markets, "Trump")
 ```
 
 
@@ -809,7 +812,8 @@ async filterEvents(events: UnifiedEvent[], criteria: string | EventFilterCriteri
 **Example:**
 
 ```typescript
-await exchange.filterEvents("...", "...")
+const events = await exchange.fetchEvents({ query: "Trump" })
+await exchange.filterEvents(events, "Trump")
 ```
 
 
@@ -916,7 +920,7 @@ async watchTrades(outcomeId: string, address?: string, since?: number, limit?: n
 **Example:**
 
 ```typescript
-await exchange.watchTrades("abc123", { address: "0xabc...", since: "..." })
+await exchange.watchTrades("abc123", "0xabc...", 1710000000000, 50)
 ```
 
 
@@ -942,7 +946,7 @@ async watchAddress(address: string, types?: SubscriptionOption[]): Promise<Subsc
 **Example:**
 
 ```typescript
-await exchange.watchAddress("0xabc...", { types: "..." })
+await exchange.watchAddress("0xabc...", ["trades"])
 ```
 
 

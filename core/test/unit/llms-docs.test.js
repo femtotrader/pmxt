@@ -41,6 +41,7 @@ describe('LLMS docs generation', () => {
     }
 
     const llmsFull = snapshot.get(llmsFullPath);
+    const llmsIndex = snapshot.get(llmsPath);
     const expectedRows = [
       '| Gemini Titan | `gemini-titan` |',
       '| Hyperliquid | `hyperliquid` |',
@@ -60,5 +61,14 @@ describe('LLMS docs generation', () => {
     expect(llmsFull).not.toContain('| hunch | `hunch` |');
     expect(llmsFull).not.toContain('| mock | `mock` |');
     expect(llmsFull).not.toContain('| Router | `router` |');
+
+    expect(llmsIndex).toContain('https://pmxt.dev/docs/api-reference/createOrderHosted');
+    expect(llmsIndex).toContain('https://pmxt.dev/docs/api-reference/fetchBalanceHosted');
+    expect(llmsFull).toContain('`POST /v0/trade/create-order`');
+    expect(llmsFull).toContain('`POST /v0/trade/build-order`');
+    expect(llmsFull).toContain('`POST /v0/trade/submit-order`');
+    expect(llmsFull).toContain('`POST /v0/orders/cancel/build`');
+    expect(llmsFull).toContain('`GET /v0/orders/{order_id}`');
+    expect(llmsFull).toContain('`GET /v0/user/{address}/balances`');
   });
 });

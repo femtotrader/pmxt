@@ -110,9 +110,19 @@ describe('LLMS docs generation', () => {
     expect(introductionVenueScopeDocs).not.toContain(
       'open, resolve, and re-price across every venue',
     );
+    expect(introductionVenueScopeDocs).not.toMatch(
+      /Same\s+SDK methods, same response shape, regardless of which venue/,
+    );
+    expect(introductionVenueScopeDocs).not.toContain(
+      'methods and response shapes stay the same',
+    );
     expect(introductionVenueScopeDocs).toContain('support varying by venue');
     expect(introductionVenueScopeDocs).toContain('where the venue implements them');
     expect(introductionVenueScopeDocs).toContain('across supported venues');
+    expect(introductionVenueScopeDocs).toMatch(
+      /shared SDK method names and unified response shapes\s+where each venue supports/,
+    );
+    expect(introductionVenueScopeDocs).toMatch(/where that venue implements the\s+capability/);
     expect(`${introduction}\n${routerOverview}\n${llmsIndex}\n${llmsFull}`).not.toContain(
       '8 more venues',
     );

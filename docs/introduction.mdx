@@ -9,10 +9,10 @@ tag: "Start here"
   or [Trading Quickstart](/trading-quickstart) (hosted writes, 5 minutes).
 </Note>
 
-PMXT is a unified API for every major prediction market — Polymarket,
-Kalshi, Limitless, Smarkets, and [12 more venues](/concepts/venues). Same
-SDK methods, same response shape, regardless of which venue you're
-talking to.
+PMXT is a unified API for supported prediction-market venues — Polymarket,
+Kalshi, Limitless, Smarkets, and [12 more venues](/concepts/venues). It uses
+shared SDK method names and unified response shapes where each venue supports
+the underlying capability.
 
 <Note>
 New to prediction markets? Start at the [101](/concepts/prediction-markets-101) page for the vocabulary — outcome, price-as-probability, EIP-712, escrow, USDC on Polygon, and Group A methods.
@@ -54,7 +54,8 @@ poly = pmxt.Polymarket()
 See [self-hosted](/guides/self-hosted) for when that's the right choice.
 
 Swap the venue class — `pmxt.Kalshi(...)`, `pmxt.Limitless(...)` — and
-the methods and response shapes stay the same.
+use the same method names and response shapes where that venue implements the
+capability.
 
 ## The Router — cross-venue intelligence
 

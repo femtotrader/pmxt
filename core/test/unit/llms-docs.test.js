@@ -54,7 +54,12 @@ describe('LLMS docs generation', () => {
     const selfHosted = fs.readFileSync(path.join(repoRoot, 'docs/guides/self-hosted.mdx'), 'utf8');
     const tradingQuickstart = fs.readFileSync(path.join(repoRoot, 'docs/trading-quickstart.mdx'), 'utf8');
     const hostedTrading = fs.readFileSync(path.join(repoRoot, 'docs/concepts/hosted-trading.mdx'), 'utf8');
+    const predictionMarkets101 = fs.readFileSync(
+      path.join(repoRoot, 'docs/concepts/prediction-markets-101.mdx'),
+      'utf8',
+    );
     const hostedWriteDocs = `${selfHosted}\n${tradingQuickstart}\n${hostedTrading}\n${llmsFull}`;
+    const predictionMarkets101Docs = `${predictionMarkets101}\n${llmsFull}`;
     const fetchOhlcv = fs.readFileSync(path.join(repoRoot, 'docs/api-reference/fetch-ohlcv.mdx'), 'utf8');
     const ohlcvDocs = `${fetchOhlcv}\n${llmsFull}`;
     const routerScopeDocs = `${introduction}\n${quickstart}\n${routerOverview}\n${routerSearch}\n${llmsIndex}\n${llmsFull}`;
@@ -170,6 +175,16 @@ describe('LLMS docs generation', () => {
     expect(hostedWriteDocs).not.toContain('| **Trading venues** | Polymarket, Opinion, Limitless | Every venue PMXT supports |');
     expect(hostedWriteDocs).toContain('where the venue exposes writes');
     expect(hostedWriteDocs).toContain('Feature Support & Compliance');
+    expect(predictionMarkets101Docs).not.toContain(
+      'venue-agnostic trading and read methods that work identically across every hosted venue',
+    );
+    expect(predictionMarkets101Docs).not.toContain(
+      'The unified surface that makes PMXT a single SDK across venues',
+    );
+    expect(predictionMarkets101Docs).toContain(
+      'shared trading and account method surface for venues that implement those capabilities',
+    );
+    expect(predictionMarkets101Docs).toContain('hosted write support is venue-specific');
 
     expect(ohlcvDocs).not.toContain('Kalshi, Limitless, and more are coming soon');
     expect(ohlcvDocs).not.toContain('Without an API key, OHLCV is limited to Polymarket');

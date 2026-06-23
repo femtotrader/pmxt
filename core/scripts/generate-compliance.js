@@ -23,7 +23,7 @@ const METHOD_CATEGORIES = [
 ];
 
 // Exchange display order (skip kalshi-demo since it inherits Kalshi fully)
-const EXCHANGE_ORDER = ['polymarket', 'kalshi', 'limitless', 'probable', 'baozi', 'myriad', 'opinion', 'metaculus'];
+const EXCHANGE_ORDER = ['polymarket', 'kalshi', 'limitless', 'probable', 'baozi', 'myriad', 'opinion', 'metaculus', 'hunch'];
 
 function toDisplayName(slug) {
     return slug.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');

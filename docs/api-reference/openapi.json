@@ -157,8 +157,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.load_markets()"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.load_markets()"
           },
           {
             "lang": "python",
@@ -172,8 +172,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.load_markets()"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.load_markets()"
           },
           {
             "lang": "python",
@@ -247,8 +247,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.loadMarkets();"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.loadMarkets();"
           },
           {
             "lang": "javascript",
@@ -262,8 +262,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.loadMarkets();"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.loadMarkets();"
           },
           {
             "lang": "javascript",
@@ -524,8 +524,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets(\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    query=\"election\",\n    slug=\"BTC-USD\",\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    event_id=\"12345\",\n    page=1,\n    similarity_threshold=1,\n    source_exchange=\"value\",\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets(\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    query=\"election\",\n    slug=\"BTC-USD\",\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    event_id=\"12345\",\n    page=1,\n    similarity_threshold=1,\n    source_exchange=\"value\",\n)"
           },
           {
             "lang": "python",
@@ -539,8 +539,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets(\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    query=\"election\",\n    slug=\"BTC-USD\",\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    event_id=\"12345\",\n    page=1,\n    similarity_threshold=1,\n    source_exchange=\"value\",\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets(\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    query=\"election\",\n    slug=\"BTC-USD\",\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    event_id=\"12345\",\n    page=1,\n    similarity_threshold=1,\n    source_exchange=\"value\",\n)"
           },
           {
             "lang": "python",
@@ -614,8 +614,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarkets({\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  query: \"election\",\n  slug: \"BTC-USD\",\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  eventId: \"12345\",\n  page: 1,\n  similarityThreshold: 1,\n  sourceExchange: \"value\",\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarkets({\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  query: \"election\",\n  slug: \"BTC-USD\",\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  eventId: \"12345\",\n  page: 1,\n  similarityThreshold: 1,\n  sourceExchange: \"value\",\n});"
           },
           {
             "lang": "javascript",
@@ -629,8 +629,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarkets({\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  query: \"election\",\n  slug: \"BTC-USD\",\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  eventId: \"12345\",\n  page: 1,\n  similarityThreshold: 1,\n  sourceExchange: \"value\",\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarkets({\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  query: \"election\",\n  slug: \"BTC-USD\",\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  eventId: \"12345\",\n  page: 1,\n  similarityThreshold: 1,\n  sourceExchange: \"value\",\n});"
           },
           {
             "lang": "javascript",
@@ -770,8 +770,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
           },
           {
             "lang": "python",
@@ -785,8 +785,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
           },
           {
             "lang": "python",
@@ -860,8 +860,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
           },
           {
             "lang": "javascript",
@@ -875,8 +875,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarketsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
           },
           {
             "lang": "javascript",
@@ -1016,8 +1016,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
           },
           {
             "lang": "python",
@@ -1031,8 +1031,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events_paginated(\n    limit=10,\n    cursor=\"abc123\",\n    filter=\"value\",\n)"
           },
           {
             "lang": "python",
@@ -1106,8 +1106,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
           },
           {
             "lang": "javascript",
@@ -1121,8 +1121,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEventsPaginated({\n  limit: 10,\n  cursor: \"abc123\",\n  filter: \"value\",\n});"
           },
           {
             "lang": "javascript",
@@ -1399,8 +1399,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events(\n    query=\"election\",\n    limit=10,\n    cursor=\"abc123\",\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    event_id=\"12345\",\n    slug=\"BTC-USD\",\n    series=\"value\",\n    filter=\"value\",\n    category=\"value\",\n    tags=[],\n    source_exchange=\"value\",\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events(\n    query=\"election\",\n    limit=10,\n    cursor=\"abc123\",\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    event_id=\"12345\",\n    slug=\"BTC-USD\",\n    series=\"value\",\n    filter=\"value\",\n    category=\"value\",\n    tags=[],\n    source_exchange=\"value\",\n)"
           },
           {
             "lang": "python",
@@ -1414,8 +1414,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events(\n    query=\"election\",\n    limit=10,\n    cursor=\"abc123\",\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    event_id=\"12345\",\n    slug=\"BTC-USD\",\n    series=\"value\",\n    filter=\"value\",\n    category=\"value\",\n    tags=[],\n    source_exchange=\"value\",\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events(\n    query=\"election\",\n    limit=10,\n    cursor=\"abc123\",\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    event_id=\"12345\",\n    slug=\"BTC-USD\",\n    series=\"value\",\n    filter=\"value\",\n    category=\"value\",\n    tags=[],\n    source_exchange=\"value\",\n)"
           },
           {
             "lang": "python",
@@ -1489,8 +1489,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvents({\n  query: \"election\",\n  limit: 10,\n  cursor: \"abc123\",\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  eventId: \"12345\",\n  slug: \"BTC-USD\",\n  series: \"value\",\n  filter: \"value\",\n  category: \"value\",\n  tags: [],\n  sourceExchange: \"value\",\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvents({\n  query: \"election\",\n  limit: 10,\n  cursor: \"abc123\",\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  eventId: \"12345\",\n  slug: \"BTC-USD\",\n  series: \"value\",\n  filter: \"value\",\n  category: \"value\",\n  tags: [],\n  sourceExchange: \"value\",\n});"
           },
           {
             "lang": "javascript",
@@ -1504,8 +1504,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvents({\n  query: \"election\",\n  limit: 10,\n  cursor: \"abc123\",\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  eventId: \"12345\",\n  slug: \"BTC-USD\",\n  series: \"value\",\n  filter: \"value\",\n  category: \"value\",\n  tags: [],\n  sourceExchange: \"value\",\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvents({\n  query: \"election\",\n  limit: 10,\n  cursor: \"abc123\",\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  eventId: \"12345\",\n  slug: \"BTC-USD\",\n  series: \"value\",\n  filter: \"value\",\n  category: \"value\",\n  tags: [],\n  sourceExchange: \"value\",\n});"
           },
           {
             "lang": "javascript",
@@ -1621,8 +1621,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_series()"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_series()"
           },
           {
             "lang": "python",
@@ -1636,8 +1636,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_series()"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_series()"
           },
           {
             "lang": "python",
@@ -1711,8 +1711,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchSeries();"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchSeries();"
           },
           {
             "lang": "javascript",
@@ -1726,8 +1726,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchSeries();"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchSeries();"
           },
           {
             "lang": "javascript",
@@ -1985,8 +1985,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_market(market_id=\"12345\")"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_market(market_id=\"12345\")"
           },
           {
             "lang": "python",
@@ -2000,8 +2000,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_market(market_id=\"12345\")"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_market(market_id=\"12345\")"
           },
           {
             "lang": "python",
@@ -2075,8 +2075,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarket({ marketId: \"12345\" });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarket({ marketId: \"12345\" });"
           },
           {
             "lang": "javascript",
@@ -2090,8 +2090,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarket({ marketId: \"12345\" });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarket({ marketId: \"12345\" });"
           },
           {
             "lang": "javascript",
@@ -2365,8 +2365,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_event(event_id=\"12345\")"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_event(event_id=\"12345\")"
           },
           {
             "lang": "python",
@@ -2380,8 +2380,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_event(event_id=\"12345\")"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_event(event_id=\"12345\")"
           },
           {
             "lang": "python",
@@ -2455,8 +2455,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvent({ eventId: \"12345\" });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvent({ eventId: \"12345\" });"
           },
           {
             "lang": "javascript",
@@ -2470,8 +2470,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvent({ eventId: \"12345\" });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvent({ eventId: \"12345\" });"
           },
           {
             "lang": "javascript",
@@ -2633,8 +2633,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
           },
           {
             "lang": "python",
@@ -2648,8 +2648,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
           },
           {
             "lang": "python",
@@ -2723,8 +2723,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
           },
           {
             "lang": "javascript",
@@ -2738,8 +2738,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
           },
           {
             "lang": "javascript",
@@ -2908,8 +2908,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"yes\",\n    outcome=\"value\",\n    since=1,\n    until=1,\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"yes\",\n    outcome=\"value\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
@@ -2923,8 +2923,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"yes\",\n    outcome=\"value\",\n    since=1,\n    until=1,\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"yes\",\n    outcome=\"value\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
@@ -2998,8 +2998,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"yes\",\n  outcome: \"value\",\n  since: 1,\n  until: 1,\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"yes\",\n  outcome: \"value\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
@@ -3013,8 +3013,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"yes\",\n  outcome: \"value\",\n  since: 1,\n  until: 1,\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"yes\",\n  outcome: \"value\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
@@ -3159,8 +3159,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
           },
           {
             "lang": "python",
@@ -3174,8 +3174,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
           },
           {
             "lang": "python",
@@ -3249,8 +3249,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
           },
           {
             "lang": "javascript",
@@ -3264,8 +3264,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
           },
           {
             "lang": "javascript",
@@ -3418,8 +3418,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
           },
           {
             "lang": "python",
@@ -3433,8 +3433,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
           },
           {
             "lang": "python",
@@ -3508,8 +3508,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
           },
           {
             "lang": "javascript",
@@ -3523,8 +3523,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
           },
           {
             "lang": "javascript",
@@ -3670,8 +3670,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUs(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.create_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUS(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.create_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n)"
           },
           {
             "lang": "python",
@@ -3685,8 +3685,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Suibets()\nresult = exchange.create_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.SuiBets()\nresult = exchange.create_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n)"
           },
           {
             "lang": "python",
@@ -3760,8 +3760,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUs({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.createOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUS({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.createOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n});"
           },
           {
             "lang": "javascript",
@@ -3775,8 +3775,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Suibets();\nconst result = await exchange.createOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new SuiBets();\nconst result = await exchange.createOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n});"
           },
           {
             "lang": "javascript",
@@ -3922,8 +3922,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUs(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUS(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n)"
           },
           {
             "lang": "python",
@@ -3937,8 +3937,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Suibets()\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.SuiBets()\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n)"
           },
           {
             "lang": "python",
@@ -4012,8 +4012,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUs({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUS({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n});"
           },
           {
             "lang": "javascript",
@@ -4027,8 +4027,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Suibets();\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new SuiBets();\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n});"
           },
           {
             "lang": "javascript",
@@ -4174,8 +4174,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUs(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUS(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
@@ -4189,8 +4189,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Suibets()\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.SuiBets()\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
@@ -4264,8 +4264,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUs({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUS({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
@@ -4279,8 +4279,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Suibets();\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new SuiBets();\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
@@ -4426,8 +4426,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUs(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.cancel_order(order_id=\"ord-001\")"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUS(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.cancel_order(order_id=\"ord-001\")"
           },
           {
             "lang": "python",
@@ -4441,8 +4441,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Suibets()\nresult = exchange.cancel_order(order_id=\"ord-001\")"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.SuiBets()\nresult = exchange.cancel_order(order_id=\"ord-001\")"
           },
           {
             "lang": "python",
@@ -4516,8 +4516,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUs({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUS({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
           },
           {
             "lang": "javascript",
@@ -4531,8 +4531,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Suibets();\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new SuiBets();\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
           },
           {
             "lang": "javascript",
@@ -4653,8 +4653,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
           },
           {
             "lang": "python",
@@ -4668,8 +4668,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
           },
           {
             "lang": "python",
@@ -4743,8 +4743,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
           },
           {
             "lang": "javascript",
@@ -4758,8 +4758,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
           },
           {
             "lang": "javascript",
@@ -4883,8 +4883,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_open_orders(market_id=\"12345\")"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_open_orders(market_id=\"12345\")"
           },
           {
             "lang": "python",
@@ -4898,8 +4898,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_open_orders(market_id=\"12345\")"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_open_orders(market_id=\"12345\")"
           },
           {
             "lang": "python",
@@ -4973,8 +4973,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOpenOrders({ marketId: \"12345\" });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOpenOrders({ marketId: \"12345\" });"
           },
           {
             "lang": "javascript",
@@ -4988,8 +4988,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOpenOrders({ marketId: \"12345\" });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOpenOrders({ marketId: \"12345\" });"
           },
           {
             "lang": "javascript",
@@ -5160,8 +5160,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
           {
             "lang": "python",
@@ -5175,8 +5175,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
           {
             "lang": "python",
@@ -5250,8 +5250,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
           {
             "lang": "javascript",
@@ -5265,8 +5265,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
           {
             "lang": "javascript",
@@ -5428,8 +5428,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
           {
             "lang": "python",
@@ -5443,8 +5443,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
           {
             "lang": "python",
@@ -5518,8 +5518,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
           {
             "lang": "javascript",
@@ -5533,8 +5533,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
           {
             "lang": "javascript",
@@ -5696,8 +5696,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
           {
             "lang": "python",
@@ -5711,8 +5711,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
           {
             "lang": "python",
@@ -5786,8 +5786,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
           {
             "lang": "javascript",
@@ -5801,8 +5801,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
           {
             "lang": "javascript",
@@ -5926,8 +5926,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_positions(address=\"0xabc...\")"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_positions(address=\"0xabc...\")"
           },
           {
             "lang": "python",
@@ -5941,8 +5941,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_positions(address=\"0xabc...\")"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_positions(address=\"0xabc...\")"
           },
           {
             "lang": "python",
@@ -6016,8 +6016,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchPositions({ address: \"0xabc...\" });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchPositions({ address: \"0xabc...\" });"
           },
           {
             "lang": "javascript",
@@ -6031,8 +6031,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchPositions({ address: \"0xabc...\" });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchPositions({ address: \"0xabc...\" });"
           },
           {
             "lang": "javascript",
@@ -6156,8 +6156,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
           },
           {
             "lang": "python",
@@ -6171,8 +6171,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
           },
           {
             "lang": "python",
@@ -6246,8 +6246,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
           },
           {
             "lang": "javascript",
@@ -6261,8 +6261,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
           },
           {
             "lang": "javascript",
@@ -6415,8 +6415,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.get_execution_price(\n    order_book=\"orderBook\",\n    side=\"buy\",\n    amount=10,\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.get_execution_price(\n    order_book=\"orderBook\",\n    side=\"buy\",\n    amount=10,\n)"
           },
           {
             "lang": "python",
@@ -6430,8 +6430,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.get_execution_price(\n    order_book=\"orderBook\",\n    side=\"buy\",\n    amount=10,\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.get_execution_price(\n    order_book=\"orderBook\",\n    side=\"buy\",\n    amount=10,\n)"
           },
           {
             "lang": "python",
@@ -6505,8 +6505,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.getExecutionPrice({\n  orderBook: \"orderBook\",\n  side: \"buy\",\n  amount: 10,\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.getExecutionPrice({\n  orderBook: \"orderBook\",\n  side: \"buy\",\n  amount: 10,\n});"
           },
           {
             "lang": "javascript",
@@ -6520,8 +6520,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.getExecutionPrice({\n  orderBook: \"orderBook\",\n  side: \"buy\",\n  amount: 10,\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.getExecutionPrice({\n  orderBook: \"orderBook\",\n  side: \"buy\",\n  amount: 10,\n});"
           },
           {
             "lang": "javascript",
@@ -6674,8 +6674,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.get_execution_price_detailed(\n    order_book=\"orderBook\",\n    side=\"buy\",\n    amount=10,\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.get_execution_price_detailed(\n    order_book=\"orderBook\",\n    side=\"buy\",\n    amount=10,\n)"
           },
           {
             "lang": "python",
@@ -6689,8 +6689,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.get_execution_price_detailed(\n    order_book=\"orderBook\",\n    side=\"buy\",\n    amount=10,\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.get_execution_price_detailed(\n    order_book=\"orderBook\",\n    side=\"buy\",\n    amount=10,\n)"
           },
           {
             "lang": "python",
@@ -6764,8 +6764,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.getExecutionPriceDetailed({\n  orderBook: \"orderBook\",\n  side: \"buy\",\n  amount: 10,\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.getExecutionPriceDetailed({\n  orderBook: \"orderBook\",\n  side: \"buy\",\n  amount: 10,\n});"
           },
           {
             "lang": "javascript",
@@ -6779,8 +6779,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.getExecutionPriceDetailed({\n  orderBook: \"orderBook\",\n  side: \"buy\",\n  amount: 10,\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.getExecutionPriceDetailed({\n  orderBook: \"orderBook\",\n  side: \"buy\",\n  amount: 10,\n});"
           },
           {
             "lang": "javascript",
@@ -6938,8 +6938,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.filter_markets()"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.filter_markets()"
           },
           {
             "lang": "python",
@@ -6953,8 +6953,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.filter_markets()"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.filter_markets()"
           },
           {
             "lang": "python",
@@ -7028,8 +7028,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.filterMarkets();"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.filterMarkets();"
           },
           {
             "lang": "javascript",
@@ -7043,8 +7043,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.filterMarkets();"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.filterMarkets();"
           },
           {
             "lang": "javascript",
@@ -7202,8 +7202,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.filter_events()"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.filter_events()"
           },
           {
             "lang": "python",
@@ -7217,8 +7217,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.filter_events()"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.filter_events()"
           },
           {
             "lang": "python",
@@ -7292,8 +7292,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.filterEvents();"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.filterEvents();"
           },
           {
             "lang": "javascript",
@@ -7307,8 +7307,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.filterEvents();"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.filterEvents();"
           },
           {
             "lang": "javascript",
@@ -7429,8 +7429,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.close()"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.close()"
           },
           {
             "lang": "python",
@@ -7444,8 +7444,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.close()"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.close()"
           },
           {
             "lang": "python",
@@ -7519,8 +7519,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.close();"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.close();"
           },
           {
             "lang": "javascript",
@@ -7534,8 +7534,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.close();"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.close();"
           },
           {
             "lang": "javascript",
@@ -8721,8 +8721,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_list()"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_list()"
           },
           {
             "lang": "python",
@@ -8736,8 +8736,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_list()"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_list()"
           },
           {
             "lang": "python",
@@ -8811,8 +8811,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedList();"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedList();"
           },
           {
             "lang": "javascript",
@@ -8826,8 +8826,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedList();"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedList();"
           },
           {
             "lang": "javascript",
@@ -8962,8 +8962,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_load_markets()"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_load_markets()"
           },
           {
             "lang": "python",
@@ -8977,8 +8977,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_load_markets()"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_load_markets()"
           },
           {
             "lang": "python",
@@ -9052,8 +9052,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedLoadMarkets();"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedLoadMarkets();"
           },
           {
             "lang": "javascript",
@@ -9067,8 +9067,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedLoadMarkets();"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedLoadMarkets();"
           },
           {
             "lang": "javascript",
@@ -9209,8 +9209,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_ticker(symbol=\"BTC-USD\")"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_ticker(symbol=\"BTC-USD\")"
           },
           {
             "lang": "python",
@@ -9224,8 +9224,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_ticker(symbol=\"BTC-USD\")"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_ticker(symbol=\"BTC-USD\")"
           },
           {
             "lang": "python",
@@ -9299,8 +9299,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchTicker({ symbol: \"BTC-USD\" });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchTicker({ symbol: \"BTC-USD\" });"
           },
           {
             "lang": "javascript",
@@ -9314,8 +9314,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchTicker({ symbol: \"BTC-USD\" });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchTicker({ symbol: \"BTC-USD\" });"
           },
           {
             "lang": "javascript",
@@ -9459,8 +9459,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_tickers(symbols=\"value\")"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_tickers(symbols=\"value\")"
           },
           {
             "lang": "python",
@@ -9474,8 +9474,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_tickers(symbols=\"value\")"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_tickers(symbols=\"value\")"
           },
           {
             "lang": "python",
@@ -9549,8 +9549,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchTickers({ symbols: \"value\" });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchTickers({ symbols: \"value\" });"
           },
           {
             "lang": "javascript",
@@ -9564,8 +9564,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchTickers({ symbols: \"value\" });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchTickers({ symbols: \"value\" });"
           },
           {
             "lang": "javascript",
@@ -9743,8 +9743,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_ohlcv(\n    symbol=\"BTC-USD\",\n    timeframe=\"value\",\n    since=1,\n    limit=10,\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_ohlcv(\n    symbol=\"BTC-USD\",\n    timeframe=\"value\",\n    since=1,\n    limit=10,\n)"
           },
           {
             "lang": "python",
@@ -9758,8 +9758,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_ohlcv(\n    symbol=\"BTC-USD\",\n    timeframe=\"value\",\n    since=1,\n    limit=10,\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_ohlcv(\n    symbol=\"BTC-USD\",\n    timeframe=\"value\",\n    since=1,\n    limit=10,\n)"
           },
           {
             "lang": "python",
@@ -9833,8 +9833,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOHLCV({\n  symbol: \"BTC-USD\",\n  timeframe: \"value\",\n  since: 1,\n  limit: 10,\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOHLCV({\n  symbol: \"BTC-USD\",\n  timeframe: \"value\",\n  since: 1,\n  limit: 10,\n});"
           },
           {
             "lang": "javascript",
@@ -9848,8 +9848,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOHLCV({\n  symbol: \"BTC-USD\",\n  timeframe: \"value\",\n  since: 1,\n  limit: 10,\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOHLCV({\n  symbol: \"BTC-USD\",\n  timeframe: \"value\",\n  since: 1,\n  limit: 10,\n});"
           },
           {
             "lang": "javascript",
@@ -10028,8 +10028,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_order_book(symbol=\"BTC-USD\", limit=10)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_order_book(symbol=\"BTC-USD\", limit=10)"
           },
           {
             "lang": "python",
@@ -10043,8 +10043,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_order_book(symbol=\"BTC-USD\", limit=10)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_order_book(symbol=\"BTC-USD\", limit=10)"
           },
           {
             "lang": "python",
@@ -10118,8 +10118,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOrderBook({ symbol: \"BTC-USD\", limit: 10 });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOrderBook({ symbol: \"BTC-USD\", limit: 10 });"
           },
           {
             "lang": "javascript",
@@ -10133,8 +10133,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOrderBook({ symbol: \"BTC-USD\", limit: 10 });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOrderBook({ symbol: \"BTC-USD\", limit: 10 });"
           },
           {
             "lang": "javascript",
@@ -10275,8 +10275,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_oracle_round(feed=\"value\")"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_oracle_round(feed=\"value\")"
           },
           {
             "lang": "python",
@@ -10290,8 +10290,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_oracle_round(feed=\"value\")"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_oracle_round(feed=\"value\")"
           },
           {
             "lang": "python",
@@ -10365,8 +10365,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOracleRound({ feed: \"value\" });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOracleRound({ feed: \"value\" });"
           },
           {
             "lang": "javascript",
@@ -10380,8 +10380,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOracleRound({ feed: \"value\" });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOracleRound({ feed: \"value\" });"
           },
           {
             "lang": "javascript",
@@ -10534,8 +10534,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_oracle_history(feed=\"value\", limit=10)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_oracle_history(feed=\"value\", limit=10)"
           },
           {
             "lang": "python",
@@ -10549,8 +10549,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_oracle_history(feed=\"value\", limit=10)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_oracle_history(feed=\"value\", limit=10)"
           },
           {
             "lang": "python",
@@ -10624,8 +10624,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOracleHistory({ feed: \"value\", limit: 10 });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOracleHistory({ feed: \"value\", limit: 10 });"
           },
           {
             "lang": "javascript",
@@ -10639,8 +10639,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOracleHistory({ feed: \"value\", limit: 10 });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchOracleHistory({ feed: \"value\", limit: 10 });"
           },
           {
             "lang": "javascript",
@@ -10824,8 +10824,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_historical_prices(\n    symbol=\"BTC-USD\",\n    from_timestamp=1,\n    until_timestamp=1,\n    max_size=1,\n    order=\"asc\",\n)"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_historical_prices(\n    symbol=\"BTC-USD\",\n    from_timestamp=1,\n    until_timestamp=1,\n    max_size=1,\n    order=\"asc\",\n)"
           },
           {
             "lang": "python",
@@ -10839,8 +10839,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_historical_prices(\n    symbol=\"BTC-USD\",\n    from_timestamp=1,\n    until_timestamp=1,\n    max_size=1,\n    order=\"asc\",\n)"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_fetch_historical_prices(\n    symbol=\"BTC-USD\",\n    from_timestamp=1,\n    until_timestamp=1,\n    max_size=1,\n    order=\"asc\",\n)"
           },
           {
             "lang": "python",
@@ -10914,8 +10914,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchHistoricalPrices({\n  symbol: \"BTC-USD\",\n  fromTimestamp: 1,\n  untilTimestamp: 1,\n  maxSize: 1,\n  order: \"asc\",\n});"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchHistoricalPrices({\n  symbol: \"BTC-USD\",\n  fromTimestamp: 1,\n  untilTimestamp: 1,\n  maxSize: 1,\n  order: \"asc\",\n});"
           },
           {
             "lang": "javascript",
@@ -10929,8 +10929,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchHistoricalPrices({\n  symbol: \"BTC-USD\",\n  fromTimestamp: 1,\n  untilTimestamp: 1,\n  maxSize: 1,\n  order: \"asc\",\n});"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedFetchHistoricalPrices({\n  symbol: \"BTC-USD\",\n  fromTimestamp: 1,\n  untilTimestamp: 1,\n  maxSize: 1,\n  order: \"asc\",\n});"
           },
           {
             "lang": "javascript",
@@ -11071,8 +11071,8 @@
           },
           {
             "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_watch_ticker(symbol=\"BTC-USD\")"
+            "label": "PolymarketUS",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUS(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_watch_ticker(symbol=\"BTC-USD\")"
           },
           {
             "lang": "python",
@@ -11086,8 +11086,8 @@
           },
           {
             "lang": "python",
-            "label": "Suibets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Suibets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_watch_ticker(symbol=\"BTC-USD\")"
+            "label": "SuiBets",
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.SuiBets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.feed_watch_ticker(symbol=\"BTC-USD\")"
           },
           {
             "lang": "python",
@@ -11161,8 +11161,8 @@
           },
           {
             "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedWatchTicker({ symbol: \"BTC-USD\" });"
+            "label": "PolymarketUS",
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUS({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedWatchTicker({ symbol: \"BTC-USD\" });"
           },
           {
             "lang": "javascript",
@@ -11176,8 +11176,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Suibets",
-            "source": "import { Suibets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Suibets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedWatchTicker({ symbol: \"BTC-USD\" });"
+            "label": "SuiBets",
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new SuiBets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.feedWatchTicker({ symbol: \"BTC-USD\" });"
           },
           {
             "lang": "javascript",
@@ -13666,7 +13666,7 @@
       ]
     },
     "polymarket_us": {
-      "className": "PolymarketUs",
+      "className": "PolymarketUS",
       "params": [
         {
           "name": "pmxt_api_key",
@@ -13735,7 +13735,7 @@
       ]
     },
     "suibets": {
-      "className": "Suibets",
+      "className": "SuiBets",
       "params": [
         {
           "name": "pmxt_api_key",

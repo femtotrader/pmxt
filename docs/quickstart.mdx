@@ -11,8 +11,8 @@ It starts with `pmxt_live_` and works immediately.
 ## 2. Query a venue
 
 Pick a venue and start pulling data. The SDK gives you a unified
-interface — same methods, same response shape, regardless of which venue
-you're talking to.
+interface — same method names and response shapes where the venue
+supports them.
 
 <Tabs>
   <Tab title="Python">
@@ -46,8 +46,9 @@ you're talking to.
   </Tab>
 </Tabs>
 
-Switch venues by swapping the class — `pmxt.Kalshi(...)`, `pmxt.Limitless(...)`,
-etc. The methods and response shapes are identical.
+Switch venues by swapping the class — `pmxt.Kalshi(...)`,
+`pmxt.Limitless(...)`, etc. PMXT keeps the schema consistent, with
+per-venue capabilities called out in [Supported venues](/concepts/venues).
 
 ## 3. Search the hosted catalog
 

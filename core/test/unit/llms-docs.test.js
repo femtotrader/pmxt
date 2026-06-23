@@ -147,6 +147,12 @@ describe('LLMS docs generation', () => {
     expect(quickstartScopeDocs).toContain('another hosted catalog venue');
     expect(quickstartScopeDocs).toContain('search the hosted catalog');
     expect(quickstartScopeDocs).toContain('supported where each venue implements them');
+    expect(quickstart).not.toContain(
+      'interface — same methods, same response shape, regardless of which venue',
+    );
+    expect(quickstart).not.toContain('The methods and response shapes are identical.');
+    expect(quickstart).toMatch(/same method names and response shapes where the venue\s+supports them/);
+    expect(quickstart).toContain('per-venue capabilities');
     expect(routerPriceScopeDocs).not.toContain('Side-by-side bid/ask for the same market on every venue');
     expect(routerPriceScopeDocs).toContain('identity matches in the hosted catalog');
 

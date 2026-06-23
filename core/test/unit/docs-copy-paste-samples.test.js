@@ -391,4 +391,39 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
       'async watchPrices(marketAddress: string, callback: (data: any) => void): Promise<void>',
     );
   });
+
+  test('Python API reference signatures render Python-native types', () => {
+    const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
+
+    expect(pythonApiReference).not.toContain(
+      'Optional[{ limit?: number; cursor?: string; filter?: MarketFilterCriteria }]',
+    );
+    expect(pythonApiReference).not.toContain('string | MarketFilterCriteria');
+    expect(pythonApiReference).not.toContain('UnifiedEvent | null');
+    expect(pythonApiReference).not.toContain("side: 'buy' | 'sell'");
+    expect(pythonApiReference).not.toContain('get_event_byid');
+    expect(pythonApiReference).not.toContain('get_event_byslug');
+
+    expect(pythonApiReference).toContain(
+      'def fetch_markets_paginated(params: Optional[dict] = None) -> PaginatedMarketsResult:',
+    );
+    expect(pythonApiReference).toContain(
+      'def fetch_events_paginated(params: Optional[dict] = None) -> PaginatedEventsResult:',
+    );
+    expect(pythonApiReference).toContain(
+      'def filter_markets(markets: List[UnifiedMarket], criteria: Union[str, MarketFilterCriteria, MarketFilterFunction]) -> List[UnifiedMarket]:',
+    );
+    expect(pythonApiReference).toContain(
+      'def filter_events(events: List[UnifiedEvent], criteria: Union[str, EventFilterCriteria, EventFilterFunction]) -> List[UnifiedEvent]:',
+    );
+    expect(pythonApiReference).toContain(
+      'def get_execution_price(order_book: OrderBook, side: Literal["buy", "sell"], amount: float) -> float:',
+    );
+    expect(pythonApiReference).toContain(
+      'def get_event_by_id(id: str) -> Optional[UnifiedEvent]:',
+    );
+    expect(pythonApiReference).toContain(
+      'def get_event_by_slug(slug: str) -> Optional[UnifiedEvent]:',
+    );
+  });
 });

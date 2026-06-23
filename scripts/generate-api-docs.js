@@ -50,6 +50,7 @@ function toSnakeCase(str) {
     //    (e.g., testData -> test_data, but PnL -> pnl)
     // 2. Preceded by uppercase AND followed by lowercase (XMLParser -> xml_parser)
     return str
+        .replace(/By(?=[A-Z])/g, 'By_')
         .replace(/(?<![A-Z])([a-z])([A-Z])/g, '$1_$2')  // aB -> a_B, but not after uppercase
         .replace(/([A-Z])([A-Z][a-z])/g, '$1_$2')       // ABc -> A_Bc
         .toLowerCase();
@@ -546,29 +547,56 @@ function scalarPythonType(type, includeLinks) {
     return includeLinks ? linkify(type) : type;
 }
 
+function formatPythonUnion(parts, includeLinks) {
+    const literals = parts
+        .filter(part => /^'[^']*'$/.test(part) || /^"[^"]*"$/.test(part));
+
+    if (literals.length === parts.length) {
+        const values = literals.map(part => `"${part.slice(1, -1)}"`);
+        return `Literal[${values.join(', ')}]`;
+    }
+
+    const formatted = parts.map(part => formatPythonType(part, includeLinks));
+    if (formatted.length === 1) return formatted[0];
+    return `Union[${formatted.join(', ')}]`;
+}
+
 function formatPythonType(type, includeLinks) {
     if (!type) return 'Any';
+    const normalized = type.trim();
 
-    if (/^\(\w+:\s*any\)$/.test(type)) {
+    if (/^\(\w+:\s*any\)$/.test(normalized)) {
         return 'Callable[[Any], None]';
     }
 
+    if (normalized.startsWith('{') && normalized.endsWith('}')) {
+        return 'dict';
+    }
+
+    if (normalized.includes('|')) {
+        const parts = normalized.split('|').map(part => part.trim()).filter(Boolean);
+        const valueParts = parts.filter(part => part !== 'null' && part !== 'undefined');
+        if (valueParts.length === 0) return 'None';
+        const valueType = formatPythonUnion(valueParts, includeLinks);
+        return valueParts.length === parts.length ? valueType : `Optional[${valueType}]`;
+    }
+
     // Handle Arrays: UnifiedMarket[] -> List[UnifiedMarket]
-    if (type.endsWith('[]')) {
-        const inner = type.slice(0, -2);
+    if (normalized.endsWith('[]')) {
+        const inner = normalized.slice(0, -2);
         return `List[${scalarPythonType(inner, includeLinks)}]`;
     }
 
     // Handle Generics: Record<string, UnifiedMarket>
-    if (type.startsWith('Record<')) {
-        const match = type.match(/^Record<(.+),\s*(.+)>/);
+    if (normalized.startsWith('Record<')) {
+        const match = normalized.match(/^Record<(.+),\s*(.+)>/);
         if (match) {
             const [_, key, value] = match;
             return `Dict[${scalarPythonType(key, includeLinks)}, ${scalarPythonType(value, includeLinks)}]`;
         }
     }
 
-    return scalarPythonType(type, includeLinks);
+    return scalarPythonType(normalized, includeLinks);
 }
 
 Handlebars.registerHelper('pythonName', (name) => toSnakeCase(name));

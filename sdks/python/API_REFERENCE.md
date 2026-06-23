@@ -221,12 +221,12 @@ Fetch markets with cursor-based pagination backed by a stable in-memory snapshot
 **Signature:**
 
 ```python
-def fetch_markets_paginated(params: Optional[{ limit?: number; cursor?: string; filter?: MarketFilterCriteria }] = None) -> PaginatedMarketsResult:
+def fetch_markets_paginated(params: Optional[dict] = None) -> PaginatedMarketsResult:
 ```
 
 **Parameters:**
 
-- `params` ({ limit?: number; cursor?: string; filter?: MarketFilterCriteria }) - **Optional**: params
+- `params` (dict) - **Optional**: params
   - `params.limit` - Page size (default: return all markets)
   - `params.cursor` - Opaque cursor returned by a previous call
 
@@ -248,12 +248,12 @@ Paginated variant of {@link fetchEvents}.
 **Signature:**
 
 ```python
-def fetch_events_paginated(params: Optional[{ limit?: number; cursor?: string; filter?: EventFilterCriteria }] = None) -> PaginatedEventsResult:
+def fetch_events_paginated(params: Optional[dict] = None) -> PaginatedEventsResult:
 ```
 
 **Parameters:**
 
-- `params` ({ limit?: number; cursor?: string; filter?: EventFilterCriteria }) - **Optional**: params
+- `params` (dict) - **Optional**: params
   - `params.limit` - Page size (default: return all events)
   - `params.cursor` - Opaque cursor returned by a previous call
 
@@ -463,13 +463,13 @@ Fetch raw trade history for a specific outcome.
 **Signature:**
 
 ```python
-def fetch_trades(outcome_id: str, params: TradesParams | HistoryFilterParams) -> List[Trade]:
+def fetch_trades(outcome_id: str, params: Union[TradesParams, HistoryFilterParams]) -> List[Trade]:
 ```
 
 **Parameters:**
 
 - `outcome_id` (str): The Outcome ID (outcomeId)
-- `params` (TradesParams | HistoryFilterParams): Trade filter parameters
+- `params` (Union[[TradesParams](#tradesparams), [HistoryFilterParams](#historyfilterparams)]): Trade filter parameters
 
 **Returns:** List[[Trade](#trade)] - Array of recent trades
 
@@ -713,13 +713,13 @@ Calculate the volume-weighted average execution price for a given order size.
 **Signature:**
 
 ```python
-def get_execution_price(order_book: OrderBook, side: 'buy' | 'sell', amount: float) -> float:
+def get_execution_price(order_book: OrderBook, side: Literal["buy", "sell"], amount: float) -> float:
 ```
 
 **Parameters:**
 
 - `order_book` ([OrderBook](#orderbook)): The current order book
-- `side` ('buy' | 'sell'): 'buy' or 'sell'
+- `side` (Literal["buy", "sell"]): 'buy' or 'sell'
 - `amount` (float): Number of contracts to simulate
 
 **Returns:** float - Average execution price, or 0 if insufficient liquidity
@@ -741,13 +741,13 @@ Calculate detailed execution price information including partial fill data.
 **Signature:**
 
 ```python
-def get_execution_price_detailed(order_book: OrderBook, side: 'buy' | 'sell', amount: float) -> ExecutionPriceResult:
+def get_execution_price_detailed(order_book: OrderBook, side: Literal["buy", "sell"], amount: float) -> ExecutionPriceResult:
 ```
 
 **Parameters:**
 
 - `order_book` ([OrderBook](#orderbook)): The current order book
-- `side` ('buy' | 'sell'): 'buy' or 'sell'
+- `side` (Literal["buy", "sell"]): 'buy' or 'sell'
 - `amount` (float): Number of contracts to simulate
 
 **Returns:** [ExecutionPriceResult](#executionpriceresult) - Detailed execution result with price, filled amount, and fill status
@@ -769,13 +769,13 @@ Filter a list of markets by criteria.
 **Signature:**
 
 ```python
-def filter_markets(markets: List[UnifiedMarket], criteria: string | MarketFilterCriteria | MarketFilterFunction) -> List[UnifiedMarket]:
+def filter_markets(markets: List[UnifiedMarket], criteria: Union[str, MarketFilterCriteria, MarketFilterFunction]) -> List[UnifiedMarket]:
 ```
 
 **Parameters:**
 
 - `markets` (List[[UnifiedMarket](#unifiedmarket)]): Array of markets to filter
-- `criteria` (string | MarketFilterCriteria | MarketFilterFunction): Filter criteria: string (text search), object (structured), or function (predicate)
+- `criteria` (Union[str, [MarketFilterCriteria](#marketfiltercriteria), MarketFilterFunction]): Filter criteria: string (text search), object (structured), or function (predicate)
 
 **Returns:** List[[UnifiedMarket](#unifiedmarket)] - Filtered array of markets
 
@@ -796,13 +796,13 @@ Filter a list of events by criteria.
 **Signature:**
 
 ```python
-def filter_events(events: List[UnifiedEvent], criteria: string | EventFilterCriteria | EventFilterFunction) -> List[UnifiedEvent]:
+def filter_events(events: List[UnifiedEvent], criteria: Union[str, EventFilterCriteria, EventFilterFunction]) -> List[UnifiedEvent]:
 ```
 
 **Parameters:**
 
 - `events` (List[[UnifiedEvent](#unifiedevent)]): Array of events to filter
-- `criteria` (string | EventFilterCriteria | EventFilterFunction): Filter criteria: string (text search), object (structured), or function (predicate)
+- `criteria` (Union[str, [EventFilterCriteria](#eventfiltercriteria), EventFilterFunction]): Filter criteria: string (text search), object (structured), or function (predicate)
 
 **Returns:** List[[UnifiedEvent](#unifiedevent)] - Filtered array of events
 
@@ -1365,7 +1365,7 @@ exchange.pre_warm_market(outcome_id="abc123")
 
 
 ---
-### `get_event_byid`
+### `get_event_by_id`
 
 Fetch a single event by its numeric ID (Probable only).
 
@@ -1375,24 +1375,24 @@ Fetch a single event by its numeric ID (Probable only).
 **Signature:**
 
 ```python
-def get_event_byid(id: str) -> UnifiedEvent | null:
+def get_event_by_id(id: str) -> Optional[UnifiedEvent]:
 ```
 
 **Parameters:**
 
 - `id` (str): The numeric event ID
 
-**Returns:** UnifiedEvent | null - The UnifiedEvent, or null if not found
+**Returns:** Optional[[UnifiedEvent](#unifiedevent)] - The UnifiedEvent, or null if not found
 
 **Example:**
 
 ```python
-exchange.get_event_byid(id="12345")
+exchange.get_event_by_id(id="12345")
 ```
 
 
 ---
-### `get_event_byslug`
+### `get_event_by_slug`
 
 Fetch a single event by its URL slug (Probable only).
 
@@ -1402,19 +1402,19 @@ Fetch a single event by its URL slug (Probable only).
 **Signature:**
 
 ```python
-def get_event_byslug(slug: str) -> UnifiedEvent | null:
+def get_event_by_slug(slug: str) -> Optional[UnifiedEvent]:
 ```
 
 **Parameters:**
 
 - `slug` (str): The event's URL slug (e.g. `"trump-2024-election"`)
 
-**Returns:** UnifiedEvent | null - The UnifiedEvent, or null if not found
+**Returns:** Optional[[UnifiedEvent](#unifiedevent)] - The UnifiedEvent, or null if not found
 
 **Example:**
 
 ```python
-exchange.get_event_byslug(slug="will-trump-win")
+exchange.get_event_by_slug(slug="will-trump-win")
 ```
 
 

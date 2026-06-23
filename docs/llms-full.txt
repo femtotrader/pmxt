@@ -2261,7 +2261,7 @@ required for search, matching, or price analysis.
 #### What you can do
 
 
-  - **[Cross-venue search](https://pmxt.dev/docs/router/search)** — Search markets and events across every venue in a single query. Results come from a shared catalog — ~10ms, not 11 sequential API calls.
+  - **[Cross-venue search](https://pmxt.dev/docs/router/search)** — Search markets and events across every venue in a single query. Results come from a shared catalog — ~10ms, not one call per venue.
   - **[Market matching](https://pmxt.dev/docs/router/matching)** — Given a market on any venue, find the cluster of matching markets across other venues. Each cluster has relation types and confidence scores.
   - **[Price comparison](https://pmxt.dev/docs/router/prices#comparemarketprices)** — Side-by-side bid/ask for the same market on every venue. See where it's cheapest to buy and where it pays the most to sell.
   - **[Related markets](https://pmxt.dev/docs/router/prices#fetchrelatedmarkets)** — Find markets whose resolution conditions are subsets or supersets of a target market — narrower or broader markets on other venues.
@@ -2274,7 +2274,7 @@ required for search, matching, or price analysis.
 The Router is backed by a continuously-updated Postgres catalog that
 ingests markets, events, and outcomes from every venue PMXT supports.
 When you search or match, you're querying this catalog — not fanning
-out to 11 different APIs.
+out to venue APIs.
 
 Matching uses embedding-based similarity and LLM-verified relation
 classification to find semantically equivalent markets across venues,

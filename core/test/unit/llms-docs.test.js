@@ -90,5 +90,9 @@ describe('LLMS docs generation', () => {
     expect(`${introduction}\n${routerOverview}\n${llmsIndex}\n${llmsFull}`).not.toContain(
       '8 more venues',
     );
+    expect(routerOverview).toContain('Results come from a shared catalog — ~10ms, not one call per venue.');
+    expect(llmsFull).toContain('Results come from a shared catalog — ~10ms, not one call per venue.');
+    expect(`${routerOverview}\n${llmsFull}`).not.toContain('11 sequential API calls');
+    expect(`${routerOverview}\n${llmsFull}`).not.toContain('11 different APIs');
   });
 });

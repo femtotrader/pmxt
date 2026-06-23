@@ -51,8 +51,7 @@ required for search, matching, or price analysis.
 <CardGroup cols={2}>
   <Card title="Cross-venue search" icon="magnifying-glass" href="/router/search">
     Search markets and events across every venue in a single query.
-    Results come from a shared catalog — ~10ms, not 11 sequential API
-    calls.
+    Results come from a shared catalog — ~10ms, not one call per venue.
   </Card>
   <Card title="Market matching" icon="link" href="/router/matching">
     Given a market on any venue, find the cluster of matching markets
@@ -82,7 +81,7 @@ required for search, matching, or price analysis.
 The Router is backed by a continuously-updated Postgres catalog that
 ingests markets, events, and outcomes from every venue PMXT supports.
 When you search or match, you're querying this catalog — not fanning
-out to 11 different APIs.
+out to venue APIs.
 
 Matching uses embedding-based similarity and LLM-verified relation
 classification to find semantically equivalent markets across venues,

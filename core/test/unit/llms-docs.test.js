@@ -103,6 +103,15 @@ describe('LLMS docs generation', () => {
     expect(`${introduction}\n${llmsFull}`).not.toContain('querying 11 APIs sequentially is slow');
     expect(introduction).toContain('querying venue APIs sequentially is slow');
     expect(llmsFull).toContain('querying venue APIs sequentially is slow');
+    expect(`${routerOverview}\n${llmsFull}`).not.toContain(
+      'ingests markets, events, and outcomes from every venue PMXT supports',
+    );
+    expect(routerOverview).toContain(
+      'ingests markets, events, and outcomes from the hosted catalog venues',
+    );
+    expect(llmsFull).toContain(
+      'ingests markets, events, and outcomes from the hosted catalog venues',
+    );
 
     expect(hostedWriteDocs).not.toContain('Self-hosted writes work on every venue PMXT supports');
     expect(hostedWriteDocs).not.toContain('| **Trading venues** | Polymarket, Opinion, Limitless | Every venue PMXT supports |');

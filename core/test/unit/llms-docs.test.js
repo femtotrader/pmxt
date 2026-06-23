@@ -52,6 +52,8 @@ describe('LLMS docs generation', () => {
     const routerPrices = fs.readFileSync(path.join(repoRoot, 'docs/router/prices.mdx'), 'utf8');
     const routerSearch = fs.readFileSync(path.join(repoRoot, 'docs/router/search.mdx'), 'utf8');
     const selfHosted = fs.readFileSync(path.join(repoRoot, 'docs/guides/self-hosted.mdx'), 'utf8');
+    const security = fs.readFileSync(path.join(repoRoot, 'docs/security.mdx'), 'utf8');
+    const apiErrors = fs.readFileSync(path.join(repoRoot, 'docs/api-reference/errors.mdx'), 'utf8');
     const tradingQuickstart = fs.readFileSync(path.join(repoRoot, 'docs/trading-quickstart.mdx'), 'utf8');
     const hostedTrading = fs.readFileSync(path.join(repoRoot, 'docs/concepts/hosted-trading.mdx'), 'utf8');
     const migrateToHostedTrading = fs.readFileSync(
@@ -65,6 +67,7 @@ describe('LLMS docs generation', () => {
     const rateLimits = fs.readFileSync(path.join(repoRoot, 'docs/rate-limits.mdx'), 'utf8');
     const hostedWriteDocs = `${selfHosted}\n${tradingQuickstart}\n${hostedTrading}\n${llmsFull}`;
     const hostedIdentifierDocs = `${hostedTrading}\n${migrateToHostedTrading}\n${llmsFull}`;
+    const hostedSecurityDocs = `${security}\n${apiErrors}\n${llmsFull}`;
     const predictionMarkets101Docs = `${predictionMarkets101}\n${llmsFull}`;
     const rateLimitDocs = `${rateLimits}\n${llmsFull}`;
     const fetchOhlcv = fs.readFileSync(path.join(repoRoot, 'docs/api-reference/fetch-ohlcv.mdx'), 'utf8');
@@ -197,6 +200,28 @@ describe('LLMS docs generation', () => {
     );
     expect(hostedIdentifierDocs).toContain(
       'Bare Polymarket `conditionId` / `tokenId` strings are not enough by themselves',
+    );
+    expect(hostedSecurityDocs).not.toContain('Catalog UUIDs, signatures, public wallet address');
+    expect(hostedSecurityDocs).not.toContain(
+      'with catalog UUIDs and parameters. No key, no signature yet.',
+    );
+    expect(hostedSecurityDocs).not.toContain(
+      "What PMXT's server receives on the wire: catalog UUIDs, your public wallet address, and the signature.",
+    );
+    expect(hostedSecurityDocs).not.toContain(
+      'you passed a **venue-native ID** to a hosted endpoint that expects a **catalog UUID**',
+    );
+    expect(hostedSecurityDocs).toContain(
+      'Outcome target, signatures, public wallet address',
+    );
+    expect(hostedSecurityDocs).toContain(
+      'with the outcome target and order parameters. The target is either a catalog UUID or a `venue` + `venue_outcome_id` pair.',
+    );
+    expect(hostedSecurityDocs).toContain(
+      "What PMXT's server receives on the wire: the outcome target, your public wallet address, and the signature.",
+    );
+    expect(hostedSecurityDocs).toContain(
+      'the backend could not resolve either a catalog UUID or a `venue` + `venue_outcome_id` pair',
     );
     expect(predictionMarkets101Docs).not.toContain(
       'venue-agnostic trading and read methods that work identically across every hosted venue',

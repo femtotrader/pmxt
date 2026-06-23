@@ -70,8 +70,9 @@ required for search, matching, or price analysis.
     prices and order books.
   </Card>
   <Card title="Compose with venues" icon="puzzle-piece" href="/router/prices#composing-with-venue-exchanges">
-    Use the Router for data, venue exchanges for trading. Same SDK,
-    same schema — `marketId` works everywhere.
+    Use the Router for data, venue exchanges for trading. Same SDK and
+    schema; catalog IDs for Router and hosted flows, venue-native IDs for
+    direct self-hosted writes.
   </Card>
 </CardGroup>
 
@@ -136,8 +137,9 @@ different framing.
 
 That's it. Everything the Router returns uses the same
 [unified schema](/concepts/unified-schema) as every other PMXT
-exchange, so you can pass a `marketId` from the Router straight into
-a venue exchange when you're ready to trade.
+exchange, but identifiers keep their address space: Router/catalog IDs
+work for Router and hosted flows, while direct self-hosted venue calls
+need IDs returned by that venue client.
 
 <Info>
   **Order routing is coming.** Today the Router is read-only. Smart order

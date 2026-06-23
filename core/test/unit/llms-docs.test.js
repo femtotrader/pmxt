@@ -74,6 +74,7 @@ describe('LLMS docs generation', () => {
     const ohlcvDocs = `${fetchOhlcv}\n${llmsFull}`;
     const routerScopeDocs = `${introduction}\n${quickstart}\n${routerOverview}\n${routerSearch}\n${llmsIndex}\n${llmsFull}`;
     const routerPriceScopeDocs = `${routerOverview}\n${routerPrices}\n${llmsFull}`;
+    const routerComposeDocs = `${introduction}\n${routerOverview}\n${routerPrices}\n${llmsFull}`;
     const topLevelTaglineDocs = `${introduction}\n${llmsIndex}\n${llmsFull}`;
     const introductionVenueScopeDocs = `${introduction}\n${llmsFull}`;
     const quickstartScopeDocs = `${quickstart}\n${llmsFull}`;
@@ -180,6 +181,18 @@ describe('LLMS docs generation', () => {
     expect(quickstart).toContain('per-venue capabilities');
     expect(routerPriceScopeDocs).not.toContain('Side-by-side bid/ask for the same market on every venue');
     expect(routerPriceScopeDocs).toContain('identity matches in the hosted catalog');
+    expect(routerComposeDocs).not.toContain('same `marketId`.');
+    expect(routerComposeDocs).not.toContain('same schema — `marketId` works everywhere');
+    expect(routerComposeDocs).not.toContain(
+      'so `marketId`, `outcomes`, and all other fields work interchangeably',
+    );
+    expect(routerComposeDocs).not.toContain(
+      'pass a `marketId` from the Router straight into\n' +
+        "a venue exchange when you're ready to trade",
+    );
+    expect(routerComposeDocs).toContain('catalog IDs for Router and hosted flows');
+    expect(routerComposeDocs).toContain('venue-native IDs for direct self-hosted writes');
+    expect(routerComposeDocs).toContain('identifiers keep their address space');
 
     expect(hostedWriteDocs).not.toContain('Self-hosted writes work on every venue PMXT supports');
     expect(hostedWriteDocs).not.toContain('| **Trading venues** | Polymarket, Opinion, Limitless | Every venue PMXT supports |');

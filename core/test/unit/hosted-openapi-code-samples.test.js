@@ -49,4 +49,26 @@ describe('Hosted OpenAPI SDK code samples', () => {
       expect(sample).not.toContain('balance.amount');
     }
   });
+
+  test('show build-submit samples with concrete outcome objects', () => {
+    const spec = JSON.parse(fs.readFileSync(hostedTradingSpecPath, 'utf8'));
+    const operation = getOperation(spec, 'submitOrderHosted');
+    const pythonSamples = getSamples(operation, 'python');
+    const typescriptSamples = getSamples(operation, 'javascript');
+
+    expect(pythonSamples.length).toBeGreaterThan(0);
+    expect(typescriptSamples.length).toBeGreaterThan(0);
+
+    for (const sample of pythonSamples) {
+      expect(sample).toContain('yes = next(o for o in market.outcomes');
+      expect(sample).toContain('outcome=yes');
+      expect(sample).not.toContain('outcome=market.yes');
+    }
+
+    for (const sample of typescriptSamples) {
+      expect(sample).toContain('const yes = market.outcomes.find(');
+      expect(sample).toContain('outcome: yes');
+      expect(sample).not.toContain('outcome: market.yes');
+    }
+  });
 });

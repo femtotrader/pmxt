@@ -147,4 +147,26 @@ describe('OpenAPI SDK code samples', () => {
       }
     });
   });
+
+  test('include outcome ids in submit-order build samples', () => {
+    withGeneratedSpec((spec) => {
+      const submitTypeScript = collectOperationSamples(spec, 'submitOrder', 'javascript');
+      const submitPython = collectOperationSamples(spec, 'submitOrder', 'python');
+
+      expect(submitTypeScript.length).toBeGreaterThan(0);
+      expect(submitPython.length).toBeGreaterThan(0);
+
+      for (const sample of submitTypeScript) {
+        expect(sample).toContain(
+          'const built = await exchange.buildOrder({ marketId: "12345", outcomeId: "67890"',
+        );
+      }
+
+      for (const sample of submitPython) {
+        expect(sample).toContain(
+          'built = exchange.build_order(market_id="12345", outcome_id="67890"',
+        );
+      }
+    });
+  });
 });

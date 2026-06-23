@@ -4125,182 +4125,182 @@
           {
             "lang": "python",
             "label": "Polymarket",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Polymarket(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n    proxy_address=\"YOUR_PROXY_ADDRESS\",\n    signature_type=\"gnosis-safe\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Polymarket(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n    proxy_address=\"YOUR_PROXY_ADDRESS\",\n    signature_type=\"gnosis-safe\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Limitless",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Limitless(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Limitless(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Kalshi",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Kalshi(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Kalshi(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "KalshiDemo",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.KalshiDemo(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.KalshiDemo(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Probable",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Probable(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Probable(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Baozi",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Baozi(\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Baozi(\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Myriad",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Myriad(\n    api_key=\"YOUR_API_KEY\",\n    wallet_address=\"YOUR_WALLET_ADDRESS\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Myriad(\n    api_key=\"YOUR_API_KEY\",\n    wallet_address=\"YOUR_WALLET_ADDRESS\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Opinion",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Opinion(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n    proxy_address=\"YOUR_PROXY_ADDRESS\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Opinion(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n    proxy_address=\"YOUR_PROXY_ADDRESS\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Metaculus",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Metaculus(\n    api_token=\"YOUR_API_TOKEN\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Metaculus(\n    api_token=\"YOUR_API_TOKEN\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Smarkets",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Smarkets(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Smarkets(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "PolymarketUS",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUS(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUS(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Hyperliquid",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Hyperliquid(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Hyperliquid(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "GeminiTitan",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.GeminiTitan(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.GeminiTitan(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "SuiBets",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.SuiBets()\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.SuiBets()\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Rain",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Rain(\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Rain(\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Hunch",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Hunch(\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Hunch(\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Mock",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Mock()\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Mock()\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
             "label": "Router",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Router()\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
+            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Router()\nbuilt = exchange.build_order(market_id=\"12345\", outcome_id=\"67890\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "javascript",
             "label": "Polymarket",
-            "source": "import { Polymarket } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Polymarket({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n  signatureType: \"gnosis-safe\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Polymarket } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Polymarket({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n  signatureType: \"gnosis-safe\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Limitless",
-            "source": "import { Limitless } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Limitless({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Limitless } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Limitless({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Kalshi",
-            "source": "import { Kalshi } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Kalshi({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Kalshi } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Kalshi({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "KalshiDemo",
-            "source": "import { KalshiDemo } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new KalshiDemo({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { KalshiDemo } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new KalshiDemo({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Probable",
-            "source": "import { Probable } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Probable({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Probable } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Probable({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Baozi",
-            "source": "import { Baozi } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Baozi({\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Baozi } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Baozi({\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Myriad",
-            "source": "import { Myriad } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Myriad({\n  apiKey: \"YOUR_API_KEY\",\n  walletAddress: \"YOUR_WALLET_ADDRESS\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Myriad } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Myriad({\n  apiKey: \"YOUR_API_KEY\",\n  walletAddress: \"YOUR_WALLET_ADDRESS\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Opinion",
-            "source": "import { Opinion } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Opinion({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Opinion } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Opinion({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Metaculus({\n  apiToken: \"YOUR_API_TOKEN\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Metaculus } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Metaculus({\n  apiToken: \"YOUR_API_TOKEN\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Smarkets",
-            "source": "import { Smarkets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Smarkets({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Smarkets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Smarkets({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "PolymarketUS",
-            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUS({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { PolymarketUS } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUS({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Hyperliquid({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Hyperliquid({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new GeminiTitan({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new GeminiTitan({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "SuiBets",
-            "source": "import { SuiBets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new SuiBets();\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { SuiBets } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new SuiBets();\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Rain",
-            "source": "import { Rain } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Rain({\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Rain } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Rain({\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Hunch",
-            "source": "import { Hunch } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Hunch({\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Hunch } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Hunch({\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Mock();\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Mock } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Mock();\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
             "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Router();\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
+            "source": "import { Router } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Router();\nconst built = await exchange.buildOrder({ marketId: \"12345\", outcomeId: \"67890\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           }
         ]
       }

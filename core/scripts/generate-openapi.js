@@ -512,11 +512,11 @@ const FULL_OVERRIDES = {
     },
     submitOrder: {
         pythonBody: [
-            'built = exchange.build_order(market_id="12345", side="buy", type="limit", amount=10, price=0.55)',
+            'built = exchange.build_order(market_id="12345", outcome_id="67890", side="buy", type="limit", amount=10, price=0.55)',
             'result = exchange.submit_order(built)',
         ],
         typescriptBody: [
-            'const built = await exchange.buildOrder({ marketId: "12345", side: "buy", type: "limit", amount: 10, price: 0.55 });',
+            'const built = await exchange.buildOrder({ marketId: "12345", outcomeId: "67890", side: "buy", type: "limit", amount: 10, price: 0.55 });',
             'const result = await exchange.submitOrder(built);',
         ],
     },

@@ -4020,8 +4020,9 @@ client = pmxt.Polymarket(
     private_key="0x...",    # any EVM key controlling that address
 )
 market = client.fetch_markets({"query": "trump 2028"})[0]
+yes = next(o for o in market.outcomes if o.label.lower() == "yes")
 built = client.build_order(
-    outcome=market.yes,
+    outcome=yes,
     side="buy",
     type="limit",
     amount=10,
@@ -4046,8 +4047,9 @@ const client = new Polymarket({
 });
 
 const [market] = await client.fetchMarkets({ query: "trump 2028" });
+const yes = market.outcomes.find((o) => o.label.toLowerCase() === "yes")!;
 const built = await client.buildOrder({
-  outcome: market.yes,
+  outcome: yes,
   side: "buy",
   type: "limit",
   amount: 10,

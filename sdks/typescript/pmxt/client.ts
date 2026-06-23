@@ -351,6 +351,7 @@ export abstract class Exchange {
     private _wsClient: SidecarWsClient | null = null;
     /** Sticky flag: true if the sidecar /ws endpoint is unavailable. */
     private _wsUnsupported: boolean = false;
+    private readonly _useSidecarLockBaseUrl: boolean;
 
     constructor(exchangeName: string, options: ExchangeOptions = {}) {
         this.exchangeName = exchangeName.toLowerCase();
@@ -370,6 +371,7 @@ export abstract class Exchange {
         const baseUrl = resolved.baseUrl;
         this.pmxtApiKey = resolved.pmxtApiKey;
         this.isHosted = resolved.isHosted;
+        this._useSidecarLockBaseUrl = !this.isHosted && !options.baseUrl;
 
         // Hosted trading bridge: if the caller passed a privateKey but no
         // explicit signer, lazily wrap it in an EthersSigner so that
@@ -417,16 +419,18 @@ export abstract class Exchange {
             try {
                 await this.serverManager.ensureServerRunning();
 
-                // Get the actual port the server is running on
-                // (may differ from default if default port was busy)
-                const actualPort = this.serverManager.getRunningPort();
-                const newBaseUrl = `http://localhost:${actualPort}`;
+                if (this._useSidecarLockBaseUrl) {
+                    // Get the actual port the server is running on
+                    // (may differ from default if default port was busy)
+                    const actualPort = this.serverManager.getRunningPort();
+                    const newBaseUrl = `http://localhost:${actualPort}`;
 
-                // Update API client with actual base URL
-                this.config = new Configuration({
-                    basePath: newBaseUrl,
-                });
-                this.api = new DefaultApi(this.config);
+                    // Update API client with actual base URL
+                    this.config = new Configuration({
+                        basePath: newBaseUrl,
+                    });
+                    this.api = new DefaultApi(this.config);
+                }
             } catch (error) {
                 const msg =
                     `Failed to start PMXT server: ${error instanceof Error ? error.message : error}\n\n` +
@@ -511,12 +515,12 @@ export abstract class Exchange {
     /**
      * Resolve the current sidecar base URL.
      *
-     * For hosted mode the configured basePath is returned as-is.
-     * For local mode the port is re-read from the lock file on every
-     * call so we pick up sidecar restarts that land on a different port.
+     * Hosted mode and explicit baseUrl clients keep the configured basePath.
+     * Default local clients re-read the lock-file port on every call so they
+     * pick up sidecar restarts that land on a different port.
      */
     private resolveBaseUrl(): string {
-        if (this.isHosted) return this.config.basePath;
+        if (this.isHosted || !this._useSidecarLockBaseUrl) return this.config.basePath;
         const port = this.serverManager.getRunningPort();
         return `http://localhost:${port}`;
     }

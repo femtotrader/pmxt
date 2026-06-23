@@ -52,6 +52,8 @@ describe('LLMS docs generation', () => {
     const tradingQuickstart = fs.readFileSync(path.join(repoRoot, 'docs/trading-quickstart.mdx'), 'utf8');
     const hostedTrading = fs.readFileSync(path.join(repoRoot, 'docs/concepts/hosted-trading.mdx'), 'utf8');
     const hostedWriteDocs = `${selfHosted}\n${tradingQuickstart}\n${hostedTrading}\n${llmsFull}`;
+    const fetchOhlcv = fs.readFileSync(path.join(repoRoot, 'docs/api-reference/fetch-ohlcv.mdx'), 'utf8');
+    const ohlcvDocs = `${fetchOhlcv}\n${llmsFull}`;
     const venueRows = Array.from(
       supportedVenues.matchAll(/^\| [^|]+ \| `[^`]+` \| `POST \/api\/[^`]+\/:method` \|$/gm),
     );
@@ -103,5 +105,11 @@ describe('LLMS docs generation', () => {
     expect(hostedWriteDocs).not.toContain('| **Trading venues** | Polymarket, Opinion, Limitless | Every venue PMXT supports |');
     expect(hostedWriteDocs).toContain('where the venue exposes writes');
     expect(hostedWriteDocs).toContain('Feature Support & Compliance');
+
+    expect(ohlcvDocs).not.toContain('Kalshi, Limitless, and more are coming soon');
+    expect(ohlcvDocs).not.toContain('Without an API key, OHLCV is limited to Polymarket');
+    expect(fetchOhlcv).toContain('venues whose implementation supports `fetchOHLCV`');
+    expect(fetchOhlcv).toContain('Feature Support & Compliance');
+    expect(llmsFull).toContain('venues whose implementation supports `fetchOHLCV`');
   });
 });

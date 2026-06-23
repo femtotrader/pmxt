@@ -12,7 +12,7 @@ Pick self-hosted if **any** of these apply:
 - **Sub-100ms latency** — local submission removes a network hop. Matters for latency-sensitive arb / market-making.
 - **Raw venue credentials** — Polymarket L2 API keys, Kalshi RSA, Smarkets session cookies. Hosted mode doesn't accept these.
 - **Regulatory custody** — you must be the direct counterparty with no intermediary in the custody path.
-- **Venues hosted mode can't write to yet** — hosted writes are Polymarket, Opinion, and Limitless. Self-hosted writes work on every venue PMXT supports (Kalshi, Smarkets, Probable, Myriad, Metaculus, etc.).
+- **Venues hosted mode can't write to yet** — hosted writes are Polymarket, Opinion, and Limitless. Self-hosted can use venue-native credentials where the venue exposes writes (Kalshi, Smarkets, Probable, Myriad, Metaculus, etc.); check [Feature Support & Compliance](https://github.com/pmxt-dev/pmxt/blob/main/core/COMPLIANCE.md) for per-venue support.
 - **OSS contribution** — you're hacking on `pmxt-core` itself.
 
 ## When hosted is still the better choice

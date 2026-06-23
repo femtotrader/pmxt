@@ -48,6 +48,10 @@ describe('LLMS docs generation', () => {
     const supportedVenues = fs.readFileSync(supportedVenuesPath, 'utf8');
     const introduction = fs.readFileSync(path.join(repoRoot, 'docs/introduction.mdx'), 'utf8');
     const routerOverview = fs.readFileSync(path.join(repoRoot, 'docs/router/overview.mdx'), 'utf8');
+    const selfHosted = fs.readFileSync(path.join(repoRoot, 'docs/guides/self-hosted.mdx'), 'utf8');
+    const tradingQuickstart = fs.readFileSync(path.join(repoRoot, 'docs/trading-quickstart.mdx'), 'utf8');
+    const hostedTrading = fs.readFileSync(path.join(repoRoot, 'docs/concepts/hosted-trading.mdx'), 'utf8');
+    const hostedWriteDocs = `${selfHosted}\n${tradingQuickstart}\n${hostedTrading}\n${llmsFull}`;
     const venueRows = Array.from(
       supportedVenues.matchAll(/^\| [^|]+ \| `[^`]+` \| `POST \/api\/[^`]+\/:method` \|$/gm),
     );
@@ -94,5 +98,10 @@ describe('LLMS docs generation', () => {
     expect(llmsFull).toContain('Results come from a shared catalog — ~10ms, not one call per venue.');
     expect(`${routerOverview}\n${llmsFull}`).not.toContain('11 sequential API calls');
     expect(`${routerOverview}\n${llmsFull}`).not.toContain('11 different APIs');
+
+    expect(hostedWriteDocs).not.toContain('Self-hosted writes work on every venue PMXT supports');
+    expect(hostedWriteDocs).not.toContain('| **Trading venues** | Polymarket, Opinion, Limitless | Every venue PMXT supports |');
+    expect(hostedWriteDocs).toContain('where the venue exposes writes');
+    expect(hostedWriteDocs).toContain('Feature Support & Compliance');
   });
 });

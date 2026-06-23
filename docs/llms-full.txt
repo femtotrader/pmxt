@@ -244,7 +244,7 @@ From a fresh `pmxt_api_key` to a confirmed position on Polymarket in under a min
 
 
 > **Note:**
-Hosted writes today: **Polymarket**, **Opinion**, and **Limitless**. Other venues are read-only via the hosted catalog; use [self-hosted](https://pmxt.dev/docs/guides/self-hosted) to trade them.
+Hosted writes today: **Polymarket**, **Opinion**, and **Limitless**. Other venues are read-only via the hosted catalog; use [self-hosted](https://pmxt.dev/docs/guides/self-hosted) for venue-native trading where the venue exposes writes. Check [Feature Support & Compliance](https://github.com/pmxt-dev/pmxt/blob/main/core/COMPLIANCE.md) for per-venue support.
 
 
 #### 1. Get an API key
@@ -553,8 +553,9 @@ withdraw mechanics. Hosted writes today: Polymarket, Opinion, and Limitless.
 
 ##### Self-hosted / direct venue credentials (advanced)
 
-When you run [pmxt-core locally](https://pmxt.dev/docs/guides/self-hosted), or when you need a
-venue that hosted writes don't yet support, you pass venue-native
+When you run [pmxt-core locally](https://pmxt.dev/docs/guides/self-hosted), or when you need
+venue-native trading where the venue exposes writes but hosted mode does
+not, you pass venue-native
 credentials (Polymarket private key, Kalshi RSA, Smarkets session, etc.)
 directly:
 
@@ -1159,12 +1160,12 @@ Self-hosted runs `pmxt-core` on your own machine; the SDK talks to `localhost`. 
 | **Writes** | `trade.pmxt.dev/v0/trade/{build,submit}-order` | Direct to the venue API |
 | **Custody** | Non-custodial: USDC in `PreFundedEscrow`, movable only against your EIP-712 signature | You retain venue-native custody |
 | **Latency** | ~150–300ms round-trip | Limited by venue + your network |
-| **Trading venues** | Polymarket, Opinion, Limitless | Every venue PMXT supports |
+| **Trading venues** | Polymarket, Opinion, Limitless | Venues with venue-native write support |
 | **Read-only venues** | All catalog venues via Router | All catalog venues via Router |
 | **Infra to run** | None | One local process |
 | **Regulatory posture** | Non-custodial escrow; user retains beneficial ownership and unilateral withdrawal | You as direct counterparty to the venue |
 
-Choose self-hosted when you need **sub-100ms latency**, want to use **raw venue credentials** (Polymarket L2 API keys, Kalshi RSA, Smarkets sessions), have **regulatory requirements** that mandate direct counterparty status with the venue, or want to **trade on venues not yet supported by hosted**. See [Self-hosted](https://pmxt.dev/docs/guides/self-hosted) for setup.
+Choose self-hosted when you need **sub-100ms latency**, want to use **raw venue credentials** (Polymarket L2 API keys, Kalshi RSA, Smarkets sessions), have **regulatory requirements** that mandate direct counterparty status with the venue, or want venue-native trading where the venue exposes writes but hosted mode does not. See [Self-hosted](https://pmxt.dev/docs/guides/self-hosted) for setup.
 
 #### What's supported today
 
@@ -1173,9 +1174,9 @@ Choose self-hosted when you need **sub-100ms latency**, want to use **raw venue 
 | Polymarket | Yes | Yes | Polygon escrow, CLOB exchange |
 | Opinion | Yes | Yes | Cross-chain (BSC settlement, dual-signature) |
 | Limitless | Yes | Yes | Polygon buy leg, Base pull-sell leg |
-| Kalshi, Smarkets, Probable, Myriad, Metaculus, etc. | No | Read-only via catalog | Use [self-hosted](https://pmxt.dev/docs/guides/self-hosted) for writes |
+| Kalshi, Smarkets, Probable, Myriad, Metaculus, etc. | No | Read-only via catalog | Use [self-hosted](https://pmxt.dev/docs/guides/self-hosted) for venue-native writes where supported; check [Feature Support & Compliance](https://github.com/pmxt-dev/pmxt/blob/main/core/COMPLIANCE.md) |
 
-If a venue you need isn't here, run pmxt-core locally and pass raw venue credentials — see [Self-hosted](https://pmxt.dev/docs/guides/self-hosted).
+If a venue you need isn't here and it exposes writes, run pmxt-core locally and pass raw venue credentials — see [Self-hosted](https://pmxt.dev/docs/guides/self-hosted).
 
 #### Next
 
@@ -2010,7 +2011,7 @@ Pick self-hosted if **any** of these apply:
 - **Sub-100ms latency** — local submission removes a network hop. Matters for latency-sensitive arb / market-making.
 - **Raw venue credentials** — Polymarket L2 API keys, Kalshi RSA, Smarkets session cookies. Hosted mode doesn't accept these.
 - **Regulatory custody** — you must be the direct counterparty with no intermediary in the custody path.
-- **Venues hosted mode can't write to yet** — hosted writes are Polymarket, Opinion, and Limitless. Self-hosted writes work on every venue PMXT supports (Kalshi, Smarkets, Probable, Myriad, Metaculus, etc.).
+- **Venues hosted mode can't write to yet** — hosted writes are Polymarket, Opinion, and Limitless. Self-hosted can use venue-native credentials where the venue exposes writes (Kalshi, Smarkets, Probable, Myriad, Metaculus, etc.); check [Feature Support & Compliance](https://github.com/pmxt-dev/pmxt/blob/main/core/COMPLIANCE.md) for per-venue support.
 - **OSS contribution** — you're hacking on `pmxt-core` itself.
 
 #### When hosted is still the better choice

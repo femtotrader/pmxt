@@ -218,7 +218,7 @@ Prediction markets are structured in a hierarchy to group related information.
 *   **Outcome**: The actual share you buy (e.g., *"Yes"* or *"No"*)
 
 ## Trading
-pmxt supports unified trading across exchanges. The hosted API is the default — see Quickstart above for the basic flow.
+pmxt supports unified trading where venues expose writes. Hosted trading is the default for supported hosted venues; self-host when you need raw venue credentials or another venue's write API.
 
 ### Hosted trading (recommended)
 

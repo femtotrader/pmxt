@@ -144,8 +144,13 @@ describe('Documentation copy-paste samples', () => {
     expect(readme).not.toContain(
       'Place orders across Polymarket, Kalshi, and Limitless with a single interface',
     );
+    expect(readme).not.toContain(
+      'pmxt supports unified trading across exchanges. The hosted API is the default',
+    );
     expect(readme).toContain('Polymarket, Opinion, and Limitless writes today');
     expect(readme).toContain('self-host for venue-native writes such as Kalshi where supported');
+    expect(readme).toContain('pmxt supports unified trading where venues expose writes');
+    expect(readme).toContain('self-host when you need raw venue credentials');
   });
 
   test('hosted limit-order docs do not carry stale SDK denom mismatch caveats', () => {

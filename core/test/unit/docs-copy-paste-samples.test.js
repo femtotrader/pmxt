@@ -109,4 +109,11 @@ describe('Documentation copy-paste samples', () => {
       expect(snippet).toContain('os.getenv');
     }
   });
+
+  test('root README TypeScript import guidance matches exported named classes', () => {
+    const readme = readDoc('readme.md');
+
+    expect(readme).toContain('import { Polymarket } from "pmxtjs";');
+    expect(readme).not.toContain('Named imports do not work in ESM');
+  });
 });

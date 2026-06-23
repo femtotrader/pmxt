@@ -178,7 +178,7 @@ order = trader.create_order(
 
 ### TypeScript
 
-> **Note:** Named imports do not work in ESM. Use `import pmxt from 'pmxtjs'` (default import) for the namespaced form, or import `Polymarket` from `pmxtjs` only via the CJS build.
+> **Import style:** Use named imports such as `import { Polymarket } from "pmxtjs"` for direct classes, or `import pmxt from "pmxtjs"` for the namespaced form.
 
 ```typescript
 import { Polymarket } from "pmxtjs";

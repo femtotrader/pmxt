@@ -5676,24 +5676,22 @@ Returns the list of available data feed providers.
 
 **Python:**
 ```python
-import pmxt
+import requests
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
+resp = requests.get(
+    "https://api.pmxt.dev/api/feeds",
+    headers={"Authorization": "Bearer YOUR_PMXT_API_KEY"},
 )
-result = exchange.feed_list()
+print(resp.json()["data"])
 ```
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
-
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
+const resp = await fetch("https://api.pmxt.dev/api/feeds", {
+  headers: { Authorization: "Bearer YOUR_PMXT_API_KEY" },
 });
-const result = await exchange.feedList();
+const { data } = await resp.json();
+console.log(data);
 ```
 
 
@@ -5711,24 +5709,23 @@ Returns all trading pairs supported by this feed.
 
 **Python:**
 ```python
-import pmxt
+from pmxt.feed_client import FeedClient
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.feed_load_markets()
+feed = FeedClient("chainlink", pmxt_api_key="YOUR_PMXT_API_KEY")
+markets = feed.load_markets()
+for symbol, market in markets.items():
+    print(symbol, market.base, market.quote)
 ```
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { FeedClient } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.feedLoadMarkets();
+const feed = new FeedClient("chainlink", { pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const markets = await feed.loadMarkets();
+for (const [symbol, market] of Object.entries(markets)) {
+  console.log(symbol, market.base, market.quote);
+}
 ```
 
 
@@ -5747,24 +5744,32 @@ Returns the latest ticker for a single symbol.
 
 **Python:**
 ```python
-import pmxt
+from pmxt.feed_client import FeedClient
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.feed_fetch_ticker(symbol="BTC-USD")
+# Chainlink oracle price
+feed = FeedClient("chainlink", pmxt_api_key="YOUR_PMXT_API_KEY")
+ticker = feed.fetch_ticker("BTC/USD")
+print(f"BTC/USD: ${ticker.last}")
+
+# Binance spot price
+feed = FeedClient("binance", pmxt_api_key="YOUR_PMXT_API_KEY")
+ticker = feed.fetch_ticker("BTC/USDT")
+print(f"BTC/USDT: ${ticker.last}")
 ```
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { FeedClient } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.feedFetchTicker({ symbol: "BTC-USD" });
+// Chainlink oracle price
+const chainlink = new FeedClient("chainlink", { pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const ticker = await chainlink.fetchTicker("BTC/USD");
+console.log(`BTC/USD: $${ticker.last}`);
+
+// Binance spot price
+const binance = new FeedClient("binance", { pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const btc = await binance.fetchTicker("BTC/USDT");
+console.log(`BTC/USDT: $${btc.last}`);
 ```
 
 
@@ -5783,24 +5788,23 @@ Returns the latest tickers for all symbols, or a filtered subset.
 
 **Python:**
 ```python
-import pmxt
+from pmxt.feed_client import FeedClient
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.feed_fetch_tickers(symbols="value")
+feed = FeedClient("chainlink", pmxt_api_key="YOUR_PMXT_API_KEY")
+tickers = feed.fetch_tickers()
+for symbol, ticker in tickers.items():
+    print(f"{symbol}: ${ticker.last}")
 ```
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { FeedClient } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.feedFetchTickers({ symbols: "value" });
+const feed = new FeedClient("chainlink", { pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const tickers = await feed.fetchTickers();
+for (const [symbol, ticker] of Object.entries(tickers)) {
+  console.log(`${symbol}: $${ticker.last}`);
+}
 ```
 
 
@@ -5822,34 +5826,23 @@ Returns OHLCV candle data for a symbol.
 
 **Python:**
 ```python
-import pmxt
+from pmxt.feed_client import FeedClient
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.feed_fetch_ohlcv(
-    symbol="BTC-USD",
-    timeframe="value",
-    since=1,
-    limit=10,
-)
+feed = FeedClient("binance", pmxt_api_key="YOUR_PMXT_API_KEY")
+candles = feed.fetch_ohlcv("BTC/USDT", timeframe="1m", since=1700000000000, limit=3)
+for timestamp, open_, high, low, close, volume in candles:
+    print(timestamp, close)
 ```
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { FeedClient } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.feedFetchOHLCV({
-  symbol: "BTC-USD",
-  timeframe: "value",
-  since: 1,
-  limit: 10,
-});
+const feed = new FeedClient("binance", { pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const candles = await feed.fetchOHLCV("BTC/USDT", "1m", 1700000000000, 3);
+for (const [timestamp, _open, _high, _low, close, _volume] of candles) {
+  console.log(timestamp, close);
+}
 ```
 
 
@@ -5869,24 +5862,25 @@ Returns the current order book for a symbol (where supported).
 
 **Python:**
 ```python
-import pmxt
+import requests
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
+resp = requests.get(
+    "https://api.pmxt.dev/api/feeds/binance/fetchOrderBook",
+    params={"symbol": "BTC/USDT", "limit": 10},
+    headers={"Authorization": "Bearer YOUR_PMXT_API_KEY"},
 )
-result = exchange.feed_fetch_order_book(symbol="BTC-USD", limit=10)
+book = resp.json()["data"]
+print(book["bids"][:3])
 ```
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
-
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
+const params = new URLSearchParams({ symbol: "BTC/USDT", limit: "10" });
+const resp = await fetch(`https://api.pmxt.dev/api/feeds/binance/fetchOrderBook?${params}`, {
+  headers: { Authorization: "Bearer YOUR_PMXT_API_KEY" },
 });
-const result = await exchange.feedFetchOrderBook({ symbol: "BTC-USD", limit: 10 });
+const { data: book } = await resp.json();
+console.log(book.bids.slice(0, 3));
 ```
 
 
@@ -5928,24 +5922,48 @@ Currently supports Binance feeds only. Tickers stream as they arrive from the Bi
 
 **Python:**
 ```python
-import pmxt
+import asyncio
+import json
+import websockets
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.feed_watch_ticker(symbol="BTC-USD")
+async def main():
+    url = "wss://api.pmxt.dev/ws?apiKey=YOUR_PMXT_API_KEY"
+    async with websockets.connect(url) as ws:
+        await ws.send(json.dumps({
+            "id": "btc-stream",
+            "action": "subscribe",
+            "method": "watchTicker",
+            "args": ["BTC/USDT"],
+            "feed": "binance",
+        }))
+        async for raw in ws:
+            msg = json.loads(raw)
+            if msg.get("event") == "data":
+                print(f'{msg["data"]["symbol"]}: ${msg["data"]["last"]}')
+
+asyncio.run(main())
 ```
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+const ws = new WebSocket("wss://api.pmxt.dev/ws?apiKey=YOUR_PMXT_API_KEY");
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.feedWatchTicker({ symbol: "BTC-USD" });
+ws.onopen = () => {
+  ws.send(JSON.stringify({
+    id: "btc-stream",
+    action: "subscribe",
+    method: "watchTicker",
+    args: ["BTC/USDT"],
+    feed: "binance",
+  }));
+};
+
+ws.onmessage = (e) => {
+  const msg = JSON.parse(e.data);
+  if (msg.event === "data") {
+    console.log(`${msg.data.symbol}: $${msg.data.last}`);
+  }
+};
 ```
 
 
@@ -5964,24 +5982,20 @@ Returns the latest Chainlink oracle round for a price feed.
 
 **Python:**
 ```python
-import pmxt
+from pmxt.feed_client import FeedClient
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.feed_fetch_oracle_round(feed="value")
+feed = FeedClient("chainlink", pmxt_api_key="YOUR_PMXT_API_KEY")
+round = feed.fetch_oracle_round("BTC/USD")
+print(f"Round {round.round_id}: ${round.answer} (decimals: {round.decimals})")
 ```
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { FeedClient } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.feedFetchOracleRound({ feed: "value" });
+const feed = new FeedClient("chainlink", { pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const round = await feed.fetchOracleRound("BTC/USD");
+console.log(`Round ${round.roundId}: $${round.answer}`);
 ```
 
 
@@ -6001,24 +6015,23 @@ Returns historical Chainlink oracle rounds for a price feed.
 
 **Python:**
 ```python
-import pmxt
+from pmxt.feed_client import FeedClient
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.feed_fetch_oracle_history(feed="value", limit=10)
+feed = FeedClient("chainlink", pmxt_api_key="YOUR_PMXT_API_KEY")
+rounds = feed.fetch_oracle_history("BTC/USD", limit=10)
+for r in rounds:
+    print(f"{r.round_id}: ${r.answer}")
 ```
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { FeedClient } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
-});
-const result = await exchange.feedFetchOracleHistory({ feed: "value", limit: 10 });
+const feed = new FeedClient("chainlink", { pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const rounds = await feed.fetchOracleHistory("BTC/USD", 10);
+for (const r of rounds) {
+  console.log(`${r.roundId}: $${r.answer}`);
+}
 ```
 
 
@@ -6041,36 +6054,26 @@ Returns historical price data as tickers within a time range.
 
 **Python:**
 ```python
-import pmxt
+from pmxt.feed_client import FeedClient
 
-# API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
-    pmxt_api_key="YOUR_PMXT_API_KEY",
-)
-result = exchange.feed_fetch_historical_prices(
-    symbol="BTC-USD",
-    from_timestamp=1,
-    until_timestamp=1,
-    max_size=1,
-    order="asc",
-)
+feed = FeedClient("chainlink", pmxt_api_key="YOUR_PMXT_API_KEY")
+prices = feed.fetch_historical_prices("BTC/USD", max_size=20, order="desc")
+for p in prices:
+    print(f"{p.datetime}: ${p.last}")
 ```
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { FeedClient } from "pmxtjs";
 
-// API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
-  pmxtApiKey: "YOUR_PMXT_API_KEY",
+const feed = new FeedClient("chainlink", { pmxtApiKey: "YOUR_PMXT_API_KEY" });
+const prices = await feed.fetchHistoricalPrices("BTC/USD", {
+  maxSize: 20,
+  order: "desc",
 });
-const result = await exchange.feedFetchHistoricalPrices({
-  symbol: "BTC-USD",
-  fromTimestamp: 1,
-  untilTimestamp: 1,
-  maxSize: 1,
-  order: "asc",
-});
+for (const p of prices) {
+  console.log(`${p.datetime}: $${p.last}`);
+}
 ```
 
 

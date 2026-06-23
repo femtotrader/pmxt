@@ -716,8 +716,8 @@ function injectCodeSamples(spec) {
                 newMethods[method] = op;
                 continue;
             }
-            const samples = generateCodeSamples(op.operationId, method, pathKey, op, spec)
-                || buildFeedCodeSamples(op.operationId);
+            const samples = buildFeedCodeSamples(op.operationId)
+                || generateCodeSamples(op.operationId, method, pathKey, op, spec);
             if (samples) {
                 newMethods[method] = { ...op, 'x-codeSamples': samples };
             } else {
@@ -2403,6 +2403,14 @@ function buildFeedCodeSamples(operationId) {
     feedFetchTickers: {
       python: 'from pmxt.feed_client import FeedClient\n\nfeed = FeedClient("chainlink", pmxt_api_key="YOUR_PMXT_API_KEY")\ntickers = feed.fetch_tickers()\nfor symbol, ticker in tickers.items():\n    print(f"{symbol}: ${ticker.last}")',
       typescript: 'import { FeedClient } from "pmxtjs";\n\nconst feed = new FeedClient("chainlink", { pmxtApiKey: "YOUR_PMXT_API_KEY" });\nconst tickers = await feed.fetchTickers();\nfor (const [symbol, ticker] of Object.entries(tickers)) {\n  console.log(`${symbol}: $${ticker.last}`);\n}',
+    },
+    feedFetchOHLCV: {
+      python: 'from pmxt.feed_client import FeedClient\n\nfeed = FeedClient("binance", pmxt_api_key="YOUR_PMXT_API_KEY")\ncandles = feed.fetch_ohlcv("BTC/USDT", timeframe="1m", since=1700000000000, limit=3)\nfor timestamp, open_, high, low, close, volume in candles:\n    print(timestamp, close)',
+      typescript: 'import { FeedClient } from "pmxtjs";\n\nconst feed = new FeedClient("binance", { pmxtApiKey: "YOUR_PMXT_API_KEY" });\nconst candles = await feed.fetchOHLCV("BTC/USDT", "1m", 1700000000000, 3);\nfor (const [timestamp, _open, _high, _low, close, _volume] of candles) {\n  console.log(timestamp, close);\n}',
+    },
+    feedFetchOrderBook: {
+      python: 'import requests\n\nresp = requests.get(\n    "https://api.pmxt.dev/api/feeds/binance/fetchOrderBook",\n    params={"symbol": "BTC/USDT", "limit": 10},\n    headers={"Authorization": "Bearer YOUR_PMXT_API_KEY"},\n)\nbook = resp.json()["data"]\nprint(book["bids"][:3])',
+      typescript: 'const params = new URLSearchParams({ symbol: "BTC/USDT", limit: "10" });\nconst resp = await fetch(`https://api.pmxt.dev/api/feeds/binance/fetchOrderBook?${params}`, {\n  headers: { Authorization: "Bearer YOUR_PMXT_API_KEY" },\n});\nconst { data: book } = await resp.json();\nconsole.log(book.bids.slice(0, 3));',
     },
     feedFetchOracleRound: {
       python: 'from pmxt.feed_client import FeedClient\n\nfeed = FeedClient("chainlink", pmxt_api_key="YOUR_PMXT_API_KEY")\nround = feed.fetch_oracle_round("BTC/USD")\nprint(f"Round {round.round_id}: ${round.answer} (decimals: {round.decimals})")',

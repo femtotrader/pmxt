@@ -31,6 +31,7 @@ function collectSampleClassNames(spec, language) {
         .filter((operation) => operation && typeof operation === 'object')
         .flatMap((operation) => operation['x-codeSamples'] || [])
         .filter((sample) => sample.lang === language)
+        .filter((sample) => !['Python', 'TypeScript'].includes(sample.label))
         .map((sample) => sample.label),
     ),
   ].sort();
@@ -217,6 +218,77 @@ describe('OpenAPI SDK code samples', () => {
           expect(sample).toContain('start="2026-01-01T00:00:00Z"');
           expect(sample).toContain('end="2026-01-31T00:00:00Z"');
         }
+      }
+    });
+  });
+
+  test('use curated FeedClient samples for data feed endpoints', () => {
+    withGeneratedSpec((spec) => {
+      const feedClientOperationIds = [
+        'feedLoadMarkets',
+        'feedFetchTicker',
+        'feedFetchTickers',
+        'feedFetchOHLCV',
+        'feedFetchOracleRound',
+        'feedFetchOracleHistory',
+        'feedFetchHistoricalPrices',
+      ];
+
+      for (const operationId of feedClientOperationIds) {
+        const typeScriptSamples = collectOperationSamples(spec, operationId, 'javascript');
+        const pythonSamples = collectOperationSamples(spec, operationId, 'python');
+
+        expect(typeScriptSamples.length).toBe(1);
+        expect(pythonSamples.length).toBe(1);
+        expect(typeScriptSamples[0]).toContain('FeedClient');
+        expect(pythonSamples[0]).toContain('FeedClient');
+        expect(typeScriptSamples[0]).not.toContain('exchange.feed');
+        expect(pythonSamples[0]).not.toContain('exchange.feed_');
+      }
+
+      const feedListTypeScript = collectOperationSamples(spec, 'feedList', 'javascript');
+      const feedListPython = collectOperationSamples(spec, 'feedList', 'python');
+      const orderBookTypeScript = collectOperationSamples(spec, 'feedFetchOrderBook', 'javascript');
+      const orderBookPython = collectOperationSamples(spec, 'feedFetchOrderBook', 'python');
+      const watchTickerTypeScript = collectOperationSamples(spec, 'feedWatchTicker', 'javascript');
+      const watchTickerPython = collectOperationSamples(spec, 'feedWatchTicker', 'python');
+
+      expect(feedListTypeScript).toEqual([
+        expect.stringContaining('fetch("https://api.pmxt.dev/api/feeds"'),
+      ]);
+      expect(feedListPython).toEqual([
+        expect.stringContaining('requests.get('),
+      ]);
+      expect(orderBookTypeScript).toEqual([
+        expect.stringContaining('/api/feeds/binance/fetchOrderBook'),
+      ]);
+      expect(orderBookPython).toEqual([
+        expect.stringContaining('/api/feeds/binance/fetchOrderBook'),
+      ]);
+      expect(watchTickerTypeScript).toEqual([
+        expect.stringContaining('new WebSocket("wss://api.pmxt.dev/ws?apiKey=YOUR_PMXT_API_KEY")'),
+      ]);
+      expect(watchTickerPython).toEqual([
+        expect.stringContaining('websockets.connect(url)'),
+      ]);
+
+      const allFeedSamples = [
+        ...feedClientOperationIds,
+        'feedList',
+        'feedFetchOrderBook',
+        'feedWatchTicker',
+      ].flatMap((operationId) => [
+        ...collectOperationSamples(spec, operationId, 'javascript'),
+        ...collectOperationSamples(spec, operationId, 'python'),
+      ]);
+
+      for (const sample of allFeedSamples) {
+        expect(sample).not.toContain('symbols="value"');
+        expect(sample).not.toContain('symbols: "value"');
+        expect(sample).not.toContain('timeframe="value"');
+        expect(sample).not.toContain('timeframe: "value"');
+        expect(sample).not.toContain('feed="value"');
+        expect(sample).not.toContain('feed: "value"');
       }
     });
   });

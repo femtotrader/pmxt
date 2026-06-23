@@ -2740,11 +2740,6 @@
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hunch(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    \"67890\",\n    limit=10,\n    params={\"outcome\": \"yes\"},\n)"
           },
           {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    \"67890\",\n    limit=10,\n    params={\"outcome\": \"yes\"},\n)"
-          },
-          {
             "lang": "javascript",
             "label": "Polymarket",
             "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook(\n  \"67890\",\n  10,\n  { outcome: \"yes\" },\n);"
@@ -2818,11 +2813,6 @@
             "lang": "javascript",
             "label": "Hunch",
             "source": "import { Hunch } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hunch({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook(\n  \"67890\",\n  10,\n  { outcome: \"yes\" },\n);"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook(\n  \"67890\",\n  10,\n  { outcome: \"yes\" },\n);"
           }
         ]
       }

@@ -147,6 +147,7 @@ describe('OpenAPI SDK code samples', () => {
     withGeneratedSpec((spec) => {
       expect(collectOperationSampleLabels(spec, 'loadMarkets')).not.toContain('Router');
       expect(collectOperationSampleLabels(spec, 'fetchBalance')).not.toContain('Router');
+      expect(collectOperationSampleLabels(spec, 'fetchOrderBook')).not.toContain('Router');
 
       const routerLabels = collectOperationSampleLabels(spec, 'fetchMarketMatches');
       expect(routerLabels).toEqual(['Router', 'Router']);

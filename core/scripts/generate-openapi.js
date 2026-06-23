@@ -48,7 +48,6 @@ const ROUTER_BACKED_SAMPLE_OPERATIONS = new Set([
     'fetchMarkets',
     'fetchEvents',
     'fetchSeries',
-    'fetchOrderBook',
 ]);
 
 function readCoreVersion() {

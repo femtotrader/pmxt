@@ -35,8 +35,8 @@ Get active markets from an exchange. This is the unified method for all market f
 - `limit`: Number of results (default: 20)
 - `offset`: Pagination offset
 - `sort`: 'volume' | 'liquidity' | 'newest'
-- `query`: Search text (replaces `searchMarkets`)
-- `slug`: Market slug or ticker (replaces `getMarketsBySlug`)
+- `query`: Search text
+- `slug`: Market slug or ticker
 
 ```typescript
 // 1. Fetch recent markets
@@ -45,13 +45,13 @@ const markets = await polymarket.fetchMarkets({
   sort: 'volume' 
 });
 
-// 2. Search by text (replaces searchMarkets)
+// 2. Search by text
 const results = await kalshi.fetchMarkets({ 
   query: 'Fed rates',
   limit: 10
 });
 
-// 3. Fetch by slug/ticker (replaces getMarketsBySlug)
+// 3. Fetch by slug/ticker
 const market = await polymarket.fetchMarkets({ 
   slug: 'who-will-trump-nominate-as-fed-chair'
 });
@@ -264,10 +264,10 @@ console.log(`Spread: ${(spread * 100).toFixed(2)}%`);
 
 ```typescript
 try {
-  const markets = await kalshi.getMarketsBySlug('INVALID-TICKER');
+  const market = await kalshi.fetchMarket({ slug: 'INVALID-TICKER' });
+  console.log(market.title);
 } catch (error) {
-  // Kalshi: "Event not found: INVALID-TICKER"
-  // Polymarket: Returns empty array []
+  // Throws MarketNotFound when no market matches the lookup
   console.error(error.message);
 }
 ```

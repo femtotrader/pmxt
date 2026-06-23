@@ -491,6 +491,14 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     );
   });
 
+  test('core API reference uses current market lookup methods', () => {
+    const coreApiReference = readDoc('core/API_REFERENCE.md');
+
+    expect(coreApiReference).not.toContain('getMarketsBySlug');
+    expect(coreApiReference).not.toContain('replaces searchMarkets');
+    expect(coreApiReference).toContain("const market = await kalshi.fetchMarket({ slug: 'INVALID-TICKER' });");
+  });
+
   test('SDK API references include account history and firehose methods', () => {
     const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
     const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');

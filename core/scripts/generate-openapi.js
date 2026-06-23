@@ -42,7 +42,7 @@ const DOCS_OPENAPI_OUT_PATH = path.join(
 const HOSTED_URL = process.env.HOSTED_PMXT_URL || 'https://api.pmxt.dev';
 const HOSTED_TITLE = 'PMXT Hosted API';
 const HOSTED_DESCRIPTION =
-    'One API for every prediction market. Cross-venue search in under 10ms, a single unified schema, and the complete venue surface from reads to trades.';
+    'One API for supported prediction markets. Hosted catalog search in under 10ms, a unified schema for supported venues, and venue-native trading where venues expose writes.';
 const INTERNAL_HOSTED_EXCHANGE_KEYS = new Set(['mock']);
 const EXAMPLE_EVM_ADDRESS = '0x1111111111111111111111111111111111111111';
 const ROUTER_BACKED_SAMPLE_OPERATIONS = new Set([

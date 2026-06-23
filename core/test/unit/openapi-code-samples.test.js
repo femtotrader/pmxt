@@ -97,6 +97,17 @@ function withGeneratedSpec(assertion) {
 }
 
 describe('OpenAPI SDK code samples', () => {
+  test('uses support-scoped hosted API description', () => {
+    withGeneratedSpec((spec) => {
+      const description = spec.info.description || '';
+
+      expect(description).not.toContain('One API for every prediction market');
+      expect(description).not.toContain('complete venue surface');
+      expect(description).toContain('One API for supported prediction markets');
+      expect(description).toContain('venue-native trading where venues expose writes');
+    });
+  });
+
   test('use SDK class names exported by TypeScript and Python packages', () => {
     withGeneratedSpec((spec) => {
       const typescriptExports = collectTypescriptExports(

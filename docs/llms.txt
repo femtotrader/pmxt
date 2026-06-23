@@ -1,6 +1,6 @@
 # PMXT
 
-> One API for every prediction market. Unified data, cross-venue search, and trading across Polymarket, Kalshi, Limitless, Smarkets, and 12 more venues.
+> One API for supported prediction markets. Unified data and hosted catalog search across Polymarket, Kalshi, Limitless, Smarkets, and 12 more venues. Trading where venues expose writes.
 
 Docs: https://pmxt.dev/docs
 API Base: https://api.pmxt.dev
@@ -9,7 +9,7 @@ GitHub: https://github.com/pmxt-dev/pmxt
 
 ## Pages
 
-- [Introduction](https://pmxt.dev/docs/introduction): One API for every prediction market. Unified data, cross-venue search, and trading.
+- [Introduction](https://pmxt.dev/docs/introduction): One API for supported prediction markets. Unified data, hosted catalog search, and venue-native trading where supported.
 - [Quickstart](https://pmxt.dev/docs/quickstart): API key to working code in 30 seconds.
 - [Trading Quickstart](https://pmxt.dev/docs/trading-quickstart): Place your first hosted trade in 60 seconds — API key, escrow deposit, market order.
 - [Authentication](https://pmxt.dev/docs/authentication): API keys, SDK setup, and venue credentials.

@@ -59,6 +59,7 @@ describe('LLMS docs generation', () => {
     const ohlcvDocs = `${fetchOhlcv}\n${llmsFull}`;
     const routerScopeDocs = `${introduction}\n${quickstart}\n${routerOverview}\n${routerSearch}\n${llmsIndex}\n${llmsFull}`;
     const routerPriceScopeDocs = `${routerOverview}\n${routerPrices}\n${llmsFull}`;
+    const topLevelTaglineDocs = `${introduction}\n${llmsIndex}\n${llmsFull}`;
     const venueRows = Array.from(
       supportedVenues.matchAll(/^\| [^|]+ \| `[^`]+` \| `POST \/api\/[^`]+\/:method` \|$/gm),
     );
@@ -98,6 +99,8 @@ describe('LLMS docs generation', () => {
     expect(routerOverview).toContain('hosted catalog venues');
     expect(llmsIndex).toContain(`Smarkets, and ${additionalVenuePhrase}.`);
     expect(llmsFull).toContain(`Smarkets, and ${additionalVenuePhrase}.`);
+    expect(topLevelTaglineDocs).not.toContain('One API for every prediction market');
+    expect(topLevelTaglineDocs).toContain('One API for supported prediction markets');
     expect(`${introduction}\n${routerOverview}\n${llmsIndex}\n${llmsFull}`).not.toContain(
       '8 more venues',
     );

@@ -4273,8 +4273,9 @@ client = pmxt.Polymarket(
     pmxt_api_key="YOUR_PMXT_API_KEY",
     wallet_address="0xYourWallet",
 )
-balance = client.fetch_balance()
-print(balance.amount, balance.currency)
+balances = client.fetch_balance()
+balance = balances[0]
+print(balance.available, balance.currency)
 
 ```
 
@@ -4288,8 +4289,8 @@ const client = new Polymarket({
   walletAddress: "0xYourWallet",
 });
 
-const balance = await client.fetchBalance();
-console.log(balance.amount, balance.currency);
+const balances = await client.fetchBalance();
+console.log(balances[0].available, balances[0].currency);
 
 ```
 

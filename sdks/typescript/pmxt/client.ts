@@ -3433,6 +3433,19 @@ export class Rain extends Exchange {
     }
 }
 
+
+/**
+ * Hunch exchange client.
+ *
+ * Hunch is a crypto-native prediction market. Reads are unauthenticated;
+ * trading requires an EVM private key.
+ */
+export class Hunch extends Exchange {
+    constructor(options: ExchangeOptions = {}) {
+        super("hunch", options);
+    }
+}
+
 /**
  * Mock exchange client.
  *

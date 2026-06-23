@@ -112,9 +112,15 @@ describe('Documentation copy-paste samples', () => {
 
   test('root README TypeScript import guidance matches exported named classes', () => {
     const readme = readDoc('readme.md');
+    const coreApiReference = readDoc('core/API_REFERENCE.md');
 
     expect(readme).toContain('import { Polymarket } from "pmxtjs";');
     expect(readme).not.toContain('Named imports do not work in ESM');
+    expect(coreApiReference).toContain("import { Polymarket, Kalshi } from 'pmxtjs';");
+    expect(coreApiReference).not.toContain('pmxt is currently CommonJS-only');
+    expect(coreApiReference).not.toContain(
+      "Named exports like `import { Polymarket } from 'pmxtjs'` will **not work** in ESM projects.",
+    );
   });
 
   test('hosted TypeScript trading snippets do not require unsafe any casts', () => {

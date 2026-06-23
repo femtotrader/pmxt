@@ -8,7 +8,14 @@ A unified interface for interacting with multiple prediction market exchanges (K
 npm install pmxtjs
 ```
 
-### Basic Import (CommonJS)
+### Import Styles
+
+```typescript
+import { Polymarket, Kalshi } from 'pmxtjs';
+
+const poly = new Polymarket();
+const kalshi = new Kalshi();
+```
 
 ```typescript
 import pmxt from 'pmxtjs';
@@ -16,24 +23,6 @@ import pmxt from 'pmxtjs';
 const poly = new pmxt.Polymarket();
 const kalshi = new pmxt.Kalshi();
 ```
-
-### Note for ESM Users
-
-**pmxt is currently CommonJS-only.** If you're using `"type": "module"` in your `package.json`, you have two options:
-
-**Option 1: Default import (recommended)**
-```typescript
-import pmxt from 'pmxtjs';
-const poly = new pmxt.Polymarket();
-```
-
-**Option 2: Dynamic import**
-```typescript
-const pmxt = await import('pmxtjs');
-const poly = new pmxt.default.Polymarket();
-```
-
-**Note**: Named exports like `import { Polymarket } from 'pmxtjs'` will **not work** in ESM projects.
 
 ---
 

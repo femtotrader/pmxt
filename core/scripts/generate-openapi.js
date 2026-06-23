@@ -43,6 +43,13 @@ const HOSTED_URL = process.env.HOSTED_PMXT_URL || 'https://api.pmxt.dev';
 const HOSTED_TITLE = 'PMXT Hosted API';
 const HOSTED_DESCRIPTION =
     'One API for every prediction market. Cross-venue search in under 10ms, a single unified schema, and the complete venue surface from reads to trades.';
+const INTERNAL_HOSTED_EXCHANGE_KEYS = new Set(['mock']);
+const ROUTER_BACKED_SAMPLE_OPERATIONS = new Set([
+    'fetchMarkets',
+    'fetchEvents',
+    'fetchSeries',
+    'fetchOrderBook',
+]);
 
 function readCoreVersion() {
     try {
@@ -95,6 +102,45 @@ function rewriteForHosted(spec, coreVersion) {
     // assignHostedTags() for API-only endpoints.
 
     return next;
+}
+
+function stripInternalHostedTargets(spec) {
+    const constructors = spec['x-sdk-constructors'];
+    const nextConstructors = constructors
+        ? Object.fromEntries(
+            Object.entries(constructors).filter(
+                ([wireKey]) => !INTERNAL_HOSTED_EXCHANGE_KEYS.has(wireKey)
+            )
+        )
+        : constructors;
+
+    const components = { ...(spec.components || {}) };
+    const parameters = { ...(components.parameters || {}) };
+    const exchangeParam = parameters.ExchangeParam;
+    const exchangeSchema = exchangeParam?.schema;
+    const filteredExchangeParam = Array.isArray(exchangeSchema?.enum)
+        ? {
+            ...exchangeParam,
+            schema: {
+                ...exchangeSchema,
+                enum: exchangeSchema.enum.filter(
+                    (wireKey) => !INTERNAL_HOSTED_EXCHANGE_KEYS.has(wireKey)
+                ),
+            },
+        }
+        : exchangeParam;
+
+    return {
+        ...spec,
+        ...(nextConstructors ? { 'x-sdk-constructors': nextConstructors } : {}),
+        components: {
+            ...components,
+            parameters: {
+                ...parameters,
+                ...(filteredExchangeParam ? { ExchangeParam: filteredExchangeParam } : {}),
+            },
+        },
+    };
 }
 
 // ---------------------------------------------------------------------------
@@ -436,6 +482,16 @@ function extractPostParamsSdk(operation, spec) {
 }
 
 const PARAM_OVERRIDES = {
+    fetchMarkets: [
+        { name: 'query', value: 'election' },
+        { name: 'limit', value: 10 },
+        { name: 'status', value: 'active' },
+    ],
+    fetchEvents: [
+        { name: 'query', value: 'election' },
+        { name: 'limit', value: 10 },
+        { name: 'status', value: 'active' },
+    ],
     fetchMarket: [{ name: 'marketId', value: '12345' }],
     fetchEvent: [{ name: 'eventId', value: '12345' }],
     fetchMarketsPaginated: [
@@ -658,6 +714,22 @@ function buildTsMethodCall(jsMethod, params) {
     return lines;
 }
 
+function shouldIncludeSdkSampleConstructor(wireKey, operationId) {
+    if (INTERNAL_HOSTED_EXCHANGE_KEYS.has(wireKey)) return false;
+    if (wireKey === 'router') {
+        return ROUTER_ONLY_OPERATIONS.has(operationId)
+            || ROUTER_BACKED_SAMPLE_OPERATIONS.has(operationId);
+    }
+    if (ROUTER_ONLY_OPERATIONS.has(operationId)) return false;
+    return true;
+}
+
+function getSdkSampleEntries(constructors, operationId) {
+    return Object.entries(constructors).filter(
+        ([wireKey]) => shouldIncludeSdkSampleConstructor(wireKey, operationId)
+    );
+}
+
 /**
  * Generate an x-codeSamples array for a single operation.
  * Returns undefined for healthCheck (no SDK equivalent).
@@ -666,7 +738,7 @@ function generateCodeSamples(operationId, httpMethod, pathKey, operation, spec) 
     if (!operationId || operationId === 'healthCheck') return undefined;
 
     const constructors = spec['x-sdk-constructors'] || FALLBACK_CONSTRUCTORS;
-    const exchangeEntries = Object.entries(constructors);
+    const exchangeEntries = getSdkSampleEntries(constructors, operationId);
 
     const params = PARAM_OVERRIDES[operationId]
         || (httpMethod === 'get'
@@ -795,8 +867,11 @@ function buildCapabilityMap() {
         metaculus: new pmxt.Metaculus(),
         smarkets: new pmxt.Smarkets(),
         polymarket_us: new pmxt.PolymarketUS(),
+        hyperliquid: new pmxt.Hyperliquid(),
+        'gemini-titan': new pmxt.GeminiTitan(),
         suibets: new pmxt.SuiBets(),
         rain: new pmxt.Rain(),
+        hunch: new pmxt.Hunch(),
         router: new pmxt.Router({ apiKey: '_' }),
     };
 
@@ -943,7 +1018,8 @@ function scopeExchangeParams(spec, capMap, { collapsePaths = true } = {}) {
  */
 function generateHostedDocsSpec(spec) {
     const coreVersion = readCoreVersion();
-    const rewritten = rewriteForHosted(spec, coreVersion);
+    const publicSpec = stripInternalHostedTargets(spec);
+    const rewritten = rewriteForHosted(publicSpec, coreVersion);
     const tagged = assignHostedTags(rewritten);
     const withNotices = injectCatalogNotices(tagged);
     const withSamples = injectCodeSamples(withNotices);

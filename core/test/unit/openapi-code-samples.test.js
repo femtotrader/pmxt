@@ -69,6 +69,18 @@ function collectOperationSamples(spec, operationId, language) {
     .map((sample) => sample.source);
 }
 
+function collectOperationSampleLabels(spec, operationId) {
+  return (getOperation(spec, operationId)['x-codeSamples'] || [])
+    .map((sample) => sample.label);
+}
+
+function collectAllCodeSamples(spec) {
+  return Object.values(spec.paths || {})
+    .flatMap((pathItem) => Object.values(pathItem || {}))
+    .filter((operation) => operation && typeof operation === 'object')
+    .flatMap((operation) => operation['x-codeSamples'] || []);
+}
+
 function withGeneratedSpec(assertion) {
   const snapshot = snapshotGeneratedFiles();
   try {
@@ -110,6 +122,45 @@ describe('OpenAPI SDK code samples', () => {
 
       expect(missingTypescript).toEqual([]);
       expect(missingPython).toEqual([]);
+    });
+  });
+
+  test('exclude internal Mock SDK constructors from public OpenAPI samples', () => {
+    withGeneratedSpec((spec) => {
+      const constructors = spec['x-sdk-constructors'] || {};
+      const samples = collectAllCodeSamples(spec);
+
+      expect(Object.keys(constructors)).not.toContain('mock');
+      expect(collectSampleClassNames(spec, 'javascript')).not.toContain('Mock');
+      expect(collectSampleClassNames(spec, 'python')).not.toContain('Mock');
+
+      for (const sample of samples) {
+        expect(sample.label).not.toBe('Mock');
+        expect(sample.source).not.toContain('pmxt.Mock');
+        expect(sample.source).not.toContain('import { Mock }');
+        expect(sample.source).not.toContain('new Mock');
+      }
+    });
+  });
+
+  test('reserve Router samples for router-backed OpenAPI operations', () => {
+    withGeneratedSpec((spec) => {
+      expect(collectOperationSampleLabels(spec, 'loadMarkets')).not.toContain('Router');
+      expect(collectOperationSampleLabels(spec, 'fetchBalance')).not.toContain('Router');
+
+      const routerLabels = collectOperationSampleLabels(spec, 'fetchMarketMatches');
+      expect(routerLabels).toEqual(['Router', 'Router']);
+    });
+  });
+
+  test('include current public read venues in market and event samples', () => {
+    withGeneratedSpec((spec) => {
+      const currentPublicVenues = ['Hyperliquid', 'GeminiTitan', 'Hunch'];
+      const marketLabels = collectOperationSampleLabels(spec, 'fetchMarkets');
+      const eventLabels = collectOperationSampleLabels(spec, 'fetchEvents');
+
+      expect(marketLabels).toEqual(expect.arrayContaining(currentPublicVenues));
+      expect(eventLabels).toEqual(expect.arrayContaining(currentPublicVenues));
     });
   });
 
@@ -167,6 +218,38 @@ describe('OpenAPI SDK code samples', () => {
         expect(sample).toContain(
           'built = exchange.build_order(market_id="12345", outcome_id="67890"',
         );
+      }
+    });
+  });
+
+  test('use curated examples for market and event list filters', () => {
+    withGeneratedSpec((spec) => {
+      const operationIds = ['fetchMarkets', 'fetchEvents'];
+
+      for (const operationId of operationIds) {
+        const typeScriptSamples = collectOperationSamples(spec, operationId, 'javascript');
+        const pythonSamples = collectOperationSamples(spec, operationId, 'python');
+
+        expect(typeScriptSamples.length).toBeGreaterThan(0);
+        expect(pythonSamples.length).toBeGreaterThan(0);
+
+        for (const sample of typeScriptSamples) {
+          expect(sample).toContain('query: "election"');
+          expect(sample).toContain('limit: 10');
+          expect(sample).not.toContain('sourceExchange: "value"');
+          expect(sample).not.toContain('series: "value"');
+          expect(sample).not.toContain('filter: "value"');
+          expect(sample).not.toContain('category: "value"');
+        }
+
+        for (const sample of pythonSamples) {
+          expect(sample).toContain('query="election"');
+          expect(sample).toContain('limit=10');
+          expect(sample).not.toContain('source_exchange="value"');
+          expect(sample).not.toContain('series="value"');
+          expect(sample).not.toContain('filter="value"');
+          expect(sample).not.toContain('category="value"');
+        }
       }
     });
   });

@@ -88,8 +88,11 @@ paths:
               - metaculus
               - smarkets
               - polymarket_us
+              - hyperliquid
+              - gemini-titan
               - suibets
               - rain
+              - hunch
               - router
           required: true
           description: The prediction market exchange to target.
@@ -306,8 +309,11 @@ paths:
               - metaculus
               - smarkets
               - polymarket_us
+              - hyperliquid
+              - gemini-titan
               - suibets
               - rain
+              - hunch
               - router
           required: true
           description: The prediction market exchange to target.
@@ -457,6 +463,7 @@ paths:
               - kalshi-demo
               - opinion
               - polymarket_us
+              - gemini-titan
               - router
           required: true
           description: The prediction market exchange to target.
@@ -750,7 +757,9 @@ paths:
               - baozi
               - myriad
               - opinion
+              - hyperliquid
               - rain
+              - hunch
           required: true
           description: The prediction market exchange to target.
         - in: query
@@ -819,8 +828,11 @@ paths:
               - opinion
               - smarkets
               - polymarket_us
+              - hyperliquid
+              - gemini-titan
               - suibets
               - rain
+              - hunch
               - router
           required: true
           description: The prediction market exchange to target.
@@ -899,6 +911,7 @@ paths:
               - polymarket
               - kalshi
               - kalshi-demo
+              - hyperliquid
           required: true
           description: The prediction market exchange to target.
       requestBody:
@@ -955,7 +968,9 @@ paths:
               - baozi
               - myriad
               - smarkets
+              - hyperliquid
               - rain
+              - hunch
           required: true
           description: The prediction market exchange to target.
         - in: query
@@ -1019,7 +1034,10 @@ paths:
               - metaculus
               - smarkets
               - polymarket_us
+              - hyperliquid
+              - gemini-titan
               - rain
+              - hunch
           required: true
           description: The prediction market exchange to target.
       requestBody:
@@ -1068,6 +1086,8 @@ paths:
               - opinion
               - smarkets
               - polymarket_us
+              - hyperliquid
+              - gemini-titan
               - rain
           required: true
           description: The prediction market exchange to target.
@@ -1119,6 +1139,8 @@ paths:
               - opinion
               - smarkets
               - polymarket_us
+              - hyperliquid
+              - gemini-titan
               - rain
           required: true
           description: The prediction market exchange to target.
@@ -1171,6 +1193,8 @@ paths:
               - metaculus
               - smarkets
               - polymarket_us
+              - hyperliquid
+              - gemini-titan
               - rain
           required: true
           description: The prediction market exchange to target.
@@ -1263,6 +1287,8 @@ paths:
               - opinion
               - smarkets
               - polymarket_us
+              - hyperliquid
+              - gemini-titan
               - rain
           required: true
           description: The prediction market exchange to target.
@@ -1305,6 +1331,7 @@ paths:
               - opinion
               - smarkets
               - polymarket_us
+              - hyperliquid
               - rain
           required: true
           description: The prediction market exchange to target.
@@ -1376,6 +1403,8 @@ paths:
               - limitless
               - opinion
               - smarkets
+              - hyperliquid
+              - gemini-titan
               - rain
           required: true
           description: The prediction market exchange to target.
@@ -1441,6 +1470,8 @@ paths:
               - limitless
               - opinion
               - smarkets
+              - hyperliquid
+              - gemini-titan
           required: true
           description: The prediction market exchange to target.
         - in: query
@@ -1510,8 +1541,11 @@ paths:
               - opinion
               - smarkets
               - polymarket_us
+              - hyperliquid
+              - gemini-titan
               - suibets
               - rain
+              - hunch
           required: true
           description: The prediction market exchange to target.
         - in: query
@@ -1553,7 +1587,9 @@ paths:
               - myriad
               - smarkets
               - polymarket_us
+              - hyperliquid
               - rain
+              - hunch
           required: true
           description: The prediction market exchange to target.
         - in: query

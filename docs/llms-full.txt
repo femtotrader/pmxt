@@ -3275,7 +3275,7 @@ Load and cache all markets from the exchange into `this.markets` and `this.marke
 import pmxt
 
 # API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.load_markets()
@@ -3283,10 +3283,10 @@ result = exchange.load_markets()
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
 // API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.loadMarkets();
@@ -3304,7 +3304,7 @@ Close all WebSocket connections and clean up resources. Call this when you're do
 import pmxt
 
 # API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.close()
@@ -3312,10 +3312,10 @@ result = exchange.close()
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
 // API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.close();
@@ -3470,7 +3470,7 @@ Paginated variant of {@link fetchEvents}. On the first call (no `cursor`), all e
 import pmxt
 
 # API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_events_paginated(limit=10, cursor="abc123")
@@ -3478,10 +3478,10 @@ result = exchange.fetch_events_paginated(limit=10, cursor="abc123")
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
 // API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchEventsPaginated({ limit: 10, cursor: "abc123" });
@@ -3729,7 +3729,7 @@ Fetch markets with cursor-based pagination backed by a stable in-memory snapshot
 import pmxt
 
 # API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_markets_paginated(limit=10, cursor="abc123")
@@ -3737,10 +3737,10 @@ result = exchange.fetch_markets_paginated(limit=10, cursor="abc123")
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
 // API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchMarketsPaginated({ limit: 10, cursor: "abc123" });
@@ -4700,7 +4700,7 @@ Batch variant of {@link fetchOrderBook}. Fetches order books for multiple outcom
 import pmxt
 
 # API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_order_books(["67890"])
@@ -4708,10 +4708,10 @@ result = exchange.fetch_order_books(["67890"])
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
 // API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchOrderBooks(["67890"]);
@@ -4738,7 +4738,7 @@ Fetch raw trade history for a specific outcome.
 import pmxt
 
 # API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.fetch_trades(
@@ -4751,10 +4751,10 @@ result = exchange.fetch_trades(
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
 // API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.fetchTrades({
@@ -4779,7 +4779,7 @@ Calculate the volume-weighted average execution price for a given order size. Re
 import pmxt
 
 # API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.get_execution_price(
@@ -4791,10 +4791,10 @@ result = exchange.get_execution_price(
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
 // API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.getExecutionPrice({
@@ -4818,7 +4818,7 @@ Calculate detailed execution price information including partial fill data.
 import pmxt
 
 # API key optional — enables faster catalog-backed lookups
-exchange = pmxt.Router(
+exchange = pmxt.Kalshi(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
 result = exchange.get_execution_price_detailed(
@@ -4830,10 +4830,10 @@ result = exchange.get_execution_price_detailed(
 
 **TypeScript:**
 ```typescript
-import { Router } from "pmxtjs";
+import { Kalshi } from "pmxtjs";
 
 // API key optional — enables faster catalog-backed lookups
-const exchange = new Router({
+const exchange = new Kalshi({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
 const result = await exchange.getExecutionPriceDetailed({

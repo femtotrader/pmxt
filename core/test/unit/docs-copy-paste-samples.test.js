@@ -8,16 +8,11 @@ function readDoc(relativePath) {
 }
 
 function getFencedBlocks(markdown, language) {
-  const blocks = [];
   const fencePattern = /```([^\n`]*)\n([\s\S]*?)```/g;
-  let match;
-  while ((match = fencePattern.exec(markdown))) {
-    const fenceLanguage = match[1].trim().split(/\s+/)[0].toLowerCase();
-    if (fenceLanguage === language) {
-      blocks.push(match[2]);
-    }
-  }
-  return blocks;
+
+  return Array.from(markdown.matchAll(fencePattern))
+    .filter((match) => match[1].trim().split(/\s+/)[0].toLowerCase() === language)
+    .map((match) => match[2]);
 }
 
 function findBlock(markdown, language, marker) {
@@ -59,6 +54,59 @@ describe('Documentation copy-paste samples', () => {
     for (const snippet of snippets) {
       expect(snippet).toContain('import pmxt');
       expect(snippet).toContain('pmxt.Polymarket');
+    }
+  });
+
+  test('standalone Python setup examples import pmxt before using the namespace', () => {
+    const introduction = readDoc('docs/introduction.mdx');
+    const configuration = readDoc('docs/api-reference/configuration.mdx');
+    const selfHosted = readDoc('docs/guides/self-hosted.mdx');
+    const signing = readDoc('docs/guides/signing.mdx');
+    const readme = readDoc('readme.md');
+    const pythonReadme = readDoc('sdks/python/README.md');
+    const snippets = [
+      findBlock(introduction, 'python', '# Self-hosted: SDK spawns pmxt-core on localhost'),
+      findBlock(introduction, 'python', 'router = pmxt.Router'),
+      findBlock(configuration, 'python', 'PMXT_BASE_URL'),
+      findBlock(configuration, 'python', '# Minimum hosted trading config:'),
+      findBlock(configuration, 'python', '# Self-hosted: no PMXT_API_KEY'),
+      findBlock(selfHosted, 'python', 'pmxt.server.start()'),
+      findBlock(selfHosted, 'python', 'pmxt.Limitless(private_key'),
+      findBlock(selfHosted, 'python', 'pmxt.Smarkets(email='),
+      findBlock(selfHosted, 'python', 'pmxt.Baozi(private_key='),
+      findBlock(selfHosted, 'python', 'kalshi = pmxt.Kalshi(api_key_id='),
+      findBlock(signing, 'python', 'read_only = pmxt.Polymarket'),
+      findBlock(signing, 'python', 'signer=my_custom_signer'),
+      findBlock(readme, 'python', "private_key=os.getenv('POLYMARKET_PRIVATE_KEY')"),
+      findBlock(readme, 'python', "api_key=os.getenv('KALSHI_API_KEY')"),
+      findBlock(readme, 'python', "api_key=os.getenv('LIMITLESS_API_KEY')"),
+      findBlock(pythonReadme, 'python', 'auto_start_server=False'),
+    ];
+
+    for (const snippet of snippets) {
+      expect(snippet).toContain('import pmxt');
+    }
+  });
+
+  test('standalone TypeScript direct-class examples import the class they instantiate', () => {
+    const signing = readDoc('docs/guides/signing.mdx');
+    const snippet = findBlock(signing, 'typescript', 'signer: myCustomSigner');
+
+    expect(snippet).toContain('import { Polymarket } from "pmxtjs";');
+    expect(snippet).toContain('new Polymarket');
+  });
+
+  test('standalone Python README self-hosted examples import os before getenv use', () => {
+    const readme = readDoc('readme.md');
+    const snippets = [
+      findBlock(readme, 'python', "private_key=os.getenv('POLYMARKET_PRIVATE_KEY')"),
+      findBlock(readme, 'python', "api_key=os.getenv('KALSHI_API_KEY')"),
+      findBlock(readme, 'python', "api_key=os.getenv('LIMITLESS_API_KEY')"),
+    ];
+
+    for (const snippet of snippets) {
+      expect(snippet).toContain('import os');
+      expect(snippet).toContain('os.getenv');
     }
   });
 });

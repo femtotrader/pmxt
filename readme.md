@@ -259,6 +259,9 @@ Use this when you self-host the local server. See [Self-hosted](#self-hosted) fo
 
 #### Polymarket
 ```python
+import os
+import pmxt
+
 exchange = pmxt.Polymarket(
     private_key=os.getenv('POLYMARKET_PRIVATE_KEY'),
     proxy_address=os.getenv('POLYMARKET_PROXY_ADDRESS'), # Optional: For proxy trading
@@ -268,7 +271,10 @@ exchange = pmxt.Polymarket(
 
 #### Kalshi
 ```python
- exchange = pmxt.Kalshi(
+import os
+import pmxt
+
+exchange = pmxt.Kalshi(
     api_key=os.getenv('KALSHI_API_KEY'),
     private_key=os.getenv('KALSHI_PRIVATE_KEY') # RSA Private Key
 )
@@ -276,6 +282,9 @@ exchange = pmxt.Polymarket(
 
 #### Limitless
 ```python
+import os
+import pmxt
+
 exchange = pmxt.Limitless(
     api_key=os.getenv('LIMITLESS_API_KEY'),
     private_key=os.getenv('LIMITLESS_PRIVATE_KEY') # For order signing (EIP-712)

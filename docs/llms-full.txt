@@ -59,6 +59,8 @@ print(m.title, m.outcomes[0].price)
 If you'd rather run pmxt-core yourself, drop the API key:
 
 ```python
+import pmxt
+
 # Self-hosted: SDK spawns pmxt-core on localhost
 poly = pmxt.Polymarket()
 ```
@@ -75,6 +77,8 @@ layer. Search, match, and compare prices across every venue — all from
 a single PMXT API key:
 
 ```python
+import pmxt
+
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 
 # Search every venue at once
@@ -1581,6 +1585,8 @@ The SDK signs both with the same EVM private key automatically — no extra wiri
 For reads (`fetch_balance`, `fetch_positions`, `fetch_my_trades`), no signature is required — the `pmxt_api_key` is enough. You can construct a hosted client with only `pmxt_api_key` and `wallet_address` and read hosted state for that wallet:
 
 ```python
+import pmxt
+
 read_only = pmxt.Polymarket(
 pmxt_api_key="pmxt_live_...",
 wallet_address="0xSomeOtherWallet...",
@@ -1602,6 +1608,8 @@ The signer protocol is one method: `sign_typed_data(typed_data: dict) -> hex` (P
 
 <CodeGroup>
 ```python Python
+import pmxt
+
 client = pmxt.Polymarket(
 pmxt_api_key="pmxt_live_...",
 wallet_address="0xYourWallet...",
@@ -1620,6 +1628,8 @@ slippage_pct=30.0,
 ```
 
 ```typescript TypeScript
+import { Polymarket } from "pmxtjs";
+
 const client = new Polymarket({
   pmxtApiKey: "pmxt_live_...",
   walletAddress: "0xYourWallet...",
@@ -2054,6 +2064,8 @@ The first call blocks briefly while the local server warms up; subsequent calls 
 For lifecycle control (start, stop, restart, status, logs), use the `server` namespace. See [Server Management](https://pmxt.dev/docs/sdk/server) for the full reference.
 
 ```python
+import pmxt
+
 pmxt.server.start()       # idempotent
 pmxt.server.health()      # bool
 pmxt.server.status()      # structured snapshot
@@ -2098,6 +2110,8 @@ private_key_pem="-----BEGIN RSA PRIVATE KEY-----\n...",
 ##### Limitless / Probable / Opinion (self-hosted) — EVM private key
 
 ```python
+import pmxt
+
 limitless = pmxt.Limitless(private_key="0x...")
 probable  = pmxt.Probable(private_key="0x...")
 opinion   = pmxt.Opinion(private_key="0x...")
@@ -2106,12 +2120,16 @@ opinion   = pmxt.Opinion(private_key="0x...")
 ##### Smarkets — email + password
 
 ```python
+import pmxt
+
 smarkets = pmxt.Smarkets(email="you@example.com", password="...")
 ```
 
 ##### Baozi — Solana keypair
 
 ```python
+import pmxt
+
 baozi = pmxt.Baozi(private_key="<base58 secret key>")
 ```
 
@@ -2137,6 +2155,8 @@ See [API Reference / Configuration](https://pmxt.dev/docs/api-reference/configur
 A single pmxt-core process can serve every venue. Construct multiple exchange clients against the same server — they all share the local process.
 
 ```python
+import pmxt
+
 poly = pmxt.Polymarket(private_key="0x...")
 kalshi = pmxt.Kalshi(api_key_id="...", private_key_pem="...")
 # Both clients reuse the same pmxt-core process at http://localhost:3847

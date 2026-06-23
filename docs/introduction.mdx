@@ -45,6 +45,8 @@ for m in markets:
 If you'd rather run pmxt-core yourself, drop the API key:
 
 ```python
+import pmxt
+
 # Self-hosted: SDK spawns pmxt-core on localhost
 poly = pmxt.Polymarket()
 ```
@@ -61,6 +63,8 @@ layer. Search, match, and compare prices across every venue — all from
 a single PMXT API key:
 
 ```python
+import pmxt
+
 router = pmxt.Router(pmxt_api_key="pmxt_live_...")
 
 # Search every venue at once

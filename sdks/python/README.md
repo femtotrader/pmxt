@@ -73,6 +73,8 @@ When you omit `pmxt_api_key`, the Python SDK manages the local PMXT service for 
 If you prefer to manage the server yourself:
 
 ```python
+import pmxt
+
 # Disable auto-start
 poly = pmxt.Polymarket(auto_start_server=False)
 

@@ -986,6 +986,7 @@ or `new pmxt.Polymarket({})` from the SDKs.
 | hyperliquid | `hyperliquid` | `POST /api/hyperliquid/:method` |
 | suibets | `suibets` | `POST /api/suibets/:method` |
 | rain | `rain` | `POST /api/rain/:method` |
+| hunch | `hunch` | `POST /api/hunch/:method` |
 | mock | `mock` | `POST /api/mock/:method` |
 | Router | `router` | `POST /api/router/:method` |
 

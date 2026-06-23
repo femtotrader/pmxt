@@ -453,7 +453,7 @@ async fetchOrderBooks(outcomeIds: string[]): Promise<Record<string, OrderBook>>
 **Example:**
 
 ```typescript
-await exchange.fetchOrderBooks("12345")
+await exchange.fetchOrderBooks(["12345"])
 ```
 
 
@@ -506,7 +506,14 @@ async createOrder(params: CreateOrderInput): Promise<Order>
 **Example:**
 
 ```typescript
-await exchange.createOrder()
+await exchange.createOrder({
+  marketId: "12345",
+  outcomeId: "abc123",
+  side: "buy",
+  type: "limit",
+  amount: 50,
+  price: 0.65
+})
 ```
 
 
@@ -531,7 +538,14 @@ async buildOrder(params: CreateOrderInput): Promise<BuiltOrder>
 **Example:**
 
 ```typescript
-await exchange.buildOrder()
+await exchange.buildOrder({
+  marketId: "12345",
+  outcomeId: "abc123",
+  side: "buy",
+  type: "limit",
+  amount: 50,
+  price: 0.65
+})
 ```
 
 
@@ -556,7 +570,15 @@ async submitOrder(built: BuiltOrder): Promise<Order>
 **Example:**
 
 ```typescript
-await exchange.submitOrder("...")
+const built = await exchange.buildOrder({
+  marketId: "12345",
+  outcomeId: "abc123",
+  side: "buy",
+  type: "limit",
+  amount: 50,
+  price: 0.65
+});
+await exchange.submitOrder(built)
 ```
 
 
@@ -841,7 +863,7 @@ async watchOrderBooks(outcomeIds: string[], limit?: number, params: Record<strin
 **Example:**
 
 ```typescript
-await exchange.watchOrderBooks("12345", "...", { limit: 10 })
+await exchange.watchOrderBooks(["12345"], "...", { limit: 10 })
 ```
 
 
@@ -2100,39 +2122,13 @@ side: string; // Order side: buy or sell.
 type: string; // Order type: market (execute immediately) or limit (resting at a price).
 amount: number; // Size of the order in contracts/shares.
 price?: number; // Required for limit orders
-denom?: string; // Hosted mode amount unit: usdc for market buys, shares for market sells and limit orders.
-slippage_pct?: number; // Hosted mode maximum market-order slippage percentage.
+denom?: string; // Hosted mode: amount unit.
+slippage_pct?: number; // Hosted mode: maximum market-order slippage percentage.
 fee?: number; // Optional fee rate (e.g., 1000 for 0.1%)
 tickSize?: number; // Optional override for Limitless/Polymarket
 negRisk?: boolean; // Optional override to skip neg-risk lookup (Polymarket)
 onBehalfOf?: number; // Limitless delegated signing: profile ID to trade on behalf of
 }
-```
-
----
-### `CreateOrderInput`
-
-`createOrder` and `buildOrder` accept either explicit `marketId` / `outcomeId`
-fields or an outcome object returned by `fetchMarkets`.
-
-```typescript
-type CreateOrderInput =
-  | (CreateOrderParams & { outcome?: never })
-  | {
-      outcome: MarketOutcome;
-      side: string;
-      type: string;
-      amount: number;
-      price?: number;
-      denom?: string;
-      slippage_pct?: number;
-      fee?: number;
-      tickSize?: number;
-      negRisk?: boolean;
-      onBehalfOf?: number;
-      marketId?: never;
-      outcomeId?: never;
-    };
 ```
 
 ---
@@ -2233,6 +2229,23 @@ category?: string; //
 limit?: number; // 
 relations?: string[]; // Comma-separated relation types to include (default: 'identity').
 }
+```
+
+---
+
+### `CreateOrderInput`
+
+`createOrder` and `buildOrder` accept either explicit `marketId` / `outcomeId`
+fields or an outcome object returned by `fetchMarkets`.
+
+```typescript
+type CreateOrderInput =
+  | (CreateOrderParams & { outcome?: never })
+  | (Omit<CreateOrderParams, 'marketId' | 'outcomeId'> & {
+      outcome: MarketOutcome;
+      marketId?: never;
+      outcomeId?: never;
+    });
 ```
 
 ---

@@ -244,7 +244,103 @@ const EXAMPLE_VALUES = {
     page: '1',
 };
 
-function getExampleValue(paramName, lang) {
+const PYTHON_METHOD_EXAMPLE_OVERRIDES = {
+    fetchOrderBooks: 'exchange.fetch_order_books(outcome_ids=["12345"])',
+    createOrder: [
+        'exchange.create_order(',
+        '    market_id="12345",',
+        '    outcome_id="abc123",',
+        '    side="buy",',
+        '    type="limit",',
+        '    amount=50,',
+        '    price=0.65,',
+        ')',
+    ].join('\n'),
+    buildOrder: [
+        'exchange.build_order(',
+        '    market_id="12345",',
+        '    outcome_id="abc123",',
+        '    side="buy",',
+        '    type="limit",',
+        '    amount=50,',
+        '    price=0.65,',
+        ')',
+    ].join('\n'),
+    submitOrder: [
+        'built = exchange.build_order(',
+        '    market_id="12345",',
+        '    outcome_id="abc123",',
+        '    side="buy",',
+        '    type="limit",',
+        '    amount=50,',
+        '    price=0.65,',
+        ')',
+        'exchange.submit_order(built)',
+    ].join('\n'),
+};
+
+const TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES = {
+    fetchOrderBooks: 'await exchange.fetchOrderBooks(["12345"])',
+    createOrder: [
+        'await exchange.createOrder({',
+        '  marketId: "12345",',
+        '  outcomeId: "abc123",',
+        '  side: "buy",',
+        '  type: "limit",',
+        '  amount: 50,',
+        '  price: 0.65',
+        '})',
+    ].join('\n'),
+    buildOrder: [
+        'await exchange.buildOrder({',
+        '  marketId: "12345",',
+        '  outcomeId: "abc123",',
+        '  side: "buy",',
+        '  type: "limit",',
+        '  amount: 50,',
+        '  price: 0.65',
+        '})',
+    ].join('\n'),
+    submitOrder: [
+        'const built = await exchange.buildOrder({',
+        '  marketId: "12345",',
+        '  outcomeId: "abc123",',
+        '  side: "buy",',
+        '  type: "limit",',
+        '  amount: 50,',
+        '  price: 0.65',
+        '});',
+        'await exchange.submitOrder(built)',
+    ].join('\n'),
+};
+
+const TYPESCRIPT_PARAM_TYPE_OVERRIDES = {
+    createOrder: { params: 'CreateOrderInput' },
+    buildOrder: { params: 'CreateOrderInput' },
+};
+
+const TYPESCRIPT_EXTRA_TYPES = [
+    {
+        name: 'CreateOrderInput',
+        description: [
+            '`createOrder` and `buildOrder` accept either explicit `marketId` / `outcomeId`',
+            'fields or an outcome object returned by `fetchMarkets`.',
+        ].join('\n'),
+        definition: [
+            'type CreateOrderInput =',
+            '  | (CreateOrderParams & { outcome?: never })',
+            "  | (Omit<CreateOrderParams, 'marketId' | 'outcomeId'> & {",
+            '      outcome: MarketOutcome;',
+            '      marketId?: never;',
+            '      outcomeId?: never;',
+            '    });',
+        ].join('\n'),
+    },
+];
+
+function getExampleValue(paramName, lang, type) {
+    if (type && type.endsWith('[]') && paramName.toLowerCase().includes('id')) return '["12345"]';
+
     const val = EXAMPLE_VALUES[paramName];
     if (val !== undefined) {
         // Handle language-specific values (e.g. booleans)
@@ -260,6 +356,9 @@ function getExampleValue(paramName, lang) {
 }
 
 function generatePythonExample(method) {
+    const override = PYTHON_METHOD_EXAMPLE_OVERRIDES[method.name];
+    if (override) return override;
+
     const pyName = toSnakeCase(method.name);
     const params = method.params || [];
 
@@ -277,7 +376,7 @@ function generatePythonExample(method) {
         if (subParams.length > 0) {
             var args = subParams.slice(0, 3).map(function(sp) {
                 var name = sp.name.replace('params.', '');
-                return toSnakeCase(name) + '=' + getExampleValue(name, 'py');
+                return toSnakeCase(name) + '=' + getExampleValue(name, 'py', sp.type);
             });
             return 'exchange.' + pyName + '(' + args.join(', ') + ')';
         }
@@ -286,16 +385,19 @@ function generatePythonExample(method) {
 
     var argParts = [];
     required.forEach(function(p) {
-        argParts.push(toSnakeCase(p.name) + '=' + getExampleValue(p.name, 'py'));
+        argParts.push(toSnakeCase(p.name) + '=' + getExampleValue(p.name, 'py', p.type));
     });
     optional.slice(0, 2).forEach(function(p) {
-        argParts.push(toSnakeCase(p.name) + '=' + getExampleValue(p.name, 'py'));
+        argParts.push(toSnakeCase(p.name) + '=' + getExampleValue(p.name, 'py', p.type));
     });
 
     return 'exchange.' + pyName + '(' + argParts.join(', ') + ')';
 }
 
 function generateTsExample(method) {
+    const override = TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES[method.name];
+    if (override) return override;
+
     var params = method.params || [];
 
     if (params.length === 0) {
@@ -311,7 +413,7 @@ function generateTsExample(method) {
         if (subParams.length > 0) {
             var fields = subParams.slice(0, 3).map(function(sp) {
                 var name = sp.name.replace('params.', '');
-                return name + ': ' + getExampleValue(name, 'ts');
+                return name + ': ' + getExampleValue(name, 'ts', sp.type);
             });
             return 'await exchange.' + method.name + '({ ' + fields.join(', ') + ' })';
         }
@@ -321,17 +423,30 @@ function generateTsExample(method) {
     // Multiple params: first required as positional, then optional as object
     var argParts = [];
     required.forEach(function(p) {
-        argParts.push(getExampleValue(p.name, 'ts'));
+        argParts.push(getExampleValue(p.name, 'ts', p.type));
     });
 
     if (optional.length > 0) {
         var optFields = optional.slice(0, 2).map(function(p) {
-            return p.name + ': ' + getExampleValue(p.name, 'ts');
+            return p.name + ': ' + getExampleValue(p.name, 'ts', p.type);
         });
         argParts.push('{ ' + optFields.join(', ') + ' }');
     }
 
     return 'await exchange.' + method.name + '(' + argParts.join(', ') + ')';
+}
+
+function applyTypeScriptMethodOverrides(method) {
+    const paramTypes = TYPESCRIPT_PARAM_TYPE_OVERRIDES[method.name];
+    if (!paramTypes) return method;
+
+    return {
+        ...method,
+        params: method.params.map(p => {
+            const type = paramTypes[p.name];
+            return type ? { ...p, type } : p;
+        }),
+    };
 }
 
 // --- Main Execution ---
@@ -346,7 +461,8 @@ const exchangeGroups = parseExchangeEndpoints();
 // Create a set of linkable types regardless of case for easier matching
 const linkableTypes = new Set([
     ...dataModels.map(m => m.name.toLowerCase()),
-    ...filterModels.map(m => m.name.toLowerCase())
+    ...filterModels.map(m => m.name.toLowerCase()),
+    ...TYPESCRIPT_EXTRA_TYPES.map(t => t.name.toLowerCase())
 ]);
 
 function linkify(type) {
@@ -357,41 +473,41 @@ function linkify(type) {
     return type;
 }
 
-Handlebars.registerHelper('pythonName', (name) => toSnakeCase(name));
+function scalarPythonType(type, includeLinks) {
+    const map = { string: 'str', number: 'float', integer: 'int', boolean: 'bool', any: 'Any' };
+    if (map[type]) return map[type];
+    return includeLinks ? linkify(type) : type;
+}
 
-Handlebars.registerHelper('pythonType', (type) => {
+function formatPythonType(type, includeLinks) {
     if (!type) return 'Any';
 
     // Handle Arrays: UnifiedMarket[] -> List[UnifiedMarket]
     if (type.endsWith('[]')) {
         const inner = type.slice(0, -2);
-        const linkedInner = linkify(inner);
-        return `List[${linkedInner}]`;
+        return `List[${scalarPythonType(inner, includeLinks)}]`;
     }
 
     // Handle Generics: Record<string, UnifiedMarket>
     if (type.startsWith('Record<')) {
-        // Simple regex to extract Key, Value from Record<Key, Value>
         const match = type.match(/^Record<(.+),\s*(.+)>/);
         if (match) {
             const [_, key, value] = match;
-            const map = { string: 'str', number: 'float', integer: 'int', boolean: 'bool', any: 'Any' };
-            const pyKey = map[key] || linkify(key);
-            const pyValue = map[value] || linkify(value);
-            return `Dict[${pyKey}, ${pyValue}]`;
+            return `Dict[${scalarPythonType(key, includeLinks)}, ${scalarPythonType(value, includeLinks)}]`;
         }
     }
 
-    const map = { string: 'str', number: 'float', integer: 'int', boolean: 'bool', any: 'Any' };
-    if (map[type]) return map[type];
+    return scalarPythonType(type, includeLinks);
+}
 
-    return linkify(type);
+Handlebars.registerHelper('pythonName', (name) => toSnakeCase(name));
+
+Handlebars.registerHelper('pythonType', (type) => {
+    return formatPythonType(type, true);
 });
 
 Handlebars.registerHelper('pythonTypeClean', (type) => {
-    let t = Handlebars.helpers.pythonType(type);
-    // Strip markdown links [Text](url) -> Text
-    return t.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+    return formatPythonType(type, false);
 });
 
 Handlebars.registerHelper('pythonParams', (params) => {
@@ -462,16 +578,20 @@ const tsTemplate = Handlebars.compile(
     { noEscape: true }
 );
 
-const tsMethods = methods.map(m => ({
-    ...m,
-    example: generateTsExample(m),
-    exchangeNote: m.exchangeOnly ? `> **Note**: This method is only available on **${m.exchangeOnly}** exchange.\n` : ''
-}));
+const tsMethods = methods.map(m => {
+    const method = applyTypeScriptMethodOverrides(m);
+    return {
+        ...method,
+        example: generateTsExample(method),
+        exchangeNote: method.exchangeOnly ? `> **Note**: This method is only available on **${method.exchangeOnly}** exchange.\n` : ''
+    };
+});
 
 const tsOut = tsTemplate({
     methods: tsMethods,
     dataModels,
     filterModels,
+    extraTypes: TYPESCRIPT_EXTRA_TYPES,
     exchangeGroups,
     workflowExample: config.workflowExample.typescript
 });

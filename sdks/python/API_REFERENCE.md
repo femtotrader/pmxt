@@ -161,7 +161,7 @@ Load and cache all markets from the exchange into `this.markets` and `this.marke
 **Signature:**
 
 ```python
-def load_markets(reload: bool) -> Dictstr, [UnifiedMarket]:
+def load_markets(reload: bool) -> Dict[str, UnifiedMarket]:
 ```
 
 **Parameters:**
@@ -438,19 +438,19 @@ Batch variant of {@link fetchOrderBook}. Fetches order books for
 **Signature:**
 
 ```python
-def fetch_order_books(outcome_ids: List[string]) -> Dictstr, [OrderBook]:
+def fetch_order_books(outcome_ids: List[str]) -> Dict[str, OrderBook]:
 ```
 
 **Parameters:**
 
-- `outcome_ids` (List[string]): List of Outcome IDs (outcomeId). Each id must be in the
+- `outcome_ids` (List[str]): List of Outcome IDs (outcomeId). Each id must be in the
 
 **Returns:** Dict[str, [OrderBook](#orderbook)] - A map keyed by the input id (preserving the caller's exact
 
 **Example:**
 
 ```python
-exchange.fetch_order_books(outcome_ids="12345")
+exchange.fetch_order_books(outcome_ids=["12345"])
 ```
 
 
@@ -503,7 +503,14 @@ def create_order(params: CreateOrderParams) -> Order:
 **Example:**
 
 ```python
-exchange.create_order()
+exchange.create_order(
+    market_id="12345",
+    outcome_id="abc123",
+    side="buy",
+    type="limit",
+    amount=50,
+    price=0.65,
+)
 ```
 
 
@@ -528,7 +535,14 @@ def build_order(params: CreateOrderParams) -> BuiltOrder:
 **Example:**
 
 ```python
-exchange.build_order()
+exchange.build_order(
+    market_id="12345",
+    outcome_id="abc123",
+    side="buy",
+    type="limit",
+    amount=50,
+    price=0.65,
+)
 ```
 
 
@@ -553,7 +567,15 @@ def submit_order(built: BuiltOrder) -> Order:
 **Example:**
 
 ```python
-exchange.submit_order(built="...")
+built = exchange.build_order(
+    market_id="12345",
+    outcome_id="abc123",
+    side="buy",
+    type="limit",
+    amount=50,
+    price=0.65,
+)
+exchange.submit_order(built)
 ```
 
 
@@ -824,12 +846,12 @@ Watch multiple order books simultaneously via WebSocket.
 **Signature:**
 
 ```python
-def watch_order_books(outcome_ids: List[string], limit: Optional[float] = None, params: Dict[str, Any]) -> Dictstr, [OrderBook]:
+def watch_order_books(outcome_ids: List[str], limit: Optional[float] = None, params: Dict[str, Any]) -> Dict[str, OrderBook]:
 ```
 
 **Parameters:**
 
-- `outcome_ids` (List[string]): Array of Outcome IDs to watch
+- `outcome_ids` (List[str]): Array of Outcome IDs to watch
 - `limit` (float) - **Optional**: Optional limit for orderbook depth
 - `params` (Dict[str, Any]): Optional exchange-specific parameters
 
@@ -838,7 +860,7 @@ def watch_order_books(outcome_ids: List[string], limit: Optional[float] = None, 
 **Example:**
 
 ```python
-exchange.watch_order_books(outcome_ids="12345", params="...", limit=10)
+exchange.watch_order_books(outcome_ids=["12345"], params="...", limit=10)
 ```
 
 
@@ -1483,7 +1505,7 @@ open_interest: float # Total value of outstanding contracts (USD).
 url: str # Canonical URL to view the market on the venue.
 image: str # Optional image URL for the market.
 category: str # Optional category label. Venue-defined — common values include "Sports", "Politics", "Crypto", "Economics", "Science", "Culture". Polymarket uses finer-grained categories like "Bitcoin", "Soccer", "Economic Policy"; Kalshi uses broader ones like "Sports" or "Mentions".
-tags: List[string] # Optional list of tags. More granular than category — e.g. ["Crypto", "Crypto Prices", "Bitcoin"] or ["Politics", "Elections", "Trump"]. Tags vary by venue: Polymarket markets carry several, Kalshi typically one.
+tags: List[str] # Optional list of tags. More granular than category — e.g. ["Crypto", "Crypto Prices", "Bitcoin"] or ["Politics", "Elections", "Trump"]. Tags vary by venue: Polymarket markets carry several, Kalshi typically one.
 tick_size: float # Minimum price increment (e.g., 0.01, 0.001)
 status: str # Venue-native lifecycle status (e.g. 'active', 'closed', 'archived').
 contract_address: str # On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.).
@@ -1529,7 +1551,7 @@ volume: float # Total / Lifetime volume (sum across markets; undefined if no mar
 url: str # Canonical URL to view the event on the venue.
 image: str # Optional image URL for the event.
 category: str # Optional category label. Venue-defined — common values include "Sports", "Politics", "Crypto", "Economics", "Science", "Culture". Polymarket uses finer-grained categories like "Bitcoin", "Soccer", "Economic Policy"; Kalshi uses broader ones like "Sports" or "Mentions".
-tags: List[string] # Optional list of tags. More granular than category — e.g. ["Sports", "FIFA World Cup", "2026 FIFA World Cup"] or ["Politics", "Geopolitics", "Middle East"]. Tags vary by venue: Polymarket markets carry several, Kalshi typically one.
+tags: List[str] # Optional list of tags. More granular than category — e.g. ["Sports", "FIFA World Cup", "2026 FIFA World Cup"] or ["Politics", "Geopolitics", "Middle East"]. Tags vary by venue: Polymarket markets carry several, Kalshi typically one.
 source_metadata: object # Raw venue-specific metadata not captured by first-class fields (e.g. Kalshi series_ticker / series_title, Polymarket series). Passed through verbatim so downstream consumers can recover anything the unified shape omits. Each venue populates what it has.
 source_exchange: str # The exchange/venue this event originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router.
 ```
@@ -1767,14 +1789,14 @@ expiry: float # Unix epoch (ms) when this built order expires server-side. Submi
 @dataclass
 class MarketFilterCriteria:
 text: str # 
-search_in: List[string] # Default: ['title']
+search_in: List[str] # Default: ['title']
 volume24h: object # 
 volume: object # Filter by total (lifetime) volume range
 liquidity: object # Filter by current liquidity range
 open_interest: object # Filter by open interest range
 resolution_date: object # 
 category: str # Filter by category. Common values: "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi).
-tags: List[string] # Match markets that have ANY of these tags. Examples: ["Crypto", "Crypto Prices"], ["Politics", "Elections"], ["Sports", "FIFA World Cup"].
+tags: List[str] # Match markets that have ANY of these tags. Examples: ["Crypto", "Crypto Prices"], ["Politics", "Elections"], ["Sports", "FIFA World Cup"].
 price: object # 
 price_change24h: object # 
 ```
@@ -1788,9 +1810,9 @@ price_change24h: object #
 @dataclass
 class EventFilterCriteria:
 text: str # 
-search_in: List[string] # Default: ['title']
+search_in: List[str] # Default: ['title']
 category: str # Filter by category. Common values: "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi).
-tags: List[string] # Match events that have ANY of these tags. Examples: ["Crypto"], ["Politics", "Geopolitics", "Middle East"], ["Sports", "FIFA World Cup"].
+tags: List[str] # Match events that have ANY of these tags. Examples: ["Crypto"], ["Politics", "Geopolitics", "Middle East"], ["Sports", "FIFA World Cup"].
 market_count: object # 
 total_volume: object # Sum of market volumes
 ```
@@ -2024,7 +2046,7 @@ slug: str # Lookup by event slug
 series: str # Filter events by their parent series. Accepts the venue-native series id / ticker / slug (e.g. Kalshi `"KXATPMATCH"`, Polymarket `"wta"`). Passed through to the vendor where supported, otherwise applied to `sourceMetadata` after fetch.
 filter: Any # Optional client-side filter applied after fetching
 category: str # Filter by category. Each event belongs to a venue-assigned category such as "Sports", "Politics", "Crypto", "Bitcoin", "Soccer", "Economic Policy" (Polymarket) or "Sports", "Mentions" (Kalshi).
-tags: List[string] # Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories -- for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump".
+tags: List[str] # Filter by tags. Returns events matching ANY of the provided tags. Tags are more specific than categories -- for example a "Politics" event might carry tags ["Politics", "Geopolitics", "Middle East", "Iran"]. Common tags include "Crypto", "Elections", "Fed Rates", "FIFA World Cup", "Trump".
 source_exchange: str # Filter by source venue (e.g. 'polymarket', 'kalshi', 'myriad'). `exchange` is an alias.
 exchange: str # Alias for `sourceExchange`.
 ```
@@ -2098,6 +2120,8 @@ side: str # Order side: buy or sell.
 type: str # Order type: market (execute immediately) or limit (resting at a price).
 amount: float # Size of the order in contracts/shares.
 price: float # Required for limit orders
+denom: str # Hosted mode: amount unit.
+slippage_pct: float # Hosted mode: maximum market-order slippage percentage.
 fee: float # Optional fee rate (e.g., 1000 for 0.1%)
 tick_size: float # Optional override for Limitless/Polymarket
 neg_risk: bool # Optional override to skip neg-risk lookup (Polymarket)
@@ -2187,7 +2211,7 @@ class FetchArbitrageParams:
 min_spread: float # 
 category: str # 
 limit: float # 
-relations: List[string] # Comma-separated relation types to include (default: 'identity').
+relations: List[str] # Comma-separated relation types to include (default: 'identity').
 ```
 
 ---
@@ -2201,7 +2225,7 @@ class FetchMatchedMarketsParams:
 min_difference: float # 
 category: str # 
 limit: float # 
-relations: List[string] # Comma-separated relation types to include (default: 'identity').
+relations: List[str] # Comma-separated relation types to include (default: 'identity').
 ```
 
 ---

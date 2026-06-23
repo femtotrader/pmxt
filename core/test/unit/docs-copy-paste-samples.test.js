@@ -163,4 +163,68 @@ describe('Documentation copy-paste samples', () => {
     expect(typescriptApiReference).toContain('type CreateOrderInput =');
     expect(typescriptApiReference).toContain('outcome: MarketOutcome;');
   });
+
+  test('SDK API reference order examples include runnable parameters', () => {
+    const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
+    const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');
+
+    expect(typescriptApiReference).not.toContain('await exchange.fetchOrderBooks("12345")');
+    expect(typescriptApiReference).not.toContain('await exchange.createOrder()');
+    expect(typescriptApiReference).not.toContain('await exchange.buildOrder()');
+    expect(typescriptApiReference).not.toContain('await exchange.submitOrder("...")');
+    expect(typescriptApiReference).not.toContain(
+      'async createOrder(params: CreateOrderParams): Promise<Order>',
+    );
+    expect(typescriptApiReference).not.toContain(
+      'async buildOrder(params: CreateOrderParams): Promise<BuiltOrder>',
+    );
+
+    expect(pythonApiReference).not.toContain('exchange.fetch_order_books(outcome_ids="12345")');
+    expect(pythonApiReference).not.toContain('exchange.create_order()');
+    expect(pythonApiReference).not.toContain('exchange.build_order()');
+    expect(pythonApiReference).not.toContain('exchange.submit_order(built="...")');
+    expect(pythonApiReference).not.toContain('List[string]');
+    expect(pythonApiReference).not.toContain('Dictstr, [OrderBook]');
+
+    expect(typescriptApiReference).toContain('await exchange.fetchOrderBooks(["12345"])');
+    expect(typescriptApiReference).toContain(`await exchange.createOrder({
+  marketId: "12345",
+  outcomeId: "abc123",
+  side: "buy",
+  type: "limit",
+  amount: 50,
+  price: 0.65
+})`);
+    expect(typescriptApiReference).toContain(`const built = await exchange.buildOrder({
+  marketId: "12345",
+  outcomeId: "abc123",
+  side: "buy",
+  type: "limit",
+  amount: 50,
+  price: 0.65
+});
+await exchange.submitOrder(built)`);
+
+    expect(pythonApiReference).toContain('exchange.fetch_order_books(outcome_ids=["12345"])');
+    expect(pythonApiReference).toContain(
+      'def fetch_order_books(outcome_ids: List[str]) -> Dict[str, OrderBook]:',
+    );
+    expect(pythonApiReference).toContain(`exchange.create_order(
+    market_id="12345",
+    outcome_id="abc123",
+    side="buy",
+    type="limit",
+    amount=50,
+    price=0.65,
+)`);
+    expect(pythonApiReference).toContain(`built = exchange.build_order(
+    market_id="12345",
+    outcome_id="abc123",
+    side="buy",
+    type="limit",
+    amount=50,
+    price=0.65,
+)
+exchange.submit_order(built)`);
+  });
 });

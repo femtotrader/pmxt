@@ -196,6 +196,18 @@ interface {{this.name}} {
 ---
 {{/each}}
 
+{{#each extraTypes}}
+### `{{this.name}}`
+
+{{this.description}}
+
+```typescript
+{{this.definition}}
+```
+
+---
+{{/each}}
+
 ## Low-Level API Reference
 
 Advanced: call exchange-specific REST endpoints directly via `exchange.callApi(name, params)`.

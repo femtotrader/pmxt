@@ -60,6 +60,7 @@ describe('LLMS docs generation', () => {
     const routerScopeDocs = `${introduction}\n${quickstart}\n${routerOverview}\n${routerSearch}\n${llmsIndex}\n${llmsFull}`;
     const routerPriceScopeDocs = `${routerOverview}\n${routerPrices}\n${llmsFull}`;
     const topLevelTaglineDocs = `${introduction}\n${llmsIndex}\n${llmsFull}`;
+    const introductionVenueScopeDocs = `${introduction}\n${llmsFull}`;
     const venueRows = Array.from(
       supportedVenues.matchAll(/^\| [^|]+ \| `[^`]+` \| `POST \/api\/[^`]+\/:method` \|$/gm),
     );
@@ -101,6 +102,16 @@ describe('LLMS docs generation', () => {
     expect(llmsFull).toContain(`Smarkets, and ${additionalVenuePhrase}.`);
     expect(topLevelTaglineDocs).not.toContain('One API for every prediction market');
     expect(topLevelTaglineDocs).toContain('One API for supported prediction markets');
+    expect(introductionVenueScopeDocs).not.toContain('Same methods, same response shape, every venue');
+    expect(introductionVenueScopeDocs).not.toContain(
+      "`create_order`, `fetch_positions` work identically whether you're on",
+    );
+    expect(introductionVenueScopeDocs).not.toContain(
+      'open, resolve, and re-price across every venue',
+    );
+    expect(introductionVenueScopeDocs).toContain('support varying by venue');
+    expect(introductionVenueScopeDocs).toContain('where the venue implements them');
+    expect(introductionVenueScopeDocs).toContain('across supported venues');
     expect(`${introduction}\n${routerOverview}\n${llmsIndex}\n${llmsFull}`).not.toContain(
       '8 more venues',
     );

@@ -100,9 +100,9 @@ top_clusters = router.fetch_matched_market_clusters(sort="volume", min_venues=2,
 
 #### Unified venue interface
 
-Same methods, same response shape, every venue. `fetch_markets`,
-`create_order`, `fetch_positions` work identically whether you're on
-Polymarket or Kalshi.
+Same method names, same response shapes, with support varying by venue.
+`fetch_markets`, `create_order`, and `fetch_positions` use the unified
+schema where the venue implements them.
 
 
   - **[Unified schema](https://pmxt.dev/docs/concepts/unified-schema)** — `Event` / `Market` / `Outcome` — the shape that works everywhere.
@@ -117,7 +117,7 @@ Without PMXT, getting cross-venue prediction market data means:
   names, and rate limits. Polymarket uses CLOB token IDs. Kalshi uses
   tickers. Smarkets uses contract IDs. You normalize all of it.
 - **A data pipeline** — to ingest, deduplicate, and keep fresh as markets
-  open, resolve, and re-price across every venue.
+  open, resolve, and re-price across supported venues.
 - **A search layer** — because querying venue APIs sequentially is slow.
 - **Ongoing maintenance** — every time a venue changes a field name or
   ships a new endpoint, your integration breaks.

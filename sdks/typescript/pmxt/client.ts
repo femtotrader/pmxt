@@ -52,7 +52,7 @@ import {
 import { ServerManager } from "./server-manager.js";
 import { buildArgsWithOptionalOptions } from "./args.js";
 import { PmxtError, fromServerError, InvalidOrder, NotSupported } from "./errors.js";
-import { LOCAL_URL, resolvePmxtBaseUrl } from "./constants.js";
+import { ENV, LOCAL_URL, resolvePmxtBaseUrl } from "./constants.js";
 import { SidecarWsClient } from "./ws-client.js";
 import { logger } from "./logger.js";
 
@@ -371,7 +371,11 @@ export abstract class Exchange {
         const baseUrl = resolved.baseUrl;
         this.pmxtApiKey = resolved.pmxtApiKey;
         this.isHosted = resolved.isHosted;
-        this._useSidecarLockBaseUrl = !this.isHosted && !options.baseUrl;
+        const hasBaseUrlOverride = Boolean(
+            options.baseUrl ||
+            (typeof process !== "undefined" && process.env[ENV.BASE_URL]),
+        );
+        this._useSidecarLockBaseUrl = !this.isHosted && !hasBaseUrlOverride;
 
         // Hosted trading bridge: if the caller passed a privateKey but no
         // explicit signer, lazily wrap it in an EthersSigner so that

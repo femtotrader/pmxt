@@ -2263,7 +2263,7 @@ required for search, matching, or price analysis.
 
   - **[Cross-venue search](https://pmxt.dev/docs/router/search)** — Search markets and events across the hosted catalog in a single query. Results come from a shared catalog — ~10ms, not one call per venue.
   - **[Market matching](https://pmxt.dev/docs/router/matching)** — Given a market on any venue, find the cluster of matching markets across other venues. Each cluster has relation types and confidence scores.
-  - **[Price comparison](https://pmxt.dev/docs/router/prices#comparemarketprices)** — Side-by-side bid/ask for the same market on every venue. See where it's cheapest to buy and where it pays the most to sell.
+  - **[Price comparison](https://pmxt.dev/docs/router/prices#comparemarketprices)** — Side-by-side bid/ask for identity matches in the hosted catalog. See where it's cheapest to buy and where it pays the most to sell.
   - **[Related markets](https://pmxt.dev/docs/router/prices#fetchrelatedmarkets)** — Find markets whose resolution conditions are subsets or supersets of a target market — narrower or broader markets on other venues.
   - **[Matched markets](https://pmxt.dev/docs/router/prices#fetchmatchedmarketclusters)** — Browse matched market clusters across venues, then inspect venue prices and order books.
   - **[Compose with venues](https://pmxt.dev/docs/router/prices#composing-with-venue-exchanges)** — Use the Router for data, venue exchanges for trading. Same SDK, same schema — `marketId` works everywhere.
@@ -2930,7 +2930,7 @@ price helpers or venue exchanges to inspect executable bid/ask data.
 
 #### compareMarketPrices
 
-Side-by-side bid/ask for the same market on every venue.
+Side-by-side bid/ask for identity matches in the hosted catalog.
 
 This returns a flat side-by-side view for one anchored market. For
 cluster-first discovery across the whole catalog, use

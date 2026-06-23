@@ -49,6 +49,7 @@ describe('LLMS docs generation', () => {
     const introduction = fs.readFileSync(path.join(repoRoot, 'docs/introduction.mdx'), 'utf8');
     const quickstart = fs.readFileSync(path.join(repoRoot, 'docs/quickstart.mdx'), 'utf8');
     const routerOverview = fs.readFileSync(path.join(repoRoot, 'docs/router/overview.mdx'), 'utf8');
+    const routerPrices = fs.readFileSync(path.join(repoRoot, 'docs/router/prices.mdx'), 'utf8');
     const routerSearch = fs.readFileSync(path.join(repoRoot, 'docs/router/search.mdx'), 'utf8');
     const selfHosted = fs.readFileSync(path.join(repoRoot, 'docs/guides/self-hosted.mdx'), 'utf8');
     const tradingQuickstart = fs.readFileSync(path.join(repoRoot, 'docs/trading-quickstart.mdx'), 'utf8');
@@ -57,6 +58,7 @@ describe('LLMS docs generation', () => {
     const fetchOhlcv = fs.readFileSync(path.join(repoRoot, 'docs/api-reference/fetch-ohlcv.mdx'), 'utf8');
     const ohlcvDocs = `${fetchOhlcv}\n${llmsFull}`;
     const routerScopeDocs = `${introduction}\n${quickstart}\n${routerOverview}\n${routerSearch}\n${llmsIndex}\n${llmsFull}`;
+    const routerPriceScopeDocs = `${routerOverview}\n${routerPrices}\n${llmsFull}`;
     const venueRows = Array.from(
       supportedVenues.matchAll(/^\| [^|]+ \| `[^`]+` \| `POST \/api\/[^`]+\/:method` \|$/gm),
     );
@@ -122,6 +124,8 @@ describe('LLMS docs generation', () => {
     expect(routerScopeDocs).not.toContain('Search markets and events across every venue in a single query');
     expect(routerScopeDocs).toContain('Search catalog venues at once');
     expect(routerScopeDocs).toContain('across the hosted catalog');
+    expect(routerPriceScopeDocs).not.toContain('Side-by-side bid/ask for the same market on every venue');
+    expect(routerPriceScopeDocs).toContain('identity matches in the hosted catalog');
 
     expect(hostedWriteDocs).not.toContain('Self-hosted writes work on every venue PMXT supports');
     expect(hostedWriteDocs).not.toContain('| **Trading venues** | Polymarket, Opinion, Limitless | Every venue PMXT supports |');

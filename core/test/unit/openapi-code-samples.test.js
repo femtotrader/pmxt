@@ -51,43 +51,100 @@ function collectPythonAll(source) {
   return new Set([...allBlock[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]));
 }
 
+function getOperation(spec, operationId) {
+  for (const pathItem of Object.values(spec.paths || {})) {
+    for (const operation of Object.values(pathItem || {})) {
+      if (operation && operation.operationId === operationId) {
+        return operation;
+      }
+    }
+  }
+  throw new Error(`Operation not found: ${operationId}`);
+}
+
+function collectOperationSamples(spec, operationId, language) {
+  return (getOperation(spec, operationId)['x-codeSamples'] || [])
+    .filter((sample) => sample.lang === language)
+    .map((sample) => sample.source);
+}
+
+function withGeneratedSpec(assertion) {
+  const snapshot = snapshotGeneratedFiles();
+  try {
+    execFileSync(process.execPath, ['scripts/generate-openapi.js'], {
+      cwd: coreRoot,
+      stdio: 'pipe',
+    });
+
+    const spec = JSON.parse(fs.readFileSync(openApiPath, 'utf8'));
+    return assertion(spec);
+  } finally {
+    restoreGeneratedFiles(snapshot);
+  }
+}
+
 describe('OpenAPI SDK code samples', () => {
   test('use SDK class names exported by TypeScript and Python packages', () => {
-    const snapshot = snapshotGeneratedFiles();
-    let spec;
-    try {
-      execFileSync(process.execPath, ['scripts/generate-openapi.js'], {
-        cwd: coreRoot,
-        stdio: 'pipe',
-      });
+    withGeneratedSpec((spec) => {
+      const typescriptExports = collectTypescriptExports(
+        fs.readFileSync(typescriptIndexPath, 'utf8'),
+      );
+      const pythonExports = collectPythonAll(fs.readFileSync(pythonInitPath, 'utf8'));
+      const typescriptSampleNames = collectSampleClassNames(spec, 'javascript');
+      const pythonSampleNames = collectSampleClassNames(spec, 'python');
 
-      spec = JSON.parse(fs.readFileSync(openApiPath, 'utf8'));
-    } finally {
-      restoreGeneratedFiles(snapshot);
-    }
+      expect(typescriptSampleNames).toContain('PolymarketUS');
+      expect(typescriptSampleNames).toContain('SuiBets');
+      expect(typescriptSampleNames).not.toContain('PolymarketUs');
+      expect(typescriptSampleNames).not.toContain('Suibets');
+      expect(pythonSampleNames).toContain('PolymarketUS');
+      expect(pythonSampleNames).toContain('SuiBets');
+      expect(pythonSampleNames).not.toContain('PolymarketUs');
+      expect(pythonSampleNames).not.toContain('Suibets');
 
-    const typescriptExports = collectTypescriptExports(
-      fs.readFileSync(typescriptIndexPath, 'utf8'),
-    );
-    const pythonExports = collectPythonAll(fs.readFileSync(pythonInitPath, 'utf8'));
-    const typescriptSampleNames = collectSampleClassNames(spec, 'javascript');
-    const pythonSampleNames = collectSampleClassNames(spec, 'python');
+      const missingTypescript = typescriptSampleNames
+        .filter((name) => !typescriptExports.has(name));
+      const missingPython = pythonSampleNames
+        .filter((name) => !pythonExports.has(name));
 
-    expect(typescriptSampleNames).toContain('PolymarketUS');
-    expect(typescriptSampleNames).toContain('SuiBets');
-    expect(typescriptSampleNames).not.toContain('PolymarketUs');
-    expect(typescriptSampleNames).not.toContain('Suibets');
-    expect(pythonSampleNames).toContain('PolymarketUS');
-    expect(pythonSampleNames).toContain('SuiBets');
-    expect(pythonSampleNames).not.toContain('PolymarketUs');
-    expect(pythonSampleNames).not.toContain('Suibets');
+      expect(missingTypescript).toEqual([]);
+      expect(missingPython).toEqual([]);
+    });
+  });
 
-    const missingTypescript = typescriptSampleNames
-      .filter((name) => !typescriptExports.has(name));
-    const missingPython = pythonSampleNames
-      .filter((name) => !pythonExports.has(name));
+  test('use positional SDK calls for order-book samples', () => {
+    withGeneratedSpec((spec) => {
+      const fetchBookTypeScript = collectOperationSamples(spec, 'fetchOrderBook', 'javascript');
+      const fetchBooksTypeScript = collectOperationSamples(spec, 'fetchOrderBooks', 'javascript');
+      const fetchBookPython = collectOperationSamples(spec, 'fetchOrderBook', 'python');
+      const fetchBooksPython = collectOperationSamples(spec, 'fetchOrderBooks', 'python');
 
-    expect(missingTypescript).toEqual([]);
-    expect(missingPython).toEqual([]);
+      expect(fetchBookTypeScript.length).toBeGreaterThan(0);
+      expect(fetchBooksTypeScript.length).toBeGreaterThan(0);
+      expect(fetchBookPython.length).toBeGreaterThan(0);
+      expect(fetchBooksPython.length).toBeGreaterThan(0);
+
+      for (const sample of fetchBookTypeScript) {
+        expect(sample).toContain('const result = await exchange.fetchOrderBook(');
+        expect(sample).toContain('"67890"');
+        expect(sample).not.toContain('exchange.fetchOrderBook({');
+      }
+
+      for (const sample of fetchBooksTypeScript) {
+        expect(sample).toContain('const result = await exchange.fetchOrderBooks(["67890"]);');
+        expect(sample).not.toContain('exchange.fetchOrderBooks();');
+      }
+
+      for (const sample of fetchBookPython) {
+        expect(sample).toContain('result = exchange.fetch_order_book(');
+        expect(sample).toContain('"67890"');
+        expect(sample).not.toContain('outcome_id=');
+      }
+
+      for (const sample of fetchBooksPython) {
+        expect(sample).toContain('result = exchange.fetch_order_books(["67890"])');
+        expect(sample).not.toContain('exchange.fetch_order_books()');
+      }
+    });
   });
 });

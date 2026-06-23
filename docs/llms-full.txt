@@ -4717,7 +4717,7 @@ import pmxt
 exchange = pmxt.Router(
     pmxt_api_key="YOUR_PMXT_API_KEY",
 )
-result = exchange.fetch_order_books()
+result = exchange.fetch_order_books(["67890"])
 ```
 
 **TypeScript:**
@@ -4728,7 +4728,7 @@ import { Router } from "pmxtjs";
 const exchange = new Router({
   pmxtApiKey: "YOUR_PMXT_API_KEY",
 });
-const result = await exchange.fetchOrderBooks();
+const result = await exchange.fetchOrderBooks(["67890"]);
 ```
 
 

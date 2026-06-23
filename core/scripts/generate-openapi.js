@@ -486,6 +486,30 @@ const PARAM_OVERRIDES = {
 };
 
 const FULL_OVERRIDES = {
+    fetchOrderBook: {
+        pythonBody: [
+            'result = exchange.fetch_order_book(',
+            '    "67890",',
+            '    limit=10,',
+            '    params={"outcome": "yes"},',
+            ')',
+        ],
+        typescriptBody: [
+            'const result = await exchange.fetchOrderBook(',
+            '  "67890",',
+            '  10,',
+            '  { outcome: "yes" },',
+            ');',
+        ],
+    },
+    fetchOrderBooks: {
+        pythonBody: [
+            'result = exchange.fetch_order_books(["67890"])',
+        ],
+        typescriptBody: [
+            'const result = await exchange.fetchOrderBooks(["67890"]);',
+        ],
+    },
     submitOrder: {
         pythonBody: [
             'built = exchange.build_order(market_id="12345", side="buy", type="limit", amount=10, price=0.55)',

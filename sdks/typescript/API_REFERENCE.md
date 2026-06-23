@@ -108,13 +108,13 @@ for (const line of pmxt.server.logs(100)) {
 
 ### `has`
 
-HTTP verb for the endpoint (e.g. GET, POST). */
+Capability map indicating which methods this exchange supports.
 
 
 **Signature:**
 
 ```typescript
-async has(): Promise<ExchangeHas>
+get has(): ExchangeHas
 ```
 
 **Parameters:**
@@ -126,32 +126,7 @@ async has(): Promise<ExchangeHas>
 **Example:**
 
 ```typescript
-await exchange.has()
-```
-
-
----
-### `implicitApi`
-
-Override in subclasses to force specific capability values.
-
-
-**Signature:**
-
-```typescript
-async implicitApi(): Promise<ImplicitApiMethodInfo[]>
-```
-
-**Parameters:**
-
-- None
-
-**Returns:** Promise<ImplicitApiMethodInfo[]> - Result
-
-**Example:**
-
-```typescript
-await exchange.implicitApi()
+exchange.has
 ```
 
 

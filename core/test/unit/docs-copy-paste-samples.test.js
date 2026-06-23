@@ -426,4 +426,22 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
       'def get_event_by_slug(slug: str) -> Optional[UnifiedEvent]:',
     );
   });
+
+  test('SDK API reference getter docs use property access', () => {
+    const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
+    const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');
+
+    expect(typescriptApiReference).not.toContain('async has(): Promise<ExchangeHas>');
+    expect(typescriptApiReference).not.toContain('await exchange.has()');
+    expect(typescriptApiReference).not.toContain('### `implicitApi`');
+
+    expect(pythonApiReference).not.toContain('def has() -> ExchangeHas:');
+    expect(pythonApiReference).not.toContain('exchange.has()');
+    expect(pythonApiReference).not.toContain('### `implicit_api`');
+
+    expect(typescriptApiReference).toContain('get has(): ExchangeHas');
+    expect(typescriptApiReference).toContain('exchange.has');
+    expect(pythonApiReference).toContain('has: ExchangeHas');
+    expect(pythonApiReference).toContain('exchange.has');
+  });
 });

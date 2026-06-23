@@ -115,7 +115,11 @@ for line in pmxt.server.logs(100):
 **Signature:**
 
 ```python
+{{#if this.signature}}
+{{this.signature}}
+{{else}}
 def {{pythonName this.name}}({{pythonParams this.params}}) -> {{pythonTypeClean this.returns.type}}:
+{{/if}}
 ```
 
 **Parameters:**

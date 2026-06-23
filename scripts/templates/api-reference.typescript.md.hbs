@@ -118,7 +118,11 @@ for (const line of pmxt.server.logs(100)) {
 **Signature:**
 
 ```typescript
+{{#if this.signature}}
+{{this.signature}}
+{{else}}
 async {{this.name}}({{tsParams this.params}}): Promise<{{tsTypeClean this.returns.type}}>
+{{/if}}
 ```
 
 **Parameters:**

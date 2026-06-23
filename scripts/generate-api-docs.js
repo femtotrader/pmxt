@@ -246,6 +246,7 @@ const EXAMPLE_VALUES = {
 };
 
 const PYTHON_METHOD_EXAMPLE_OVERRIDES = {
+    has: 'exchange.has',
     fetchOHLCV: 'exchange.fetch_ohlcv(outcome_id="abc123", resolution="1h", limit=100)',
     fetchOrderBook: 'exchange.fetch_order_book(outcome_id="abc123", limit=10, params={})',
     fetchOrderBooks: 'exchange.fetch_order_books(outcome_ids=["12345"])',
@@ -319,6 +320,7 @@ const PYTHON_METHOD_EXAMPLE_OVERRIDES = {
 };
 
 const TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES = {
+    has: 'exchange.has',
     fetchOHLCV: 'await exchange.fetchOHLCV("abc123", { resolution: "1h", limit: 100 })',
     fetchOrderBook: 'await exchange.fetchOrderBook("abc123", 10, {})',
     fetchOrderBooks: 'await exchange.fetchOrderBooks(["12345"])',
@@ -385,6 +387,26 @@ const TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES = {
 const TYPESCRIPT_PARAM_TYPE_OVERRIDES = {
     createOrder: { params: 'CreateOrderInput' },
     buildOrder: { params: 'CreateOrderInput' },
+};
+
+const METHOD_DOC_EXCLUDES = new Set(['implicitApi']);
+
+const METHOD_DOC_OVERRIDES = {
+    has: {
+        summary: 'Capability map indicating which methods this exchange supports.',
+        description: [
+            'Values are `true` for native support, `false` for unavailable methods,',
+            'or `emulated` for methods backed by polling or another workaround.',
+        ].join('\n'),
+    },
+};
+
+const PYTHON_METHOD_SIGNATURE_OVERRIDES = {
+    has: 'has: ExchangeHas',
+};
+
+const TYPESCRIPT_METHOD_SIGNATURE_OVERRIDES = {
+    has: 'get has(): ExchangeHas',
 };
 
 const TYPESCRIPT_EXTRA_TYPES = [
@@ -517,10 +539,22 @@ function applyTypeScriptMethodOverrides(method) {
     };
 }
 
+function applyMethodDocOverrides(method) {
+    const overrides = METHOD_DOC_OVERRIDES[method.name];
+    if (!overrides) return method;
+
+    return {
+        ...method,
+        ...overrides,
+    };
+}
+
 // --- Main Execution ---
 
 const { openapi, config } = loadSpecs();
-const methods = parseMethods(config);
+const methods = parseMethods(config)
+    .filter(method => !METHOD_DOC_EXCLUDES.has(method.name))
+    .map(applyMethodDocOverrides);
 const { dataModels, filterModels } = parseModels(openapi);
 const exchangeGroups = parseExchangeEndpoints();
 
@@ -661,6 +695,7 @@ const pythonTemplate = Handlebars.compile(
 const pythonMethods = methods.map(m => ({
     ...m,
     example: generatePythonExample(m),
+    signature: PYTHON_METHOD_SIGNATURE_OVERRIDES[m.name] || null,
     exchangeNote: m.exchangeOnly ? `> **Note**: This method is only available on **${m.exchangeOnly}** exchange.\n` : ''
 }));
 
@@ -686,6 +721,7 @@ const tsMethods = methods.map(m => {
     return {
         ...method,
         example: generateTsExample(method),
+        signature: TYPESCRIPT_METHOD_SIGNATURE_OVERRIDES[method.name] || null,
         exchangeNote: method.exchangeOnly ? `> **Note**: This method is only available on **${method.exchangeOnly}** exchange.\n` : ''
     };
 });

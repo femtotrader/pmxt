@@ -105,13 +105,13 @@ for line in pmxt.server.logs(100):
 
 ### `has`
 
-HTTP verb for the endpoint (e.g. GET, POST). */
+Capability map indicating which methods this exchange supports.
 
 
 **Signature:**
 
 ```python
-def has() -> ExchangeHas:
+has: ExchangeHas
 ```
 
 **Parameters:**
@@ -123,32 +123,7 @@ def has() -> ExchangeHas:
 **Example:**
 
 ```python
-exchange.has()
-```
-
-
----
-### `implicit_api`
-
-Override in subclasses to force specific capability values.
-
-
-**Signature:**
-
-```python
-def implicit_api() -> List[ImplicitApiMethodInfo]:
-```
-
-**Parameters:**
-
-- None
-
-**Returns:** List[ImplicitApiMethodInfo] - Result
-
-**Example:**
-
-```python
-exchange.implicit_api()
+exchange.has
 ```
 
 

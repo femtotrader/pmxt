@@ -1360,6 +1360,7 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/UserTrade'
+      description: Fetch authenticated user trade history.
   '/api/{exchange}/fetchClosedOrders':
     get:
       summary: Fetch Closed Orders
@@ -1424,6 +1425,7 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/Order'
+      description: Fetch authenticated closed orders.
   '/api/{exchange}/fetchAllOrders':
     get:
       summary: Fetch All Orders
@@ -1487,6 +1489,7 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/Order'
+      description: Fetch authenticated order history across open and closed orders.
   '/api/{exchange}/fetchPositions':
     get:
       summary: Fetch Positions

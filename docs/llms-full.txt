@@ -492,6 +492,8 @@ poly = pmxt.Polymarket()   # -> https://api.pmxt.dev
 Or pass it directly:
 
 ```python
+import pmxt
+
 poly = pmxt.Polymarket(pmxt_api_key="pmxt_live_...")
 ```
 
@@ -508,6 +510,8 @@ const poly = new pmxt.Polymarket({});  // -> https://api.pmxt.dev
 Or pass it directly:
 
 ```typescript
+import pmxt from "pmxtjs";
+
 const poly = new pmxt.Polymarket({ pmxtApiKey: "pmxt_live_..." });
 ```
 

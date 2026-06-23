@@ -425,7 +425,7 @@ def fetch_order_book(outcome_id: str, limit: Optional[float] = None, params: Opt
 **Example:**
 
 ```python
-exchange.fetch_order_book(outcome_id="abc123", limit=10, params="...")
+exchange.fetch_order_book(outcome_id="abc123", limit=10, params={})
 ```
 
 
@@ -833,7 +833,7 @@ def watch_order_book(outcome_id: str, limit: Optional[float] = None, params: Dic
 **Example:**
 
 ```python
-exchange.watch_order_book(outcome_id="abc123", params="...", limit=10)
+exchange.watch_order_book(outcome_id="abc123", limit=10, params={})
 ```
 
 
@@ -860,7 +860,7 @@ def watch_order_books(outcome_ids: List[str], limit: Optional[float] = None, par
 **Example:**
 
 ```python
-exchange.watch_order_books(outcome_ids=["12345"], params="...", limit=10)
+exchange.watch_order_books(outcome_ids=["12345"], limit=10, params={})
 ```
 
 

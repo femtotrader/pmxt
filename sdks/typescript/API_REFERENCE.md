@@ -428,7 +428,7 @@ async fetchOrderBook(outcomeId: string, limit?: number, params?: FetchOrderBookP
 **Example:**
 
 ```typescript
-await exchange.fetchOrderBook("abc123", { limit: 10, params: "..." })
+await exchange.fetchOrderBook("abc123", 10, {})
 ```
 
 
@@ -653,7 +653,7 @@ async fetchOpenOrders(marketId?: string): Promise<Order[]>
 **Example:**
 
 ```typescript
-await exchange.fetchOpenOrders({ marketId: "12345" })
+await exchange.fetchOpenOrders("12345")
 ```
 
 
@@ -678,7 +678,7 @@ async fetchPositions(address?: string): Promise<Position[]>
 **Example:**
 
 ```typescript
-await exchange.fetchPositions({ address: "0xabc..." })
+await exchange.fetchPositions("0xabc...")
 ```
 
 
@@ -703,7 +703,7 @@ async fetchBalance(address?: string): Promise<Balance[]>
 **Example:**
 
 ```typescript
-await exchange.fetchBalance({ address: "0xabc..." })
+await exchange.fetchBalance("0xabc...")
 ```
 
 
@@ -836,7 +836,7 @@ async watchOrderBook(outcomeId: string, limit?: number, params: Record<string, a
 **Example:**
 
 ```typescript
-await exchange.watchOrderBook("abc123", "...", { limit: 10 })
+await exchange.watchOrderBook("abc123", 10, {})
 ```
 
 
@@ -863,7 +863,7 @@ async watchOrderBooks(outcomeIds: string[], limit?: number, params: Record<strin
 **Example:**
 
 ```typescript
-await exchange.watchOrderBooks(["12345"], "...", { limit: 10 })
+await exchange.watchOrderBooks(["12345"], 10, {})
 ```
 
 

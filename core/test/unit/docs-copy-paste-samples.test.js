@@ -227,4 +227,57 @@ await exchange.submitOrder(built)`);
 )
 exchange.submit_order(built)`);
   });
+
+  test('SDK API reference positional examples match SDK method signatures', () => {
+    const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
+    const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');
+
+    expect(typescriptApiReference).not.toContain(
+      'await exchange.fetchOrderBook("abc123", { limit: 10, params: "..." })',
+    );
+    expect(typescriptApiReference).not.toContain(
+      'await exchange.fetchOpenOrders({ marketId: "12345" })',
+    );
+    expect(typescriptApiReference).not.toContain(
+      'await exchange.fetchPositions({ address: "0xabc..." })',
+    );
+    expect(typescriptApiReference).not.toContain(
+      'await exchange.fetchBalance({ address: "0xabc..." })',
+    );
+    expect(typescriptApiReference).not.toContain(
+      'await exchange.watchOrderBook("abc123", "...", { limit: 10 })',
+    );
+    expect(typescriptApiReference).not.toContain(
+      'await exchange.watchOrderBooks(["12345"], "...", { limit: 10 })',
+    );
+
+    expect(pythonApiReference).not.toContain(
+      'exchange.fetch_order_book(outcome_id="abc123", limit=10, params="...")',
+    );
+    expect(pythonApiReference).not.toContain(
+      'exchange.watch_order_book(outcome_id="abc123", params="...", limit=10)',
+    );
+    expect(pythonApiReference).not.toContain(
+      'exchange.watch_order_books(outcome_ids=["12345"], params="...", limit=10)',
+    );
+
+    expect(typescriptApiReference).toContain('await exchange.fetchOrderBook("abc123", 10, {})');
+    expect(typescriptApiReference).toContain('await exchange.fetchOpenOrders("12345")');
+    expect(typescriptApiReference).toContain('await exchange.fetchPositions("0xabc...")');
+    expect(typescriptApiReference).toContain('await exchange.fetchBalance("0xabc...")');
+    expect(typescriptApiReference).toContain('await exchange.watchOrderBook("abc123", 10, {})');
+    expect(typescriptApiReference).toContain(
+      'await exchange.watchOrderBooks(["12345"], 10, {})',
+    );
+
+    expect(pythonApiReference).toContain(
+      'exchange.fetch_order_book(outcome_id="abc123", limit=10, params={})',
+    );
+    expect(pythonApiReference).toContain(
+      'exchange.watch_order_book(outcome_id="abc123", limit=10, params={})',
+    );
+    expect(pythonApiReference).toContain(
+      'exchange.watch_order_books(outcome_ids=["12345"], limit=10, params={})',
+    );
+  });
 });

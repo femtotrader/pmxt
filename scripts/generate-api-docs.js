@@ -245,6 +245,7 @@ const EXAMPLE_VALUES = {
 };
 
 const PYTHON_METHOD_EXAMPLE_OVERRIDES = {
+    fetchOrderBook: 'exchange.fetch_order_book(outcome_id="abc123", limit=10, params={})',
     fetchOrderBooks: 'exchange.fetch_order_books(outcome_ids=["12345"])',
     createOrder: [
         'exchange.create_order(',
@@ -277,10 +278,16 @@ const PYTHON_METHOD_EXAMPLE_OVERRIDES = {
         ')',
         'exchange.submit_order(built)',
     ].join('\n'),
+    watchOrderBook: 'exchange.watch_order_book(outcome_id="abc123", limit=10, params={})',
+    watchOrderBooks: 'exchange.watch_order_books(outcome_ids=["12345"], limit=10, params={})',
 };
 
 const TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES = {
+    fetchOrderBook: 'await exchange.fetchOrderBook("abc123", 10, {})',
     fetchOrderBooks: 'await exchange.fetchOrderBooks(["12345"])',
+    fetchOpenOrders: 'await exchange.fetchOpenOrders("12345")',
+    fetchPositions: 'await exchange.fetchPositions("0xabc...")',
+    fetchBalance: 'await exchange.fetchBalance("0xabc...")',
     createOrder: [
         'await exchange.createOrder({',
         '  marketId: "12345",',
@@ -312,6 +319,8 @@ const TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES = {
         '});',
         'await exchange.submitOrder(built)',
     ].join('\n'),
+    watchOrderBook: 'await exchange.watchOrderBook("abc123", 10, {})',
+    watchOrderBooks: 'await exchange.watchOrderBooks(["12345"], 10, {})',
 };
 
 const TYPESCRIPT_PARAM_TYPE_OVERRIDES = {

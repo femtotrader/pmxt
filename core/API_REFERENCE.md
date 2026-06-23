@@ -13,14 +13,14 @@ npm install pmxtjs
 ```typescript
 import { Polymarket, Kalshi } from 'pmxtjs';
 
-const poly = new Polymarket();
+const polymarket = new Polymarket();
 const kalshi = new Kalshi();
 ```
 
 ```typescript
 import pmxt from 'pmxtjs';
 
-const poly = new pmxt.Polymarket();
+const polymarket = new pmxt.Polymarket();
 const kalshi = new pmxt.Kalshi();
 ```
 

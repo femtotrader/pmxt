@@ -117,6 +117,10 @@ describe('Documentation copy-paste samples', () => {
     expect(readme).toContain('import { Polymarket } from "pmxtjs";');
     expect(readme).not.toContain('Named imports do not work in ESM');
     expect(coreApiReference).toContain("import { Polymarket, Kalshi } from 'pmxtjs';");
+    expect(coreApiReference).toContain('const polymarket = new Polymarket();');
+    expect(coreApiReference).toContain('const polymarket = new pmxt.Polymarket();');
+    expect(coreApiReference).not.toContain('const poly = new Polymarket();');
+    expect(coreApiReference).not.toContain('const poly = new pmxt.Polymarket();');
     expect(coreApiReference).not.toContain('pmxt is currently CommonJS-only');
     expect(coreApiReference).not.toContain(
       "Named exports like `import { Polymarket } from 'pmxtjs'` will **not work** in ESM projects.",

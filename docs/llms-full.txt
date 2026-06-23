@@ -739,7 +739,7 @@ For users who require full custody and zero third-party trust, [self-hosted](htt
 Source: https://pmxt.dev/docs/rate-limits
 
 Every API key includes the full surface — cross-venue search, unified
-schema, and the complete venue pass-through.
+schema, and the supported venue pass-through.
 
 Limits are **per API key** and apply across both hosts (`api.pmxt.dev`
 and `trade.pmxt.dev`) — see [hosts](https://pmxt.dev/docs/authentication#hosts).

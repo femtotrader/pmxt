@@ -58,8 +58,10 @@ describe('LLMS docs generation', () => {
       path.join(repoRoot, 'docs/concepts/prediction-markets-101.mdx'),
       'utf8',
     );
+    const rateLimits = fs.readFileSync(path.join(repoRoot, 'docs/rate-limits.mdx'), 'utf8');
     const hostedWriteDocs = `${selfHosted}\n${tradingQuickstart}\n${hostedTrading}\n${llmsFull}`;
     const predictionMarkets101Docs = `${predictionMarkets101}\n${llmsFull}`;
+    const rateLimitDocs = `${rateLimits}\n${llmsFull}`;
     const fetchOhlcv = fs.readFileSync(path.join(repoRoot, 'docs/api-reference/fetch-ohlcv.mdx'), 'utf8');
     const ohlcvDocs = `${fetchOhlcv}\n${llmsFull}`;
     const routerScopeDocs = `${introduction}\n${quickstart}\n${routerOverview}\n${routerSearch}\n${llmsIndex}\n${llmsFull}`;
@@ -185,6 +187,8 @@ describe('LLMS docs generation', () => {
       'shared trading and account method surface for venues that implement those capabilities',
     );
     expect(predictionMarkets101Docs).toContain('hosted write support is venue-specific');
+    expect(rateLimitDocs).not.toContain('complete venue pass-through');
+    expect(rateLimitDocs).toContain('supported venue pass-through');
 
     expect(ohlcvDocs).not.toContain('Kalshi, Limitless, and more are coming soon');
     expect(ohlcvDocs).not.toContain('Without an API key, OHLCV is limited to Polymarket');

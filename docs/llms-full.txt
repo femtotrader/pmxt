@@ -1696,7 +1696,7 @@ try {
   await client.createOrder({ ... });
 } catch (e) {
   if (e instanceof InsufficientEscrowBalance) {
-console.log(`Need to deposit. ${(e as any).detail}`);
+console.log(`Need to deposit. ${e.detail}`);
 const tx = await client.escrow.depositTx(20);
 // sign and broadcast, retry
   } else if (isHostedError(e)) {

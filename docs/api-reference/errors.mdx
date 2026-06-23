@@ -64,7 +64,7 @@ try {
   await client.createOrder({ ... });
 } catch (e) {
   if (e instanceof HostedTradingError) {
-    console.log((e as any).status, (e as any).detail);
+    console.log(e.status, e.detail);
   } else if (isHostedError(e)) {
     // Subclass without the direct extends-chain — still hosted
   }

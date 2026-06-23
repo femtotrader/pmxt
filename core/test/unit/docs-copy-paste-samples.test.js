@@ -137,4 +137,14 @@ describe('Documentation copy-paste samples', () => {
     expect(tradingQuickstart).toContain('limit BUY and SELL are supported');
     expect(hostedErrors).toMatch(/Limit BUY and SELL are supported/);
   });
+
+  test('hosted TypeScript error examples use typed fields without unsafe any casts', () => {
+    const hostedErrors = readDoc('docs/guides/hosted-errors.mdx');
+    const errorReference = readDoc('docs/api-reference/errors.mdx');
+    const hostedErrorDocs = `${hostedErrors}\n${errorReference}`;
+
+    expect(hostedErrorDocs).not.toContain('(e as any)');
+    expect(hostedErrors).toContain('console.log(`Need to deposit. ${e.detail}`);');
+    expect(errorReference).toContain('console.log(e.status, e.detail);');
+  });
 });

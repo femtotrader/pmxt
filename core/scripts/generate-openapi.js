@@ -317,6 +317,11 @@ function exampleValue(name, schema) {
     if (schema) {
         if (schema.example !== undefined) return schema.example;
         if (Array.isArray(schema.enum) && schema.enum.length > 0) return schema.enum[0];
+        if (schema.format === 'date-time') {
+            return lowerName.includes('until') || lowerName === 'end'
+                ? '2026-01-31T00:00:00Z'
+                : '2026-01-01T00:00:00Z';
+        }
     }
 
     if (lowerName === 'query') return 'election';

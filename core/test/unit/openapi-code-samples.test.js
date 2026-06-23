@@ -169,4 +169,55 @@ describe('OpenAPI SDK code samples', () => {
       }
     });
   });
+
+  test('use ISO date-time values for date filter samples', () => {
+    withGeneratedSpec((spec) => {
+      const sinceUntilOperationIds = ['fetchMyTrades', 'fetchClosedOrders', 'fetchAllOrders'];
+      const startEndOperationIds = ['fetchOHLCV', 'fetchTrades'];
+
+      for (const operationId of sinceUntilOperationIds) {
+        const typeScriptSamples = collectOperationSamples(spec, operationId, 'javascript');
+        const pythonSamples = collectOperationSamples(spec, operationId, 'python');
+
+        expect(typeScriptSamples.length).toBeGreaterThan(0);
+        expect(pythonSamples.length).toBeGreaterThan(0);
+
+        for (const sample of typeScriptSamples) {
+          expect(sample).not.toContain('since: "value"');
+          expect(sample).not.toContain('until: "value"');
+          expect(sample).toContain('since: "2026-01-01T00:00:00Z"');
+          expect(sample).toContain('until: "2026-01-31T00:00:00Z"');
+        }
+
+        for (const sample of pythonSamples) {
+          expect(sample).not.toContain('since="value"');
+          expect(sample).not.toContain('until="value"');
+          expect(sample).toContain('since="2026-01-01T00:00:00Z"');
+          expect(sample).toContain('until="2026-01-31T00:00:00Z"');
+        }
+      }
+
+      for (const operationId of startEndOperationIds) {
+        const typeScriptSamples = collectOperationSamples(spec, operationId, 'javascript');
+        const pythonSamples = collectOperationSamples(spec, operationId, 'python');
+
+        expect(typeScriptSamples.length).toBeGreaterThan(0);
+        expect(pythonSamples.length).toBeGreaterThan(0);
+
+        for (const sample of typeScriptSamples) {
+          expect(sample).not.toContain('start: "value"');
+          expect(sample).not.toContain('end: "value"');
+          expect(sample).toContain('start: "2026-01-01T00:00:00Z"');
+          expect(sample).toContain('end: "2026-01-31T00:00:00Z"');
+        }
+
+        for (const sample of pythonSamples) {
+          expect(sample).not.toContain('start="value"');
+          expect(sample).not.toContain('end="value"');
+          expect(sample).toContain('start="2026-01-01T00:00:00Z"');
+          expect(sample).toContain('end="2026-01-31T00:00:00Z"');
+        }
+      }
+    });
+  });
 });

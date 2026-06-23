@@ -215,10 +215,10 @@ curl "https://api.pmxt.dev/v0/markets?query=election&limit=3" \
 }
 ```
 
-The same `marketId`, `title`, `outcomes` shape whether the row came from
-Polymarket, Kalshi, Limitless, or anywhere else. Filter by venue with
-`&exchange=kalshi`, by category with `&category=Politics`, or just
-search everything.
+The same `marketId`, `title`, and `outcomes` shape applies whether the row
+came from Polymarket, Kalshi, Limitless, or another hosted catalog venue.
+Filter by venue with `&exchange=kalshi`, by category with
+`&category=Politics`, or omit the venue filter to search the hosted catalog.
 
 
 > **Note:**
@@ -232,7 +232,7 @@ search everything.
 
 
   - **[Router](https://pmxt.dev/docs/router/search)** — `/v0/events` and `/v0/markets` — cross-venue search and the beginning of a smart order router for prediction markets.
-  - **[Full venue API](https://pmxt.dev/docs/api-reference/overview)** — Order books, trades, OHLCV, positions, balances, and trading — all via `POST /api/:exchange/:method`.
+  - **[Full venue API](https://pmxt.dev/docs/api-reference/overview)** — Order books, trades, OHLCV, positions, balances, and trading, supported where each venue implements them via `POST /api/:exchange/:method`.
   - **[Unified schema](https://pmxt.dev/docs/concepts/unified-schema)** — `Event` / `Market` / `Outcome` — the shape that works everywhere.
   - **[Supported venues](https://pmxt.dev/docs/concepts/venues)** — Every venue PMXT speaks, and what each supports.
 

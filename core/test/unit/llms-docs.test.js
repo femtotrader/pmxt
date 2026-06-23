@@ -61,6 +61,7 @@ describe('LLMS docs generation', () => {
     const routerPriceScopeDocs = `${routerOverview}\n${routerPrices}\n${llmsFull}`;
     const topLevelTaglineDocs = `${introduction}\n${llmsIndex}\n${llmsFull}`;
     const introductionVenueScopeDocs = `${introduction}\n${llmsFull}`;
+    const quickstartScopeDocs = `${quickstart}\n${llmsFull}`;
     const venueRows = Array.from(
       supportedVenues.matchAll(/^\| [^|]+ \| `[^`]+` \| `POST \/api\/[^`]+\/:method` \|$/gm),
     );
@@ -138,6 +139,14 @@ describe('LLMS docs generation', () => {
     expect(routerScopeDocs).not.toContain('Search markets and events across every venue in a single query');
     expect(routerScopeDocs).toContain('Search catalog venues at once');
     expect(routerScopeDocs).toContain('across the hosted catalog');
+    expect(quickstartScopeDocs).not.toContain('Polymarket, Kalshi, Limitless, or anywhere else');
+    expect(quickstartScopeDocs).not.toContain('search everything');
+    expect(quickstartScopeDocs).not.toContain(
+      'Order books, trades, OHLCV, positions, balances, and trading — all via `POST /api/:exchange/:method`',
+    );
+    expect(quickstartScopeDocs).toContain('another hosted catalog venue');
+    expect(quickstartScopeDocs).toContain('search the hosted catalog');
+    expect(quickstartScopeDocs).toContain('supported where each venue implements them');
     expect(routerPriceScopeDocs).not.toContain('Side-by-side bid/ask for the same market on every venue');
     expect(routerPriceScopeDocs).toContain('identity matches in the hosted catalog');
 

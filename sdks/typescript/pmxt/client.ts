@@ -3069,6 +3069,16 @@ export interface PolymarketOptions {
 
     /** Optional signature type */
     signatureType?: 'eoa' | 'poly-proxy' | 'gnosis-safe' | number;
+
+    /**
+     * EVM wallet address used for hosted reads/writes.
+     */
+    walletAddress?: string;
+
+    /**
+     * External signer used for hosted writes.
+     */
+    signer?: Signer;
 }
 
 export class Polymarket extends Exchange {

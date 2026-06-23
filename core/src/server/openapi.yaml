@@ -3914,6 +3914,15 @@ components:
         price:
           type: number
           description: Required for limit orders
+        denom:
+          type: string
+          enum:
+            - usdc
+            - shares
+          description: 'Hosted mode: amount unit.'
+        slippage_pct:
+          type: number
+          description: 'Hosted mode: maximum market-order slippage percentage.'
         fee:
           type: number
           description: 'Optional fee rate (e.g., 1000 for 0.1%)'

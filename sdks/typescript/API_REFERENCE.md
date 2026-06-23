@@ -121,7 +121,7 @@ get has(): ExchangeHas
 
 - None
 
-**Returns:** Promise<ExchangeHas> - Result
+**Returns:** ExchangeHas - Result
 
 **Example:**
 
@@ -782,7 +782,7 @@ Calculate the volume-weighted average execution price for a given order size.
 **Signature:**
 
 ```typescript
-async getExecutionPrice(orderBook: OrderBook, side: 'buy' | 'sell', amount: number): Promise<number>
+getExecutionPrice(orderBook: OrderBook, side: 'buy' | 'sell', amount: number): number
 ```
 
 **Parameters:**
@@ -791,13 +791,13 @@ async getExecutionPrice(orderBook: OrderBook, side: 'buy' | 'sell', amount: numb
 - `side` ('buy' | 'sell'): 'buy' or 'sell'
 - `amount` (number): Number of contracts to simulate
 
-**Returns:** Promise<number> - Average execution price, or 0 if insufficient liquidity
+**Returns:** number - Average execution price, or 0 if insufficient liquidity
 
 **Example:**
 
 ```typescript
 const orderBook = await exchange.fetchOrderBook("abc123")
-await exchange.getExecutionPrice(orderBook, "buy", 50)
+exchange.getExecutionPrice(orderBook, "buy", 50)
 ```
 
 

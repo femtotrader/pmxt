@@ -121,7 +121,11 @@ for (const line of pmxt.server.logs(100)) {
 {{#if this.signature}}
 {{this.signature}}
 {{else}}
+{{#if this.isSync}}
+{{this.name}}({{tsParams this.params}}): {{tsTypeClean this.returns.type}}
+{{else}}
 async {{this.name}}({{tsParams this.params}}): Promise<{{tsTypeClean this.returns.type}}>
+{{/if}}
 {{/if}}
 ```
 
@@ -140,7 +144,7 @@ async {{this.name}}({{tsParams this.params}}): Promise<{{tsTypeClean this.return
 - None
 {{/if}}
 
-**Returns:** Promise<{{tsType this.returns.type}}> - {{this.returns.description}}
+**Returns:** {{#if this.isSync}}{{tsType this.returns.type}}{{else}}Promise<{{tsType this.returns.type}}>{{/if}} - {{this.returns.description}}
 
 **Example:**
 

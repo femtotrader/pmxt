@@ -318,7 +318,15 @@ exchange.submit_order(built)`);
     );
     expect(typescriptApiReference).toContain('await exchange.fetchTrades("abc123", { limit: 50 })');
     expect(typescriptApiReference).toContain(`const orderBook = await exchange.fetchOrderBook("abc123")
-await exchange.getExecutionPrice(orderBook, "buy", 50)`);
+exchange.getExecutionPrice(orderBook, "buy", 50)`);
+    expect(typescriptApiReference).not.toContain('await exchange.getExecutionPrice(orderBook, "buy", 50)');
+    expect(typescriptApiReference).toContain(
+      "getExecutionPrice(orderBook: OrderBook, side: 'buy' | 'sell', amount: number): number",
+    );
+    expect(typescriptApiReference).not.toContain(
+      "async getExecutionPrice(orderBook: OrderBook, side: 'buy' | 'sell', amount: number): Promise<number>",
+    );
+    expect(typescriptApiReference).not.toContain('**Returns:** Promise<number> - Average execution price');
     expect(typescriptApiReference).toContain(`const orderBook = await exchange.fetchOrderBook("abc123")
 await exchange.getExecutionPriceDetailed(orderBook, "buy", 50)`);
     expect(typescriptApiReference).toContain(`const markets = await exchange.fetchMarkets({ query: "Trump" })
@@ -433,6 +441,7 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
 
     expect(typescriptApiReference).not.toContain('async has(): Promise<ExchangeHas>');
     expect(typescriptApiReference).not.toContain('await exchange.has()');
+    expect(typescriptApiReference).not.toContain('**Returns:** Promise<ExchangeHas> - Result');
     expect(typescriptApiReference).not.toContain('### `implicitApi`');
 
     expect(pythonApiReference).not.toContain('def has() -> ExchangeHas:');
@@ -440,6 +449,7 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     expect(pythonApiReference).not.toContain('### `implicit_api`');
 
     expect(typescriptApiReference).toContain('get has(): ExchangeHas');
+    expect(typescriptApiReference).toContain('**Returns:** ExchangeHas - Result');
     expect(typescriptApiReference).toContain('exchange.has');
     expect(pythonApiReference).toContain('has: ExchangeHas');
     expect(pythonApiReference).toContain('exchange.has');

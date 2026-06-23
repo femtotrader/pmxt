@@ -336,7 +336,7 @@ const TYPESCRIPT_METHOD_EXAMPLE_OVERRIDES = {
     fetchBalance: 'await exchange.fetchBalance("0xabc...")',
     getExecutionPrice: [
         'const orderBook = await exchange.fetchOrderBook("abc123")',
-        'await exchange.getExecutionPrice(orderBook, "buy", 50)',
+        'exchange.getExecutionPrice(orderBook, "buy", 50)',
     ].join('\n'),
     getExecutionPriceDetailed: [
         'const orderBook = await exchange.fetchOrderBook("abc123")',
@@ -420,6 +420,8 @@ const TYPESCRIPT_METHOD_SIGNATURE_OVERRIDES = {
     has: 'get has(): ExchangeHas',
 };
 
+const TYPESCRIPT_SYNC_METHODS = new Set(['has', 'getExecutionPrice']);
+
 const TYPESCRIPT_EXTRA_TYPES = [
     {
         name: 'CreateOrderInput',
@@ -500,9 +502,10 @@ function generateTsExample(method) {
     if (override) return override;
 
     var params = method.params || [];
+    const callPrefix = method.isSync ? '' : 'await ';
 
     if (params.length === 0) {
-        return 'await exchange.' + method.name + '()';
+        return callPrefix + 'exchange.' + method.name + '()';
     }
 
     var required = params.filter(function(p) { return !p.optional; });
@@ -516,9 +519,9 @@ function generateTsExample(method) {
                 var name = sp.name.replace('params.', '');
                 return name + ': ' + getExampleValue(name, 'ts', sp.type);
             });
-            return 'await exchange.' + method.name + '({ ' + fields.join(', ') + ' })';
+            return callPrefix + 'exchange.' + method.name + '({ ' + fields.join(', ') + ' })';
         }
-        return 'await exchange.' + method.name + '()';
+        return callPrefix + 'exchange.' + method.name + '()';
     }
 
     // Multiple params: first required as positional, then optional as object
@@ -534,7 +537,7 @@ function generateTsExample(method) {
         argParts.push('{ ' + optFields.join(', ') + ' }');
     }
 
-    return 'await exchange.' + method.name + '(' + argParts.join(', ') + ')';
+    return callPrefix + 'exchange.' + method.name + '(' + argParts.join(', ') + ')';
 }
 
 function applyTypeScriptMethodOverrides(method) {
@@ -728,7 +731,10 @@ const tsTemplate = Handlebars.compile(
 );
 
 const tsMethods = methods.map(m => {
-    const method = applyTypeScriptMethodOverrides(m);
+    const method = {
+        ...applyTypeScriptMethodOverrides(m),
+        isSync: TYPESCRIPT_SYNC_METHODS.has(m.name),
+    };
     return {
         ...method,
         example: generateTsExample(method),

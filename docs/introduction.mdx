@@ -120,7 +120,7 @@ Without PMXT, getting cross-venue prediction market data means:
   tickers. Smarkets uses contract IDs. You normalize all of it.
 - **A data pipeline** — to ingest, deduplicate, and keep fresh as markets
   open, resolve, and re-price across every venue.
-- **A search layer** — because querying 11 APIs sequentially is slow.
+- **A search layer** — because querying venue APIs sequentially is slow.
 - **Ongoing maintenance** — every time a venue changes a field name or
   ships a new endpoint, your integration breaks.
 

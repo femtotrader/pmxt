@@ -590,6 +590,22 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     });
   });
 
+  test('error handling guide describes supported venue scope', () => {
+    const errorHandlingGuide = readDoc('core/docs/ERRORS.md');
+
+    expect({
+      hasStaleThreeVenueScope: errorHandlingGuide.includes(
+        'unified error handling across all exchanges (Polymarket, Kalshi, Limitless)',
+      ),
+      hasSupportedVenueScope: errorHandlingGuide.includes(
+        'unified error handling across supported exchanges and venues',
+      ),
+    }).toEqual({
+      hasStaleThreeVenueScope: false,
+      hasSupportedVenueScope: true,
+    });
+  });
+
   test('SDK API references include account history and firehose methods', () => {
     const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
     const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');

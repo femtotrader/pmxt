@@ -203,8 +203,17 @@ describe('LLMS docs generation', () => {
     expect(routerComposeDocs).toContain('identifiers keep their address space');
 
     expect(hostedWriteDocs).not.toContain('Self-hosted writes work on every venue PMXT supports');
+    expect(hostedWriteDocs).not.toContain(
+      'Both modes expose the same SDK surface — the difference is where execution happens and who holds keys.',
+    );
     expect(hostedWriteDocs).not.toContain('| **Trading venues** | Polymarket, Opinion, Limitless | Every venue PMXT supports |');
     expect(hostedWriteDocs).toContain('where the venue exposes writes');
+    expect(hostedWriteDocs).toMatch(
+      /Both modes use the same SDK classes and method names where the capability is\s+supported\./,
+    );
+    expect(hostedWriteDocs).toContain(
+      'which write venues each mode supports.',
+    );
     expect(hostedWriteDocs).toContain('Feature Support & Compliance');
     expect(hostedIdentifierDocs).not.toContain(
       'Every hosted endpoint speaks in **catalog UUIDs**, not venue-native IDs',

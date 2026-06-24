@@ -116,7 +116,10 @@ Every value-moving operator call requires either the user's EIP-712 signature, t
 
 ## When to switch to self-hosted
 
-Self-hosted runs `pmxt-core` on your own machine; the SDK talks to `localhost`. Both modes expose the same SDK surface — the difference is where execution happens and who holds keys.
+Self-hosted runs `pmxt-core` on your own machine; the SDK talks to `localhost`.
+Both modes use the same SDK classes and method names where the capability is
+supported. The differences are where execution happens, who holds keys, and
+which write venues each mode supports.
 
 | | Hosted (`pmxt_api_key` set) | Self-hosted (no API key) |
 | - | --------------------------- | ------------------------ |

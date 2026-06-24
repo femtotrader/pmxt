@@ -667,6 +667,8 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
       'Some DomeAPI features have no direct pmxt equivalent:',
       '| Binance / Chainlink price feeds | Not available |',
       '| Historical orderbook snapshots | `watch_order_book()` for live data |',
+      'DomeAPI provides historical orderbook snapshots. pmxt provides the current live order book.',
+      '| Get order book | `GET /polymarket/orderbook-history?token_id=` | `fetchOrderBook(outcomeId)` | `fetch_order_book(outcome_id)` |',
       'pmxt gives you the same API across all supported exchanges:',
       '// Same methods on all exchanges',
     ];
@@ -680,6 +682,8 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
       'Some DomeAPI features map to a different PMXT surface or have no direct equivalent:',
       '| Binance / Chainlink price feeds | Feed API via `FeedClient` and `/api/feeds/{feed}/...` endpoints |',
       '| Historical orderbook snapshots | Historical `fetch_order_book(..., params={...})` via PMXT Archive where supported; live `watch_order_book()` for streaming |',
+      'DomeAPI historical orderbook snapshots map to PMXT Archive-backed `fetchOrderBook` / `fetch_order_book` with `since` / `until` params where supported; omit archive params for the current live order book.',
+      '| Get order book history | `GET /polymarket/orderbook-history?token_id=` | `fetchOrderBook(outcomeId, undefined, { since, until, outcome })` | `fetch_order_book(outcome_id, params={...})` |',
       'pmxt uses the same method names across venues that implement each capability:',
       '// Same method names where each venue supports the capability',
     ];

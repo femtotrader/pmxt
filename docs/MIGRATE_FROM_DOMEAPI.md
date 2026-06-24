@@ -227,7 +227,7 @@ GET https://api.domeapi.io/v1/polymarket/orderbook-history
   &end_ts=...
 ```
 
-> DomeAPI provides historical orderbook snapshots. pmxt provides the current live order book.
+> DomeAPI historical orderbook snapshots map to PMXT Archive-backed `fetchOrderBook` / `fetch_order_book` with `since` / `until` params where supported; omit archive params for the current live order book.
 
 **After (pmxt):**
 ```typescript
@@ -237,6 +237,15 @@ const outcomeId = markets[0].outcomes[0].outcomeId;
 const book = await poly.fetchOrderBook(outcomeId);
 console.log('Best bid:', book.bids[0].price);
 console.log('Best ask:', book.asks[0].price);
+
+const history = await poly.fetchOrderBook(outcomeId, undefined, {
+  since: 1710000000000,
+  until: 1710003600000,
+  outcome: 'yes',
+  limit: 100,
+});
+const snapshots = Array.isArray(history) ? history : [history];
+console.log('Historical snapshots:', snapshots.length);
 ```
 ```python
 markets = poly.fetch_markets(query='Trump')
@@ -245,6 +254,17 @@ outcome_id = markets[0].outcomes[0].outcome_id
 book = poly.fetch_order_book(outcome_id)
 print('Best bid:', book.bids[0].price)
 print('Best ask:', book.asks[0].price)
+
+history = poly.fetch_order_book(
+    outcome_id,
+    params={
+        "since": 1710000000000,
+        "until": 1710003600000,
+        "outcome": "yes",
+        "limit": 100,
+    },
+)
+print("Historical snapshots:", len(history))
 ```
 
 **Calculate execution price** (new in pmxt, not in DomeAPI):
@@ -499,7 +519,7 @@ const kalshiMarkets = await kalshi.fetchMarkets({ query: 'Fed Chair' });
 | Get market price | `getMarketPrice({ token_id })` | `fetchMarkets({ query })` then `.yes.price` | `fetch_markets(query=...)` then `.yes.price` |
 | Search markets | `GET /polymarket/markets?search=` | `fetchMarkets({ query })` | `fetch_markets(query=...)` |
 | Get OHLCV | `GET /polymarket/candlestick?condition_id=` | `fetchOHLCV(outcomeId, { resolution })` | `fetch_ohlcv(outcome_id, resolution=...)` |
-| Get order book | `GET /polymarket/orderbook-history?token_id=` | `fetchOrderBook(outcomeId)` | `fetch_order_book(outcome_id)` |
+| Get order book history | `GET /polymarket/orderbook-history?token_id=` | `fetchOrderBook(outcomeId, undefined, { since, until, outcome })` | `fetch_order_book(outcome_id, params={...})` |
 | Get trades | `GET /polymarket/trade-history?token_id=` | `fetchTrades(outcomeId, params)` | `fetch_trades(outcome_id, ...)` |
 | Real-time book | WebSocket subscribe | `watchOrderBook(outcomeId)` | `watch_order_book(outcome_id)` |
 | Place order | Order Router API | `createOrder(params)` | `create_order(...)` |

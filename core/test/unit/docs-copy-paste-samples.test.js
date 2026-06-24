@@ -660,6 +660,7 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
 
   test('DomeAPI migration guide reflects current PMXT support scope', () => {
     const migrationGuide = readDoc('docs/MIGRATE_FROM_DOMEAPI.md');
+    const readme = readDoc('readme.md');
     const staleClaims = [
       'DomeAPI is shutting down March 31, 2025.',
       '| **Exchanges** | Polymarket, Kalshi | Polymarket, Kalshi, Limitless, Probable, Baozi, Myriad |',
@@ -668,6 +669,9 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
       '| Historical orderbook snapshots | `watch_order_book()` for live data |',
       'pmxt gives you the same API across all supported exchanges:',
       '// Same methods on all exchanges',
+    ];
+    const staleReadmeClaims = [
+      'pmxt is a drop-in replacement with a unified interface for Polymarket and Kalshi.',
     ];
     const expectedClaims = [
       'DomeAPI shut down on March 31, 2025.',
@@ -679,10 +683,28 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
       'pmxt uses the same method names across venues that implement each capability:',
       '// Same method names where each venue supports the capability',
     ];
+    const expectedReadmeClaims = [
+      "pmxt is a drop-in replacement for DomeAPI's Polymarket/Kalshi workflows",
+      "also exposes PMXT's broader supported venue catalog where current capabilities exist",
+    ];
 
     expect({
-      staleClaims: staleClaims.filter((claim) => migrationGuide.includes(claim)),
-      missingCurrentClaims: expectedClaims.filter((claim) => !migrationGuide.includes(claim)),
+      staleClaims: [
+        ...staleClaims
+          .filter((claim) => migrationGuide.includes(claim))
+          .map((claim) => `migrationGuide: ${claim}`),
+        ...staleReadmeClaims
+          .filter((claim) => readme.includes(claim))
+          .map((claim) => `readme: ${claim}`),
+      ],
+      missingCurrentClaims: [
+        ...expectedClaims
+          .filter((claim) => !migrationGuide.includes(claim))
+          .map((claim) => `migrationGuide: ${claim}`),
+        ...expectedReadmeClaims
+          .filter((claim) => !readme.includes(claim))
+          .map((claim) => `readme: ${claim}`),
+      ],
     }).toEqual({
       staleClaims: [],
       missingCurrentClaims: [],

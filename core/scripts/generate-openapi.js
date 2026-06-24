@@ -2687,9 +2687,9 @@ function buildSpec(methodSpecs) {
     info: {
       title: 'PMXT Sidecar API',
       description:
-        'A unified local sidecar API for prediction markets (Polymarket, Kalshi, Limitless). ' +
-        'This API acts as a JSON-RPC-style gateway. Each endpoint corresponds to a specific method ' +
-        'on the generic exchange implementation.',
+        'A unified local sidecar API for supported prediction markets. ' +
+        'This API acts as a JSON-RPC-style gateway over PMXT exchange implementations, ' +
+        'with venue and write support varying by method and capability.',
       version: '0.4.4',
     },
     servers: [

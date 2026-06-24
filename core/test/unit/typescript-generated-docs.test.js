@@ -76,7 +76,76 @@ const body = {
 ### API Endpoints
 `;
 
+const staleGeneratedApiDescriptionFragments = [
+  'A unified local sidecar API for prediction markets (Polymarket, Kalshi, Limitless)',
+  'A unified local sidecar API for prediction markets, including Polymarket, Kalshi, Limitless, and Predict.fun',
+  'Predict.fun',
+];
+
+function collectFiles(rootDir) {
+  if (!fs.existsSync(rootDir)) {
+    return [];
+  }
+
+  return fs.readdirSync(rootDir, { withFileTypes: true }).flatMap((entry) => {
+    const entryPath = path.join(rootDir, entry.name);
+
+    if (entry.isDirectory()) {
+      return collectFiles(entryPath);
+    }
+
+    return entry.isFile() ? [entryPath] : [];
+  });
+}
+
+function collectStaleGeneratedApiDescriptionOffenders() {
+  const files = [
+    path.join(repoRoot, 'core/scripts/generate-openapi.js'),
+    path.join(repoRoot, 'core/src/server/openapi.yaml'),
+    ...collectFiles(path.join(repoRoot, 'sdks/typescript/generated')),
+    ...collectFiles(path.join(repoRoot, 'sdks/python/generated')),
+  ];
+
+  return files
+    .map((filePath) => ({
+      filePath: path.relative(repoRoot, filePath),
+      content: fs.readFileSync(filePath, 'utf8'),
+    }))
+    .filter(({ content }) => (
+      staleGeneratedApiDescriptionFragments.some((fragment) => content.includes(fragment))
+    ))
+    .map(({ filePath }) => filePath);
+}
+
 describe('TypeScript generated model docs', () => {
+  test('generated SDK files use support-scoped API description', () => {
+    const generatorSource = fs.readFileSync(
+      path.join(repoRoot, 'core/scripts/generate-openapi.js'),
+      'utf8',
+    );
+    const sourceSpec = fs.readFileSync(
+      path.join(repoRoot, 'core/src/server/openapi.yaml'),
+      'utf8',
+    );
+    const offenders = collectStaleGeneratedApiDescriptionOffenders();
+
+    expect({
+      generatorHasCurrentDescription: generatorSource.includes(
+        'A unified local sidecar API for supported prediction markets.',
+      ),
+      sourceHasCurrentDescription: sourceSpec.includes(
+        'A unified local sidecar API for supported prediction markets.',
+      ),
+      count: offenders.length,
+      offenders: offenders.slice(0, 20),
+    }).toEqual({
+      generatorHasCurrentDescription: true,
+      sourceHasCurrentDescription: true,
+      count: 0,
+      offenders: [],
+    });
+  });
+
   test('strips placeholder model example blocks', () => {
     const fixed = stripGeneratedModelDocExample(modelDocWithPlaceholder);
 

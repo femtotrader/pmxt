@@ -607,7 +607,8 @@
               "type": "string",
               "enum": [
                 "polymarket",
-                "opinion"
+                "opinion",
+                "limitless"
               ]
             },
             "description": "Restrict to a single hosted venue."
@@ -1171,13 +1172,14 @@
             "type": "string",
             "enum": [
               "polymarket",
-              "opinion"
+              "opinion",
+              "limitless"
             ],
             "description": "Venue the outcome trades on. Inferred automatically from your client class in the SDKs."
           },
           "venue_outcome_id": {
             "type": "string",
-            "description": "The outcome's identifier (e.g. Polymarket `tokenId`, Opinion outcome hash). Returned by `client.fetch_markets()`."
+            "description": "The outcome's identifier (e.g. Polymarket `tokenId`, Opinion outcome hash, or Limitless token address). Returned by `client.fetch_markets()`."
           },
           "side": {
             "type": "string",
@@ -1308,13 +1310,14 @@
                 "type": "string",
                 "enum": [
                   "polymarket",
-                  "opinion"
+                  "opinion",
+                  "limitless"
                 ],
                 "description": "Venue the order will execute on."
               },
               "token_id": {
                 "type": "string",
-                "description": "Venue-native outcome identifier (Polymarket ERC-1155 `tokenId`, or Opinion outcome hash)."
+                "description": "Venue-native outcome identifier (Polymarket ERC-1155 `tokenId`, Opinion outcome hash, or Limitless token address)."
               },
               "neg_risk": {
                 "type": "boolean",
@@ -1327,7 +1330,7 @@
               "opinion_market_id": {
                 "type": "integer",
                 "nullable": true,
-                "description": "Opinion-native integer market id. `null` for Polymarket orders."
+                "description": "Opinion-native integer market id. `null` for Polymarket and Limitless orders."
               }
             }
           }
@@ -1536,7 +1539,8 @@
             "type": "string",
             "enum": [
               "polymarket",
-              "opinion"
+              "opinion",
+              "limitless"
             ],
             "nullable": true,
             "description": "Source venue that produced the fill."
@@ -1555,13 +1559,14 @@
             "type": "string",
             "enum": [
               "polymarket",
-              "opinion"
+              "opinion",
+              "limitless"
             ],
             "description": "Venue the position is held on. Defaults to `polymarket` for tokens whose source venue could not be inferred."
           },
           "shares": {
             "type": "number",
-            "description": "Outcome shares held -- the ERC-1155 (or Opinion-native) token balance held by the PMXT PreFundedEscrow on behalf of the wallet."
+            "description": "Outcome shares held -- the ERC-1155, Opinion-native, or Limitless token balance held by the PMXT PreFundedEscrow on behalf of the wallet."
           },
           "current_price": {
             "type": "number",
@@ -1611,7 +1616,8 @@
             "type": "string",
             "enum": [
               "polymarket",
-              "opinion"
+              "opinion",
+              "limitless"
             ],
             "nullable": true,
             "description": "Set when the hosted backend returns a per-venue breakdown; null when balance is venue-agnostic."

@@ -37,6 +37,24 @@ function collectStrings(value) {
   return [];
 }
 
+function collectHostedVenueEnums(value) {
+  if (Array.isArray(value)) {
+    return value.flatMap(collectHostedVenueEnums);
+  }
+  if (value && typeof value === 'object') {
+    const current = Array.isArray(value.enum)
+      && value.enum.includes('polymarket')
+      && value.enum.includes('opinion')
+      ? [value.enum]
+      : [];
+    return [
+      ...current,
+      ...Object.values(value).flatMap(collectHostedVenueEnums),
+    ];
+  }
+  return [];
+}
+
 describe('Hosted OpenAPI SDK code samples', () => {
   test('show fetchBalance as a list in TypeScript and Python SDKs', () => {
     const spec = JSON.parse(fs.readFileSync(hostedTradingSpecPath, 'utf8'));
@@ -100,5 +118,17 @@ describe('Hosted OpenAPI SDK code samples', () => {
     expect(text).not.toContain('All hosted venues are funded once on Polygon');
     expect(text).not.toContain('single funding location for every hosted venue');
     expect(text).not.toContain('Backs trading across every hosted venue');
+  });
+
+  test('list Limitless in hosted venue enums', () => {
+    const spec = JSON.parse(fs.readFileSync(hostedTradingSpecPath, 'utf8'));
+    const venueEnums = collectHostedVenueEnums(spec);
+
+    expect(venueEnums.length).toBeGreaterThanOrEqual(6);
+    for (const venueEnum of venueEnums) {
+      expect(venueEnum).toEqual(
+        expect.arrayContaining(['polymarket', 'opinion', 'limitless']),
+      );
+    }
   });
 });

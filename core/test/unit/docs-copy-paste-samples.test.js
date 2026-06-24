@@ -549,6 +549,47 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     );
   });
 
+  test('SDK API references describe the current venue scope', () => {
+    const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
+    const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');
+    const pythonApiReferenceTemplate = readDoc('scripts/templates/api-reference.python.md.hbs');
+    const typescriptApiReferenceTemplate = readDoc(
+      'scripts/templates/api-reference.typescript.md.hbs',
+    );
+    const documents = {
+      pythonApiReference,
+      pythonApiReferenceTemplate,
+      typescriptApiReference,
+      typescriptApiReferenceTemplate,
+    };
+    const staleDescription =
+      'interacting with multiple prediction market exchanges (Polymarket, Kalshi, Limitless)';
+    const expectedDescriptions = {
+      pythonApiReference:
+        'A unified Python SDK for supported prediction markets, with local sidecar access to PMXT exchange implementations and hosted services where configured.',
+      pythonApiReferenceTemplate:
+        'A unified Python SDK for supported prediction markets, with local sidecar access to PMXT exchange implementations and hosted services where configured.',
+      typescriptApiReference:
+        'A unified TypeScript SDK for supported prediction markets, with local sidecar access to PMXT exchange implementations and hosted services where configured.',
+      typescriptApiReferenceTemplate:
+        'A unified TypeScript SDK for supported prediction markets, with local sidecar access to PMXT exchange implementations and hosted services where configured.',
+    };
+    const staleOffenders = Object.entries(documents)
+      .filter(([, content]) => content.includes(staleDescription))
+      .map(([name]) => name);
+    const missingCurrentDescriptions = Object.entries(expectedDescriptions)
+      .filter(([name, description]) => !documents[name].includes(description))
+      .map(([name]) => name);
+
+    expect({
+      staleOffenders,
+      missingCurrentDescriptions,
+    }).toEqual({
+      staleOffenders: [],
+      missingCurrentDescriptions: [],
+    });
+  });
+
   test('SDK API references include account history and firehose methods', () => {
     const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
     const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');

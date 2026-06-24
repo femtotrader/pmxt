@@ -56,6 +56,10 @@ describe('LLMS docs generation', () => {
     const apiErrors = fs.readFileSync(path.join(repoRoot, 'docs/api-reference/errors.mdx'), 'utf8');
     const tradingQuickstart = fs.readFileSync(path.join(repoRoot, 'docs/trading-quickstart.mdx'), 'utf8');
     const hostedTrading = fs.readFileSync(path.join(repoRoot, 'docs/concepts/hosted-trading.mdx'), 'utf8');
+    const escrowLifecycle = fs.readFileSync(
+      path.join(repoRoot, 'docs/guides/escrow-lifecycle.mdx'),
+      'utf8',
+    );
     const migrateToHostedTrading = fs.readFileSync(
       path.join(repoRoot, 'docs/guides/migrate-to-hosted-trading.mdx'),
       'utf8',
@@ -66,6 +70,7 @@ describe('LLMS docs generation', () => {
     );
     const rateLimits = fs.readFileSync(path.join(repoRoot, 'docs/rate-limits.mdx'), 'utf8');
     const hostedWriteDocs = `${selfHosted}\n${tradingQuickstart}\n${hostedTrading}\n${llmsFull}`;
+    const hostedFundingDocs = `${hostedTrading}\n${escrowLifecycle}\n${llmsFull}`;
     const hostedIdentifierDocs = `${hostedTrading}\n${migrateToHostedTrading}\n${llmsFull}`;
     const hostedSecurityDocs = `${security}\n${apiErrors}\n${llmsFull}`;
     const predictionMarkets101Docs = `${predictionMarkets101}\n${llmsFull}`;
@@ -215,6 +220,23 @@ describe('LLMS docs generation', () => {
       'which write venues each mode supports.',
     );
     expect(hostedWriteDocs).toContain('Feature Support & Compliance');
+    expect(hostedFundingDocs).not.toContain(
+      'single Polygon-based `PreFundedEscrow` contract for every supported venue',
+    );
+    expect(hostedFundingDocs).not.toContain('and future venues');
+    expect(hostedFundingDocs).not.toContain('single funding location for *every* hosted venue');
+    expect(hostedFundingDocs).not.toContain('more coming');
+    expect(hostedFundingDocs).not.toContain('the same key handles every venue');
+    expect(hostedFundingDocs).not.toContain("serves every venue's payment leg");
+    expect(hostedFundingDocs).toMatch(
+      /same EVM wallet\/key can\s+trade the currently hosted\s+venues/,
+    );
+    expect(hostedFundingDocs).toMatch(
+      /for the currently hosted trading venues \(Polymarket, Opinion, and\s+Limitless\)/,
+    );
+    expect(hostedFundingDocs).toContain(
+      'serves the payment legs for Polymarket, Opinion, and Limitless',
+    );
     expect(hostedIdentifierDocs).not.toContain(
       'Every hosted endpoint speaks in **catalog UUIDs**, not venue-native IDs',
     );

@@ -1047,7 +1047,12 @@ Hosted trading is PMXT's default execution path. You provide an API key and a wa
 
 
 > **Note:**
-  **One chain to fund: Polygon.** All hosted trading uses a single Polygon-based `PreFundedEscrow` contract for every supported venue. Fund USDC on Polygon once and your same wallet and key trade Polymarket, Opinion, *and* Limitless (and future venues). For non-Polygon venues like Opinion (on BSC), PMXT handles cross-chain settlement transparently — you never sign anything on a chain other than Polygon. Pass any EVM-compatible private key.
+  **One chain to fund: Polygon.** Hosted trading for Polymarket, Opinion,
+  and Limitless uses a single Polygon-based `PreFundedEscrow` contract. Fund
+  USDC on Polygon once; the same EVM wallet/key can trade the currently hosted
+  venues. For non-Polygon hosted venues like Opinion (on BSC) and Limitless
+  (on Base), PMXT handles cross-chain settlement transparently — you never
+  sign anything on a chain other than Polygon.
 
 
 #### When hosted mode is right
@@ -1117,7 +1122,7 @@ The SDK accepts either form. Outcomes returned by `pmxt.Polymarket(...).fetch_ma
 
 USDC custody lives on **Polygon** in the `PreFundedEscrow` contract (chainId 137, sometimes called `HomeEscrow`). Outcome-token custody on non-Polygon venues lives on the venue's native chain:
 
-- **Polygon `PreFundedEscrow`** holds the user's USDC (USDC.e, `0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174`) and serves every venue's payment leg. Polymarket CTF tokens are custodied here too — same-chain.
+- **Polygon `PreFundedEscrow`** holds the user's USDC (USDC.e, `0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174`) and serves the payment legs for Polymarket, Opinion, and Limitless. Polymarket CTF tokens are custodied here too — same-chain.
 - **BSC `VenueEscrow`** (chainId 56) holds Opinion [outcome](https://pmxt.dev/docs/concepts/prediction-markets-101#event-market-outcome) tokens. For Opinion BUYs the operator deposits tokens here on the user's behalf (no user signature on BSC). For Opinion SELLs the user signs a BSC-domain pull leg authorizing the operator to debit this escrow.
 - **Base escrow** holds Limitless outcome tokens. The operator delivers tokens here after buying on Limitless' CLOB; the user funds and signs only on Polygon.
 
@@ -1277,7 +1282,13 @@ Hosted trading on PMXT settles through a non-custodial `PreFundedEscrow` smart c
 
 
 > **Note:**
-  **You fund Polygon only.** USDC always sits in the Polygon `PreFundedEscrow` — the single funding location for *every* hosted venue (Polymarket, Opinion, and Limitless today; more coming). For venues that don't live on Polygon (e.g. Opinion on BSC), PMXT operates an internal cross-chain leg that holds outcome tokens on the venue's chain; you neither fund nor sign anything on that side. Pass any EVM-compatible private key — the same key handles every venue.
+  **You fund Polygon only.** USDC always sits in the Polygon `PreFundedEscrow`
+  for the currently hosted trading venues (Polymarket, Opinion, and
+  Limitless). For hosted venues that don't settle on Polygon (Opinion on BSC,
+  Limitless on Base), PMXT operates an internal cross-chain leg that holds
+  outcome tokens on the venue's chain; you neither fund nor sign anything on
+  that side. Pass any EVM-compatible private key; the same EVM wallet/key can
+  trade the currently hosted venues.
 
 
 #### Why escrow at all?

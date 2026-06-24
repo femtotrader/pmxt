@@ -3888,7 +3888,7 @@ curl "https://api.pmxt.dev/api/polymarket/fetchMarket?slug=will-gavin-newsom-win
 
 `POST /v0/trade/create-order`
 
-Place a buy or sell order on Polymarket or Opinion. Returns the resulting order with id, fill status, average price, fees, and the on-chain tx hash once it settles.
+Place a buy or sell order on Polymarket, Opinion, or Limitless. Returns the resulting order with id, fill status, average price, fees, and the on-chain tx hash once it settles.
 
 Most callers pass an outcome straight from `client.fetch_markets()`:
 
@@ -4168,7 +4168,7 @@ console.log(order.id, order.status, order.filled, order.remaining);
 
 List the wallet's resting orders that haven't filled or been cancelled yet. Each entry has the market, outcome, side, size, price, and time-in-force.
 
-Filter by `venue` to scope to Polymarket or Opinion only.
+Filter by `venue` to scope to Polymarket, Opinion, or Limitless.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -4210,7 +4210,7 @@ for (const order of await client.fetchOpenOrders()) {
 
 `GET /v0/user/{address}/trades`
 
-List the wallet's historical fills on Polymarket and Opinion. Each trade carries the executed price (net of venue fees), size, and on-chain settlement tx hash.
+List the wallet's historical fills on Polymarket, Opinion, and Limitless. Each trade carries the executed price (net of venue fees), size, and on-chain settlement tx hash.
 
 Closed orders are modelled as trades in hosted mode — use this endpoint instead of `fetchClosedOrders` / `fetchAllOrders` (which raise `NotSupported`).
 
@@ -4253,7 +4253,7 @@ for (const trade of await client.fetchMyTrades()) {
 
 `GET /v0/user/{address}/positions`
 
-List the open positions held by `address` across Polymarket and Opinion. Each position carries the market, outcome, share count, and average entry price.
+List the open positions held by `address` across Polymarket, Opinion, and Limitless. Each position carries the market, outcome, share count, and average entry price.
 
 Mark-to-market fields (`current_price`, `current_value`, `unrealized_pnl`) are reserved for a future release and currently return `null`.
 

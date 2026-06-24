@@ -153,6 +153,19 @@ describe('Documentation copy-paste samples', () => {
     expect(readme).toContain('self-host when you need raw venue credentials');
   });
 
+  test('SDK READMEs scope hosted custody to current hosted venues', () => {
+    const typescriptReadme = readDoc('sdks/typescript/README.md');
+    const pythonReadme = readDoc('sdks/python/README.md');
+    const sdkReadmes = `${typescriptReadme}\n${pythonReadme}`;
+
+    expect(sdkReadmes).toContain(
+      'For Polymarket, Opinion, and Limitless, PMXT\'s PreFundedEscrow handles custody',
+    );
+    expect(sdkReadmes).not.toContain(
+      'For Polymarket and Opinion, PMXT\'s PreFundedEscrow handles custody',
+    );
+  });
+
   test('hosted limit-order docs do not carry stale SDK denom mismatch caveats', () => {
     const tradingQuickstart = readDoc('docs/trading-quickstart.mdx');
     const hostedErrors = readDoc('docs/guides/hosted-errors.mdx');

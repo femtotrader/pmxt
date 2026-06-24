@@ -71,6 +71,7 @@ describe('LLMS docs generation', () => {
     const rateLimits = fs.readFileSync(path.join(repoRoot, 'docs/rate-limits.mdx'), 'utf8');
     const hostedWriteDocs = `${selfHosted}\n${tradingQuickstart}\n${hostedTrading}\n${llmsFull}`;
     const hostedFundingDocs = `${hostedTrading}\n${escrowLifecycle}\n${llmsFull}`;
+    const hostedAccountDocs = `${llmsIndex}\n${llmsFull}`;
     const hostedIdentifierDocs = `${hostedTrading}\n${migrateToHostedTrading}\n${llmsFull}`;
     const hostedSecurityDocs = `${security}\n${apiErrors}\n${llmsFull}`;
     const predictionMarkets101Docs = `${predictionMarkets101}\n${llmsFull}`;
@@ -237,6 +238,17 @@ describe('LLMS docs generation', () => {
     expect(hostedFundingDocs).toContain(
       'serves the payment legs for Polymarket, Opinion, and Limitless',
     );
+    expect(hostedAccountDocs).toContain('across Polymarket, Opinion, and Limitless');
+    expect(hostedAccountDocs).toContain(
+      'Place a buy or sell order on Polymarket, Opinion, or Limitless.',
+    );
+    expect(hostedAccountDocs).toContain(
+      'Filter by `venue` to scope to Polymarket, Opinion, or Limitless.',
+    );
+    expect(hostedAccountDocs).not.toContain('across Polymarket and Opinion');
+    expect(hostedAccountDocs).not.toContain('on Polymarket and Opinion');
+    expect(hostedAccountDocs).not.toContain('Polymarket or Opinion');
+    expect(hostedAccountDocs).not.toContain('scope to Polymarket or Opinion only');
     expect(hostedIdentifierDocs).not.toContain(
       'Every hosted endpoint speaks in **catalog UUIDs**, not venue-native IDs',
     );

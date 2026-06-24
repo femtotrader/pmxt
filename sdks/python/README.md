@@ -57,7 +57,7 @@ When you pass `pmxt_api_key`, the SDK talks to the PMXT hosted services:
 1. Catalog requests go to `api.pmxt.dev` (markets, events, order books, OHLCV, trades).
 2. Trading requests go to `trade.pmxt.dev` (orders, positions, balances).
 3. The SDK does **not** spawn a local process.
-4. For Polymarket and Opinion, PMXT's PreFundedEscrow handles custody — you sign orders with your own key, PMXT settles on-chain.
+4. For Polymarket, Opinion, and Limitless, PMXT's PreFundedEscrow handles custody — you sign orders with your own key, PMXT settles on-chain.
 
 ### How it works (self-hosted)
 

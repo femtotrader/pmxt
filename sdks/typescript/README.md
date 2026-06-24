@@ -49,7 +49,7 @@ const balance = await client.fetchBalance();
 
 ### How it works (hosted)
 
-When you pass `pmxtApiKey`, the SDK talks to PMXT's hosted services: catalog requests go to `api.pmxt.dev`, trading requests go to `trade.pmxt.dev`. The SDK does **not** spawn a local process. For Polymarket and Opinion, PMXT's PreFundedEscrow handles custody — you sign orders with your own key, PMXT settles on-chain.
+When you pass `pmxtApiKey`, the SDK talks to PMXT's hosted services: catalog requests go to `api.pmxt.dev`, trading requests go to `trade.pmxt.dev`. The SDK does **not** spawn a local process. For Polymarket, Opinion, and Limitless, PMXT's PreFundedEscrow handles custody — you sign orders with your own key, PMXT settles on-chain.
 
 ### How it works (self-hosted)
 

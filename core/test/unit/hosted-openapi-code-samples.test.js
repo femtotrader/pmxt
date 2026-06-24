@@ -131,4 +131,20 @@ describe('Hosted OpenAPI SDK code samples', () => {
       );
     }
   });
+
+  test('scope hosted account descriptions to current hosted venues', () => {
+    const spec = JSON.parse(fs.readFileSync(hostedTradingSpecPath, 'utf8'));
+    const text = collectStrings(spec).join('\n');
+
+    expect(text).toContain('across Polymarket, Opinion, and Limitless');
+    expect(text).toContain('Place a buy or sell order on Polymarket, Opinion, or Limitless.');
+    expect(text).toContain('Filter by `venue` to scope to Polymarket, Opinion, or Limitless.');
+    expect(text).toContain('e.g. `polymarket`, `opinion`, `limitless`');
+
+    expect(text).not.toContain('across Polymarket and Opinion');
+    expect(text).not.toContain('on Polymarket and Opinion');
+    expect(text).not.toContain('Polymarket or Opinion');
+    expect(text).not.toContain('scope to Polymarket or Opinion only');
+    expect(text).not.toContain('e.g. `polymarket`, `opinion`),');
+  });
 });

@@ -232,7 +232,7 @@
     "/v0/trade/create-order": {
       "post": {
         "summary": "Create Order",
-        "description": "Place a buy or sell order on Polymarket or Opinion. Returns the resulting order with id, fill status, average price, fees, and the on-chain tx hash once it settles.\n\nMost callers pass an outcome straight from `client.fetch_markets()`:\n\n```python\nmarket = client.fetch_markets({\"query\": \"trump 2028\"})[0]\norder = client.create_order(outcome=market.yes, side=\"buy\", amount=10, order_type=\"limit\", price=0.55)\n```\n\nNeed to show the order to a user before they sign it (custom approval UX)? Use `buildOrderHosted` + `submitOrderHosted` instead — together they do the same thing.",
+        "description": "Place a buy or sell order on Polymarket, Opinion, or Limitless. Returns the resulting order with id, fill status, average price, fees, and the on-chain tx hash once it settles.\n\nMost callers pass an outcome straight from `client.fetch_markets()`:\n\n```python\nmarket = client.fetch_markets({\"query\": \"trump 2028\"})[0]\norder = client.create_order(outcome=market.yes, side=\"buy\", amount=10, order_type=\"limit\", price=0.55)\n```\n\nNeed to show the order to a user before they sign it (custom approval UX)? Use `buildOrderHosted` + `submitOrderHosted` instead — together they do the same thing.",
         "tags": [
           "Trading"
         ],
@@ -504,7 +504,7 @@
     "/v0/user/{address}/positions": {
       "get": {
         "summary": "Fetch Positions",
-        "description": "List the open positions held by `address` across Polymarket and Opinion. Each position carries the market, outcome, share count, and average entry price.\n\nMark-to-market fields (`current_price`, `current_value`, `unrealized_pnl`) are reserved for a future release and currently return `null`.",
+        "description": "List the open positions held by `address` across Polymarket, Opinion, and Limitless. Each position carries the market, outcome, share count, and average entry price.\n\nMark-to-market fields (`current_price`, `current_value`, `unrealized_pnl`) are reserved for a future release and currently return `null`.",
         "tags": [
           "Orders & Positions"
         ],
@@ -585,7 +585,7 @@
     "/v0/orders/open": {
       "get": {
         "summary": "Fetch Open Orders",
-        "description": "List the wallet's resting orders that haven't filled or been cancelled yet. Each entry has the market, outcome, side, size, price, and time-in-force.\n\nFilter by `venue` to scope to Polymarket or Opinion only.",
+        "description": "List the wallet's resting orders that haven't filled or been cancelled yet. Each entry has the market, outcome, side, size, price, and time-in-force.\n\nFilter by `venue` to scope to Polymarket, Opinion, or Limitless.",
         "tags": [
           "Orders & Positions"
         ],
@@ -669,7 +669,7 @@
     "/v0/user/{address}/trades": {
       "get": {
         "summary": "Fetch My Trades",
-        "description": "List the wallet's historical fills on Polymarket and Opinion. Each trade carries the executed price (net of venue fees), size, and on-chain settlement tx hash.\n\nClosed orders are modelled as trades in hosted mode — use this endpoint instead of `fetchClosedOrders` / `fetchAllOrders` (which raise `NotSupported`).",
+        "description": "List the wallet's historical fills on Polymarket, Opinion, and Limitless. Each trade carries the executed price (net of venue fees), size, and on-chain settlement tx hash.\n\nClosed orders are modelled as trades in hosted mode — use this endpoint instead of `fetchClosedOrders` / `fetchAllOrders` (which raise `NotSupported`).",
         "tags": [
           "Orders & Positions"
         ],
@@ -1147,7 +1147,7 @@
               "exchange": {
                 "type": "string",
                 "nullable": true,
-                "description": "Source venue that produced the error (e.g. `polymarket`, `opinion`), when the failure originated upstream of PMXT. `null` for PMXT-side errors."
+                "description": "Source venue that produced the error (e.g. `polymarket`, `opinion`, `limitless`), when the failure originated upstream of PMXT. `null` for PMXT-side errors."
               },
               "detail": {
                 "type": "object",

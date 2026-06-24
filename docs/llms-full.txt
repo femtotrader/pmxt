@@ -43,7 +43,7 @@ It runs two ways:
   No API key, no external dependency. Your requests go directly to the
   venues. See [self-hosted](https://pmxt.dev/docs/guides/self-hosted).
 
-The code is identical either way:
+The SDK call shape is shared, but the runtime target changes:
 
 ```python
 import pmxt
@@ -64,6 +64,10 @@ import pmxt
 # Self-hosted: SDK spawns pmxt-core on localhost
 poly = pmxt.Polymarket()
 ```
+
+Hosted mode uses a PMXT API key and hosted services. Self-hosted mode talks
+to local `pmxt-core` and uses venue-native credentials where a capability
+requires them.
 
 See [self-hosted](https://pmxt.dev/docs/guides/self-hosted) for when that's the right choice.
 
@@ -107,7 +111,7 @@ schema where the venue implements them.
 
 
   - **[Unified schema](https://pmxt.dev/docs/concepts/unified-schema)** — `Event` / `Market` / `Outcome` — the shape that works everywhere.
-  - **[Same SDK, local or hosted](https://pmxt.dev/docs/quickstart)** — The `pmxt` (Python) and `pmxtjs` (TypeScript) SDKs work identically against localhost or the hosted API. Set one env var to switch.
+  - **[Same SDK, local or hosted](https://pmxt.dev/docs/quickstart)** — The `pmxt` (Python) and `pmxtjs` (TypeScript) SDKs share high-level calls across hosted and self-hosted modes. Credentials and supported writes vary by mode.
 
 
 #### What you'd build yourself

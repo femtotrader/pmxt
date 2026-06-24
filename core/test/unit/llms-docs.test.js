@@ -139,6 +139,14 @@ describe('LLMS docs generation', () => {
       /shared SDK method names and unified response shapes\s+where each venue supports/,
     );
     expect(introductionVenueScopeDocs).toMatch(/where that venue implements the\s+capability/);
+    expect(introductionVenueScopeDocs).not.toContain('The code is identical either way:');
+    expect(introductionVenueScopeDocs).not.toMatch(/SDKs work identically\s+against localhost or the hosted API/);
+    expect(introductionVenueScopeDocs).toContain(
+      'The SDK call shape is shared, but the runtime target changes:',
+    );
+    expect(introductionVenueScopeDocs).toContain(
+      'Credentials and supported writes vary by mode.',
+    );
     expect(`${introduction}\n${routerOverview}\n${llmsIndex}\n${llmsFull}`).not.toContain(
       '8 more venues',
     );

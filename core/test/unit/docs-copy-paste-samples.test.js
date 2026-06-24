@@ -812,6 +812,22 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     });
   });
 
+  test('catalog identifier docs avoid identical wire-path wording', () => {
+    const catalogIdentifierGuide = readDoc('docs/concepts/catalog-uuid-vs-venue-id.mdx');
+
+    expect({
+      hasStaleIdenticalClaim: catalogIdentifierGuide.includes(
+        '# Both of these work identically against trade.pmxt.dev:',
+      ),
+      hasScopedNoConversionClaim: catalogIdentifierGuide.includes(
+        '# Both of these work against trade.pmxt.dev without a conversion step:',
+      ),
+    }).toEqual({
+      hasStaleIdenticalClaim: false,
+      hasScopedNoConversionClaim: true,
+    });
+  });
+
   test('SDK API references include account history and firehose methods', () => {
     const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
     const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');

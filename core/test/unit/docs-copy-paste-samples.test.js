@@ -715,6 +715,28 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     });
   });
 
+  test('unified schema docs describe source-aware identifier semantics', () => {
+    const unifiedSchema = readDoc('docs/concepts/unified-schema.mdx');
+    const staleClaims = [
+      '| `marketId`        | `string`          | Stable PMXT id (UUID).                                    |',
+      '| `outcomeId`       | `string`           | Venue-native outcome id (token id, side id, ...).         |',
+    ];
+    const expectedClaims = [
+      'Identifier semantics are source-aware:',
+      'Router and hosted catalog rows use stable PMXT UUIDs for `marketId` and `outcomeId`.',
+      'Venue clients and local pass-throughs may use venue-native identifiers.',
+      'Do not assume every `marketId` / `outcomeId` is a UUID or every outcome id is venue-native.',
+    ];
+
+    expect({
+      staleClaims: staleClaims.filter((claim) => unifiedSchema.includes(claim)),
+      missingCurrentClaims: expectedClaims.filter((claim) => !unifiedSchema.includes(claim)),
+    }).toEqual({
+      staleClaims: [],
+      missingCurrentClaims: [],
+    });
+  });
+
   test('SDK API references include account history and firehose methods', () => {
     const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
     const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');

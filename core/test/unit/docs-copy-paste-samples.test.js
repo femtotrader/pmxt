@@ -647,6 +647,35 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     });
   });
 
+  test('package metadata descriptions use current support scope', () => {
+    const corePackage = JSON.parse(readDoc('core/package.json'));
+    const typescriptPackage = JSON.parse(readDoc('sdks/typescript/package.json'));
+    const pythonProject = readDoc('sdks/python/pyproject.toml');
+    const metadata = {
+      corePackage: corePackage.description,
+      typescriptPackage: typescriptPackage.description,
+      pythonProject,
+    };
+    const staleOffenders = Object.entries(metadata)
+      .filter(([, content]) => content.includes('The ccxt for prediction markets'))
+      .map(([name]) => name);
+
+    expect({
+      staleOffenders,
+      coreDescription: corePackage.description,
+      typescriptDescription: typescriptPackage.description,
+      pythonHasCurrentDescription: pythonProject.includes(
+        'description = "SDK for supported prediction markets with hosted services and local sidecar access"',
+      ),
+    }).toEqual({
+      staleOffenders: [],
+      coreDescription: 'Local sidecar API for supported prediction markets.',
+      typescriptDescription:
+        'SDK for supported prediction markets with hosted services and local sidecar access',
+      pythonHasCurrentDescription: true,
+    });
+  });
+
   test('SDK API references describe the current venue scope', () => {
     const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
     const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');

@@ -606,6 +606,37 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     });
   });
 
+  test('DomeAPI migration guide reflects current PMXT support scope', () => {
+    const migrationGuide = readDoc('docs/MIGRATE_FROM_DOMEAPI.md');
+    const staleClaims = [
+      'DomeAPI is shutting down March 31, 2025.',
+      '| **Exchanges** | Polymarket, Kalshi | Polymarket, Kalshi, Limitless, Probable, Baozi, Myriad |',
+      'Some DomeAPI features have no direct pmxt equivalent:',
+      '| Binance / Chainlink price feeds | Not available |',
+      '| Historical orderbook snapshots | `watch_order_book()` for live data |',
+      'pmxt gives you the same API across all supported exchanges:',
+      '// Same methods on all exchanges',
+    ];
+    const expectedClaims = [
+      'DomeAPI shut down on March 31, 2025.',
+      '| **Exchanges** | Polymarket, Kalshi | Supported venue catalog (Polymarket, Kalshi, Limitless, Smarkets, Opinion, and more) |',
+      '## Feature gaps and replacements',
+      'Some DomeAPI features map to a different PMXT surface or have no direct equivalent:',
+      '| Binance / Chainlink price feeds | Feed API via `FeedClient` and `/api/feeds/{feed}/...` endpoints |',
+      '| Historical orderbook snapshots | Historical `fetch_order_book(..., params={...})` via PMXT Archive where supported; live `watch_order_book()` for streaming |',
+      'pmxt uses the same method names across venues that implement each capability:',
+      '// Same method names where each venue supports the capability',
+    ];
+
+    expect({
+      staleClaims: staleClaims.filter((claim) => migrationGuide.includes(claim)),
+      missingCurrentClaims: expectedClaims.filter((claim) => !migrationGuide.includes(claim)),
+    }).toEqual({
+      staleClaims: [],
+      missingCurrentClaims: [],
+    });
+  });
+
   test('SDK API references include account history and firehose methods', () => {
     const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
     const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');

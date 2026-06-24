@@ -1,6 +1,6 @@
 # Migrating from DomeAPI to pmxt
 
-> **DomeAPI is shutting down March 31, 2025.** Polymarket acquired DomeAPI and is discontinuing the service. If you rely on DomeAPI for market data or trading, you need to migrate before that date.
+> **DomeAPI shut down on March 31, 2025.** Polymarket acquired DomeAPI and discontinued the service. If you relied on DomeAPI for market data or trading, you need to migrate to a replacement.
 
 This guide helps you migrate your prediction market integration from [DomeAPI](https://docs.domeapi.io/) to pmxt.
 
@@ -9,7 +9,7 @@ This guide helps you migrate your prediction market integration from [DomeAPI](h
 | | DomeAPI | pmxt |
 |---|---|---|
 | **Authentication** | API key (paid tiers) | No API key for market data |
-| **Exchanges** | Polymarket, Kalshi | Polymarket, Kalshi, Limitless, Probable, Baozi, Myriad |
+| **Exchanges** | Polymarket, Kalshi | Supported venue catalog (Polymarket, Kalshi, Limitless, Smarkets, Opinion, and more) |
 | **Trading** | Order router (linked wallet) | Native (your private key, direct on-chain) |
 | **License** | Proprietary service | Open source (MIT) |
 | **Rate limits** | Tiered (10-300 QPS) | Exchange-native |
@@ -459,24 +459,24 @@ dt = datetime.fromtimestamp(candle.timestamp / 1000)
 
 ---
 
-## Feature gaps
+## Feature gaps and replacements
 
-Some DomeAPI features have no direct pmxt equivalent:
+Some DomeAPI features map to a different PMXT surface or have no direct equivalent:
 
 | DomeAPI feature | pmxt alternative |
 |---|---|
 | Wallet positions by address | `fetch_positions()` (own account only) |
 | Wallet P&L by address | `fetch_positions()` unrealized/realized P&L |
 | Sports cross-platform matching | Not available |
-| Binance / Chainlink price feeds | Not available |
+| Binance / Chainlink price feeds | Feed API via `FeedClient` and `/api/feeds/{feed}/...` endpoints |
 | Activity feed by wallet | Not available |
-| Historical orderbook snapshots | `watch_order_book()` for live data |
+| Historical orderbook snapshots | Historical `fetch_order_book(..., params={...})` via PMXT Archive where supported; live `watch_order_book()` for streaming |
 
 ---
 
 ## Multi-exchange support (new in pmxt)
 
-pmxt gives you the same API across all supported exchanges:
+pmxt uses the same method names across venues that implement each capability:
 
 ```typescript
 import pmxt from 'pmxtjs';
@@ -485,7 +485,7 @@ const poly = new pmxt.Polymarket();
 const kalshi = new pmxt.Kalshi();
 const limitless = new pmxt.Limitless();
 
-// Same methods on all exchanges
+// Same method names where each venue supports the capability
 const polyMarkets = await poly.fetchMarkets({ query: 'Fed Chair' });
 const kalshiMarkets = await kalshi.fetchMarkets({ query: 'Fed Chair' });
 ```

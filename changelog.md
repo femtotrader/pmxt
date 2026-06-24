@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.51.4] - 2026-06-24
+
+### Fixed
+
+- **Hyperliquid normalizer now extracts `resolutionDate` from question prose when no `expiry:` tag is present.** Hyperliquid's `outcomeMeta` payload exposes no structured end-time on either the Outcome or Question objects. Price-bracket markets get a clean `expiry:YYYYMMDD-HHmm` in the outcome description (parsed); everything else (World Cup teams/matches, Fed funds decisions, CPI prints) puts the deadline only in the question description's legalese, e.g. *"by October 14, 2026 at 23:59 UTC"*. The normalizer now scans the question description for `<Month> <DD>[,] <YYYY> [at HH:MM UTC]` matches and takes the latest — which is always the resolution deadline (questions often mention an event date and a later cutoff). Defaults to 23:59 UTC when no time is given. Verified against all 28 live HL questions: 27 resolve to the correct deadline (World Cup matches → 2026-07-19, World Cup champion → 2026-10-14, Fed funds → 2026-09-16, CPI → 2026-08-12); the one miss is the `Recurring` price-bracket parent, which still falls through to the existing outcome-level `expiry:` tag.
+
 ## [2.51.3] - 2026-06-24
 
 ### Fixed

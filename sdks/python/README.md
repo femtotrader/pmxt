@@ -1,6 +1,7 @@
 # PMXT Python SDK
 
-A unified Python interface for prediction market exchanges (Polymarket, Kalshi, Limitless, Opinion, and more).
+A unified Python SDK for supported prediction markets.
+Hosted services are the default, with local sidecar access for self-hosted venue integrations.
 
 > **Note**: Use with a PMXT API key (hosted, recommended) or run a local PMXT service. Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
 

@@ -1,6 +1,7 @@
 # pmxtjs
 
-A unified TypeScript/Node.js SDK for prediction markets — The ccxt for prediction markets.
+A unified TypeScript/Node.js SDK for supported prediction markets.
+Hosted services are the default, with local sidecar access for self-hosted venue integrations.
 
 > **Note**: Use with a PMXT API key (hosted, recommended) or run a local PMXT service. Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
 

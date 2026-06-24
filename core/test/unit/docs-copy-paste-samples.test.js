@@ -601,6 +601,52 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     });
   });
 
+  test('SDK READMEs describe current support scope', () => {
+    const pythonReadme = readDoc('sdks/python/README.md');
+    const typescriptReadme = readDoc('sdks/typescript/README.md');
+    const staleClaimsByDocument = {
+      pythonReadme: [
+        'A unified Python interface for prediction market exchanges (Polymarket, Kalshi, Limitless, Opinion, and more).',
+      ],
+      typescriptReadme: [
+        'A unified TypeScript/Node.js SDK for prediction markets — The ccxt for prediction markets.',
+      ],
+    };
+    const expectedClaimsByDocument = {
+      pythonReadme: [
+        'A unified Python SDK for supported prediction markets.',
+        'Hosted services are the default, with local sidecar access for self-hosted venue integrations.',
+      ],
+      typescriptReadme: [
+        'A unified TypeScript/Node.js SDK for supported prediction markets.',
+        'Hosted services are the default, with local sidecar access for self-hosted venue integrations.',
+      ],
+    };
+    const documents = {
+      pythonReadme,
+      typescriptReadme,
+    };
+    const staleOffenders = Object.entries(staleClaimsByDocument).flatMap(([name, claims]) =>
+      claims
+        .filter((claim) => documents[name].includes(claim))
+        .map((claim) => `${name}: ${claim}`),
+    );
+    const missingCurrentClaims = Object.entries(expectedClaimsByDocument).flatMap(
+      ([name, claims]) =>
+        claims
+          .filter((claim) => !documents[name].includes(claim))
+          .map((claim) => `${name}: ${claim}`),
+    );
+
+    expect({
+      staleOffenders,
+      missingCurrentClaims,
+    }).toEqual({
+      staleOffenders: [],
+      missingCurrentClaims: [],
+    });
+  });
+
   test('SDK API references describe the current venue scope', () => {
     const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
     const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');

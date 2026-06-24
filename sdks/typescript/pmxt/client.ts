@@ -82,6 +82,7 @@ import {
     validateEconomics,
     verifySignature,
 } from "./hosted-typed-data.js";
+import type { HostedRoute } from "./hosted-typed-data.js";
 import type { Signer, TypedData } from "./signers.js";
 import { signerFromPrivateKey, EthersSigner } from "./signers.js";
 import { Escrow } from "./escrow.js";
@@ -2401,7 +2402,7 @@ export abstract class Exchange {
      * `validateTypedData` / `validateEconomics`. Returns the cross-chain
      * pull-leg route name for Opinion sells and Limitless cross-chain orders.
      */
-    private _hostedTypedDataRoute(side: string, isPull: boolean): string {
+    private _hostedTypedDataRoute(side: string, isPull: boolean): HostedRoute {
         const venue = this.exchangeName;
         const sideLower = side.toLowerCase();
         if (venue === "polymarket") {
@@ -2466,10 +2467,12 @@ export abstract class Exchange {
         return orderFromV0(data as Record<string, unknown>);
     }
 
-    private _hostedCancelTypedDataRoute(isPull: boolean): string {
+    private _hostedCancelTypedDataRoute(isPull: boolean): HostedRoute {
         const venue = this.exchangeName;
         if (venue === "polymarket") return "cancel_polymarket";
-        if (venue === "limitless") return isPull ? "cancel_limitless_base_pull" : "cancel_limitless_polygon";
+        if (venue === "limitless") {
+            return isPull ? "cancel_limitless_base_pull" : "cancel_limitless_polygon";
+        }
         return isPull ? "cancel_opinion_bsc_pull" : "cancel_opinion_polygon";
     }
 

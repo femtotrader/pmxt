@@ -843,7 +843,11 @@ class Exchange(ABC):
             return "cancel_polymarket", None
         if self.exchange_name == "opinion":
             return "cancel_opinion_polygon", "cancel_opinion_bsc_pull"
-        raise NotSupported("Hosted trading is only supported for Polymarket and Opinion.")
+        if self.exchange_name == "limitless":
+            return "cancel_limitless_polygon", "cancel_limitless_base_pull"
+        raise NotSupported(
+            "Hosted trading is only supported for Polymarket, Opinion, and Limitless."
+        )
 
     @staticmethod
     def _hosted_typed_data(payload: Dict[str, Any], key: str) -> Dict[str, Any]:

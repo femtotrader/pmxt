@@ -24,6 +24,19 @@ function getSamples(operation, language) {
     .map((sample) => sample.source);
 }
 
+function collectStrings(value) {
+  if (typeof value === 'string') {
+    return [value];
+  }
+  if (Array.isArray(value)) {
+    return value.flatMap(collectStrings);
+  }
+  if (value && typeof value === 'object') {
+    return Object.values(value).flatMap(collectStrings);
+  }
+  return [];
+}
+
 describe('Hosted OpenAPI SDK code samples', () => {
   test('show fetchBalance as a list in TypeScript and Python SDKs', () => {
     const spec = JSON.parse(fs.readFileSync(hostedTradingSpecPath, 'utf8'));
@@ -70,5 +83,22 @@ describe('Hosted OpenAPI SDK code samples', () => {
       expect(sample).toContain('outcome: yes');
       expect(sample).not.toContain('outcome: market.yes');
     }
+  });
+
+  test('scope hosted funding copy to current hosted venues', () => {
+    const spec = JSON.parse(fs.readFileSync(hostedTradingSpecPath, 'utf8'));
+    const text = collectStrings(spec).join('\n');
+
+    expect(text).toContain('Current hosted venues are funded once on Polygon');
+    expect(text).toContain(
+      'for Polymarket, Opinion, and Limitless. PMXT cannot move funds without your EIP-712 signature.',
+    );
+    expect(text).toContain(
+      'Backs trading on Polymarket, Opinion, and Limitless.',
+    );
+
+    expect(text).not.toContain('All hosted venues are funded once on Polygon');
+    expect(text).not.toContain('single funding location for every hosted venue');
+    expect(text).not.toContain('Backs trading across every hosted venue');
   });
 });

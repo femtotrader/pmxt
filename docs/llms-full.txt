@@ -3901,7 +3901,7 @@ Need to show the order to a user before they sign it (custom approval UX)? Use `
 
 **Python:**
 ```python
-# All hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
+# Current hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
 # Hosted writes need: pmxt_api_key + wallet_address + private_key (signs EIP-712 locally).
 # Pass an outcome straight from client.fetch_markets() — no UUID lookup needed.
 import pmxt
@@ -3926,7 +3926,7 @@ print(order.id, order.status)
 
 **TypeScript:**
 ```typescript
-// All hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
+// Current hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
 // Hosted writes need: pmxtApiKey + walletAddress + privateKey (signs EIP-712 locally).
 // Pass an outcome straight from client.fetchMarkets() — no UUID lookup needed.
 import { Polymarket } from "pmxtjs";
@@ -3962,7 +3962,7 @@ Use this when you want a human to approve each trade before it submits — for e
 
 **Python:**
 ```python
-# All hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
+# Current hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
 # Hosted writes need: pmxt_api_key + wallet_address + private_key (signs EIP-712 locally).
 # Pass an outcome straight from client.fetch_markets() — no UUID lookup needed.
 import pmxt
@@ -3987,7 +3987,7 @@ print(order.id, order.status)
 
 **TypeScript:**
 ```typescript
-// All hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
+// Current hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
 // Hosted writes need: pmxtApiKey + walletAddress + privateKey (signs EIP-712 locally).
 // Pass an outcome straight from client.fetchMarkets() — no UUID lookup needed.
 import { Polymarket } from "pmxtjs";
@@ -4023,7 +4023,7 @@ Submit a signed order returned by `buildOrderHosted` and get back the resulting 
 
 **Python:**
 ```python
-# All hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
+# Current hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
 # Hosted writes need: pmxt_api_key + wallet_address + private_key (signs EIP-712 locally).
 # Pass an outcome straight from client.fetch_markets() — no UUID lookup needed.
 import pmxt
@@ -4049,7 +4049,7 @@ print(order.id, order.status)
 
 **TypeScript:**
 ```typescript
-// All hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
+// Current hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
 // Hosted writes need: pmxtApiKey + walletAddress + privateKey (signs EIP-712 locally).
 // Pass an outcome straight from client.fetchMarkets() — no UUID lookup needed.
 import { Polymarket } from "pmxtjs";
@@ -4085,7 +4085,7 @@ The SDK's `cancelOrder()` chains both steps. Call this endpoint directly only if
 
 **Python:**
 ```python
-# All hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
+# Current hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
 # Hosted writes need: pmxt_api_key + wallet_address + private_key (signs EIP-712 locally).
 import pmxt
 
@@ -4101,7 +4101,7 @@ print(cancelled.id, cancelled.status)
 
 **TypeScript:**
 ```typescript
-// All hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
+// Current hosted venues are funded once on Polygon — see /guides/escrow-lifecycle.
 // Hosted writes need: pmxtApiKey + walletAddress + privateKey (signs EIP-712 locally).
 import { Polymarket } from "pmxtjs";
 

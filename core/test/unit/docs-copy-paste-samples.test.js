@@ -549,6 +549,58 @@ exchange.watch_user_transactions(callback=handle_transaction_update)`);
     );
   });
 
+  test('SDK entrypoints describe current venue scope and runnable examples', () => {
+    const pythonEntrypoint = readDoc('sdks/python/pmxt/__init__.py');
+    const typescriptEntrypoint = readDoc('sdks/typescript/index.ts');
+    const documents = {
+      pythonEntrypoint,
+      typescriptEntrypoint,
+    };
+    const staleClaimsByDocument = {
+      pythonEntrypoint: [
+        'A unified interface for interacting with multiple prediction market exchanges',
+        '(Kalshi, Polymarket) identically.',
+        '>>> markets = await poly.fetch_markets(query="Trump")',
+      ],
+      typescriptEntrypoint: [
+        'A unified interface for interacting with multiple prediction market exchanges',
+        '(Kalshi, Polymarket) identically.',
+      ],
+    };
+    const expectedClaimsByDocument = {
+      pythonEntrypoint: [
+        'A unified Python SDK for supported prediction markets',
+        'local sidecar access to PMXT exchange implementations',
+        'hosted services where configured.',
+        '>>> markets = poly.fetch_markets(query="Trump")',
+      ],
+      typescriptEntrypoint: [
+        'A unified TypeScript SDK for supported prediction markets',
+        'local sidecar access to PMXT exchange implementations',
+        'hosted services where configured.',
+      ],
+    };
+    const staleOffenders = Object.entries(staleClaimsByDocument).flatMap(([name, claims]) =>
+      claims
+        .filter((claim) => documents[name].includes(claim))
+        .map((claim) => `${name}: ${claim}`),
+    );
+    const missingCurrentClaims = Object.entries(expectedClaimsByDocument).flatMap(
+      ([name, claims]) =>
+        claims
+          .filter((claim) => !documents[name].includes(claim))
+          .map((claim) => `${name}: ${claim}`),
+    );
+
+    expect({
+      staleOffenders,
+      missingCurrentClaims,
+    }).toEqual({
+      staleOffenders: [],
+      missingCurrentClaims: [],
+    });
+  });
+
   test('SDK API references describe the current venue scope', () => {
     const pythonApiReference = readDoc('sdks/python/API_REFERENCE.md');
     const typescriptApiReference = readDoc('sdks/typescript/API_REFERENCE.md');

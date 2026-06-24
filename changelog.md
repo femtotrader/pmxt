@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.51.3] - 2026-06-24
+
+### Fixed
+
+- **Hyperliquid normalizer no longer stamps `resolutionDate` with the Unix epoch when expiry is unknown.** `core/src/exchanges/hyperliquid/normalizer.ts` used `expiryDate ?? new Date(0)` for the Outcome Markets path, which caused HL markets without a parseable `expiry:YYYYMMDD-HHmm` metadata tag (e.g., World Cup team markets) to be serialized with `resolutionDate = 1970-01-01T00:00:00Z`. Downstream consumers that gate on "is this market still tradable?" via `resolutionDate <= now()` (hosted-pmxt's ingest sweep is one) would then mass-close otherwise-live markets. The field is already optional in `UnifiedMarket`, so the fallback is now plain `undefined` — consumers decide policy.
+
 ## [2.51.2] - 2026-06-23
 
 ### Fixed

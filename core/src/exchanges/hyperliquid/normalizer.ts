@@ -233,7 +233,7 @@ export class HyperliquidNormalizer implements IExchangeNormalizer<HyperliquidRaw
             description: outcome.description,
             slug: `hl-${outcomeId}`,
             outcomes,
-            resolutionDate: expiryDate ?? new Date(0),
+            resolutionDate: expiryDate,
             volume24h: raw.volume24h ?? 0,
             liquidity: 0,
             url: buildMarketUrl(outcomeId),

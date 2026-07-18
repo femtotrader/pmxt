@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.54.0] - 2026-07-17
+
+### Added
+
+- **`feat(probable)`: unified Web3 authentication lifecycle (#1614).** Adds `getAuthNonce`, `loginWithSignature`, `logout`, `isSessionActive`, and `verifyL1`/`verifyL2` to the Probable exchange, with in-memory session storage on the base class, exposed through both SDKs.
+
+### Security
+
+- **Session credentials are never exposed over the network.** #1614 as submitted exposed `getSession` as an HTTP/RPC endpoint that returned the full session credential set (`apiKey`/`apiSecret`/`passphrase`) keyed by a **public** wallet address — on a shared/hosted deployment any caller could retrieve another user's trading secrets. Before landing, `getSession` was added to `EXCLUDED_METHODS` in `generate-openapi.js`, so it is omitted from `method-verbs.json`, the OpenAPI spec, and the generated SDK clients; it remains an in-process helper only. The signature-gated `loginWithSignature` (which returns the caller's own freshly minted credentials, only after they prove wallet ownership) and the boolean `isSessionActive` remain available.
+
 ## [2.53.1] - 2026-07-17
 
 ### Fixed

@@ -29,6 +29,7 @@ import type {
     MatchResult,
     EventMatchResult,
     PriceComparison,
+    CompareMarketPricesParams,
     ArbitrageOpportunity,
     MatchedMarketPair,
     MatchedPricePair,
@@ -1624,7 +1625,7 @@ export abstract class PredictionMarketExchange {
      * @param params - Match filter parameters (uses relation: 'identity' internally)
      * @returns Array of price comparisons across venues
      */
-    async compareMarketPrices(params: FetchMatchesParams): Promise<PriceComparison[]> {
+    async compareMarketPrices(params: CompareMarketPricesParams): Promise<PriceComparison[]> {
         throw new Error("Method compareMarketPrices not implemented.");
     }
 

@@ -20,6 +20,10 @@ import {
     ArbitrageOpportunity,
     UnifiedMarket,
     UnifiedEvent,
+    MarketOutcome,
+    OrderBook,
+    FetchOrderBookParams,
+    SqlResult,
 } from "./models.js";
 
 function withQuestionAlias<T extends UnifiedMarket>(market: T): T {
@@ -625,6 +629,75 @@ export class Router extends Exchange {
         } catch (error) {
             if (error instanceof Error) throw error;
             throw new Error(`Failed to fetchArbitrage: ${error}`);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Order book
+    // ------------------------------------------------------------------
+
+    /**
+     * Fetch a consolidated, cross-venue order book for an outcome.
+     *
+     * The Router queries every venue that lists the given outcome and merges
+     * the results into a single unified order book.
+     *
+     * @param outcomeId - The outcome to fetch the order book for.
+     * @param limit - Optional maximum number of price levels per side.
+     * @param params - Optional order-book parameters (e.g. `side`).
+     */
+    async fetchOrderBook(
+        outcomeId: string | MarketOutcome,
+        limit?: number,
+        params?: FetchOrderBookParams,
+    ): Promise<OrderBook> {
+        const book = await super.fetchOrderBook(outcomeId, limit, params);
+        return Array.isArray(book) ? book[0] : book;
+    }
+
+    // ------------------------------------------------------------------
+    // SQL
+    // ------------------------------------------------------------------
+
+    /**
+     * Run a read-only SQL query against the PMXT analytics database.
+     *
+     * POSTs `{ query }` to the hosted `/v0/sql` endpoint using the SDK's
+     * normal auth headers and returns the parsed result.
+     *
+     * @param query - A read-only SQL query (SELECT / WITH / SHOW / ...).
+     * @returns The query result rows plus column metadata.
+     */
+    async sql(query: string): Promise<SqlResult> {
+        await this.initPromise;
+        try {
+            const url = `${this.resolveBaseUrl()}/v0/sql`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
+                body: JSON.stringify({ query }),
+                signal: AbortSignal.timeout(30_000),
+            });
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                if (body.error && typeof body.error === 'object') {
+                    const { fromServerError } = await import('./errors.js');
+                    throw fromServerError(body.error);
+                }
+                throw new Error(body.message || body.error || response.statusText);
+            }
+            const json = await response.json();
+            return {
+                data: json.data || [],
+                meta: {
+                    columns: json.meta?.columns || [],
+                    rows: json.meta?.rows ?? 0,
+                    statistics: json.meta?.statistics || {},
+                },
+            };
+        } catch (error) {
+            if (error instanceof Error) throw error;
+            throw new Error(`Failed to sql: ${error}`);
         }
     }
 }

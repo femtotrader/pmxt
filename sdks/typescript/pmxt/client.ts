@@ -530,7 +530,7 @@ export abstract class Exchange {
      * Default local clients re-read the lock-file port on every call so they
      * pick up sidecar restarts that land on a different port.
      */
-    private resolveBaseUrl(): string {
+    protected resolveBaseUrl(): string {
         if (this.isHosted || !this._useSidecarLockBaseUrl) return this.config.basePath;
         const port = this.serverManager.getRunningPort();
         return `http://localhost:${port}`;

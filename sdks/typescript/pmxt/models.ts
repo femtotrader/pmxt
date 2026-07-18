@@ -1201,3 +1201,33 @@ export interface ArbitrageOpportunity {
     /** Match confidence score (0.0 to 1.0). */
     confidence?: number;
 }
+
+/** A single column in a {@link SqlResult}. */
+export interface SqlColumn {
+    /** Column name. */
+    name: string;
+
+    /** ClickHouse column type (e.g. 'String', 'UInt64'). */
+    type: string;
+}
+
+/** Metadata describing a {@link SqlResult}. */
+export interface SqlMeta {
+    /** The columns returned by the query, in order. */
+    columns: SqlColumn[];
+
+    /** Number of rows returned. */
+    rows: number;
+
+    /** Query execution statistics reported by the engine. */
+    statistics: Record<string, unknown>;
+}
+
+/** The result of a `Router.sql()` query. */
+export interface SqlResult {
+    /** The result rows, each keyed by column name. */
+    data: Record<string, unknown>[];
+
+    /** Column metadata, row count, and execution statistics. */
+    meta: SqlMeta;
+}

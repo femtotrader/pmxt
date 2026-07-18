@@ -1071,3 +1071,39 @@ class ArbitrageOpportunity:
 
     confidence: Optional[float] = None
     """Match confidence score (0.0 to 1.0)."""
+
+
+@dataclass
+class SqlColumn:
+    """A single column in a :class:`SqlResult`."""
+
+    name: str
+    """Column name."""
+
+    type: str
+    """ClickHouse column type (e.g. 'String', 'UInt64')."""
+
+
+@dataclass
+class SqlMeta:
+    """Metadata describing a :class:`SqlResult`."""
+
+    columns: List[SqlColumn]
+    """The columns returned by the query, in order."""
+
+    rows: int
+    """Number of rows returned."""
+
+    statistics: Dict[str, Any]
+    """Query execution statistics reported by the engine."""
+
+
+@dataclass
+class SqlResult:
+    """The result of a :meth:`Router.sql` query."""
+
+    data: List[Dict[str, Any]]
+    """The result rows, each keyed by column name."""
+
+    meta: SqlMeta
+    """Column metadata, row count, and execution statistics."""

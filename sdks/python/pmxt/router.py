@@ -21,6 +21,12 @@ from .models import (
     MatchRelation,
     UnifiedMarket,
     UnifiedEvent,
+    OrderBook,
+    FetchOrderBookParams,
+    MarketOutcome,
+    SqlColumn,
+    SqlMeta,
+    SqlResult,
 )
 from pmxt_internal.exceptions import ApiException
 
@@ -651,3 +657,79 @@ class Router(Exchange):
             )
             for r in raw
         ]
+
+    # ------------------------------------------------------------------
+    # Order book
+    # ------------------------------------------------------------------
+
+    def fetch_order_book(
+        self,
+        outcome_id: Union[str, "MarketOutcome"],
+        limit: Optional[float] = None,
+        params: Optional[FetchOrderBookParams] = None,
+        **kwargs: Any,
+    ) -> OrderBook:
+        """Fetch a consolidated, cross-venue order book for an outcome.
+
+        The Router queries every venue that lists the given outcome and
+        merges the results into a single unified order book.
+
+        Args:
+            outcome_id: The outcome to fetch the order book for.
+            limit: Optional maximum number of price levels per side.
+            params: Optional order-book parameters (e.g. ``side``).
+
+        Returns:
+            A single merged OrderBook across venues.
+        """
+        book = super().fetch_order_book(outcome_id, limit=limit, params=params, **kwargs)
+        if isinstance(book, list):
+            return book[0]
+        return book
+
+    # ------------------------------------------------------------------
+    # SQL
+    # ------------------------------------------------------------------
+
+    def sql(self, query: str) -> SqlResult:
+        """Run a read-only SQL query against the PMXT analytics database.
+
+        POSTs ``{"query": query}`` to the hosted ``/v0/sql`` endpoint using
+        the SDK's normal auth headers and returns the parsed result.
+
+        Args:
+            query: A read-only SQL query (SELECT / WITH / SHOW / ...).
+
+        Returns:
+            A SqlResult with the result rows plus column metadata.
+        """
+        url = f"{self._resolve_sidecar_host()}/v0/sql"
+        headers = {"Content-Type": "application/json", "Accept": "application/json"}
+        headers.update(self._get_auth_headers())
+        try:
+            response = self._fetch_with_retry(
+                lambda: self._api_client.call_api(
+                    method="POST",
+                    url=url,
+                    body={"query": query},
+                    header_params=headers,
+                )
+            )
+            response.read()
+            raw = json.loads(response.data)
+        except ApiException as e:
+            raise self._parse_api_exception(e) from None
+
+        meta_raw = raw.get("meta", {}) or {}
+        columns = [
+            SqlColumn(name=c.get("name", ""), type=c.get("type", ""))
+            for c in meta_raw.get("columns", [])
+        ]
+        return SqlResult(
+            data=raw.get("data", []) or [],
+            meta=SqlMeta(
+                columns=columns,
+                rows=meta_raw.get("rows", 0),
+                statistics=meta_raw.get("statistics", {}) or {},
+            ),
+        )

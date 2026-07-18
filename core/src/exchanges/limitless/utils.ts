@@ -200,44 +200,45 @@ export async function paginateLimitlessMarkets(
 ): Promise<any[]> {
     const PAGE_SIZE = 25;
     const targetLimit = requestedLimit || PAGE_SIZE;
-    const MAX_PAGES = 20; // Safety limit to prevent infinite loops
 
-    if (targetLimit <= PAGE_SIZE) {
+    // Over-fetch by 70% because ~30% of markets lack tokens and get filtered out
+    // This ensures enough raw markets survive the token filter
+    const OVER_FETCH_FACTOR = 1.7;
+    const rawTargetLimit = Math.ceil(targetLimit * OVER_FETCH_FACTOR);
+
+    if (rawTargetLimit <= PAGE_SIZE) {
         const response = await fetcher.getActiveMarkets({
-            limit: targetLimit,
+            limit: rawTargetLimit,
             page: 1,
             sortBy: sortBy,
         });
         return response.data || [];
     }
 
-    // Fetch more pages than theoretically needed to account for filtering
-    // ~33% of markets lack tokens and get filtered out, so we over-fetch
-    // by 70% to ensure we get enough valid markets after filtering
-    const estimatedPages = Math.ceil(targetLimit / PAGE_SIZE);
-    const pagesWithBuffer = Math.min(Math.ceil(estimatedPages * 1.7), MAX_PAGES);
+    // Sequential pagination using totalMarketsCount
+    const allMarkets: any[] = [];
+    let page = 1;
+    const MAX_PAGES = 50; // Safety limit
 
-    const pageNumbers: number[] = [];
-    for (let i = 1; i <= pagesWithBuffer; i++) {
-        pageNumbers.push(i);
+    while (page <= MAX_PAGES && allMarkets.length < rawTargetLimit) {
+        const response = await fetcher.getActiveMarkets({
+            limit: PAGE_SIZE,
+            page: page,
+            sortBy: sortBy,
+        });
+
+        const markets = response.data || [];
+        if (markets.length === 0) break;
+
+        allMarkets.push(...markets);
+
+        // Use totalMarketsCount to check if we're done
+        const totalCount = response.totalMarketsCount;
+        if (totalCount && allMarkets.length >= totalCount) break;
+
+        page++;
     }
 
-    const pages = await Promise.all(pageNumbers.map(async (page) => {
-        try {
-            const response = await fetcher.getActiveMarkets({
-                limit: PAGE_SIZE,
-                page: page,
-                sortBy: sortBy,
-            });
-            return response.data || [];
-        } catch (e) {
-            return [];
-        }
-    }));
-
-    const allMarkets = pages.flat();
-
-    // Don't slice here - let the caller handle limiting after filtering
-    // This ensures we return enough raw markets for the caller to filter
+    // Return raw markets - caller will filter tokens and apply actual limit
     return allMarkets;
 }

@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.52.0] - 2026-07-17
+
+Maintenance release rolling up the community and internal fixes accumulated since 2.51.4, plus two additive venue capabilities. All Core (816), Python SDK (260), and TypeScript SDK (86) tests pass. Backward-compatible; minor bump for the new opt-in features.
+
+### Added
+
+- **`feat(rain)`: `fetchOrderBooks` batch order-book fetch (#1693).** `RainExchange` now implements the batch `fetchOrderBooks(outcomeIds)` surface (emulated by fanning out to the existing single-outcome `fetchOrderBook`) and declares the `emulated` capability, so Rain participates in the cross-venue batch order-book path.
+- **`feat(python)`: SuiBets wallet options (#1657).** The Python SDK gains a `SuiBetsOptions` typed dict and threads `wallet_address` through the `SuiBets` constructor into the sidecar credential dict, matching the wallet-option pattern used by other venues.
+
+### Fixed
+
+- **`fix(hyperliquid)`: builder order attribution (#1658).** `createOrder` accepts optional `builder`/`builderFee` params, appended to the signed payload in the correct key order (after `grouping`) with address/fee validation. Purely opt-in; existing order flows are unchanged.
+- **`fix(typescript)`: WS client connection timeout and retry (#1659).** The TS SDK WebSocket client now applies a 10s handshake timeout and a 3-attempt retry loop with backoff, bringing it to parity with the Python client.
+- **`fix(limitless)`: wire `unwatchOrderBook` to WebSocket unsubscribe (#1692).** `unwatchOrderBook` now forwards to `LimitlessWebSocket.unsubscribe`, mirroring the `watchOrderBook` override and the Polymarket pattern.
+- **`fix(kalshi)`: expose event metadata endpoint (#1611); sync `Trade` schema with v2 API drift (#1187, #1282); OHLCV normalizer + docs `outcomeId` param (#1429).**
+- **`fix(suibets)`: model `onchainState` to restore accurate order-book liquidity (#1583).**
+- **`fix(polymarket-us)`: prevent WebSocket connect hangs from a garbage-collected timeout (#1580).**
+- **`fix(limitless)`: throw on `watchOrderBook` failure instead of silently swallowing it (#1581).**
+- **`fix(gemini-titan)`: add terms-acceptance flow before order submission (#1326).**
+- **`fix(smarkets)`: `resolutionDate` fallback (#1367).**
+- **`fix(sdk)`: compute detailed execution prices locally (#1308); expose venue filters in fetch params (#1325); align order book field types (#1417).**
+- **`fix(ts-sdk)`: export `Polymarket_us` alias (#1290); raise hosted embedded errors (#1307); require wallet for hosted build orders (#1314); forward `apiSecret` credentials (#1375); make hosted errors catchable by the base class (#1416); export public SDK option types (#1453); export `ExchangeOptions` from the package root (#1493); add documented event helper methods (#1492); make `Position` fields nullable to match Core (#1418); export version constant (#1579).**
+- **`fix(python-sdk)`: route order-book unwatch via HTTP (#1324); accept wallet address in the Hunch client (#1376); route Myriad wallet address correctly (#1452); type `api_secret` in exchange options (#1511); export filter function types (#1546).**
+
 ## [2.51.4] - 2026-06-24
 
 ### Fixed

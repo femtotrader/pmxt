@@ -12,6 +12,34 @@ import { logger } from "./logger.js";
 
 const MAX_QUEUED_MESSAGES_PER_SUBSCRIPTION = 100_000;
 
+/** Default number of connection attempts (matches the Python SDK). */
+const DEFAULT_MAX_ATTEMPTS = 3;
+/** Default handshake timeout in ms (introduced by the 10s-timeout work). */
+const DEFAULT_CONNECT_TIMEOUT_MS = 10_000;
+/** Default heartbeat interval in ms. */
+const DEFAULT_PING_INTERVAL_MS = 30_000;
+
+/**
+ * Tunable WebSocket transport options, surfaced through the exchange
+ * constructors (e.g. `new Polymarket({ websocket: { ... } })`).
+ */
+export interface WsClientConfig {
+    /** Custom WebSocket endpoint URL (e.g. "wss://custom.example.com/ws"). */
+    wsUrl?: string;
+    /**
+     * Delay between connection attempts, in ms. When omitted, a fast
+     * exponential backoff (250ms, 500ms, ...) is used to preserve the
+     * default reconnect behavior.
+     */
+    reconnectInterval?: number;
+    /** Heartbeat ping interval in ms. Set to 0 to disable. Default: 30000. */
+    pingInterval?: number;
+    /** Maximum number of connection attempts. Default: 3. */
+    maxReconnectAttempts?: number;
+    /** Handshake timeout for a single attempt, in ms. Default: 10000. */
+    connectTimeout?: number;
+}
+
 interface WsSubscription {
     readonly requestId: string;
     readonly method: string;
@@ -41,6 +69,8 @@ export class SidecarWsClient {
     private accessToken: string | undefined;
     private authParamName: string;
     private closed = false;
+    private config: WsClientConfig;
+    private pingIntervalId?: ReturnType<typeof setInterval>;
 
     /** requestId -> queued data payloads for single-event watch methods */
     private dataQueues: Map<string, any[]> = new Map();
@@ -53,10 +83,23 @@ export class SidecarWsClient {
 
     private connectPromise: Promise<void> | null = null;
 
-    constructor(host: string, accessToken?: string, authParamName: string = "token") {
+    constructor(
+        host: string,
+        accessToken?: string,
+        authParamName: string = "token",
+        config?: WsClientConfig,
+    ) {
         this.host = host;
         this.accessToken = accessToken;
         this.authParamName = authParamName;
+        this.config = config ?? {};
+    }
+
+    private clearPing(): void {
+        if (this.pingIntervalId) {
+            clearInterval(this.pingIntervalId);
+            this.pingIntervalId = undefined;
+        }
     }
 
     // ------------------------------------------------------------------
@@ -70,11 +113,12 @@ export class SidecarWsClient {
     // If connection is in progress, wait for it
     if (this.connectPromise) return this.connectPromise;
 
-    // ✅ Retry loop: 3 attempts (matching Python SDK)
-    const MAX_ATTEMPTS = 3;
+    // Retry loop. Defaults to 3 attempts (matching Python SDK); callers may
+    // override via the `maxReconnectAttempts` websocket option.
+    const maxAttempts = this.config.maxReconnectAttempts ?? DEFAULT_MAX_ATTEMPTS;
     let lastError: Error | undefined;
 
-    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
         try {
             this.connectPromise = this.connect();
             await this.connectPromise;
@@ -85,16 +129,18 @@ export class SidecarWsClient {
             this.connectPromise = null;
             this.ws = null;
             this.closed = true;
-            
-            // ✅ Exponential backoff: 250ms, 500ms, etc. (matching Python)
-            if (attempt < MAX_ATTEMPTS - 1) {
-                const delay = 250 * (attempt + 1);
+
+            // Backoff before the next attempt. When `reconnectInterval` is not
+            // configured, use a fast exponential backoff (250ms, 500ms, ...)
+            // to preserve the default reconnect behavior.
+            if (attempt < maxAttempts - 1) {
+                const delay = this.config.reconnectInterval ?? 250 * (attempt + 1);
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
     }
 
-    throw lastError || new PmxtError(`WebSocket connection failed after ${MAX_ATTEMPTS} attempts`);
+    throw lastError || new PmxtError(`WebSocket connection failed after ${maxAttempts} attempts`);
 }
 
     private connect(): Promise<void> {
@@ -108,10 +154,15 @@ export class SidecarWsClient {
             hostPart = hostPart.slice("http://".length);
         }
 
-        let url = `${scheme}://${hostPart}/ws`;
+        // Honor a custom endpoint when supplied, otherwise build the default URL.
+        let url = this.config.wsUrl || `${scheme}://${hostPart}/ws`;
         if (this.accessToken) {
-            url = `${url}?${this.authParamName}=${this.accessToken}`;
+            const separator = url.includes("?") ? "&" : "?";
+            url = `${url}${separator}${this.authParamName}=${this.accessToken}`;
         }
+
+        const connectTimeout = this.config.connectTimeout ?? DEFAULT_CONNECT_TIMEOUT_MS;
+        const pingInterval = this.config.pingInterval ?? DEFAULT_PING_INTERVAL_MS;
 
         // Use the ws package in Node.js, native WebSocket in browsers
         const WsConstructor = this.getWebSocketConstructor();
@@ -123,7 +174,7 @@ export class SidecarWsClient {
         const ws = new WsConstructor(url);
         this.closed = false;
 
-        // ✅ Timeout: 10 seconds (matching Python SDK)
+        // Handshake timeout (default 10s; configurable via `connectTimeout`).
         let timeoutId: NodeJS.Timeout | null = null;
 
         const cleanup = () => {
@@ -133,7 +184,6 @@ export class SidecarWsClient {
             }
         };
 
-        // ✅ Set timeout
         timeoutId = setTimeout(() => {
             cleanup();
             try {
@@ -141,12 +191,27 @@ export class SidecarWsClient {
             } catch (e) {
                 // Ignore close errors on timeout
             }
-            reject(new PmxtError(`WebSocket connection timeout after 10 seconds`));
-        }, 10000);
+            reject(new PmxtError(`WebSocket connection timeout after ${connectTimeout}ms`));
+        }, connectTimeout);
 
         ws.onopen = () => {
             cleanup();
             this.ws = ws;
+
+            // Start a heartbeat to keep the connection alive, when enabled.
+            if (pingInterval > 0) {
+                this.pingIntervalId = setInterval(() => {
+                    const active = this.ws as any;
+                    if (active && active.readyState === 1 /* OPEN */) {
+                        if (typeof active.ping === "function") {
+                            active.ping();
+                        } else {
+                            active.send(JSON.stringify({ action: "ping" }));
+                        }
+                    }
+                }, pingInterval);
+            }
+
             resolve();
         };
 
@@ -166,12 +231,14 @@ export class SidecarWsClient {
                     }
                 }
                 this.closed = true;
+                this.clearPing();
                 this.ws = null;
             }
         };
 
         ws.onclose = () => {
             cleanup();
+            this.clearPing();
             this.closed = true;
             this.ws = null;
         };
@@ -386,6 +453,7 @@ export class SidecarWsClient {
 
     close(): void {
         this.closed = true;
+        this.clearPing();
         if (this.ws) {
             try {
                 this.ws.close();

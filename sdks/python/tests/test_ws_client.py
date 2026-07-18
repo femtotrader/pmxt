@@ -106,6 +106,66 @@ def test_hosted_websocket_connect_prefers_ipv4(monkeypatch):
     monkeypatch.setattr(socket, "getaddrinfo", original)
 
 
+def _install_failing_websocket(monkeypatch, urls, on_connect=None):
+    class FakeWebSocket:
+        def settimeout(self, _timeout):
+            return None
+
+        def close(self):
+            return None
+
+    monkeypatch.setitem(sys.modules, "websocket", types.SimpleNamespace(WebSocket=FakeWebSocket))
+
+    def fake_connect(_ws, url, timeout):
+        urls.append(url)
+        if on_connect:
+            on_connect()
+        raise OSError("handshake failure")
+
+    monkeypatch.setattr(ws_client, "_connect_websocket", fake_connect)
+
+
+def test_ws_config_custom_url_and_reconnect_interval(monkeypatch):
+    urls = []
+    sleeps = []
+    monkeypatch.setattr(ws_client.time, "sleep", lambda seconds: sleeps.append(seconds))
+    _install_failing_websocket(monkeypatch, urls)
+
+    client = SidecarWsClient(
+        "http://localhost:3847",
+        config={"wsUrl": "ws://custom.example.com/ws", "maxReconnectAttempts": 2, "reconnectInterval": 2000},
+    )
+    try:
+        with client._lock:
+            client._ensure_connected()
+    except OSError:
+        pass
+
+    # maxReconnectAttempts honored (2 attempts) and the custom URL is used.
+    assert urls == ["ws://custom.example.com/ws", "ws://custom.example.com/ws"]
+    # A configured reconnectInterval (2000ms) is applied between attempts.
+    assert sleeps == [2.0]
+
+
+def test_ws_default_backoff_is_fast(monkeypatch):
+    """Regression: the default reconnect backoff must stay 0.25s/0.5s, not a
+    flat multi-second sleep, unless an interval is explicitly configured."""
+    urls = []
+    sleeps = []
+    monkeypatch.setattr(ws_client.time, "sleep", lambda seconds: sleeps.append(seconds))
+    _install_failing_websocket(monkeypatch, urls)
+
+    client = SidecarWsClient("http://localhost:3847")  # no websocket config
+    try:
+        with client._lock:
+            client._ensure_connected()
+    except OSError:
+        pass
+
+    # 3 default attempts -> 2 backoff sleeps using the fast schedule.
+    assert sleeps == [0.25, 0.5]
+
+
 def test_connect_retries_transient_handshake_failures(monkeypatch):
     attempts = {"count": 0}
 

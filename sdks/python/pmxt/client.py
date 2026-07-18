@@ -334,6 +334,7 @@ class Exchange(ABC):
         pmxt_api_key: Optional[str] = None,
         wallet_address: Optional[str] = None,
         signer: Optional[Any] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize an exchange client.
@@ -364,6 +365,10 @@ class Exchange(ABC):
                 ``sign_typed_data(typed_data) -> 0x-prefixed hex``. When
                 ``private_key`` is supplied without ``signer`` in hosted mode,
                 an :class:`EthAccountSigner` is created automatically.
+            websocket: Optional WebSocket transport tuning for streaming
+                methods. Recognized keys: ``wsUrl``, ``reconnectInterval``
+                (ms), ``maxReconnectAttempts``. (``pingInterval`` is not
+                supported by the Python transport.)
         """
         self.exchange_name = exchange_name.lower()
         self.api_key = api_key
@@ -373,6 +378,7 @@ class Exchange(ABC):
         self.signature_type = signature_type
         self.wallet_address = wallet_address
         self.signer = signer
+        self.websocket = websocket
         self.markets: Dict[str, "UnifiedMarket"] = {}
         self.markets_by_slug: Dict[str, "UnifiedMarket"] = {}
         self._loaded_markets: bool = False
@@ -2388,13 +2394,13 @@ class Exchange(ABC):
 
             host = self._resolve_sidecar_host()
             if self.is_hosted:
-                client = SidecarWsClient(host, api_key=self.pmxt_api_key)
+                client = SidecarWsClient(host, api_key=self.pmxt_api_key, config=self.websocket)
             else:
                 server_info = self._server_manager.get_server_info()
                 access_token = (
                     server_info.get("accessToken") if server_info else None
                 )
-                client = SidecarWsClient(host, access_token=access_token)
+                client = SidecarWsClient(host, access_token=access_token, config=self.websocket)
             try:
                 # Trigger connection to validate the endpoint exists
                 with client._lock:

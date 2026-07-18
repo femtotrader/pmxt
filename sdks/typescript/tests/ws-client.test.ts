@@ -63,6 +63,60 @@ describe('SidecarWsClient', () => {
     expect(client.dataStore.size).toBe(0);
   });
 
+  it('honors maxReconnectAttempts and reconnectInterval from websocket config', async () => {
+    const client: any = new SidecarWsClient('http://localhost:3847', undefined, 'token', {
+      maxReconnectAttempts: 2,
+      reconnectInterval: 1,
+    });
+    let attempts = 0;
+    client.connect = () => {
+      attempts += 1;
+      return Promise.reject(new Error('boom'));
+    };
+
+    await expect(client.ensureConnected()).rejects.toThrow();
+    expect(attempts).toBe(2);
+  });
+
+  it('defaults to 3 connection attempts when no websocket config is provided', async () => {
+    const client: any = new SidecarWsClient('http://localhost:3847', undefined, 'token', {
+      reconnectInterval: 1,
+    });
+    let attempts = 0;
+    client.connect = () => {
+      attempts += 1;
+      return Promise.reject(new Error('boom'));
+    };
+
+    await expect(client.ensureConnected()).rejects.toThrow();
+    expect(attempts).toBe(3);
+  });
+
+  it('uses a custom wsUrl from config and appends the auth token with the right separator', async () => {
+    const client: any = new SidecarWsClient('http://localhost:3847', 'tok', 'token', {
+      wsUrl: 'wss://custom.example.com/ws?x=1',
+      pingInterval: 0,
+    });
+    let capturedUrl = '';
+    class FakeWs {
+      onopen: any;
+      onerror: any;
+      onclose: any;
+      onmessage: any;
+      readyState = 1;
+      constructor(url: string) {
+        capturedUrl = url;
+        setTimeout(() => this.onopen && this.onopen(), 0);
+      }
+      close() {}
+    }
+    client.getWebSocketConstructor = () => FakeWs;
+
+    await client.ensureConnected();
+    expect(capturedUrl).toBe('wss://custom.example.com/ws?x=1&token=tok');
+    client.close();
+  });
+
   it('drops the oldest queued events after the per-subscription cap', async () => {
     const client: any = new SidecarWsClient('http://localhost:3847');
     const requestId = 'req-overflow';

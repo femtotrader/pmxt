@@ -66,10 +66,20 @@ class SidecarWsClient:
     may invoke subscribe/receive from any thread.
     """
 
-    def __init__(self, host: str, access_token: Optional[str] = None, api_key: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        host: str,
+        access_token: Optional[str] = None,
+        api_key: Optional[str] = None,
+        config: Optional[dict] = None,
+    ) -> None:
         self._host = host
         self._access_token = access_token
         self._api_key = api_key
+        # Optional transport tuning. Recognized keys: wsUrl, reconnectInterval
+        # (ms), maxReconnectAttempts. pingInterval is intentionally unsupported
+        # here rather than being accepted as a no-op.
+        self._config = config or {}
         self._ws: Any = None
         self._lock = threading.Lock()
         self._reader_thread: Optional[threading.Thread] = None
@@ -102,24 +112,43 @@ class SidecarWsClient:
                 "Install it with: pip install websocket-client"
             )
 
-        scheme = "ws"
-        # Strip http(s):// prefix from host to build ws URL
-        host_part = self._host
-        if host_part.startswith("https://"):
-            host_part = host_part[len("https://"):]
-            scheme = "wss"
-        elif host_part.startswith("http://"):
-            host_part = host_part[len("http://"):]
+        # Honor a custom endpoint when supplied, otherwise build the default URL.
+        custom_ws_url = self._config.get("wsUrl")
+        if custom_ws_url:
+            url = custom_ws_url
+            if self._api_key:
+                sep = "&" if "?" in url else "?"
+                url = f"{url}{sep}apiKey={self._api_key}"
+            elif self._access_token:
+                sep = "&" if "?" in url else "?"
+                url = f"{url}{sep}token={self._access_token}"
+        else:
+            scheme = "ws"
+            # Strip http(s):// prefix from host to build ws URL
+            host_part = self._host
+            if host_part.startswith("https://"):
+                host_part = host_part[len("https://"):]
+                scheme = "wss"
+            elif host_part.startswith("http://"):
+                host_part = host_part[len("http://"):]
 
-        url = f"{scheme}://{host_part}/ws"
-        if self._api_key:
-            url = f"{url}?apiKey={self._api_key}"
-        elif self._access_token:
-            url = f"{url}?token={self._access_token}"
+            url = f"{scheme}://{host_part}/ws"
+            if self._api_key:
+                url = f"{url}?apiKey={self._api_key}"
+            elif self._access_token:
+                url = f"{url}?token={self._access_token}"
+
+        # Connection attempts default to CONNECT_ATTEMPTS; callers may override
+        # via the "maxReconnectAttempts" config key.
+        max_attempts = self._config.get("maxReconnectAttempts") or CONNECT_ATTEMPTS
+        # When "reconnectInterval" (ms) is not configured, preserve the fast
+        # default backoff (0.25s, 0.5s, ...). Only a longer, explicitly
+        # configured interval overrides it.
+        configured_interval_ms = self._config.get("reconnectInterval")
 
         last_error: Optional[Exception] = None
         ws = None
-        for attempt in range(CONNECT_ATTEMPTS):
+        for attempt in range(max_attempts):
             ws = websocket.WebSocket()
             try:
                 _connect_websocket(ws, url, timeout=10)
@@ -131,8 +160,11 @@ class SidecarWsClient:
                     ws.close()
                 except Exception:
                     pass
-                if attempt < CONNECT_ATTEMPTS - 1:
-                    time.sleep(0.25 * (attempt + 1))
+                if attempt < max_attempts - 1:
+                    if configured_interval_ms is not None:
+                        time.sleep(configured_interval_ms / 1000.0)
+                    else:
+                        time.sleep(0.25 * (attempt + 1))
 
         if last_error is not None:
             raise last_error

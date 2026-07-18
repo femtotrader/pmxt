@@ -29,7 +29,10 @@ const OVERRIDES = {
     },
     myriad: {
         // Myriad uses privateKey as the wallet address, not a signing key.
+        // Surface it as `wallet_address` and route it to the base class's
+        // wallet slot (not `private_key`).
         paramAliases: { private_key: 'wallet_address' },
+        privateKeyAsWallet: true,
         paramDocs: {
             wallet_address: 'Wallet address (required for positions and balance)',
         },
@@ -39,6 +42,8 @@ const OVERRIDES = {
         // by the TypeScript SDK and core engine. The default-derived "Suibets"
         // is emitted as a backwards-compatible alias.
         className: 'SuiBets',
+        // SuiBets reads use the wallet address as a credential.
+        walletAddressCred: true,
     },
 };
 
@@ -155,11 +160,15 @@ function generateClass(exchange) {
         extraAttrs.push('self.passphrase = passphrase');
         credOverrideLines.push('        if self.passphrase:', '            creds["passphrase"] = self.passphrase');
     }
+    if (ov.walletAddressCred) {
+        credOverrideLines.push('        if self.wallet_address:', '            creds["walletAddress"] = self.wallet_address');
+    }
     if (creds.privateKey) {
         const pyParam = aliases['private_key'] || 'private_key';
         const defaultVal = defaults['private_key'] || 'None';
         constructorParams.push(`${pyParam}: Optional[str] = ${defaultVal}`);
-        superArgs.push(`private_key=${pyParam}`);
+        const superTarget = ov.privateKeyAsWallet ? 'wallet_address' : 'private_key';
+        superArgs.push(`${superTarget}=${pyParam}`);
     }
     if (creds.funderAddress) {
         constructorParams.push('proxy_address: Optional[str] = None');
@@ -177,6 +186,23 @@ function generateClass(exchange) {
     superArgs.push('auto_start_server=auto_start_server');
     superArgs.push('pmxt_api_key=pmxt_api_key');
 
+    // Universal hosted/transport params, forwarded to the base Exchange.
+    // Track already-added constructor params so we don't duplicate a name
+    // that a credential alias already introduced (e.g. Myriad maps
+    // private_key -> wallet_address).
+    const addedParams = new Set(
+        constructorParams.map(p => p.split(':')[0].trim())
+    );
+    const addedWalletAddress = !addedParams.has('wallet_address');
+    if (addedWalletAddress) {
+        constructorParams.push('wallet_address: Optional[str] = None');
+        superArgs.push('wallet_address=wallet_address');
+    }
+    constructorParams.push('signer: Optional[object] = None');
+    superArgs.push('signer=signer');
+    constructorParams.push('websocket: Optional[dict] = None');
+    superArgs.push('websocket=websocket');
+
     const docLines = [];
     if (creds.apiKey)        docLines.push('            api_key: API key for authentication (optional)');
     if (creds.apiToken)      docLines.push('            api_token: API token for authentication (optional; required for Metaculus API access)');
@@ -192,6 +218,11 @@ function generateClass(exchange) {
     docLines.push('            base_url: Base URL of the PMXT sidecar server');
     docLines.push('            auto_start_server: Automatically start server if not running (default: True)');
     docLines.push('            pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)');
+    if (addedWalletAddress) {
+        docLines.push('            wallet_address: Wallet address for hosted reads/writes (optional)');
+    }
+    docLines.push('            signer: Custom signer for hosted writes (optional)');
+    docLines.push('            websocket: WebSocket transport configuration dict (optional)');
 
     const indent4 = s => `    ${s}`;
     const indent8 = s => `        ${s}`;

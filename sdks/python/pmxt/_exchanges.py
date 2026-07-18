@@ -21,10 +21,9 @@ class Polymarket(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
-        # NOTE: Generated wrapper; update the generator template in
-        # core/scripts/generate-python-exchanges.js in a follow-up.
         wallet_address: Optional[str] = None,
         signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Polymarket client.
@@ -39,8 +38,9 @@ class Polymarket(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
-            wallet_address: Ethereum address for hosted reads/writes (optional)
-            signer: Optional callable for signing typed_data (optional)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="polymarket",
@@ -53,6 +53,7 @@ class Polymarket(Exchange):
             pmxt_api_key=pmxt_api_key,
             wallet_address=wallet_address,
             signer=signer,
+            websocket=websocket,
         )
 
         self.api_secret = api_secret
@@ -86,6 +87,7 @@ class Limitless(Exchange):
         pmxt_api_key: Optional[str] = None,
         wallet_address: Optional[str] = None,
         signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Limitless client.
@@ -98,8 +100,9 @@ class Limitless(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
-            wallet_address: Ethereum address for hosted reads/writes (optional)
-            signer: Optional callable for signing typed_data (optional)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="limitless",
@@ -110,6 +113,7 @@ class Limitless(Exchange):
             pmxt_api_key=pmxt_api_key,
             wallet_address=wallet_address,
             signer=signer,
+            websocket=websocket,
         )
 
         self.api_secret = api_secret
@@ -134,6 +138,9 @@ class Kalshi(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Kalshi client.
@@ -144,6 +151,9 @@ class Kalshi(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="kalshi",
@@ -152,6 +162,9 @@ class Kalshi(Exchange):
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
 
@@ -165,6 +178,9 @@ class KalshiDemo(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize KalshiDemo client.
@@ -175,6 +191,9 @@ class KalshiDemo(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="kalshi-demo",
@@ -183,6 +202,9 @@ class KalshiDemo(Exchange):
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
 
@@ -198,6 +220,9 @@ class Probable(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Probable client.
@@ -210,6 +235,9 @@ class Probable(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="probable",
@@ -218,6 +246,9 @@ class Probable(Exchange):
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
         self.api_secret = api_secret
@@ -241,6 +272,9 @@ class Baozi(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Baozi client.
@@ -250,6 +284,9 @@ class Baozi(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="baozi",
@@ -257,6 +294,9 @@ class Baozi(Exchange):
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
 
@@ -270,6 +310,8 @@ class Myriad(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Myriad client.
@@ -280,6 +322,8 @@ class Myriad(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="myriad",
@@ -288,6 +332,8 @@ class Myriad(Exchange):
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            signer=signer,
+            websocket=websocket,
         )
 
 
@@ -302,10 +348,9 @@ class Opinion(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
-        # NOTE: Generated wrapper; update the generator template in
-        # core/scripts/generate-python-exchanges.js in a follow-up.
         wallet_address: Optional[str] = None,
         signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Opinion client.
@@ -317,8 +362,9 @@ class Opinion(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
-            wallet_address: Ethereum address for hosted reads/writes (optional)
-            signer: Optional callable for signing typed_data (optional)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="opinion",
@@ -330,6 +376,7 @@ class Opinion(Exchange):
             pmxt_api_key=pmxt_api_key,
             wallet_address=wallet_address,
             signer=signer,
+            websocket=websocket,
         )
 
 
@@ -342,6 +389,9 @@ class Metaculus(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Metaculus client.
@@ -351,6 +401,9 @@ class Metaculus(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="metaculus",
@@ -358,6 +411,9 @@ class Metaculus(Exchange):
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
 
@@ -371,6 +427,9 @@ class Smarkets(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Smarkets client.
@@ -381,6 +440,9 @@ class Smarkets(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="smarkets",
@@ -389,6 +451,9 @@ class Smarkets(Exchange):
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
 
@@ -402,6 +467,9 @@ class PolymarketUS(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize PolymarketUS client.
@@ -412,6 +480,9 @@ class PolymarketUS(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="polymarket_us",
@@ -420,6 +491,9 @@ class PolymarketUS(Exchange):
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
 
@@ -433,6 +507,9 @@ class Hyperliquid(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Hyperliquid client.
@@ -443,6 +520,9 @@ class Hyperliquid(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="hyperliquid",
@@ -451,6 +531,9 @@ class Hyperliquid(Exchange):
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
 
@@ -464,6 +547,9 @@ class GeminiTitan(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize GeminiTitan client.
@@ -474,6 +560,9 @@ class GeminiTitan(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="gemini-titan",
@@ -481,6 +570,9 @@ class GeminiTitan(Exchange):
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
         self.api_secret = api_secret
@@ -501,6 +593,8 @@ class SuiBets(Exchange):
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
         wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize SuiBets client.
@@ -509,7 +603,9 @@ class SuiBets(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
-            wallet_address: Sui wallet address used for hosted reads
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="suibets",
@@ -517,6 +613,8 @@ class SuiBets(Exchange):
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
             wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
     def _get_credentials_dict(self) -> Optional[Dict[str, Any]]:
@@ -531,23 +629,35 @@ class Rain(Exchange):
 
     def __init__(
         self,
+        private_key: Optional[str] = None,
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Rain client.
 
         Args:
+            private_key: Private key for authentication (optional)
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="rain",
+            private_key=private_key,
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
 
@@ -561,6 +671,8 @@ class Hunch(Exchange):
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
         wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Hunch client.
@@ -570,7 +682,9 @@ class Hunch(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
-            wallet_address: EVM wallet address used for hosted reads/writes
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="hunch",
@@ -579,6 +693,8 @@ class Hunch(Exchange):
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
             wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
 
@@ -590,6 +706,9 @@ class Mock(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Mock client.
@@ -598,12 +717,18 @@ class Mock(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="mock",
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
 
@@ -615,6 +740,9 @@ class Router(Exchange):
         base_url: Optional[str] = None,
         auto_start_server: Optional[bool] = None,
         pmxt_api_key: Optional[str] = None,
+        wallet_address: Optional[str] = None,
+        signer: Optional[object] = None,
+        websocket: Optional[dict] = None,
     ) -> None:
         """
         Initialize Router client.
@@ -623,12 +751,18 @@ class Router(Exchange):
             base_url: Base URL of the PMXT sidecar server
             auto_start_server: Automatically start server if not running (default: True)
             pmxt_api_key: Hosted PMXT API key (optional; enables hosted mode)
+            wallet_address: Wallet address for hosted reads/writes (optional)
+            signer: Custom signer for hosted writes (optional)
+            websocket: WebSocket transport configuration dict (optional)
         """
         super().__init__(
             exchange_name="router",
             base_url=base_url,
             auto_start_server=auto_start_server,
             pmxt_api_key=pmxt_api_key,
+            wallet_address=wallet_address,
+            signer=signer,
+            websocket=websocket,
         )
 
 # Backwards-compatible aliases for exchange classes generated before underscore handling.

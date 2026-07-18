@@ -53,7 +53,7 @@ import { ServerManager } from "./server-manager.js";
 import { buildArgsWithOptionalOptions } from "./args.js";
 import { PmxtError, fromServerError, InvalidOrder, NotSupported } from "./errors.js";
 import { ENV, LOCAL_URL, resolvePmxtBaseUrl } from "./constants.js";
-import { SidecarWsClient } from "./ws-client.js";
+import { SidecarWsClient, WsClientConfig } from "./ws-client.js";
 import { logger } from "./logger.js";
 
 // Hosted-mode trading dispatch.
@@ -290,6 +290,13 @@ export interface ExchangeOptions {
      * built from it lazily.
      */
     signer?: Signer;
+
+    /**
+     * WebSocket transport tuning for streaming methods (watchOrderBook,
+     * firehose, etc.). All fields are optional; omitted fields fall back to
+     * the SDK defaults.
+     */
+    websocket?: WsClientConfig;
 }
 
 /**
@@ -352,6 +359,9 @@ export abstract class Exchange {
      */
     private _getReadsUnsupported: boolean = false;
 
+    /** WebSocket transport tuning passed to the lazily-created ws client. */
+    protected _websocketConfig?: WsClientConfig;
+
     /** Shared WebSocket client for streaming methods (lazy). */
     private _wsClient: SidecarWsClient | null = null;
     /** Sticky flag: true if the sidecar /ws endpoint is unavailable. */
@@ -367,6 +377,7 @@ export abstract class Exchange {
         this.signatureType = options.signatureType;
         this.walletAddress = options.walletAddress;
         this.signer = options.signer;
+        this._websocketConfig = options.websocket;
 
         // Resolve base URL + hosted API key via the shared precedence
         // rules. See constants.ts for the full resolution table.
@@ -590,7 +601,7 @@ export abstract class Exchange {
             : this.serverManager.getAccessToken();
         const authParamName = this.isHosted ? "apiKey" : "token";
 
-        const client = new SidecarWsClient(host, accessToken || undefined, authParamName);
+        const client = new SidecarWsClient(host, accessToken || undefined, authParamName, this._websocketConfig);
         try {
             // Trigger connection to validate the endpoint exists.
             // subscribe() calls ensureConnected internally, but we want
@@ -3169,6 +3180,12 @@ export interface PolymarketOptions {
      * External signer used for hosted writes.
      */
     signer?: Signer;
+
+    /**
+     * WebSocket transport tuning for streaming methods. See
+     * {@link WsClientConfig}.
+     */
+    websocket?: WsClientConfig;
 }
 
 export class Polymarket extends Exchange {

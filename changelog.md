@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.53.0] - 2026-07-17
+
+Second wave of community PR triage. Each of these was reworked before landing — the original branches carried stale reverts, file-encoding corruption, or compile errors, so only the intended net change was applied on top of current `main`, then re-verified. All Core (816), Python SDK (267), and TypeScript SDK (93) tests pass. Minor bump for the new opt-in Router and WebSocket capabilities.
+
+### Added
+
+- **`feat(sdk)`: `Router.sql(query)` (#1129).** Both SDKs gain a `Router.sql()` / `Router.sql()` method that POSTs a query to the server's existing `/v0/sql` endpoint (read-only ClickHouse, error-scrubbed) with the SDK's normal auth headers, returning a typed `SqlResult` (`SqlMeta`/`SqlColumn`) exported from each package root. The original PR's UTF-16 file corruption and unrelated reverts were dropped.
+- **`feat(sdk)`: cross-venue `Router.fetchOrderBook(outcomeId)` (#1670).** Both SDKs expose a Router-level order-book fetch that routes through the existing core `Router.fetchOrderBook` surface and returns a single merged `OrderBook`. Reimplemented as a proper `Router` class method (the original defined it at module level, which gutted the Python `Router` class).
+- **`feat(sdk)`: expose WebSocket configuration for Polymarket and Kalshi (#1126).** A `websocket` options object (reconnect interval, max reconnect attempts, ping interval, connect timeout) is threaded through the SDK exchange constructors into the WebSocket clients in both SDKs. Reconciled with the #1659 handshake-timeout/retry work already on `main`, and the fast default reconnect backoff is preserved (no 5s-default regression).
+
+### Fixed
+
+- **`fix(baozi)`: correct program error-code mappings (#1118).** Remap `6018/6040/6020/6041` → `6013/6014/6023/6024` to match the current on-chain IDL. Applied without the stale hosted-trading reverts the original branch carried.
+- **`fix(limitless)`: paginate all markets (#1119).** Replace fixed-page parallel fetching with sequential pagination driven by `totalMarketsCount` (with a 50-page safety cap) plus a token-filter over-fetch factor, so large `limit` requests return the full set. Applied without the stale reverts.
+- **`fix(ts-sdk)`: align `MatchResult` / `PriceComparison` nullable fields (#1578).** Widen `reasoning`, `bestBid`, `bestAsk` to `T | null` to match `openapi.yaml` (`nullable: true`). The half-wired parity CI from that PR was intentionally not included.
+
+### Not merged
+
+- **#1614** (`feat(probable)`) was rejected: it exposed session credentials (`apiKey`/`apiSecret`/`passphrase`) over an HTTP endpoint keyed by a public wallet address. Held out pending a fix that stops returning secrets over the server surface.
+- **#1419** (`replace any with proper types`) was superseded: the remaining `any` usages are raw wire-JSON in converter helpers with no genuine importable type to substitute; the public Router signatures are already typed.
+
 ## [2.52.0] - 2026-07-17
 
 Maintenance release rolling up the community and internal fixes accumulated since 2.51.4, plus two additive venue capabilities. All Core (816), Python SDK (260), and TypeScript SDK (86) tests pass. Backward-compatible; minor bump for the new opt-in features.

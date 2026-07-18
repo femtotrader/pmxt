@@ -1172,6 +1172,30 @@ export interface PriceComparison {
     venue: string;
 }
 
+/** Response from a Web3 auth nonce request. */
+export interface AuthNonceResponse {
+    /** Random nonce to be signed. */
+    nonce: string;
+    /** Human-readable message to sign. */
+    messageToSign: string;
+    /** Optional expiry timestamp (milliseconds). */
+    expiresAt?: number;
+}
+
+/** Session credentials returned after a successful Web3 login. */
+export interface AuthLoginResponse {
+    /** API key for authenticated requests. */
+    apiKey: string;
+    /** API secret for signing. */
+    apiSecret: string;
+    /** Passphrase for trading. */
+    passphrase?: string;
+    /** Session expiry timestamp (milliseconds). */
+    expiresAt?: number;
+    /** Whether the session is active. */
+    active?: boolean;
+}
+
 /** A cross-venue arbitrage opportunity. */
 export interface ArbitrageOpportunity {
     /** Market on the buy side. */

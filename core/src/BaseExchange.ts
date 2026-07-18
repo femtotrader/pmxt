@@ -33,6 +33,9 @@ import type {
     ArbitrageOpportunity,
     MatchedMarketPair,
     MatchedPricePair,
+    AuthNonceResponse,
+    AuthLoginResponse,
+    AuthSession,
 } from './router/types';
 
 // ----------------------------------------------------------------------------
@@ -474,6 +477,7 @@ export abstract class PredictionMarketExchange {
     private _snapshot?: { markets: UnifiedMarket[]; takenAt: number; id: string };
     private _eventSnapshot?: { events: UnifiedEvent[]; takenAt: number; id: string };
     private apiDescriptors: ApiDescriptor[] = [];
+    protected _sessions: Map<string, AuthSession> = new Map();
 
     constructor(credentials?: ExchangeCredentials, options?: ExchangeOptions) {
         this.credentials = credentials;
@@ -555,6 +559,100 @@ export abstract class PredictionMarketExchange {
     }
 
     abstract get name(): string;
+
+    /**
+     * Get a cryptographic nonce for Web3 login.
+     * @param walletAddress - The wallet address to authenticate
+     */
+    async getAuthNonce(walletAddress: string): Promise<AuthNonceResponse> {
+        throw new Error(`getAuthNonce not implemented for ${this.name}`);
+    }
+
+    /**
+     * Login with a signed nonce to obtain session credentials.
+     * @param walletAddress - The wallet address
+     * @param signature - The signature of the nonce message
+     * @param nonce - The nonce that was signed
+     */
+    async loginWithSignature(
+        walletAddress: string,
+        signature: string,
+        nonce: string
+    ): Promise<AuthLoginResponse> {
+        throw new Error(`loginWithSignature not implemented for ${this.name}`);
+    }
+
+    /**
+     * Logout and invalidate the current session.
+     * @param walletAddress - The wallet address to logout (optional)
+     */
+    async logout(walletAddress?: string): Promise<void> {
+        throw new Error(`logout not implemented for ${this.name}`);
+    }
+
+    /**
+     * Check if a session is active for the given wallet address.
+     * @param walletAddress - The wallet address to check
+     */
+    async isSessionActive(walletAddress: string): Promise<boolean> {
+        const session = this._sessions.get(walletAddress);
+        if (!session) return false;
+        if (session.credentials.expiresAt && session.credentials.expiresAt < Date.now()) {
+            this._sessions.delete(walletAddress);
+            return false;
+        }
+        return session.credentials.active !== false;
+    }
+
+    /**
+     * Get the stored session for a wallet address.
+     *
+     * SECURITY: This is an in-process helper only and is deliberately excluded
+     * from the HTTP/RPC server surface (see EXCLUDED_METHODS in
+     * scripts/generate-openapi.js). It returns session credentials (apiKey /
+     * apiSecret / passphrase), so it must never be reachable over the network,
+     * where the wallet address — a public value — would otherwise let any caller
+     * retrieve another user's secrets.
+     * @param walletAddress - The wallet address
+     */
+    getSession(walletAddress: string): AuthSession | undefined {
+        return this._sessions.get(walletAddress);
+    }
+
+    /**
+     * Store a session in memory.
+     * @param walletAddress - The wallet address
+     * @param credentials - The session credentials
+     */
+    protected storeSession(walletAddress: string, credentials: AuthLoginResponse): void {
+        this._sessions.set(walletAddress, {
+            walletAddress,
+            credentials,
+            createdAt: Date.now(),
+            lastUsedAt: Date.now(),
+        });
+    }
+
+    /**
+     * Remove a session from memory.
+     * @param walletAddress - The wallet address
+     */
+    protected removeSession(walletAddress: string): void {
+        this._sessions.delete(walletAddress);
+    }
+
+    /**
+     * Clean expired sessions from memory.
+     * Should be called periodically to prevent memory leaks.
+     */
+    protected cleanExpiredSessions(): void {
+        const now = Date.now();
+        for (const [address, session] of this._sessions) {
+            if (session.credentials.expiresAt && session.credentials.expiresAt < now) {
+                this._sessions.delete(address);
+            }
+        }
+    }
 
     /**
      * Introspection getter: returns info about all implicit API methods.

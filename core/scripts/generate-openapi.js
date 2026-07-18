@@ -1174,7 +1174,11 @@ function generateHostedDocsSpec(spec) {
     );
 }
 
-const EXCLUDED_METHODS = new Set(['callApi', 'defineImplicitApi', 'fetchMatches']);
+// getSession returns session credentials (apiKey/apiSecret/passphrase) and is
+// keyed by a public wallet address, so it must never be exposed over the HTTP/RPC
+// surface — it is an in-process helper only. Keep it out of method-verbs.json,
+// the OpenAPI spec, and the generated SDK clients.
+const EXCLUDED_METHODS = new Set(['callApi', 'defineImplicitApi', 'fetchMatches', 'getSession']);
 
 // Map TypeScript type names to OpenAPI component schema names
 const TYPE_REF_MAP = {

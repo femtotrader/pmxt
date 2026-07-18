@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.53.1] - 2026-07-17
+
+### Fixed
+
+- **`fix(core)`: type `compareMarketPrices` with `CompareMarketPricesParams` (#1419).** Introduce a precise `CompareMarketPricesParams` type and use it for the base `compareMarketPrices` signature instead of the loose `FetchMatchesParams`. Type-only refinement — the base method is a stub and the concrete `Router.ts` behavior is unchanged. Only the buildable core of #1419 was applied; its broken SDK-generator import and a `private_key=wallet_address` bug were dropped.
+
 ## [2.53.0] - 2026-07-17
 
 Second wave of community PR triage. Each of these was reworked before landing — the original branches carried stale reverts, file-encoding corruption, or compile errors, so only the intended net change was applied on top of current `main`, then re-verified. All Core (816), Python SDK (267), and TypeScript SDK (93) tests pass. Minor bump for the new opt-in Router and WebSocket capabilities.

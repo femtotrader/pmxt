@@ -3,7 +3,7 @@
   "info": {
     "title": "PMXT Hosted API",
     "description": "One API for supported prediction markets. Hosted catalog search in under 10ms, a unified schema for supported venues, and venue-native trading where venues expose writes.",
-    "version": "2.52.0"
+    "version": "2.53.0"
   },
   "servers": [
     {
